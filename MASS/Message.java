@@ -201,5 +201,9 @@ public class Message implements Serializable
 	public void setSlopeBasedFlag(boolean slopeBasedFlag) {
 		this.slopeBasedFlag = slopeBasedFlag;
 	}
+	
+	public void setHandle(int h){
+		this.HANDLE = h;
+	}
+	
 }
-

@@ -2,6 +2,11 @@ package MASS;
 
 
 
+//import MASS;
+//import MNode;
+//import Message;
+//import Places;
+
 import com.jcraft.jsch.Channel;
 import java.io.*;
 import java.net.InetAddress;
@@ -718,6 +723,7 @@ public class MASS
             if(myPid == 0)
             {
                 Message exgMsg = new Message();
+                exgMsg.setHandle(ea_places.getHandle());
                 exgMsg.createExchangeAllMessage(ea_functionId, ea_destinations);
                 for(MNode node : mNodes)
                 {
@@ -827,7 +833,7 @@ public class MASS
     
     private static void processRemoteExchangeRequest( )
     {   
-                              
+                             
         java.util.Map.Entry exgRequest = null;
         String destinationHostName = null;
         ExchangeHelper helper = null;
@@ -994,33 +1000,34 @@ public class MASS
 	 *            the argument that will be passed in to callMethod for each
 	 *            MASS.Place
 	 */
-	static void ca_setup(Places plcs, int functionId, Object argument) 
-        {
-            if (!INITIALIZED)
-                return;
-            // try {
-            synchronized (STATUS) 
-            {
-                ca_places = plcs;
-                ca_functionId = functionId;
-                ca_argument = argument;
-                ca_arguments = null; // arguments array
-                ca_retVals = null;
-                ca_finalRetVals = null;
-                if(MASS.myPid == 0 )
-                {
-                    Message m = new Message();
-                    m.createActionMessage(Constants.CALL_ALL_VOID_OBJECT, functionId, argument);
-                    for(MNode node : mNodes)
-                    {
-                        node.sendMessage(m);
-                    }                    
-                }
-                STATUS[0] = STATUS_CALLALL;
-                STATUS.notifyAll();
-            }
-            
-            //MASS.log("ca_setup with NO return value is complete for " + myPid);
+    static void ca_setup_1arg(Places plcs, int functionId, Object argument) 
+	{
+		if (!INITIALIZED)
+			return;
+		// try {
+		synchronized (STATUS) 
+		{
+			ca_places = plcs;
+			ca_functionId = functionId;
+			ca_argument = argument;
+			ca_arguments = null; // arguments array
+			ca_retVals = null;
+			ca_finalRetVals = null;
+			if(MASS.myPid == 0 )
+			{
+				Message m = new Message();
+				m.setHandle(plcs.getHandle());
+				m.createActionMessage(Constants.CALL_ALL_VOID_OBJECT, functionId, argument);
+				for(MNode node : mNodes)
+				{
+					node.sendMessage(m); //use plcs HANDLE HERE
+				}                    
+			}
+			STATUS[0] = STATUS_CALLALL;
+			STATUS.notifyAll();
+		}
+
+		//MASS.log("ca_setup with NO return value is complete for " + myPid);
 	}
 
 	/**
@@ -1036,34 +1043,36 @@ public class MASS
 	 *            the arguments that will be passed in to callMethod for each
 	 *            corresponding MASS.Place
 	 */
-	static void ca_setup(Places plcs, int functionId, Object[] arguments) 
-        {
-            if (!INITIALIZED)
-                return;
-            // try{
-            synchronized (STATUS)
-            {
-                ca_places = plcs;
-                ca_functionId = functionId;
-                ca_argument = null;
-                ca_arguments = arguments;
-                ca_retVals = new Object[plcs.length()];
+	static void ca_setup_args(Places plcs, int functionId, Object[] arguments) 
+	{
+		if (!INITIALIZED)
+			return;
+		// try{
+		synchronized (STATUS)
+		{
+			ca_places = plcs;
+			ca_functionId = functionId;
+			ca_argument = null;
+			ca_arguments = arguments;
+			ca_retVals = new Object[plcs.length()];
 
-                if(myPid == 0)
-                {              
-                    Message m = new Message();
-                    m.createActionMessage(Constants.CALL_ALL_RETURN_OBJECT, functionId, arguments);
-                    for(MNode node : mNodes)
-                    {
-                        node.sendMessage(m);
-                    }
-                    ca_finalRetVals = new Object[plcs.totalLength()];
-                }
+			if(myPid == 0)
+			{              
+				Message m = new Message();
+				m.setHandle(plcs.getHandle()); //be sure to set Handle!
+				m.createActionMessage(Constants.CALL_ALL_RETURN_OBJECT, functionId, arguments);
+				for(MNode node : mNodes)
+				{
+					node.sendMessage(m);
+					
+				}
+				ca_finalRetVals = new Object[plcs.totalLength()];
+			}
 
-                STATUS[0] = STATUS_CALLALL;
-                STATUS.notifyAll();
-            }
-            //MASS.log("ca_setup with return value is complete for " + myPid);
+			STATUS[0] = STATUS_CALLALL;
+			STATUS.notifyAll();
+		}
+		//MASS.log("ca_setup with return value is complete for " + myPid);
 	}
 
     /**
@@ -1078,7 +1087,7 @@ public class MASS
     static Object[] ca_callAll()
     {
         if (!INITIALIZED) return null;
-        
+           
         Object[] retVals = null;
         int[] range = getLocalRange(ca_places);
         Places.Iterator iter = ca_places.iterator(range);
@@ -1088,14 +1097,17 @@ public class MASS
             Place place;
             if (ca_retVals == null)
             { // no return value, single argument
-                                                                            // callAll
-                while (iter.hasNext())
-                {
-                    place = iter.next();
-                    if (place != null) 
-                    {
-                        place.callMethod(ca_functionId, ca_argument);
-                    }
+                
+            	int times = 0;
+                while (iter.hasNext() && times < 100000) //added to make sure
+                {										 //MASS doesn't get stuck
+                	place = iter.next();
+					if (place != null) 
+					{
+						place.callMethod(ca_functionId, ca_argument);
+
+					}
+					times++;
                 }
 
             }
@@ -1150,6 +1162,7 @@ public class MASS
             System.arraycopy(nodeRetVal, 0, ca_finalRetVals, startPos, length);           
         }
         //MASS.log("Master has finished collecting return values for call all");
+                   
         return ca_finalRetVals;
     }
     
@@ -2477,13 +2490,17 @@ public class MASS
      * in the MASS.Places and MASS.Agents classes.
      * @param message a message to be logged
      */
-    static void log( String message ) {
+    public static void log( String message ) {
         if( myPid != 0 ){
             MProcess.log( message );
         } else {
             System.err.println( message );
         }
     }
+    
+    public static int getPid(){
+		return myPid;
+	}
     
     static void logException( Exception e) {
         if(myPid != 0)

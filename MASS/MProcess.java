@@ -22,6 +22,7 @@ public class MProcess
 
     public static Places PLACES;
     public static Agents AGENTS;
+    public static HashMap<Integer, Places> PlacesMap;
 
     public MProcess(String hostName, int myPid, int nProc, int nThreads, int serverPort, String curDir)
     {
@@ -29,7 +30,8 @@ public class MProcess
         MASS.systemSize = nProc;
         MASS.MASS_PORT = serverPort;
         MASS.CUR_DIR = curDir;
-        
+        PlacesMap = new HashMap<Integer, Places>();
+                
         try
         {
             File massLogDir = new File(curDir + "/MASS_logs");
@@ -116,7 +118,8 @@ public class MProcess
         try
         {
             logger.write( s.concat("\n").getBytes( ) );
-            //logger.writeChars(s + "\n\r");            
+            //logger.writeChars(s + "\n\r");    
+            logger.flush();
         } 
         catch( Exception e ) 
         {
@@ -167,6 +170,11 @@ public class MProcess
                 
                 if(m != null)
                 {
+				  Integer h = new Integer(m.getHandle()); 
+                  if(PlacesMap.containsKey(h)) //Figure out which Places message is for
+                  {					
+                  	PLACES = PlacesMap.get(h);
+                  }
                     switch(m.getAction())
                     {
                         case Constants.INITIALIZE: // initialization
@@ -180,6 +188,7 @@ public class MProcess
                             PLACES = new Places(m.getHandle(), m.getClassName(), m.getArgument(), m.getSize());
                             PLACES.dlbCount = m.getDlbCount();
                             MASS.initBoundaries(PLACES);
+                            PlacesMap.put(h,PLACES); //Add places to map
 
                             MASS.log("dlb values : "+PLACES.dlbCount+"|"+DLBParams.HISTORY_BASED+"|"
                             		+DLBParams.WINDOW_BASED+"|"+DLBParams.SLOPE_BASED);
@@ -189,14 +198,15 @@ public class MProcess
                             break;
                         case Constants.CALL_ALL_VOID_OBJECT:
                             // do call all
-                            //log("============Calling CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+                          //  log("============Calling CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             PLACES.callAll(m.getFunctionId(), (Object)m.getArgument());
                             //log("=============Finished CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         case Constants.CALL_ALL_RETURN_OBJECT:
                         {
-                            log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
+                            log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+  " Handle: " + m.getHandle() + "=============");
                             Object[] retVal = PLACES.callAll(m.getFunctionId(), (Object[])m.getArgument());
+                            //if(retVal[700] == null) System.exit(-1);
                             sendReturnValues(retVal);
                             log("=============Finished CallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
@@ -207,21 +217,21 @@ public class MProcess
                             //log("=============Finished CallSomeVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         case Constants.EXCHANGE_ALL:
-                            //log("=============Calling ExchangeAll: FuncID: " + m.getFunctionId()+ "=============");
+                           // log("=============Calling ExchangeAll: FuncID: " + m.getFunctionId()+ "=============");
                             PLACES.exchangeAll(1, m.getFunctionId(), m.getEADestinations());
                             //log("=============Finished ExchangeAll: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         case Constants.AGENTS_INITIALIZE:
-                            log("============== Agent Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName() + "===================");
+                          //  log("============== Agent Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName() + "===================");
                             AGENTS = new Agents(m.getHandle(), m.getClassName(), m.getArgument(), MASS.getPlaces(m.getPlacesHandle()), m.getAgentInitPopulation());
-                            log("Initialization Complete.. sending ack");
+                           // log("Initialization Complete.. sending ack");
                             sendAck();
                             break; 
                         case Constants.AGENTS_CALL_ALL_VOID:
                             // do call all
-                            log("============Calling AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+                           // log("============Calling AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             AGENTS.callAll(m.getFunctionId(), (Object)m.getArgument());
-                            log("=============Finished AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+                           // log("=============Finished AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         case Constants.AGENTS_CALL_ALL_RETURN_OBJECT:
                         {

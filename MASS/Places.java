@@ -306,7 +306,8 @@ public class Places {
    */
   public void callAll( int functionId, Object argument ) 
   {
-	MASS.ca_setup(this, functionId, argument);
+	
+	MASS.ca_setup_1arg(this, functionId, argument);
 	MASS.ca_callAll();
 	if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
 		methodCounter++;
@@ -328,15 +329,23 @@ public class Places {
    */
   public Object[] callAll( int functionId, Object[] arguments )
   {
-        MASS.ca_setup(this, functionId, arguments);
+	  if(arguments==null){
+			MASS.ca_setup_1arg(this, functionId, null);
+			MASS.ca_callAll();
+			if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
+				methodCounter++;
+				doLoadBalancing();
+			}			
+			return null;
+		  }else {	  
+		MASS.ca_setup_args(this, functionId, arguments);
         Object[] objArr = MASS.ca_callAll();
-        
         if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
         	methodCounter++;
         	doLoadBalancing();
         }
-        
         return objArr;
+		  }
   }
   /**
    * Calls the method specified with functionId of one or more
@@ -375,6 +384,7 @@ public class Places {
           else // remote
           {
               Message m = new Message();
+              m.setHandle(this.handle);
               m.createActionMessage(Constants.CALL_SOME_VOID_OBJECT, functionId, argument, index);
               MASS.mNodes[MASS.nodePidMap.get(MASS.networkMap.get(globalLinearIndex)) - 1].sendMessage(m);
           }
@@ -425,6 +435,7 @@ public class Places {
    */
   public void exchangeAll( int handle, int functionId,  Vector<int[]> destinations ) 
   {
+        
         MASS.ea_setup( this, functionId, destinations);
         MASS.ea_exchangeAll();
         if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {

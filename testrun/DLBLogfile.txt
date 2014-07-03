@@ -3,6 +3,25 @@ Thread Id : 12 lowerbound : 12500 upperbound : 24999
 Thread Id : 13 lowerbound : 25000 upperbound : 37499
 Thread Id : 1 lowerbound : 0 upperbound : 12499
 Thread Id : 14 lowerbound : 37500 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12500
+Bhargav - upperBoundOfCurrentThread : 24999
+Bhargav - current thread lowerBound [12500] upperBoundOfCurrentThread [24999]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [46.0] rightThreadTime [43.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12500 upperbound : 24998
+Thread Id : 13 lowerbound : 24999 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12499
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12500 upperbound : 24998
+Thread Id : 13 lowerbound : 24999 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12499
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -11,29 +30,10 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12499]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12499 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37499
+Thread Id : 12 lowerbound : 12499 upperbound : 24998
+Thread Id : 13 lowerbound : 24999 upperbound : 37499
 Thread Id : 1 lowerbound : 0 upperbound : 12498
 Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 13
-Bhargav - 13
-Bhargav - lowerBoundOfCurrentThread : 25000
-Bhargav - upperBoundOfCurrentThread : 37499
-Bhargav - current thread lowerBound [25000] upperBoundOfCurrentThread [37499]
-Bhargav - else part : leftThId [12] rightThId [14]
-Bhargav - else part time : leftThreadTime [29.0] rightThreadTime [25.0]
-*********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12499 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12498
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
-*********** After boundary adjust **************
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12499 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12498
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -42,10 +42,48 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12498]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12498 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37498
+Thread Id : 12 lowerbound : 12498 upperbound : 24998
+Thread Id : 13 lowerbound : 24999 upperbound : 37499
 Thread Id : 1 lowerbound : 0 upperbound : 12497
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12498
+Bhargav - upperBoundOfCurrentThread : 24998
+Bhargav - current thread lowerBound [12498] upperBoundOfCurrentThread [24998]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [79.0] rightThreadTime [45.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12498 upperbound : 24997
+Thread Id : 13 lowerbound : 24998 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12497
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12498 upperbound : 24997
+Thread Id : 13 lowerbound : 24998 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12497
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12498
+Bhargav - upperBoundOfCurrentThread : 24997
+Bhargav - current thread lowerBound [12498] upperBoundOfCurrentThread [24997]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [79.0] rightThreadTime [45.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12498 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12497
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12498 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37499
+Thread Id : 1 lowerbound : 0 upperbound : 12497
+Thread Id : 14 lowerbound : 37500 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -54,20 +92,8 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12497]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12497 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12496
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
-Bhargav highest thread : 14
-Bhargav - 14
-Bhargav - lowerBoundOfCurrentThread : 37499
-Bhargav - upperBoundOfCurrentThread : 49999
-Bhargav - current thread lowerBound [37499] upperBoundOfCurrentThread [49999]
-Bhargav - upperBound is MAX_SIM_SIZE
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12497 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37499
+Thread Id : 12 lowerbound : 12497 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37499
 Thread Id : 1 lowerbound : 0 upperbound : 12496
 Thread Id : 14 lowerbound : 37500 upperbound : 49999
 Bhargav highest thread : 1
@@ -78,10 +104,86 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12496]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12496 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37499
+Thread Id : 12 lowerbound : 12496 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37499
 Thread Id : 1 lowerbound : 0 upperbound : 12495
 Thread Id : 14 lowerbound : 37500 upperbound : 49999
+Bhargav highest thread : 13
+Bhargav - 13
+Bhargav - lowerBoundOfCurrentThread : 24997
+Bhargav - upperBoundOfCurrentThread : 37499
+Bhargav - current thread lowerBound [24997] upperBoundOfCurrentThread [37499]
+Bhargav - else part : leftThId [12] rightThId [14]
+Bhargav - else part time : leftThreadTime [44.0] rightThreadTime [42.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37498
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37499 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37498
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Bhargav highest thread : 13
+Bhargav - 13
+Bhargav - lowerBoundOfCurrentThread : 24997
+Bhargav - upperBoundOfCurrentThread : 37498
+Bhargav - current thread lowerBound [24997] upperBoundOfCurrentThread [37498]
+Bhargav - else part : leftThId [12] rightThId [14]
+Bhargav - else part time : leftThreadTime [44.0] rightThreadTime [42.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24996
+Thread Id : 13 lowerbound : 24997 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12496
+Bhargav - upperBoundOfCurrentThread : 24996
+Bhargav - current thread lowerBound [12496] upperBoundOfCurrentThread [24996]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [81.0] rightThreadTime [47.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24995
+Thread Id : 13 lowerbound : 24996 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24995
+Thread Id : 13 lowerbound : 24996 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12496
+Bhargav - upperBoundOfCurrentThread : 24995
+Bhargav - current thread lowerBound [12496] upperBoundOfCurrentThread [24995]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [81.0] rightThreadTime [47.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24994
+Thread Id : 13 lowerbound : 24995 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12496 upperbound : 24994
+Thread Id : 13 lowerbound : 24995 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12495
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -90,22 +192,219 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12495]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12495 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37499
+Thread Id : 12 lowerbound : 12495 upperbound : 24994
+Thread Id : 13 lowerbound : 24995 upperbound : 37497
 Thread Id : 1 lowerbound : 0 upperbound : 12494
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 14
-Bhargav - 14
-Bhargav - lowerBoundOfCurrentThread : 37500
-Bhargav - upperBoundOfCurrentThread : 49999
-Bhargav - current thread lowerBound [37500] upperBoundOfCurrentThread [49999]
-Bhargav - upperBound is MAX_SIM_SIZE
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24994
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24994]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [41.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24993
+Thread Id : 13 lowerbound : 24994 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+*********** After boundary adjust **************
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12495 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37500
+Thread Id : 12 lowerbound : 12495 upperbound : 24993
+Thread Id : 13 lowerbound : 24994 upperbound : 37497
 Thread Id : 1 lowerbound : 0 upperbound : 12494
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24993
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24993]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [41.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24992
+Thread Id : 13 lowerbound : 24993 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24992
+Thread Id : 13 lowerbound : 24993 upperbound : 37497
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37498 upperbound : 49999
+Bhargav highest thread : 13
+Bhargav - 13
+Bhargav - lowerBoundOfCurrentThread : 24993
+Bhargav - upperBoundOfCurrentThread : 37497
+Bhargav - current thread lowerBound [24993] upperBoundOfCurrentThread [37497]
+Bhargav - else part : leftThId [12] rightThId [14]
+Bhargav - else part time : leftThreadTime [94.0] rightThreadTime [48.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24992
+Thread Id : 13 lowerbound : 24993 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24992
+Thread Id : 13 lowerbound : 24993 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24992
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24992]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [47.0] rightThreadTime [42.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24991
+Thread Id : 13 lowerbound : 24992 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24991
+Thread Id : 13 lowerbound : 24992 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24991
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24991]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [43.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24990
+Thread Id : 13 lowerbound : 24991 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24990
+Thread Id : 13 lowerbound : 24991 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24990
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24990]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [43.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24989
+Thread Id : 13 lowerbound : 24990 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24989
+Thread Id : 13 lowerbound : 24990 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24989
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24989]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [53.0] rightThreadTime [45.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24988
+Thread Id : 13 lowerbound : 24989 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24988
+Thread Id : 13 lowerbound : 24989 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24988
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24988]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [53.0] rightThreadTime [45.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24987
+Thread Id : 13 lowerbound : 24988 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24987
+Thread Id : 13 lowerbound : 24988 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24987
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24987]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [49.0] rightThreadTime [41.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24986
+Thread Id : 13 lowerbound : 24987 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24986
+Thread Id : 13 lowerbound : 24987 upperbound : 37496
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37497 upperbound : 49999
+Bhargav highest thread : 13
+Bhargav - 13
+Bhargav - lowerBoundOfCurrentThread : 24987
+Bhargav - upperBoundOfCurrentThread : 37496
+Bhargav - current thread lowerBound [24987] upperBoundOfCurrentThread [37496]
+Bhargav - else part : leftThId [12] rightThId [14]
+Bhargav - else part time : leftThreadTime [102.0] rightThreadTime [53.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24986
+Thread Id : 13 lowerbound : 24987 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24986
+Thread Id : 13 lowerbound : 24987 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12495
+Bhargav - upperBoundOfCurrentThread : 24986
+Bhargav - current thread lowerBound [12495] upperBoundOfCurrentThread [24986]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [52.0] rightThreadTime [47.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24985
+Thread Id : 13 lowerbound : 24986 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12495 upperbound : 24985
+Thread Id : 13 lowerbound : 24986 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12494
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -114,48 +413,10 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12494]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12494 upperbound : 24999
-Thread Id : 13 lowerbound : 25000 upperbound : 37500
+Thread Id : 12 lowerbound : 12494 upperbound : 24985
+Thread Id : 13 lowerbound : 24986 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12493
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 12
-Bhargav - 12
-Bhargav - lowerBoundOfCurrentThread : 12494
-Bhargav - upperBoundOfCurrentThread : 24999
-Bhargav - current thread lowerBound [12494] upperBoundOfCurrentThread [24999]
-Bhargav - else part : leftThId [1] rightThId [13]
-Bhargav - else part time : leftThreadTime [57.0] rightThreadTime [27.0]
-*********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12494 upperbound : 24998
-Thread Id : 13 lowerbound : 24999 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12493
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-*********** After boundary adjust **************
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12494 upperbound : 24998
-Thread Id : 13 lowerbound : 24999 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12493
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 12
-Bhargav - 12
-Bhargav - lowerBoundOfCurrentThread : 12494
-Bhargav - upperBoundOfCurrentThread : 24998
-Bhargav - current thread lowerBound [12494] upperBoundOfCurrentThread [24998]
-Bhargav - else part : leftThId [1] rightThId [13]
-Bhargav - else part time : leftThreadTime [57.0] rightThreadTime [27.0]
-*********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12494 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12493
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-*********** After boundary adjust **************
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12494 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12493
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -164,10 +425,105 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12493]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12493 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
+Thread Id : 12 lowerbound : 12493 upperbound : 24985
+Thread Id : 13 lowerbound : 24986 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12492
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12493
+Bhargav - upperBoundOfCurrentThread : 24985
+Bhargav - current thread lowerBound [12493] upperBoundOfCurrentThread [24985]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [54.0] rightThreadTime [47.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24984
+Thread Id : 13 lowerbound : 24985 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24984
+Thread Id : 13 lowerbound : 24985 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12493
+Bhargav - upperBoundOfCurrentThread : 24984
+Bhargav - current thread lowerBound [12493] upperBoundOfCurrentThread [24984]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [54.0] rightThreadTime [47.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24983
+Thread Id : 13 lowerbound : 24984 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24983
+Thread Id : 13 lowerbound : 24984 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12493
+Bhargav - upperBoundOfCurrentThread : 24983
+Bhargav - current thread lowerBound [12493] upperBoundOfCurrentThread [24983]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [43.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24982
+Thread Id : 13 lowerbound : 24983 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24982
+Thread Id : 13 lowerbound : 24983 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12493
+Bhargav - upperBoundOfCurrentThread : 24982
+Bhargav - current thread lowerBound [12493] upperBoundOfCurrentThread [24982]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [44.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24981
+Thread Id : 13 lowerbound : 24982 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24981
+Thread Id : 13 lowerbound : 24982 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12493
+Bhargav - upperBoundOfCurrentThread : 24981
+Bhargav - current thread lowerBound [12493] upperBoundOfCurrentThread [24981]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [44.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24980
+Thread Id : 13 lowerbound : 24981 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12493 upperbound : 24980
+Thread Id : 13 lowerbound : 24981 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12492
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -176,48 +532,29 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12492]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12492 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
+Thread Id : 12 lowerbound : 12492 upperbound : 24980
+Thread Id : 13 lowerbound : 24981 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12491
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 13
-Bhargav - 13
-Bhargav - lowerBoundOfCurrentThread : 24998
-Bhargav - upperBoundOfCurrentThread : 37500
-Bhargav - current thread lowerBound [24998] upperBoundOfCurrentThread [37500]
-Bhargav - else part : leftThId [12] rightThId [14]
-Bhargav - else part time : leftThreadTime [27.0] rightThreadTime [24.0]
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12492
+Bhargav - upperBoundOfCurrentThread : 24980
+Bhargav - current thread lowerBound [12492] upperBoundOfCurrentThread [24980]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [55.0] rightThreadTime [48.0]
 *********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12492 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
+Thread Id : 12 lowerbound : 12492 upperbound : 24979
+Thread Id : 13 lowerbound : 24980 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12491
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-*********** After boundary adjust **************
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12492 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12491
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 13
-Bhargav - 13
-Bhargav - lowerBoundOfCurrentThread : 24998
-Bhargav - upperBoundOfCurrentThread : 37499
-Bhargav - current thread lowerBound [24998] upperBoundOfCurrentThread [37499]
-Bhargav - else part : leftThId [12] rightThId [14]
-Bhargav - else part time : leftThreadTime [27.0] rightThreadTime [24.0]
-*********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12492 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12491
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 *********** After boundary adjust **************
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12492 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
+Thread Id : 12 lowerbound : 12492 upperbound : 24979
+Thread Id : 13 lowerbound : 24980 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12491
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -226,10 +563,10 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12491]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12491 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
+Thread Id : 12 lowerbound : 12491 upperbound : 24979
+Thread Id : 13 lowerbound : 24980 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12490
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -238,10 +575,48 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12490]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12490 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
+Thread Id : 12 lowerbound : 12490 upperbound : 24979
+Thread Id : 13 lowerbound : 24980 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12489
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12490
+Bhargav - upperBoundOfCurrentThread : 24979
+Bhargav - current thread lowerBound [12490] upperBoundOfCurrentThread [24979]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [44.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12490 upperbound : 24978
+Thread Id : 13 lowerbound : 24979 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12489
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12490 upperbound : 24978
+Thread Id : 13 lowerbound : 24979 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12489
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12490
+Bhargav - upperBoundOfCurrentThread : 24978
+Bhargav - current thread lowerBound [12490] upperBoundOfCurrentThread [24978]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [44.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12490 upperbound : 24977
+Thread Id : 13 lowerbound : 24978 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12489
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12490 upperbound : 24977
+Thread Id : 13 lowerbound : 24978 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12489
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -250,10 +625,48 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12489]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12489 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
+Thread Id : 12 lowerbound : 12489 upperbound : 24977
+Thread Id : 13 lowerbound : 24978 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12488
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12489
+Bhargav - upperBoundOfCurrentThread : 24977
+Bhargav - current thread lowerBound [12489] upperBoundOfCurrentThread [24977]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [52.0] rightThreadTime [44.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12489 upperbound : 24976
+Thread Id : 13 lowerbound : 24977 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12488
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12489 upperbound : 24976
+Thread Id : 13 lowerbound : 24977 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12488
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12489
+Bhargav - upperBoundOfCurrentThread : 24976
+Bhargav - current thread lowerBound [12489] upperBoundOfCurrentThread [24976]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [50.0] rightThreadTime [42.0]
+*********** After boundary adjust **************
+Thread Id : 12 lowerbound : 12489 upperbound : 24975
+Thread Id : 13 lowerbound : 24976 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12488
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+*********** After boundary adjust **************
+********* calculateAndAdjustBoundaries() method called end **************
+********* calculateAndAdjustBoundaries() method called start **************
+Thread Id : 12 lowerbound : 12489 upperbound : 24975
+Thread Id : 13 lowerbound : 24976 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12488
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 Bhargav highest thread : 1
 Bhargav - 1
 Bhargav - lowerBoundOfCurrentThread : 0
@@ -262,249 +675,21 @@ Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12488]
 Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
 ********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12488 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
+Thread Id : 12 lowerbound : 12488 upperbound : 24975
+Thread Id : 13 lowerbound : 24976 upperbound : 37495
 Thread Id : 1 lowerbound : 0 upperbound : 12487
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12487
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12487]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12487 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12486
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12486
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12486]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12486 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37498
-Thread Id : 1 lowerbound : 0 upperbound : 12485
-Thread Id : 14 lowerbound : 37499 upperbound : 49999
-Bhargav highest thread : 14
-Bhargav - 14
-Bhargav - lowerBoundOfCurrentThread : 37499
-Bhargav - upperBoundOfCurrentThread : 49999
-Bhargav - current thread lowerBound [37499] upperBoundOfCurrentThread [49999]
-Bhargav - upperBound is MAX_SIM_SIZE
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12486 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12485
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 14
-Bhargav - 14
-Bhargav - lowerBoundOfCurrentThread : 37500
-Bhargav - upperBoundOfCurrentThread : 49999
-Bhargav - current thread lowerBound [37500] upperBoundOfCurrentThread [49999]
-Bhargav - upperBound is MAX_SIM_SIZE
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12486 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12485
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12485
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12485]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12485 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12484
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12484
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12484]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12484 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37500
-Thread Id : 1 lowerbound : 0 upperbound : 12483
-Thread Id : 14 lowerbound : 37501 upperbound : 49999
-Bhargav highest thread : 13
-Bhargav - 13
-Bhargav - lowerBoundOfCurrentThread : 24998
-Bhargav - upperBoundOfCurrentThread : 37500
-Bhargav - current thread lowerBound [24998] upperBoundOfCurrentThread [37500]
-Bhargav - else part : leftThId [12] rightThId [14]
-Bhargav - else part time : leftThreadTime [27.0] rightThreadTime [23.0]
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
+Bhargav highest thread : 12
+Bhargav - 12
+Bhargav - lowerBoundOfCurrentThread : 12488
+Bhargav - upperBoundOfCurrentThread : 24975
+Bhargav - current thread lowerBound [12488] upperBoundOfCurrentThread [24975]
+Bhargav - else part : leftThId [1] rightThId [13]
+Bhargav - else part time : leftThreadTime [54.0] rightThreadTime [45.0]
 *********** After boundary adjust **************
-Thread Id : 12 lowerbound : 12484 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12483
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
+Thread Id : 12 lowerbound : 12488 upperbound : 24974
+Thread Id : 13 lowerbound : 24975 upperbound : 37495
+Thread Id : 1 lowerbound : 0 upperbound : 12487
+Thread Id : 14 lowerbound : 37496 upperbound : 49999
 *********** After boundary adjust **************
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12484 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12483
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12483
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12483]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12483 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12482
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12482
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12482]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12482 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12481
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12481
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12481]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12481 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12480
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12480
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12480]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12480 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12479
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12479
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12479]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12479 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12478
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12478
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12478]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12478 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12477
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12477
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12477]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12477 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12476
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12476
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12476]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12476 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12475
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12475
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12475]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12475 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12474
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12474
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12474]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12474 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12473
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12473
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12473]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12473 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12472
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12472
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12472]
-Bhargav - lowerBound is 0
-********* calculateAndAdjustBoundaries() method called end **************
-********* calculateAndAdjustBoundaries() method called start **************
-Thread Id : 12 lowerbound : 12472 upperbound : 24997
-Thread Id : 13 lowerbound : 24998 upperbound : 37499
-Thread Id : 1 lowerbound : 0 upperbound : 12471
-Thread Id : 14 lowerbound : 37500 upperbound : 49999
-Bhargav highest thread : 1
-Bhargav - 1
-Bhargav - lowerBoundOfCurrentThread : 0
-Bhargav - upperBoundOfCurrentThread : 12471
-Bhargav - current thread lowerBound [0] upperBoundOfCurrentThread [12471]
-Bhargav - lowerBound is 0
 ********* calculateAndAdjustBoundaries() method called end **************
