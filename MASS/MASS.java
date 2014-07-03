@@ -8,6 +8,9 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.Map.Entry;
 
+import main.java.com.dlb.utils.DLBParams;
+import main.java.com.dlb.utils.Slice;
+
 /**
  * manages a MASS.MASS environment
  * 
@@ -20,7 +23,7 @@ public class MASS
     protected static int[] OPERATION_LOCK = new int[1];
 
     protected static int[] threadsRunning = new int[1]; // number of Mthreads
-    protected static Vector<Thread> threads; // threads of MASS.MASS env - no mods
+    public static Vector<Thread> threads; // threads of MASS.MASS env - no mods
                                                                                     // after MASS.MASS.init
     protected static Hashtable<Integer, Places> placesHandles; // for
                                                                                                                             // placesHandles
@@ -213,7 +216,7 @@ public class MASS
             //log("Creating new mNode id:" + (i+ 1) + " name: " + currHostName);
             mNodes[i] = new MNode(currHostName, pid);
             // MASS.MProcess requires pid and system size(nProc)
-            String cmd = "java -Xmx1g -cp " + CUR_DIR + "/MASS.jar:" + CUR_DIR + "/jsch-0.1.44.jar"; 
+            String cmd = "java -Xmx1g -cp " + CUR_DIR + "/DLB.jar:" + CUR_DIR + "/MASS.jar:" + CUR_DIR + "/jsch-0.1.44.jar"; 
             
             if(customJarList != null)
             {
@@ -257,10 +260,103 @@ public class MASS
 
         // initialize threads
         initializeThreads(childThrds);
+        
   
     }
-
+    
     /**
+     * Initialize the boundaries and create Slice objects.
+     * The slice objects contain the upper and lower bounds for each slice.
+     * Add the slice objects to the map for respective thread ids.
+     * 
+     * @param places
+     */
+    public static void initBoundaries(Places places) {
+
+    	/**
+    	 * Do it for the main process.
+    	 */
+    	if (myPid == 0) {
+    		
+    		int dd = 0;
+	    	MASS.log("Inside initBoundaries !");
+	    	
+	        /**
+	         * set the boundaries for load balancing here
+	         */
+	        for (int th = 0; th < MASS.threads.size(); th++) {
+	        	Long threadId = MASS.threads.get(th).getId();
+	        	int position = getThreadPosition(threadId);
+	        	int[] range = getLocalRange(places, position);
+	        	if (!DLBParams.boundaryMap.containsKey(threadId)) {
+		        	DLBParams.boundaryMap.put(threadId, new Slice(range[0], range[1]));
+		        }
+	        	if (dd < range[1]) {
+	        		dd = range[1];
+	        	}
+	        }//for ends here
+	        
+	        /**
+	         * Also do it for main thread
+	         */
+	        Long tId = Thread.currentThread().getId();
+	        int position = getThreadPosition(tId);
+	    	int[] range = getLocalRange(places, position);
+	    	if (!DLBParams.boundaryMap.containsKey(tId)) {
+	        	DLBParams.boundaryMap.put(tId, new Slice(range[0], range[1]));
+	        }
+	    	
+	    	if (dd < range[1]) {
+	    		dd = range[1];
+	    	}
+	    	
+	    	DLBParams.MAX_SIM_SIZE = dd;
+	    	MASS.log("initBoundaries DLBParams max size : " + DLBParams.MAX_SIM_SIZE);
+	    	MASS.log("Total MASS threads : " + MASS.threads.size() + " for pid : ["+MASS.myPid+"]");
+	    	
+	    	
+    	/**
+    	 * Do it for other processes.
+    	 */
+    	} else {
+    		int dd = 0;
+    		
+    		for (int th = 0; th < MASS.threads.size(); th++) {
+	        	Long threadId = MASS.threads.get(th).getId();
+	        	int position = getThreadPosition(threadId);
+	        	int[] range = getLocalRange(places, position);
+	        	if (!DLBParams.boundaryMap.containsKey(threadId)) {
+		        	DLBParams.boundaryMap.put(threadId, new Slice(range[0], range[1]));
+		        	MASS.log("boundaryMap : threadId ["+threadId+"] lowerRange : ["+range[0]+"] upper["+range[1]+"]");
+		        }
+	        	if (dd < range[1]) {
+	        		dd = range[1];
+	        	}
+	        }
+    		
+    		/**
+	         * Also do it for main thread
+	         */
+	        Long tId = Thread.currentThread().getId();
+	        int position = getThreadPosition(tId);
+	    	int[] range = getLocalRange(places, position);
+	    	if (!DLBParams.boundaryMap.containsKey(tId)) {
+	        	DLBParams.boundaryMap.put(tId, new Slice(range[0], range[1]));
+	        	MASS.log("boundaryMap : threadId ["+tId+"] lowerRange : ["+range[0]+"] upper["+range[1]+"]");
+	        }
+	    	
+	    	if (dd < range[1]) {
+	    		dd = range[1];
+	    	}
+    		
+    		DLBParams.MAX_SIM_SIZE = dd;
+    		
+    		MASS.log("initBoundaries pid != 0 max size : " + DLBParams.MAX_SIM_SIZE);
+    		MASS.log("Total MASS threads : " + MASS.threads.size() + " for pid : ["+MASS.myPid+"]");
+    	}
+    }
+
+	/**
      * Initializes the MASS.MASS implementation.
      * 
      * @param args
@@ -451,6 +547,67 @@ public class MASS
     private static int[] getLocalRange(Places places) 
     {
         int position = getThreadPosition();
+        
+        int length = places.length();
+        int[] range = new int[2]; // this will be returned
+        int numThreads = threads.size() + 1;
+        int portion = length / numThreads;
+        int remainder = length % numThreads;
+        
+        if (DLBParams.boundaryMap.containsKey((long)position)) {
+			
+			range[0] = DLBParams.boundaryMap.get((long)position).getLowerBound();
+			range[1] = DLBParams.boundaryMap.get((long)position).getUpperBound();
+			
+       		return range;
+        }
+        
+        if (portion == 0) 
+        { // there are more threads than elements in the
+          // MASS.Places object
+            if (remainder > position) 
+            {
+                range[0] = position;
+                range[1] = position;
+            } 
+            else 
+            {
+                range = null;
+            }
+        } 
+        else 
+        { // there are more MASS.Places than threads
+            int first = position * portion;
+            int last = ((position + 1) * portion) - 1;
+            if (position < remainder) 
+            { // add in remainders
+                first += position;
+                last = last + position + 1;
+            } 
+            else 
+            { // remainders have been assigned to previous positions
+                first += remainder;
+                last += remainder;
+            }
+            range[0] = first;
+            range[1] = last;
+        }
+        	
+        return range;
+    }
+    
+    /**
+     * The method is overloaded from the getLocalRange(Places) method.
+     * The method takes in the position and returns the upper and lower 
+     * range only for that position.
+     * 
+     * @param places
+     * @param pos
+     * @return
+     */
+    private static int[] getLocalRange(Places places, int pos) 
+    {
+        int position = pos;
         int length = places.length();
         int[] range = new int[2]; // this will be returned
         int numThreads = threads.size() + 1;
@@ -486,8 +643,10 @@ public class MASS
             range[0] = first;
             range[1] = last;
         }
+        
         return range;
     }
+
 
     /**
      * Gets the position of this thread in the threads Vector, with 0 as first.
@@ -498,6 +657,22 @@ public class MASS
     {
         Iterator<Thread> iter = threads.iterator();
         long tid = Thread.currentThread().getId();
+        int position = 0; // main thread always zero
+        int location = 0;
+        while (iter.hasNext()) 
+        {
+            location++;
+            if (tid == iter.next().getId()) 
+            { // this is the thread
+                    position = location;
+            }
+        }
+        return position;
+    }
+    
+    private static int getThreadPosition(Long threadId) {
+    	Iterator<Thread> iter = threads.iterator();
+        long tid = threadId;
         int position = 0; // main thread always zero
         int location = 0;
         while (iter.hasNext()) 
@@ -675,7 +850,7 @@ public class MASS
                     exchangeAllRequestMap.remove(destinationHostName);
                     MASS.log("Beginning remote exchange mt version - My local thread id =  " + getThreadPosition() + " requests remaining: " + exchangeAllRequestMap.size() +
                             " exchange destination: " + destinationHostName );
-                    exchangeAllRequestMap.notifyAll();                   
+                    //exchangeAllRequestMap.notifyAll();                   
                 }               
             }
         }

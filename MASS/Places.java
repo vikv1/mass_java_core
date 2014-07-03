@@ -3,12 +3,19 @@ package MASS;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+
+import main.java.com.dlb.dlbhelper.DynamicLoadBalancer;
+import main.java.com.dlb.utils.DLBParams;
 
 /**
  * Instantiates and manipulates a multi-dimensional array of MASS.Place objects
@@ -36,6 +43,12 @@ public class Places {
   public static int chunkSize;
   public static int remainder;
   
+  public static int dlbCount = 0;
+  public static int methodCounter = 0;
+  
+  public static Long[][] threadTime = null;
+  public static ThreadMXBean bean   = ManagementFactory.getThreadMXBean();
+  
   static URLClassLoader loader;
 
   /**
@@ -51,6 +64,17 @@ public class Places {
    */
   public Places( int handle, String className, Object argument, int... size ) throws Exception
   {
+	  Places.bean.setThreadCpuTimeEnabled(true);
+	  
+	  /**
+	   * Read the dynamic load balancing property file and
+	   * get the config values.
+	   */
+	  if (MASS.myPid == 0) {
+		  readDLBPropertyFile();
+	  }
+	  
+	  
         this.handle = handle;
         if (MASS.addPlaces(this))
         { //set the handle in the MASS.MASS object //TODO addPlaces should be later
@@ -142,7 +166,9 @@ public class Places {
               System.err.println("Created network map... Total Elements now = " + MASS.networkMap.size()  + " now sending information to remote nodes");
               
               Message m = new Message();
-              m.createInitializationMessage(size, arrayType, placeType, handle, className, argument, MASS.networkMap, MASS.nodePidMap);
+              m.createInitializationMessage(size, arrayType, placeType, handle, 
+            		  className, argument, MASS.networkMap, MASS.nodePidMap, dlbCount, 
+            		  DLBParams.HISTORY_BASED, DLBParams.WINDOW_BASED, DLBParams.SLOPE_BASED);
               for(MNode node : MASS.mNodes)
               {
                   node.sendMessage(m);
@@ -182,6 +208,65 @@ public class Places {
             throw new Exception ("handle already in use");
         }
   }
+  
+  private static void readDLBPropertyFile() {
+    String propertyFilePath = MASS.CUR_DIR + "/" + DLBParams.DLB_PROPERTY_FILE_NAME;
+  	File propertyFile = new File(propertyFilePath);
+  	if (!propertyFile.exists()) {
+  		System.out.println("ERROR : Property file does not exists, load balancing is disabled !");
+  	} else {
+			Properties properties = new Properties();
+			try {
+				FileInputStream stream = new FileInputStream(propertyFile);
+				properties.load(stream);
+				DLBParams.HISTORY_BASED = Boolean.parseBoolean(properties.getProperty("HISTORY_BASED"));
+				DLBParams.WINDOW_BASED = Boolean.parseBoolean(properties.getProperty("WINDOW_BASED"));
+				DLBParams.SLOPE_BASED = Boolean.parseBoolean(properties.getProperty("SLOPE_BASED"));
+				dlbCount = Integer.parseInt(properties.getProperty("dlbCount"));
+				
+				/**
+				 * Validate the load balancing flags
+				 */
+				if (!validatePropertyFile(DLBParams.HISTORY_BASED, DLBParams.WINDOW_BASED, DLBParams.SLOPE_BASED, dlbCount)) {
+					System.out.println("ERROR : Please check DLB.properties file, any one algorithm should be set to true and" +
+							"dlbCount value should be greater than zero");
+					System.exit(1);
+				}
+				
+				System.out.println("DLB.properties: values are :");
+				System.out.println("History Based Algo: "+DLBParams.HISTORY_BASED);
+				System.out.println("Window Based Algo: "+DLBParams.WINDOW_BASED);
+				System.out.println("Slope Based Algo: "+DLBParams.SLOPE_BASED);
+				System.out.println("DLB step count : "+dlbCount);
+				
+				
+			} catch (IOException ex) {
+				System.out.println("ERROR : IOException is thrown while reading DLB.properties file, DLB is disabled error : [" + ex.getMessage() +"]");
+			}
+  	}
+  }
+
+	private static boolean validatePropertyFile(boolean historyBased,
+			boolean windowBased, boolean slopeBased, int dlbCnt) {
+		
+		boolean res = true;
+		
+		if (historyBased && windowBased) {
+			res = false;
+		} else if (windowBased && slopeBased) {
+			res = false;
+		} else if (slopeBased && historyBased) {
+			res = false;
+		}
+		
+		if (dlbCnt <= 0) {
+			res = false;
+		}
+		
+		return res;
+	}
+  
+  
   /**
    * Returns the handle associated with this distributed array.
    *
@@ -223,6 +308,11 @@ public class Places {
   {
 	MASS.ca_setup(this, functionId, argument);
 	MASS.ca_callAll();
+	if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
+		methodCounter++;
+		doLoadBalancing();
+	}
+
   }
   /**
    * Calls the method specified with functionId of all array
@@ -239,7 +329,14 @@ public class Places {
   public Object[] callAll( int functionId, Object[] arguments )
   {
         MASS.ca_setup(this, functionId, arguments);
-        return MASS.ca_callAll();
+        Object[] objArr = MASS.ca_callAll();
+        
+        if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
+        	methodCounter++;
+        	doLoadBalancing();
+        }
+        
+        return objArr;
   }
   /**
    * Calls the method specified with functionId of one or more
@@ -329,10 +426,74 @@ public class Places {
   public void exchangeAll( int handle, int functionId,  Vector<int[]> destinations ) 
   {
         MASS.ea_setup( this, functionId, destinations);
-        MASS.ea_exchangeAll(); 
+        MASS.ea_exchangeAll();
+        if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
+        	methodCounter++;
+        	doLoadBalancing();
+        }
   }
   
   /**
+   * do the load balancing depending on the 
+   * algorithm set. This method kicks in when the
+   * load balancing counter is set.
+   */
+  private void doLoadBalancing() {
+	if (dlbCount == methodCounter) {
+		populateTimeSpentByAllThreads();
+		
+		//if (DLBParams.DEBUG) {
+			MASS.log("*********************** doLoadBalancing - Start ************************************");
+			for (int i = 0; i < Places.threadTime.length; i++) {
+				MASS.log("threadTime["+Places.threadTime[i][0]+"]["+Places.threadTime[i][1]+"]");
+			}
+		//}
+		
+		DynamicLoadBalancer.setThreadTimeNew(Places.threadTime);
+		
+		//if (DLBParams.DEBUG) {
+			MASS.log("*********************** doLoadBalancing -   End ************************************");
+		//}
+		
+		methodCounter = 0;
+	}
+  }
+  
+  /**
+   * populates the time spent by each thread
+   * in the thread time array.
+   */
+  private void populateTimeSpentByAllThreads() {
+	  if (Places.threadTime == null) {
+		  int size = MASS.threads.size()+1;
+		  Places.threadTime = new Long[size][size];
+	  }
+	  
+	  for (int i = 0; i < MASS.threads.size(); i++) {
+		  Places.threadTime[i][0] = MASS.threads.get(i).getId();
+		  Places.threadTime[i][1] = getThreadCpuTime(MASS.threads.get(i).getId());
+	  }
+	  
+	  /**
+	   * Add time for main thread
+	   */
+	  Places.threadTime[MASS.threads.size()][0] = Thread.currentThread().getId();
+	  Places.threadTime[MASS.threads.size()][1] = getThreadCpuTime(Thread.currentThread().getId());
+
+  }
+  
+  /**
+   * Get thread cpu time.
+   * @param id
+   * @return
+   */
+  private Long getThreadCpuTime(long id) {
+	  
+	return (Places.bean.getThreadCpuTime(id)/1000000);
+  }
+  
+  
+/**
    * Calls from each of the cells indexed with index[ ] (whose
    * format is the same as the above callSome( )) to the method
    * specified with functionId of all destination cells, each

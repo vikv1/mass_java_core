@@ -25,15 +25,22 @@ public class Message implements Serializable
     private int HANDLE;
     private int FUNCTION_ID;
     private Vector<int[]> EA_DESTINATIONS = null;
-    
     private int AGENT_INIT_POPULATION;
     private int PLACES_HANDLE;
     private int NUM_AGENTS;
     private ArrayList<String> HostNames = null;
     private int[] INDEX;
+    
+    private int dlbCount = 0;
+    private boolean historyBasedFlag = false;
+    private boolean windowBasedFlag = false;
+    private boolean slopeBasedFlag = false;
+    
     public Message() {}
 
-    public void createInitializationMessage(int[] size, String arrayType, String placeType, int handle, String className, Object argument, HashMap<Integer, String> networkMap, HashMap<String, Integer> nodePidMap)
+    public void createInitializationMessage(int[] size, String arrayType, String placeType, int handle, 
+    		String className, Object argument, HashMap<Integer, String> networkMap, HashMap<String, Integer> nodePidMap, int dlbCnt, boolean historyBased,
+    		boolean windowBased, boolean slopeBased)
     {
         ACTION = Constants.INITIALIZE;
         ARRAY_TYPE = arrayType;
@@ -44,6 +51,10 @@ public class Message implements Serializable
         ARGUMENT = argument;
         NETWORK_MAP = networkMap;
         PID_MAP = nodePidMap;
+        this.dlbCount = dlbCnt;
+        this.historyBasedFlag = historyBased;
+        this.windowBasedFlag = windowBased;
+        this.slopeBasedFlag = slopeBased;
     }
     
     public void createAgentnitializationMessage(int handle
@@ -158,5 +169,37 @@ public class Message implements Serializable
     }  
     public ArrayList<String> getAgentMigrateHostNames() { return HostNames; }
     public int[] getIndex() { return INDEX; }
+
+	public int getDlbCount() {
+		return dlbCount;
+	}
+
+	public void setDlbCount(int dlbCount) {
+		this.dlbCount = dlbCount;
+	}
+
+	public boolean isHistoryBasedFlag() {
+		return historyBasedFlag;
+	}
+
+	public void setHistoryBasedFlag(boolean historyBasedFlag) {
+		this.historyBasedFlag = historyBasedFlag;
+	}
+
+	public boolean isWindowBasedFlag() {
+		return windowBasedFlag;
+	}
+
+	public void setWindowBasedFlag(boolean windowBasedFlag) {
+		this.windowBasedFlag = windowBasedFlag;
+	}
+
+	public boolean isSlopeBasedFlag() {
+		return slopeBasedFlag;
+	}
+
+	public void setSlopeBasedFlag(boolean slopeBasedFlag) {
+		this.slopeBasedFlag = slopeBasedFlag;
+	}
 }
 

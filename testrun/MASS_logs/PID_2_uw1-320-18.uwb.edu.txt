@@ -1,0 +1,24 @@
+Initialized threads - # 4
+Initialization Information - PID: 2 nProc: 5 nThreads: 4 mass_port = 32781
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 2 with place handle 1-----------------
+---Initialization variables for 2 Places(holder) length: 50000 chunksize: 50000 total length: 250000 remainder: 0
+boundaryMap : threadId [8] lowerRange : [12500] upper[24999]
+boundaryMap : threadId [9] lowerRange : [25000] upper[37499]
+boundaryMap : threadId [10] lowerRange : [37500] upper[49999]
+boundaryMap : threadId [1] lowerRange : [0] upper[12499]
+initBoundaries pid != 0 max size : 49999
+Total MASS threads : 3 for pid : [2]
+Bhargav - dlb values : 4|false|false|true
+=============Calling CallAllReturnObject: FuncID: 0=============
+=============Finished CallAllReturnObject: FuncID: 0=============
+java.io.EOFException
+	at java.io.ObjectInputStream$BlockDataInputStream.peekByte(ObjectInputStream.java:2571)
+	at java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1315)
+	at java.io.ObjectInputStream.readObject(ObjectInputStream.java:369)
+	at MASS.MProcess.start(MProcess.java:166)
+	at MASS.MProcess.main(MProcess.java:84)
+An error occured - System shutting down... null
+Finishing remote process........
+Finishing MASS...

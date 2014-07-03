@@ -6,6 +6,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import main.java.com.dlb.utils.DLBParams;
+
 
 /**
  *
@@ -170,8 +172,17 @@ public class MProcess
                         case Constants.INITIALIZE: // initialization
                             //log("Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName());
                             MASS.networkMap = m.getNetworkMap();
-                            MASS.nodePidMap = m.getNodePidMap();                    
+                            MASS.nodePidMap = m.getNodePidMap();
+                            DLBParams.HISTORY_BASED = m.isHistoryBasedFlag();
+                            DLBParams.WINDOW_BASED = m.isWindowBasedFlag();
+                            DLBParams.SLOPE_BASED = m.isSlopeBasedFlag();
+                            
                             PLACES = new Places(m.getHandle(), m.getClassName(), m.getArgument(), m.getSize());
+                            PLACES.dlbCount = m.getDlbCount();
+                            MASS.initBoundaries(PLACES);
+
+                            MASS.log("dlb values : "+PLACES.dlbCount+"|"+DLBParams.HISTORY_BASED+"|"
+                            		+DLBParams.WINDOW_BASED+"|"+DLBParams.SLOPE_BASED);
                             //log("Initialization Complete.. sending ack package");
                             sendAck();
                             //log("Initialization Complete.. ack package sent");
