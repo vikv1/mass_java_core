@@ -28,6 +28,7 @@ public class Mthread extends Thread
      */
     public void run() 
     {
+	MASS.log( "Mthread created: " + Thread.currentThread( ) );
         boolean running = true;
         while (running) 
         {

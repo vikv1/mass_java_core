@@ -197,7 +197,8 @@ public class MProcess
                             }
 
                             PLACES.dlbCount = m.getDlbCount();
-                            MASS.initBoundaries(PLACES);				// thread boundaries, 
+			    if ( DLBParams.HISTORY_BASED || DLBParams.WINDOW_BASED || DLBParams.SLOPE_BASED ) // fukuda 4-7-14
+				MASS.initBoundaries(PLACES);				// thread boundaries, 
                             PlacesMap.put(h,PLACES); 					//Add places to map
 
                             MASS.log("dlb values : "+PLACES.dlbCount+"|"+DLBParams.HISTORY_BASED+"|"
@@ -208,13 +209,14 @@ public class MProcess
                             break;
                         case Constants.CALL_ALL_VOID_OBJECT:
                             // do call all
-                          //  log("============Calling CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+                            MASS.log("============Calling CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             PLACES.callAll(m.getFunctionId(), (Object)m.getArgument());
                             //log("=============Finished CallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+			    sendAck( );
                             break;
                         case Constants.CALL_ALL_RETURN_OBJECT:
                         {
-                            //log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
+                            MASS.log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
                             Object[] retVal = PLACES.callAll(m.getFunctionId(), (Object[])m.getArgument());
                             sendReturnValues(retVal);
                             //log("=============Finished CallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
@@ -224,16 +226,19 @@ public class MProcess
                             //log("=============Calling CallSomeVoidObject: FuncID: " + m.getFunctionId()+ "=============");
                             PLACES.callSome(m.getFunctionId(), m.getArgument(), m.getIndex());
                             //log("=============Finished CallSomeVoidObject: FuncID: " + m.getFunctionId() + "=============");
+			    sendAck( );
                             break;
                         case Constants.EXCHANGE_ALL:
-                           // log("=============Calling ExchangeAll: FuncID: " + m.getFunctionId()+ "=============");
+                            //log("=============Calling ExchangeAll: FuncID: " + m.getFunctionId()+ "=============");
                             PLACES.exchangeAll(h, m.getFunctionId(), m.getEADestinations());
                             //log("=============Finished ExchangeAll: FuncID: " + m.getFunctionId() + "=============");
+			    sendAck( );
                             break;
                         case Constants.EXCHANGE_BOUNDARY:
                             //log("=============Calling ExchangeBoundary: FuncID: " + m.getFunctionId()+ "=============");
                             PLACES.exchangeBoundary(1, m.getFunctionId(), m.getEBDestinations());
                             //log("=============Finished ExchangeBoundary: FuncID: " + m.getFunctionId() + "=============");
+			    sendAck( );
                             break;
                         case Constants.AGENTS_INITIALIZE:
                           //  log("============== Agent Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName() + "===================");
@@ -243,24 +248,25 @@ public class MProcess
                             break; 
                         case Constants.AGENTS_CALL_ALL_VOID:
                             // do call all
-                           // log("============Calling AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+			    //log("============Calling AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
                             AGENTS.callAll(m.getFunctionId(), (Object)m.getArgument());
-                           // log("=============Finished AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+			    //log("=============Finished AgentsCallAllVoidObject: FuncID: " + m.getFunctionId() + "=============");
+			   sendAck( );
                             break;
                         case Constants.AGENTS_CALL_ALL_RETURN_OBJECT:
                         {
                             // send the current number of agents this rank holds to the host
                             sendNumOfAgents(m.getHandle());
-                            log("=============Calling AgentsCallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
+                            // log("=============Calling AgentsCallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
                             Object[] retVal = AGENTS.callAll(m.getFunctionId(), (Object[])m.getArgument());
                             sendReturnValues(retVal);
-                            log("=============Finished AgentsCallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
+                            // log("=============Finished AgentsCallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         }                            
                         case Constants.AGENTS_MANAGE_ALL:
-                            log("=============Calling Agents ManageAll: FuncID: " + m.getFunctionId()+ "=============");
+                            //log("=============Calling Agents ManageAll: FuncID: " + m.getFunctionId()+ "=============");
                             AGENTS.manageAll();
-                            log("=============Finished Agents ManageAll: FuncID: " + m.getFunctionId() + "=============");
+                            //log("=============Finished Agents ManageAll: FuncID: " + m.getFunctionId() + "=============");
 			    sendNumOfAgents(m.getHandle()); // added by FUKUDA on 11-22-13
 
                             break;                            
@@ -325,10 +331,11 @@ public class MProcess
     {
         Message retMsg = new Message();
         Agents agents = MASS.getAgents(handle);
-	MASS.log( "sendNumOfAgents: nAgents = " + agents.nAgents( ) ); // added by Fukuda on 11-22-13
+	MASS.log( "local nAgents = " + agents.nAgents( ) ); // added by Fukuda on 11-22-13
         retMsg.createAgentsReportSizeMessage(agents.nAgents());
         MAIN_OOS.writeObject(retMsg);
         MAIN_OOS.flush();
+	//MASS.log( "sendNumOfAgents done" );
     }
     
     public static void finish()

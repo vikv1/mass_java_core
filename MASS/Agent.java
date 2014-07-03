@@ -32,7 +32,7 @@ public class Agent implements Serializable {
    * correspond to coordinates of x, y, and z, or those of i, j, and
    * k.
    */
-  int[] index = null;
+  public int[] index = null;
   
   /**
    * This agent's identifier. It is calculated as: the sequence

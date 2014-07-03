@@ -1,0 +1,9 @@
+Initialized threads - # 1
+Initialization Information - PID: 4 nProc: 8 nThreads: 1 mass_port = 32782
+Successfully initlialzed connections!
+
+------------------Beginning Initialization sequence for place handle 1------------------
+I'm place element[ 40, 0 ] and I'm instantiating maxSeen Vector
+Places: will create MASS.exchangeHelper[0]
+ExchangeHelper: created ServerSocket
+ExchangeHelper: waiting for 5-th request

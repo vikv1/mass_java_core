@@ -215,8 +215,10 @@ public class Places {
               for(MNode node : MASS.mNodes) 	node.sendMessage(m);
               System.err.println("Information sent! Awaiting Acknowledgement... ");
               
+	      /* Move to the end in order to let the master work on its places generation: Fukuda 3-26-14
               for(MNode node: MASS.mNodes) 		node.receiveMessage();
               System.err.println("Received all Acknowledgement... ");
+	      */
 
           }	// END Master Rank Only
 
@@ -297,7 +299,15 @@ public class Places {
 
 
 		// Start ExchangeHelper 
-        MASS.startExchangeHelper();
+	  // MASS.startExchangeHelper(); Fukuda 3-25-14
+	  MASS.log( "Places: will create MASS.exchangeHelper[0]" );
+	  MASS.exchangeHelper[0] = new ExchangeHelper( );
+	  MASS.exchangeHelper[0].establishConnection( );
+
+          if(MASS.myPid == 0  && MASS.systemSize > 1) { // master rank
+              for(MNode node: MASS.mNodes) 		node.receiveMessage();
+              System.err.println("Received all Acknowledgement... ");
+	  }
           
         MASS.log("--------------Complete Initialization for " + MASS.myPid + " with place handle " 
 					+ this.handle  + "-----------------");
@@ -348,7 +358,7 @@ public class Places {
     String propertyFilePath = MASS.CUR_DIR + "/" + DLBParams.DLB_PROPERTY_FILE_NAME;
   	File propertyFile = new File(propertyFilePath);
   	if (!propertyFile.exists()) {
-  		System.out.println("ERROR : Property file does not exists, load balancing is disabled !");
+  		System.out.println("WARNING : Property file does not exists, load balancing is disabled !");
   	} else {
 			Properties properties = new Properties();
 			try {
@@ -376,7 +386,7 @@ public class Places {
 				
 				
 			} catch (IOException ex) {
-				System.out.println("ERROR : IOException is thrown while reading DLB.properties file, DLB is disabled error : [" + ex.getMessage() +"]");
+				System.out.println("WARNING : there is no DLB.properties file, which disables  DLB");
 			}
   	}
   }
@@ -525,6 +535,7 @@ public class Places {
               m.setHandle(this.handle);
               m.createActionMessage(Constants.CALL_SOME_VOID_OBJECT, functionId, argument, index);
               MASS.mNodes[ MASS.nodePidMap.get( getHostname(globalLinearIndex) ) - 1 ].sendMessage(m);
+	      MASS.mNodes[ MASS.nodePidMap.get( getHostname(globalLinearIndex) ) - 1 ].receiveMessage(); // ack
           }
       }
       catch (Exception e) 

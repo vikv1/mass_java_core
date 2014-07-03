@@ -130,7 +130,8 @@ public class Agents {
           Vector<Agent> tempBag = new Vector<Agent>();
           for (int i = 0; i < initPopulation; i++)
           {               
-                bag.add(createAgent(argument, -1)); //-1 for parentId to be same as agentId, root agent
+	      // bag.add(createAgent(argument, -1)); //-1 for parentId to be same as agentId, root agent
+	      createAgent( argument, -1 );
           }
           tempBag.addAll(bag);
           bag.clear();
@@ -171,6 +172,8 @@ public class Agents {
                   currentAgent.index = currentPlace.index.clone();
                   currentAgent.place = currentPlace;
                   currentPlace.agents.add(currentAgent);//agent added to place
+		  //MASS.log( "Agents.constructor: added agent(" + currentAgent.agentId + ") to place[" + 
+		  //    currentPlace.index[0] + ", " + currentPlace.index[1] + "]" );
                   bag.add(currentAgent); //the 1 place in MASS.Agents where an agent is added to the bag
                   needNewAgent = true;
                   colonistsNum--;
@@ -215,6 +218,7 @@ public class Agents {
 	  agentInitArgs = new int[1];//something to synchronize on
 	  synchronized (agentInitArgs) 
           {
+	      synchronized( bag ) {
 		int agentId = bag.size();
 		agentInitArgs = new int[4];
 		agentInitArgs[0] = this.handle;
@@ -231,6 +235,9 @@ public class Agents {
 		agent = (Agent)ctor.newInstance(argument);
 		
 		agentInitArgs = null;
+		bag.add( agent ); // add this new child to the bag
+		// MASS.log( "a parent(" + parentId + ") created a child (" + agentId + ")" );
+	      }
 	  }
 	} 
         catch (Exception e)
@@ -263,6 +270,7 @@ public class Agents {
 		agentInitArgs = new int[4];
 		agentInitArgs[0] = req.getAgentsHandle();
 		agentInitArgs[1] = req.getPlacesHandle();
+		synchronized( bag ) {
 		agentInitArgs[2] = bag.size();
 		agentInitArgs[3] = req.getParentId(); //root agent, no parent                            
 		agent = (Agent)ctor.newInstance(agentArgument);
@@ -270,6 +278,7 @@ public class Agents {
                 agent.outMessages = req.getOutMessages();
                 agent.arguments = req.getArguments();
                 bag.add(agent); //the 1 place in MASS.Agents where an agent is added to the bag
+		}
 		agentInitArgs = null;
 	  }
 	} 
@@ -319,6 +328,7 @@ public class Agents {
 
     void setTotalAgents( int newPopulation ) {
 	total = newPopulation;
+	MASS.log( "totalAgents = " + total );
     }
   
   void removeAgent(Agent agent)

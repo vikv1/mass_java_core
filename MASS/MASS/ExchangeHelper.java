@@ -1,0 +1,413 @@
+package MASS;
+
+
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
+
+/**
+ *
+ * @author Tim Chuang
+ */
+public class ExchangeHelper extends Thread
+{
+    private final int INTERVAL = 1000;         // 1 second
+    private final int RETRY_LIMIT = 1000000;
+    private HashMap<String, StreamHandler> connectionMap;
+    ServerSocket server;    // added by Fukuda on 11-22-13
+
+    public ExchangeHelper( )
+    {                                  
+        connectionMap = new HashMap<String, StreamHandler>( );
+    }
+    
+    public void run( )
+    {       
+        server = null;
+        Socket client = null;
+        
+        try{  server = new ServerSocket( MASS.MASS_PORT ); }
+        catch ( Exception e ) { MASS.log( "Error establishing connection in ExchangeHelper: " + e.getMessage() );  MASS.finish(); }
+        while( true )
+        {            
+            try
+            {  
+                client = server.accept( );
+                client.setSoLinger(false, 0);
+            } 
+	    catch ( Exception e ) { return; }
+
+            // Check if a connection was established. If so, establish streams
+            if ( client != null )
+            {
+                MASS.log("-------- STARTING EXCHANGE HELPER SERVER ---------------");
+                
+                // Set streams
+                try 
+                {
+                    synchronized(connectionMap)
+                    {
+                        StreamHandler sh = new StreamHandler(client);
+                        // get the host name
+                        String hostName = sh.readHostName();
+                        MASS.log("Received hostname from " + hostName  );
+
+                        MASS.log("Saving connection object for " + hostName );
+                        connectionMap.put(hostName, sh);
+                        connectionMap.notifyAll( );
+                        MASS.log("-------- ESTABLISHED EXCHANGE HELPER SERVER FOR CLIENT " + hostName + "------------");
+                    }
+
+                } catch ( Exception e ) { MASS.log("Error exchanging message: " + e.getMessage() ); } 
+            }
+        }        
+    } 
+    
+    public void establishConnection( String hostName )
+    {           
+        if( MASS.nodePidMap.get(hostName) > MASS.myPid ) return;
+        
+        synchronized(connectionMap)
+        {
+            if( connectionMap.get(hostName) != null ) return; 
+                       
+            MASS.log("-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------");
+            InetAddress addr = null;
+            int portToUse = MASS.MASS_PORT; //isServer ? MASS.MASS_DEFAULT_PORT + MASS.nodePidMap.get(hostName) : MASS.MASS_DEFAULT_PORT + MASS.myPid;
+            try 
+            {
+                MASS.log("Establishing connection between local host: " + InetAddress.getLocalHost().getHostName() + " and destination host: " + hostName);
+                addr = InetAddress.getByName( hostName );
+            } 
+            catch ( UnknownHostException e ) { MASS.log( "Error in obtaning host ip in ExchangeHelper: " + e.getMessage() ); }
+
+            Socket client = null;
+
+            SocketAddress socketAddress = new InetSocketAddress( addr,  portToUse );   
+            // While accepting a remote request, try to send my connection request 
+            int retries = 0;
+            while ( client == null && retries < RETRY_LIMIT) 
+            {
+                // Try to accept a remote connection request
+                MASS.log("Attempting to start a client connection to " + addr + " using " + portToUse + " server port");
+
+                // do not attempt to connect to self if server is running locally
+                if(addr.toString().equals("localhost/127.0.0.1"))
+                    continue;
+
+                // Try to send my connection request
+                try 
+                { 
+                    client = new Socket(  );
+                    client.setSoLinger(false, 0);
+                    client.connect(socketAddress, INTERVAL);
+                } 
+                catch ( IOException e ) 
+                { 
+                    client = null;
+                    MASS.log("connect refused"); 
+                }
+                retries++;
+            } 
+            
+            if(client == null) 
+            {
+                MASS.log( "Error estalbihsing connection in ExchangeHelper: maximum retries reached" );
+                System.exit(-1);
+            } 
+
+
+            // Set streams
+            try 
+            {      
+                StreamHandler sh = new StreamHandler(client);
+
+                // send the host name to the server for connection caching
+                sh.sendHostName( );
+
+                //MASS.log("Saving connection object for " + hostName );
+                connectionMap.put(hostName, sh);
+                connectionMap.notifyAll( );
+
+            } catch ( Exception e ) { MASS.log("Error exchanging message: " + e.getMessage() ); } 
+
+            MASS.log("-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO " + hostName + "---------------"); 
+        }
+    }
+    
+    public void processRequest( String hostName ) 
+    {       
+        StreamHandler sh = null;
+        synchronized(connectionMap)
+        {           
+            MASS.log("processRequest - Retrieving connection object for " + hostName);
+
+            while(connectionMap.get(hostName) == null)
+            {
+		MASS.log("processRequest = connectionMap.get( " + hostName + " ) is null.." ); 
+                try { connectionMap.wait(); }
+                catch(InterruptedException ie) { }
+            }
+
+            sh = connectionMap.get(hostName);
+        }      
+        MASS.log("processRequest - readExchangeRequest start...");
+        ArrayList<RemoteExchangeRequest> exgReq = sh.readExchangeRequest();
+        // process the request
+        MASS.log("processRequest - readExchangeRequest done  size: " + exgReq.size());
+        // retrieve the local value and send it to the requesting node
+        ArrayList<RemoteExchangeRequest> reqVals = MASS.doRemoteExchangeAll(exgReq);
+	MASS.log( "check 1" );
+        Message exchangeMsg = new Message();
+        exchangeMsg.createExchangeAllRequestMessage(reqVals); 
+	MASS.log( "check 2" );
+
+	ParallelWriter writer = new ParallelWriter( sh, exchangeMsg );
+	writer.start( );
+
+        //sh.sendExchangeRequest(exchangeMsg);
+
+	MASS.log( "check 3" );
+        ArrayList<RemoteExchangeRequest> retVals = sh.readExchangeRequest();
+	
+	try {
+	    writer.join( );
+	} catch ( InterruptedException e ) { }
+
+	MASS.log( "check 4" );
+        MASS.updateInMessages(retVals);
+        MASS.log("Finished remote exchange request - size: " + exgReq.size());
+        
+    } 
+
+    private class ParallelWriter extends Thread {
+	private StreamHandler sh;
+	Message msg;
+	public ParallelWriter( StreamHandler sh, Message msg ) {
+	    this.sh = sh;
+	    this.msg = msg;
+	}
+	public void run( ) {
+	    sh.sendExchangeRequest( msg );
+	}
+    }
+    
+    public void sendRequest( String hostName,  Message exgReq ) 
+    {     
+        StreamHandler sh = null;
+        synchronized(connectionMap)
+        {
+            //MASS.log("sendRequest - Retrieving connection object for " + hostName);
+            while(connectionMap.get(hostName) == null)
+            {
+                try { connectionMap.wait(); }
+                catch(InterruptedException ie) { }
+            }
+
+            sh = connectionMap.get(hostName);
+        } 
+        //MASS.log("sendRequest - got connection object");
+        //MASS.log("connection map size: " + connectionMap.size() );
+
+        sh.sendExchangeRequest(exgReq);
+        //MASS.log("sendRequest - request sent");
+
+                       
+    } 
+ 
+    public void processAgentMigrateRequest(String hostName ) 
+    {       
+        if(hostName == null) return;
+        
+        StreamHandler sh = null;
+        MASS.log("Starting remote Agent migrate request with " + hostName); 
+        synchronized(connectionMap)
+        {                   
+            //MASS.log("processRequest - Retrieving connection object for " + hostName);
+            while(connectionMap.get(hostName) == null)
+            {
+                try { connectionMap.wait(); }
+                catch(InterruptedException ie) { }
+            }
+
+            sh = connectionMap.get(hostName);
+        } 
+
+        MASS.log("got stream handler!");
+        ArrayList<RemoteAgentRequest> req = sh.readAgentMigrateRequest();
+
+        // process the request
+        //MASS.log("Processing remote exchange request - size: " + exgReq.size());
+        // retrieve the local value and send it to the requesting node
+        MASS.doRemoteAgentMigrate(req);
+        MASS.log("Finished remote Agent migrate request - size: " + (req == null ? 0 : req.size())); 
+        
+    }    
+    
+    public void finish()
+    {       
+        synchronized(connectionMap)
+        {
+            // close streams
+            Set entrySet = connectionMap.entrySet();
+            Entry entry;
+            for(Iterator it = entrySet.iterator(); it.hasNext(); )
+            {
+                entry = (Entry)it.next();
+                connectionMap.get(entry.getKey().toString()).closeConnections();
+            }
+        } 
+	try {
+	    server.close( ); // added by Fukuda on 11-22-13
+	} catch( Exception e ) { }
+    }
+    
+    private class StreamHandler
+    {
+        private ObjectInputStream input;
+        private ObjectOutputStream output;
+        
+        public StreamHandler(Socket client)
+        {
+            try
+            {
+                MASS.log( "TCP connection established..." );
+                output = new ObjectOutputStream( client.getOutputStream() );
+                MASS.log( "Got output stream");
+                input = new ObjectInputStream( client.getInputStream() );
+                MASS.log( "Got input stream");
+            } catch (Exception e) { MASS.log(" Error establishing streams - system shutting down"); System.exit(-1); }
+        }
+        
+        public void sendExchangeRequest(Message exchangePackage)
+        {
+            try
+            {
+                output.writeObject(exchangePackage);
+                output.flush(); 
+            }
+            catch(Exception e) 
+            { 
+                MASS.log("Error in sending exchange request: " + e.getMessage() + " system shutting down.."); 
+                System.exit(-1);
+            }
+
+        }
+        
+        public ArrayList<RemoteExchangeRequest> readExchangeRequest() 
+        {
+            Message ret = null;
+            try
+            {
+                ret = (Message)input.readObject();
+            }
+            catch(Exception e) 
+            { 
+                MASS.log("Error in reading exchange request: " + e.getMessage() + " system shutting down..");
+                System.exit(-1);
+            }
+
+            if(ret != null)
+            {
+                return ret.getExchangeAllMessage();
+            }
+
+            return null;
+        }
+
+        public ArrayList<RemoteAgentRequest> readAgentMigrateRequest() 
+        {
+            Message ret = null;
+            try
+            {
+                ret = (Message)input.readObject();
+            }
+            catch(Exception e) 
+            { 
+                MASS.log("Error in reading exchange request: " + e.getMessage() + " system shutting down..");
+                System.exit(-1);
+            }
+
+            if(ret != null)
+            {
+                return ret.getRemoteAgentMigrateRequest();            
+            }
+
+            return null;
+        }
+        
+        public void closeConnections( )
+        {
+            try
+            {
+                input.close();
+                output.close();
+            }
+            catch( Exception e) { }
+        }
+        
+        public void sendHostName( )
+        {
+            try
+            {
+                String localHost = InetAddress.getLocalHost().getHostName();
+                MASS.log("Sending local host name " + localHost );
+                output.writeObject(localHost);
+                output.flush();
+            }
+            catch( Exception e) 
+            { 
+                MASS.log("Error in sending host name: " + e.getMessage() + " system shutting down.."); 
+                System.exit(-1);
+            }
+        }
+        
+        public String readHostName( )
+        {
+            try
+            {
+                return (String)input.readObject( );
+            }
+            catch( Exception e) 
+            { 
+                MASS.log("Error in reading host name: " + e.getMessage() + " system shutting down.."); 
+                System.exit(-1);
+            }
+            
+            return null;
+
+        }    
+        
+        public boolean isReady( )
+        {
+            try
+            {
+                return input.available() > 0;
+            }
+            catch( Exception e) 
+            { 
+                MASS.log("Error checking input stream: " + e.getMessage() + " system shutting down.."); 
+                System.exit(-1);
+            }  
+            finally
+            {
+                return false;
+            }
+        }
+    }
+    
+}
+

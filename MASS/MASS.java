@@ -130,6 +130,7 @@ public class MASS
      */
     public static void init(String[] args, int nProc, int childThrds) 
     {
+	MASS.log( "main thread: " + Thread.currentThread( ) );
         
         // Variable Declarations
         ArrayList<String> hosts = new ArrayList<String>( );		// A collection of host names
@@ -227,7 +228,7 @@ public class MASS
             //log("Creating new mNode id:" + (i+ 1) + " name: " + currHostName);
             mNodes[i] = new MNode(currHostName, pid);
             // MASS.MProcess requires pid and system size(nProc)
-            String cmd = "java -Xmx1g -cp " + CUR_DIR + "/DLB.jar:" + CUR_DIR + "/MASS.jar:" + CUR_DIR + "/jsch-0.1.44.jar"; 
+            String cmd = "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/DLB.jar:" + CUR_DIR + "/MASS.jar:" + CUR_DIR + "/jsch-0.1.44.jar"; 
             
             if(customJarList != null)
             {
@@ -583,7 +584,7 @@ public class MASS
 			
 			range[0] = DLBParams.boundaryMap.get((long)position).getLowerBound();
 			range[1] = DLBParams.boundaryMap.get((long)position).getUpperBound();
-			
+
        		return range;
         }
         
@@ -604,6 +605,7 @@ public class MASS
         { // there are more MASS.Places than threads
             int first = position * portion;
             int last = ((position + 1) * portion) - 1;
+
             if (position < remainder) 
             { // add in remainders
                 first += position;
@@ -670,6 +672,10 @@ public class MASS
         }
         
         return range;
+    }
+
+    public static int getThreadId( ) {
+	return getThreadPosition( );
     }
 
 
@@ -757,7 +763,7 @@ public class MASS
                 STATUS.notifyAll();
             }
             
-            //MASS.log("ea_setup is complete for " + myPid);
+            MASS.log("ea_setup is complete for " + myPid);
     }
 
     /**
@@ -819,7 +825,7 @@ public class MASS
                             String destHostName = ea_places.getHostname(globalLinearIndex);
 
                             //MASS.log("ExchangeAll RemoteCall - index is : " + globalLinearIndex 
-							// + " destination: " + destHostName);
+			    //			 + " destination: " + destHostName);
                             synchronized(exchangeAllRequestMap)
                             {
                                 if(exchangeAllRequestMap.get(destHostName) == null)
@@ -845,12 +851,17 @@ public class MASS
                  } // end of for loop
             }
         }
-                       
+
+
         barrier(); // exit smoothly 
         //processRemoteExchangeRequest(exchangeAllRequestMap);
+
         processRemoteExchangeRequest( );
+
         barrier();
 
+	if ( myPid == 0 && getThreadPosition( ) == 0 )
+	    receiveAck( ); // just receive ack
     }
   
 
@@ -966,6 +977,9 @@ public class MASS
         barrier();
         processRemoteExchangeRequest( );
         barrier();
+
+	if ( myPid == 0 && getThreadPosition( ) == 0 )
+	    receiveAck( ); // just receive ack
     }
 
 
@@ -1054,7 +1068,7 @@ public class MASS
     	barrier();
     }
 
-
+    // Fukuda 3-26-14
 	/**
 	  * Process the Remote Exchange Request between nodes
 	  * Used by both exchangeAll() and exchangeBoundary()
@@ -1065,10 +1079,65 @@ public class MASS
         String destinationHostName = null;
         ExchangeHelper helper = null;
         Message  exchangeP = null;
-        ArrayList<RemoteExchangeRequest> requestList = null;        
+
+
+	try {
+	    synchronized( nodePidMap ) { // only one of Mtreads/main thread will execute the following part
+		Set nodeEntrySet = nodePidMap.entrySet( );
+		Iterator it = nodeEntrySet.iterator( );
+		while ( it.hasNext( ) ) { // exchange with all the other nodes
+		    java.util.Map.Entry nodeEntry = (java.util.Map.Entry )it.next( );
+		    destinationHostName = ( String )nodeEntry.getKey( ); // get destination
+		    if ( !destinationHostName.equals( InetAddress.getLocalHost().getHostName( ) ) )
+			// skip the local host
+			continue;
+		    ArrayList<RemoteExchangeRequest> requestList = null;        
+		    requestList = (ArrayList<RemoteExchangeRequest>)exchangeAllRequestMap.get(destinationHostName);
+		    // Fukuda 3-27-14 begins
+		    if ( requestList != null ) {
+			exchangeAllRequestMap.remove(destinationHostName);
+			MASS.log("Beginning remote exchange mt version - My local thread id =  " + getThreadPosition() 
+				 + " requests remaining: " + exchangeAllRequestMap.size() 
+				 +  " exchange destination: " + destinationHostName );
+		    } else
+			continue;
+			
+		    startRemoteExchange( destinationHostName, requestList ); 
+		    // Fukuda 3-27-14 ends
+		}
+	    }
+	    /*
+	    {
+		Set nodeEntrySet = nodePidMap.entrySet( );
+		Iterator it = nodeEntrySet.iterator( );
+		while ( it.hasNext( ) ) { // exchange with all the other nodes
+		    java.util.Map.Entry nodeEntry = (java.util.Map.Entry )it.next( );
+		    destinationHostName = ( String )nodeEntry.getKey( ); // get destination
+		    int rank = ( ( Integer )nodeEntry.getValue( ) ).intValue( );              // get rank
+		    if ( rank % ( threads.size( ) + 1 )== getThreadPosition( ) && // including the main thread
+			 !destinationHostName.equals( InetAddress.getLocalHost().getHostName( ) ) ) { 
+			// this thread is in charge of this given remote rank
+		    
+			requestList = (ArrayList<RemoteExchangeRequest>)exchangeAllRequestMap.get(destinationHostName);
+			if ( requestList != null ) {
+			    exchangeAllRequestMap.remove(destinationHostName);
+			    //MASS.log("Beginning remote exchange mt version - My local thread id =  " + getThreadPosition() 
+			    //     + " requests remaining: " + exchangeAllRequestMap.size() 
+			    //     +  " exchange destination: " + destinationHostName );
+			}
+			startRemoteExchange( destinationHostName, requestList ); 
+		    }
+		}
+	    }
+	    */
+	} catch ( Exception e ) { 
+	    MASS.log( e.toString( ) );
+	}
         
+	/*
         synchronized( exchangeAllRequestMap )
         {     
+	    MASS.log( "processRemoteExchangeReuquest: thread id = " + getThreadPosition( )  );
             if(exchangeAllRequestMap.isEmpty()) 
                 return;           
             else
@@ -1112,6 +1181,7 @@ public class MASS
                 }               
             }
         }
+	*/
     } 
 
 	/**
@@ -1120,21 +1190,25 @@ public class MASS
 	*/
     private static void startRemoteExchange(String destinationHostName, ArrayList<RemoteExchangeRequest> requestList)
     {
-        exchangeHelper[0].establishConnection(destinationHostName);
+        // exchangeHelper[0].establishConnection(destinationHostName); Fukuda 3-25-14
         
-        MASS.log("Starting remote exchange with :" + destinationHostName);
+        //MASS.log("Starting remote exchange with :" + destinationHostName);
         Message  exchangeMsg = new Message();
-        exchangeMsg.createExchangeAllRequestMessage(requestList);
+	if ( requestList == null ) // create a dummy node
+	    requestList = new ArrayList<RemoteExchangeRequest>();
 
+        exchangeMsg.createExchangeAllRequestMessage(requestList);
         exchangeHelper[0].sendRequest(destinationHostName, exchangeMsg);   
-        MASS.log("Sent Exchange All Request to " + destinationHostName );
+        MASS.log( Thread.currentThread( ) + " Sent Exchange All Request to " + destinationHostName );
 
         exchangeHelper[0].processRequest(destinationHostName);  
+        MASS.log( Thread.currentThread( ) + "Process Request from " + destinationHostName );
     }
    
 	/**
 	  * Start ExchangeHelper
 	*/ 
+    /* Fukuda 3-25-14
     static void startExchangeHelper( )
     {
         synchronized(exchangeHelper)
@@ -1146,6 +1220,7 @@ public class MASS
             }       
         }
     }
+    */
     /*public static void processRemoteExchangeRequest( HashMap<String, ArrayList<RemoteExchangeRequest>> exchangeAllRequestMap)
     {        
         if (exchangeAllRequestMap.isEmpty()) return;
@@ -1375,8 +1450,10 @@ public class MASS
      */
     static Object[] ca_callAll()
     {
-        if (!INITIALIZED) return null;
-           
+        if (!INITIALIZED) {
+	    return null;
+	}
+
         Object[] retVals = null;
         int[] range = getLocalRange(ca_places);
         Places.Iterator iter = ca_places.iterator(range);
@@ -1429,9 +1506,16 @@ public class MASS
             // master collects results from other ranks
             return callAllCollect(retVals);
         }
+	if(retVals == null && myPid == 0 && getThreadPosition() == 0 ) // just receive ack
+	    receiveAck( );
         
         return retVals; // always null for child threads, may be assigned for
                                                 // main thread
+    }
+
+    private static void receiveAck( ) {
+	for ( MNode node: mNodes )
+	    node.receiveMessage( );  // just receive an ack and discard it.
     }
 
     private static Object[] callAllCollect(Object[] retVals)
@@ -1447,7 +1531,7 @@ public class MASS
             startPos = node.getPid() * Places.chunkSize;
             length = node.getPid() == MASS.systemSize - 1 ? Places.chunkSize + Places.remainder : Places.chunkSize;
             
-            MASS.log("Collection information for rank " + node.getHostName() + " startPos: " + startPos + " length: " + length + " total Length: " + ca_finalRetVals.length);
+            //MASS.log("Collection information for rank " + node.getHostName() + " startPos: " + startPos + " length: " + length + " total Length: " + ca_finalRetVals.length);
             System.arraycopy(nodeRetVal, 0, ca_finalRetVals, startPos, length);           
         }
         //MASS.log("Master has finished collecting return values for call all");
@@ -1697,7 +1781,8 @@ public class MASS
     {
         if (agentsSortAllParamsCheckOkay()) 
         {
-            Places.Iterator placeIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	    // don't use DLB, we will use getLocalRange( places, tid )
+            Places.Iterator placeIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( ) ));
             if (placeIter != null) 
             {
                 Place place = null; // reuseable vars
@@ -1781,7 +1866,7 @@ public class MASS
                 cleanAgentsOpVariables();
                 // set up variables
                 agentsOpHandle = handle;
-                agentsOpAgents = agents;
+		agentsOpAgents = agents;
                 agentsOpPlaces = places;
                 agentsOpFunctionId = functionId;
                 agentsOpCallAllArg = argument;
@@ -1794,7 +1879,7 @@ public class MASS
                     {
                         node.sendMessage(m);
                     }                    
-                }                
+                }            
                 // change the status
                 synchronized (STATUS) 
                 {
@@ -1803,6 +1888,11 @@ public class MASS
                 }
                 agentsCallAllPerThread();// do op as main thread
             }
+
+	    if(myPid == 0 && getThreadPosition() == 0) // just receive acks
+		{
+		    receiveAck( );
+		}
         }
     }
 
@@ -1872,14 +1962,14 @@ public class MASS
         {
             Message m = node.receiveMessage();
             Object[] nodeRetVal = (Object[])m.getMessage().get(Constants.CALL_ALL_RETURN_VALUES);
-            MASS.log("Agent collection information for rank " + node.getHostName() + " startPos: " + startPos + " length: " + (nodeRetVal == null ? 0 : nodeRetVal.length) + " total Length: " + (agentsOpCallAllResults == null ? 0 : agentsOpCallAllResults.length));
+            //MASS.log("Agent collection information for rank " + node.getHostName() + " startPos: " + startPos + " length: " + (nodeRetVal == null ? 0 : nodeRetVal.length) + " total Length: " + (agentsOpCallAllResults == null ? 0 : agentsOpCallAllResults.length));
             if(nodeRetVal != null)
             {
                 System.arraycopy(nodeRetVal, 0, agentsOpCallAllResults, startPos, nodeRetVal.length); 
                 startPos += nodeRetVal.length;
             }
         }
-        MASS.log("Master has finished collecting agents return values for call all");
+        // MASS.log("Master has finished collecting agents return values for call all");
         //for(int i = 0; i < agentsOpCallAllResults.length; i++)
         //    MASS.log("Agent Result content [" + i + "] is " + agentsOpCallAllResults[i]);
         return agentsOpCallAllResults;
@@ -1887,7 +1977,8 @@ public class MASS
     
     static void agentsCallAllPerThread() 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));
         if (placesIter != null) 
         {
             Place place = null; // reusable variables
@@ -1906,7 +1997,6 @@ public class MASS
                 while (localAgentsIter.hasNext()) 
                 { // go through each agent in place
                     localAgent = localAgentsIter.next();
-                    //MASS.log("Agent Call All on index [" + place.index[0] + "][" + place.index[1] + "]" );
                     if (agentsOpSaveResults) 
                     { // multi argument w/ return val
                         //int agentId = localAgent.agentId;
@@ -1945,6 +2035,7 @@ public class MASS
      */
     private static Vector<Agent> getAllAgentWithHandle(Vector<Agent> agents, int agentsHandle) 
     {
+	try {
         Iterator<Agent> itAgent = agents.iterator();
         Vector<Agent> vec = new Vector<Agent>();
         Agent agent;
@@ -1955,6 +2046,11 @@ public class MASS
                 vec.add(agent);
         }
         return vec;
+	} catch ( Exception e ) {
+	    MASS.log( e.toString( ) );
+	    System.exit( -1 );
+	    return null;
+	}
     }
 
     /**
@@ -1979,6 +2075,7 @@ public class MASS
                 // set up the variables
                 agentsOpHandle = handle;
                 agentsOpPlaces = places;
+		agentsOpAgents = getAgents( handle ); // by Fukuda
                 if(MASS.myPid == 0 )
                 {
                     Message m = new Message();
@@ -1994,24 +2091,21 @@ public class MASS
                     STATUS[0] = STATUS_AGENTS_MANAGE_ALL;
                     STATUS.notifyAll();
                 }
-		MASS.log( "check A" );
                 //RemoteAgentMigrateHostNames.clear();
                 agentsManageAllPerThread();
-		MASS.log( "check B" );
                 //redistributeHostNamesForAgentMigrate();
                 processRemoteAgentRequest();
-		MASS.log( "check C" );
 
 		if (MASS.myPid == 0 ) { // aded by Fukuda 11-22-13
 		    Agents agents = getAgents( handle );
 		    int len = agents.nAgents( );
+		    MASS.log( "local nAgents = " + len );
 		    
 		    for(MNode node: mNodes )
 			len += node.receiveMessage().getNumAgents();
 		    
 		    agents.setTotalAgents( len );
 		}
-		MASS.log( "check D" );
             }
         }
     }
@@ -2094,7 +2188,8 @@ public class MASS
 
     private static void agentsManageAllPerThreadOrganizeForWakeUp( ) 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));
         if (placesIter != null) 
         {
             Place place = null; // reuseable variable
@@ -2189,7 +2284,8 @@ public class MASS
 
     private static void agentsManageAllPerThreadDoWakeUp() 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));
         if (placesIter != null) 
         { // null when not enough MASS.Place objects for thread
             Place place = null; // reuseable variable
@@ -2259,13 +2355,17 @@ public class MASS
 
     private static void agentsManageAllPerThreadStartSpawn() 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));
         if (placesIter != null) 
         {
             Place place = null; // reuseable variables
             Agent agent = null;
             Object[] arguments;
             int newChildren;
+
+	    //synchronized
+
             // cycle through the places for this thread
             while (placesIter.hasNext()) 
             {
@@ -2294,10 +2394,13 @@ public class MASS
                         // agents
                         if (newChildren > 0) 
                         {
-                            for (int spawn = 0; spawn < agent.newChildren; spawn++) 
+                            for (int spawn = 0; spawn < newChildren; spawn++) 
                             {
                                 Object arg = (arguments == null || spawn > arguments.length - 1) ? null : arguments[spawn];
-                                Agent child = agentsOpAgents.createAgent(arg, agent.agentId);
+				Agent child = null;
+				synchronized( agentsOpAgents ) {
+				    child = agentsOpAgents.createAgent(arg, agent.agentId);
+				}
                                 if (child != null) 
                                 {
                                     child.index = agent.index.clone();
@@ -2316,14 +2419,15 @@ public class MASS
                         }
                         // ----------------------------------- end spawn
                     }
-                }
+		}
             }
         }
     }
 
     private static void agentsManageAllPerThreadKillOrStartMigrate() 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));        
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));        
         if (placesIter != null) 
         { // null when not enough MASS.Place objects for thread
             Place place = null; // reuseable variable
@@ -2440,20 +2544,22 @@ public class MASS
      */
     private static void agentsManageAllPerThreadFinishSpawnAndMigrate() 
     {
-        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces));
+	// don't use DLB, we will use getLocalRange( places, tid )
+        Places.Iterator placesIter = agentsOpPlaces.iterator(getLocalRange(agentsOpPlaces, getThreadPosition( )));
         if (placesIter != null) 
         { // null when not enough MASS.Place objects for thread
             Place place = null; // reuseable variable
             while (placesIter.hasNext()) 
-            {
-                place = placesIter.next();
-                if (place.immigrants.size() > 0) 
-                {
-                    place.agents.addAll(place.immigrants);
+		{
+		    place = placesIter.next();
+		    if (place.immigrants.size() > 0) 
+			{
+			    place.agents.addAll(place.immigrants);
+			}
+		    
                     place.immigrants.clear();
                 }
-            }
-        }
+	}
     }
 
     /*
@@ -2652,33 +2758,22 @@ public class MASS
             destinationHostName = (String)req.getKey();
             Integer pid = (Integer)req.getValue();
             if(pid == myPid) continue;
-	    MASS.log ( "check 1a" );
-            exchangeHelper[0].establishConnection(destinationHostName);
+            // exchangeHelper[0].establishConnection(destinationHostName); Fukuda 3-25-14
             Message  msg = new Message();
-	    MASS.log ( "check 2a" );
             requestList = remoteAgentRequestMap.get(destinationHostName);
             if(requestList != null)
             {
-                //MASS.log("Starting remote exchange with :" + destinationHostName);
-
                 msg.createAgentMigrateRequestMessage(requestList);
-	    MASS.log ( "check 3a" );
                 exchangeHelper[0].sendRequest(destinationHostName, msg);   
-	    MASS.log ( "check 4a" );
-                MASS.log("Sent Agent migrate Request to " + destinationHostName );
+                //MASS.log("Sent Agent migrate Request to " + destinationHostName );
                 remoteAgentRequestMap.remove(destinationHostName);
             }
             else
             {
-	    MASS.log ( "check 3b" );
                 msg.createAcknowlegementMessage();
-		MASS.log ( "check 4b" );
 
 		ParallelWriter writer = new ParallelWriter( destinationHostName, msg );
 		writer.start( );
-                // exchangeHelper[0].sendRequest(destinationHostName, msg);
-
-                MASS.log("Nothing to send for agent migrate.. sending ack to " + destinationHostName );
             }                      
         }        
     }
@@ -2714,7 +2809,7 @@ public class MASS
             if(pid == myPid) continue;
 
 	    readers[nReaders] = new ParallelReader( destinationHostName );
-	    MASS.log( "Parallel Reader[" + nReaders + "] " + destinationHostName );
+	    // MASS.log( "Parallel Reader[" + nReaders + "] " + destinationHostName );
 	    readers[nReaders].start( );
 	    nReaders++;
             //exchangeHelper[0].processAgentMigrateRequest(destinationHostName);                       
@@ -2723,7 +2818,7 @@ public class MASS
 	for ( int i = 0; i < readers.length; i++ )
 	    if ( readers[i] != null )
 		try {
-		    MASS.log( "finishing Parallel Reader: " + i );
+		    //MASS.log( "finishing Parallel Reader: " + i );
 		    readers[i].join( );
 		} catch( InterruptedException e ) { }
     }
@@ -2779,7 +2874,7 @@ public class MASS
     {
         if(requestList == null) 
         {
-            MASS.log("Nothing to process for agent migrate.. " );
+            //MASS.log("Nothing to process for agent migrate.. " );
             return;
         }
         
@@ -2851,7 +2946,9 @@ public class MASS
      */
     public static void log( String message ) {
         if( myPid != 0 ){
+	    synchronized( threads ) {
             MProcess.log( message );
+	    }
         } else {
             System.err.println( message );
         }
