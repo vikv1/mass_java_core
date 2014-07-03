@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.*;
 import java.util.List;
 import java.io.*;
 
@@ -64,8 +63,6 @@ public class Parallel_NetCDF extends Place {
 	private static boolean initialized = false;	// If init() has been called for this Place
 	private static List<Variable> allVar;
 	private static Configuration conf;
-	private static boolean fromHDFS = false;
-	private static boolean toHDFS = false;
 	
 	private Integer increment = new Integer(0); 	//added by sanjay, to increment filename by each writing place obj
 
@@ -105,7 +102,7 @@ public class Parallel_NetCDF extends Place {
 		
 		Object[] args = ( Object[] ) arg;
 		nProc = ( ( Integer ) args[0] ).intValue( );
-		filename = (( String ) args[1])+ MASS.getPid();
+		filename = (( String ) args[1]) + MASS.getPid();
 		fileDataType = ( ( Integer ) args[2] ).intValue( );	
 		varDims = ( int[] ) args[3];
 
@@ -191,7 +188,7 @@ public class Parallel_NetCDF extends Place {
 		synchronized( buffer ) {
 			// Loops over the list of variables and stores their Arrays in buffer for quick access
 			// Only fills the portion of buffer that belongs to this processor
-			for (int i = firstIndex; i < (firstIndex + perProc); i++) {
+			for (int i = firstIndex; i <= (firstIndex + perProc); i++) {
 				if (i < allVar.size()) {	// Only access list if index 'i' is valid
 					Variable currVar = allVar.get(i);	// Get the variable at index i
 					varInfo[i] = currVar.getDataType();	// Get datatype for variable i
@@ -290,11 +287,7 @@ public class Parallel_NetCDF extends Place {
 		int bufferLoc = index[0] * size[0] + index[1];
 
 		synchronized( buffer ) {
-			DataType currType = varInfo[ bufferLoc ];
-			int type = type_double;
-			if(mapping.get(currType)!=null)
-				type = mapping.get(currType);
-				
+			int type = mapping.get(varInfo[bufferLoc]);
 			boolean success = setNewValue(indices, rank, type, toStore, bufferLoc);
 			
 			if (success) {
@@ -335,7 +328,7 @@ public class Parallel_NetCDF extends Place {
 				}
 
 				List<Variable> allVar = toOpen.getVariables();	// Get variables from the file
-				for (int i = firstIndex; i < (firstIndex + perProc); i++) {
+				for (int i = firstIndex; i <= (firstIndex + perProc); i++) {
 					if (i < allVar.size()) {	// Only access list if index 'i' is valid
 						Variable currVar = allVar.get(i);	// Get the variable at index i
 						int currType =  mapping.get(varInfo[i]);	// Get datatype for variable i
@@ -1025,12 +1018,11 @@ public class Parallel_NetCDF extends Place {
 	
 private boolean movefromHDFS(){
 
-	if(buffer!=null)
 	synchronized( buffer ) {
       
       
-      if ( fromHDFS == false) {
-         fromHDFS = true; //so that only one thread ever enters this loop
+      if ( buffer != null ) {
+         
          
          MASS.log("started movefromHDFS");
          conf = new Configuration();
@@ -1059,13 +1051,11 @@ private boolean movefromHDFS(){
 			 
             //MASS.log("EXECPTION2" );
          }
-         MASS.log("read file from hadoop completed!");
-         
       }
    }
    
    
-   
+   MASS.log("read file from hadoop completed!");
    return true;
    
 }
@@ -1073,13 +1063,13 @@ private boolean movefromHDFS(){
 	
 	
 	private void movetoHDFS(){
+   if (!opened || !initialized ) return ;
   
-  if(buffer!=null)
    synchronized( buffer ) {
       
       
-      if ( toHDFS == false) {
-         toHDFS = true;
+      if ( buffer != null ) {
+         
          
          MASS.log("started movetoHDFS");
          conf = new Configuration();
@@ -1106,7 +1096,6 @@ private boolean movefromHDFS(){
             MASS.log("EXECPTION2" );
          }
                MASS.log("Writing file to Hadoop completed!");
-               
 
       }
    }

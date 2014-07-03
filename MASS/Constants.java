@@ -34,7 +34,9 @@ public class Constants
     public static final int AGENTS_CALL_ALL_VOID = 13;
     public static final int AGENTS_CALL_ALL_RETURN_OBJECT = 14;
     public static final int AGENTS_MANAGE_ALL = 15;
-        
+
+    // exchange Boundary
+    public static final int EXCHANGE_BOUNDARY = 16;  
 
     // array types
     public static final String OBJECT_ARRAY = "OBJECT_ARRAY";

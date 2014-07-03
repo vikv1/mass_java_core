@@ -24,90 +24,96 @@ import main.java.com.dlb.utils.Slice;
  */
 public class MASS 
 {
-
     protected static int[] OPERATION_LOCK = new int[1];
-
-    protected static int[] threadsRunning = new int[1]; // number of Mthreads
-    public static Vector<Thread> threads; // threads of MASS.MASS env - no mods
-                                                                                    // after MASS.MASS.init
-    protected static Hashtable<Integer, Places> placesHandles; // for
-                                                                                                                            // placesHandles
-                                                                                                                            // & MASS.Places
-    protected static Hashtable<Integer, Agents> agentsHandles; // for handles for
-                                                                                                                            // MASS.Agents
-    protected volatile static boolean INITIALIZED = false; // set to true when
-                                                                                                                    // MASS.MASS.init() is
-                                                                                                                    // called
+    protected static int[] threadsRunning = new int[1]; 		// number of Mthreads
+    public static Vector<Thread> threads; 			// threads of MASS.MASS env - no mods after MASS.MASS.init
+    protected static Hashtable<Integer, Places> placesHandles; 	// for  placesHandles & MASS.Places
+    protected static Hashtable<Integer, Agents> agentsHandles; 	// for handles for MASS.Agents
+    protected volatile static boolean INITIALIZED = false; 		// set true when MASS.MASS.init() is called
     protected volatile static int barrierCounter = 0;
 
     /** the status of the MASS.MASS environment */
     static int[] STATUS = new int[1];
     /** the MASS.MASS environment has been prepared with MASS.MASS.init */
-    static final int STATUS_READY = 0;
+    static final int STATUS_READY 				= 0;
     /** MASS.MASS.finish() has been called and the MASS.MASS environment is shutting down */
-    static final int STATUS_TERMINATE = 1;
+    static final int STATUS_TERMINATE 			= 1;
     /**
      * static callAll variables have been set up by a MASS.Places object calling
      * ca_setup and all threads will do callAll calculations by calling
      * ca_callAll
      */
-    static final int STATUS_CALLALL = 2;
+    static final int STATUS_CALLALL 			= 2;
     /**
      * static exchangeAll variables have been set up by a MASS.Places object calling
      * ea_setup and all threads will do exchangeAll by calling ea_exchangeAll
      */
-    static final int STATUS_EXCHANGE_ALL = 3;
+    static final int STATUS_EXCHANGE_ALL 		= 3;
+    static final int STATUS_AGENTS_CALL_ALL 	= 4;
+    static final int STATUS_AGENTS_MANAGE_ALL 	= 5;
+    static final int STATUS_AGENTS_SORT_ALL 	= 6;
+	static final int STATUS_EXCHANGE_BOUNDARY   = 7;
 
-    static final int STATUS_AGENTS_CALL_ALL = 4;
-    static final int STATUS_AGENTS_MANAGE_ALL = 5;
-    static final int STATUS_AGENTS_SORT_ALL = 6;
+
+    // /////////////////////////// MASS.Places operations vars //////////////////
 
     // callAll variables for MASS.Places.callAll
-    protected static Places ca_places; // referred to during callAll
-    protected static int ca_functionId; // referred to during callAll
-    protected static Object ca_argument; // Object parameter to be passed in
-    protected static Object[] ca_arguments; // array parameter
-    protected static Object[] ca_retVals; // to return to the call from MASS.Places
-                                                                            // object
-    protected static Object[] ca_finalRetVals; // the final return value of call all after collecting results from all ranks
+    protected static Places 	ca_places; 			// referred to during callAll
+    protected static int 		ca_functionId; 		// referred to during callAll
+    protected static Object 	ca_argument; 		// Object parameter to be passed in
+    protected static Object[] 	ca_arguments; 		// array parameter
+    protected static Object[] 	ca_retVals; 		// to return to the call from MASS.Places object
+    protected static Object[] 	ca_finalRetVals;	// final return value of call all after collecting results 
 
     // exchangeAll variables for MASS.Places.exchangeAll
-    protected static Places ea_places;
-    protected static int[][] ea_destinations;
-    protected static int ea_functionId;
+    protected static Places 	ea_places;
+    protected static int 		ea_functionId;		// function to execute
+    protected static int[][] 	ea_destinations;	// the neighbor list
+
+    // exchangeBoundary variables
+    protected static Places     eb_places; 
+    protected static int    	eb_functionId;		// function to execute
+    protected static int[][]    eb_destinations;	// the neighbor list
+    protected static Place[]    eb_lBoundary;   	// left shadow destinations
+    protected static Place[]    eb_rBoundary;   	// right shadow destinations
+
 
     // /////////////////////////// MASS.Agents operations vars //////////////////
 
-    protected static Agents agentsOpAgents;
-    protected static Places agentsOpPlaces;
-    protected static Object agentsOpCallAllArg;
-    protected static Object[] agentsOpCallAllArgs;
-    protected static Object[] agentsOpCallAllResults;
-    protected static boolean agentsOpSaveResults;
-    protected static int agentsOpFunctionId;
-    protected static int agentsOpHandle;
-    // private static int agentsOpForeignHandle;
-    protected static boolean agentsOpDescending;
+    protected static Agents 	agentsOpAgents;
+    protected static Places 	agentsOpPlaces;
+    protected static Object 	agentsOpCallAllArg;
+    protected static Object[] 	agentsOpCallAllArgs;
+    protected static Object[] 	agentsOpCallAllResults;
+    protected static boolean 	agentsOpSaveResults;
+    protected static int 		agentsOpFunctionId;
+    protected static int 		agentsOpHandle;
+    // private static int 		agentsOpForeignHandle;
+    protected static boolean 	agentsOpDescending;
 
-    protected static Object threadsCatchUpBarrierLockObject = new Object();
-    protected static int threadsCatchUpBarrierCounter = 0;
+    protected static Object 	threadsCatchUpBarrierLockObject = new Object();
+    protected static int 		threadsCatchUpBarrierCounter = 0;
     
     
     ///////////////////// Variables for communications among nodes //////////////////////
-    protected static MNode[] mNodes;            // a list of remote machines
-    protected static int myPid = 0;             // store process id
-    protected static int systemSize = 0;
+    protected static MNode[] 	mNodes;         // a list of remote machines
+    protected static int 		myPid = 0;		// store process id
+    protected static int 		systemSize = 0;
 
     // a map that stores the global linear index and the hostname of the node that is in charge of the index
-    protected static HashMap<Integer, String> networkMap = new HashMap<Integer, String>();
     protected static HashMap<String, Integer> nodePidMap = new HashMap<String, Integer>();
     // a map that stores the hostname of the exchange all call destination and the exchange helper associated with it
     protected static ExchangeHelper[] exchangeHelper = new ExchangeHelper[1];
-    protected static HashMap<String,  ArrayList<RemoteExchangeRequest>> exchangeAllRequestMap = new HashMap<String,  ArrayList<RemoteExchangeRequest>>();
+
+	// the exhangeAllRequestMap variable is used by exchangeAll() and exchangeBoundary()
+    protected static HashMap<String,  ArrayList<RemoteExchangeRequest>> exchangeAllRequestMap 
+											= new HashMap<String,  ArrayList<RemoteExchangeRequest>>();
     protected static int MASS_PORT = 5000;
     protected static String CUR_DIR;
-    protected static HashMap<String,  ArrayList<RemoteAgentRequest>> remoteAgentRequestMap = new HashMap<String,  ArrayList<RemoteAgentRequest>>();     
+    protected static HashMap<String,  ArrayList<RemoteAgentRequest>> remoteAgentRequestMap 
+											= new HashMap<String,  ArrayList<RemoteAgentRequest>>();     
     //protected static ArrayList<String> RemoteAgentMigrateHostNames = new ArrayList<String>();
+
     // =========================================================================
      
     /**
@@ -270,8 +276,8 @@ public class MASS
     }
     
     /**
-     * Initialize the boundaries and create Slice objects.
-     * The slice objects contain the upper and lower bounds for each slice.
+     * Initialize the (thread) boundaries and create Slice objects.
+     * The slice objects contain the upper and lower bounds for each (thread) slice.
      * Add the slice objects to the map for respective thread ids.
      * 
      * @param places
@@ -284,7 +290,7 @@ public class MASS
     	if (myPid == 0) {
     		
     		int dd = 0;
-	    	MASS.log("Inside initBoundaries !");
+	    	MASS.log("Inside initBoundaries!  (thread boundaries)");
 	    	
 	        /**
 	         * set the boundaries for load balancing here
@@ -789,15 +795,17 @@ public class MASS
                         {                            
                             // this means the destination is not on the local node
                             // look it up and instantiate remote node exchange all call
-                            RemoteExchangeRequest request = new RemoteExchangeRequest(globalLinearIndex,
-                                                                Places.getGlobalLinearIndexFromGlobalArrayIndex(origin.index, size),
-                                                                inMessagesIndex,
-                                                                origin.outMessages);
+                            RemoteExchangeRequest request = 
+								new RemoteExchangeRequest(globalLinearIndex,
+                               							  Places.getGlobalLinearIndexFromGlobalArrayIndex(origin.index, size),
+                                                          inMessagesIndex,
+                                                          origin.outMessages);
 
                             // get the host name
-                            String destHostName = networkMap.get(globalLinearIndex); 
+                            String destHostName = ea_places.getHostname(globalLinearIndex);
 
-                            //MASS.log("ExchangeAll RemoteCall - index is : " + globalLinearIndex + " destination: " + destHostName);
+                            //MASS.log("ExchangeAll RemoteCall - index is : " + globalLinearIndex 
+							// + " destination: " + destHostName);
                             synchronized(exchangeAllRequestMap)
                             {
                                 if(exchangeAllRequestMap.get(destHostName) == null)
@@ -830,10 +838,215 @@ public class MASS
         barrier();
 
     }
-    
+  
+
+    /**
+	 * Exchange Boundary - Setup 
+     * called by a MASS.Places object to set up the static variables for exchangeBoundary
+     * @param eb_places         the MASS.Places object to be used for the exchangeBoundary call
+     * @param ea_functionId     the function number that will be passed in to callMethod 
+     * @param lBoundary         the Left  Shadow Boundary array
+     * @param rBoundary         the Right Shadow Boundary array
+     *///---------------------------------------------------------------------------------------
+    static void eb_setup( Places places, int functionId, Vector<int[]> destinations,
+                                                        Place[] lBoundary, Place[] rBoundary )
+    {
+		if (!INITIALIZED)   return;
+
+		// Print exchangeBoundary setup message
+        MASS.log("\nRunning ExchangeBoundary Setup (eb_setup)");
+        if( lBoundary != null )  MASS.log("  * lbSize: " + lBoundary.length );
+        else 					 MASS.log("  * lbSize: NULL ");
+        if( rBoundary != null )  MASS.log("  * rbSize: " + rBoundary.length );
+        else 					 MASS.log("  * rbSize: NULL ");
+
+         // Setup Global variables
+         MASS.eb_places      = places;            // the handle for this Places
+         MASS.eb_functionId  = functionId;        // callMethod function number
+
+         // Convert destinations from Vector<int[]> to int[][] array, then
+         // set the MASS.eb_destinations variable to the new int[][] array
+         Object[] tmp_destinations   = destinations.toArray();
+         MASS.eb_destinations        = new int[ tmp_destinations.length ][ ];
+
+         for (int i = 0; i < tmp_destinations.length; i++) {
+         	MASS.eb_destinations[i] = (int[ ]) tmp_destinations[i];
+         }
+
+		// Set the left and right Shadow Boundary variables
+        MASS.eb_lBoundary   = lBoundary;            // Left  Shadow Boundary
+        MASS.eb_rBoundary   = rBoundary;            // Right Shadow Boudary
+
+        // Master Node Sends exchangeBoundary commands to all nodes
+        if(myPid == 0) {
+        	Message exgMsg = new Message();
+            exgMsg.createExchangeBoundaryMessage( functionId, destinations );
+
+            for( MNode node : mNodes ) {
+            	MASS.log("Sending eb_setup (" + exgMsg.getAction() + ") message to " 
+							+ node.getHostName() + " (pid=" + node.getPid() + ")" );
+				node.sendMessage(exgMsg);
+        	}
+		}
+
+       	// Wake-up all threads
+       	synchronized (STATUS) {
+       		STATUS[0] = STATUS_EXCHANGE_BOUNDARY;
+           	STATUS.notifyAll();
+       	}
+    }
+ 
+
+    /**
+     * Exchange Boundary - Main Function
+     *///---------------------------------------------------------------------------------------
+	static void eb_exchangeBoundary()
+    {
+   		// The Shadowed Place
+        Place shdwPlace;
+
+        // Get thread information
+        int numThreads     = threads.size() + 1;
+        int threadNumber   = getThreadPosition();
+
+        // Get Boundary information
+        int lbSize =  (eb_lBoundary == null) ? 0 : eb_lBoundary.length;
+        int rbSize =  (eb_rBoundary == null) ? 0 : eb_rBoundary.length;
+        int totalBndrySize = lbSize + rbSize;
+        int maxBndrySize   = (lbSize > rbSize) ? lbSize : rbSize;
+
+        // Verify system has been initialized and at least one of the shadow boundaries exists
+        if ( !INITIALIZED || totalBndrySize == 0 ) return;
+
+	    // Loop through all of the shandow boundary locations (left and/or right)
+        int bndryIdx = threadNumber;
+        while( bndryIdx < totalBndrySize )
+        {
+        		// Get shadow boundary place
+                if( bndryIdx < lbSize )	shdwPlace = eb_lBoundary[ bndryIdx ];			// Left Boundary
+                else 					shdwPlace = eb_rBoundary[ bndryIdx - lbSize ];	// Right Boundary
+
+				// Get shadow global linear index location and the destination hostname
+                int shdwGlobalLinearIdx =
+                		Places.getGlobalLinearIndexFromGlobalArrayIndex( shdwPlace.index, eb_places.size() );
+				String destHostName = eb_places.getHostname( shdwGlobalLinearIdx );
+
+                // Create a new request
+                RemoteExchangeRequest request = new RemoteExchangeRequest( shdwGlobalLinearIdx, bndryIdx, null );
+
+				synchronized(exchangeAllRequestMap)
+                {
+                	if(exchangeAllRequestMap.get(destHostName) == null) {
+						ArrayList<RemoteExchangeRequest> requests = new ArrayList<RemoteExchangeRequest>();
+                        requests.add(request);
+                        exchangeAllRequestMap.put(destHostName, requests);
+                    } else {
+                        exchangeAllRequestMap.get(destHostName).add(request);
+                    }
+                }
+                //MASS.log("ExchangeBoundary 'exchangeAllRequestMap' size : " + exchangeAllRequestMap.size());
+                bndryIdx += numThreads;
+        }
+
+		// Process the Remote exchange requests with the remote nodes
+        barrier();
+        processRemoteExchangeRequest( );
+        barrier();
+    }
+
+
+	/**
+	  * Exchange Boundary - Update Function
+    *///---------------------------------------------------------------------------------------
+    static void eb_update()
+    {
+		if ( !INITIALIZED ) return;
+    	MASS.log("Starting Exchange Boundary Update...");
+
+        // Create Places Iterator for the places assigned to this thread
+    	int[] thrdRange 			= getLocalRange( eb_places );
+        Places.Iterator origin_iter = eb_places.iterator( thrdRange );
+
+        if ( origin_iter != null )                              // null when not enough MASS.Place objects for thread
+        {
+            int[ ] size = eb_places.size( );
+            Place origin;                                       // for caller MASS.Place
+            Place dest;                                         // for callee MASS.Place
+            int in_msgs_len = eb_destinations.length;
+
+            while ( origin_iter.hasNext( ) )                    // go through this thread's range
+            {
+                origin = origin_iter.next( );
+                if ( origin.inMessages == null || origin.inMessages.length != in_msgs_len ) {
+                     origin.inMessages = new Object[ in_msgs_len ];
+                }
+                int inMessagesIndex = 0;
+
+				// Loop through all of the destinations (neighbors)
+                for ( int dest_i = 0;  dest_i < in_msgs_len;  dest_i++ ) {
+
+                	// fill dest_coords
+                    int[] neighborCoord =
+						Places.getGlobalNeighborArrayIndex( origin.index, eb_destinations[ dest_i ], size );
+
+                 	// If a Valid Destination, update destination information in inMessages
+                    if ( neighborCoord[0] != -1 ) {
+
+                    	int globalLinearIndex = 
+									Places.getGlobalLinearIndexFromGlobalArrayIndex( neighborCoord, size );
+						int destinationLocalLinearIndex = 
+									Places.getLocalLinearIndexFromGlobalLinearIndex( globalLinearIndex );
+
+                        // On Destination Machine
+                        if(  ( 0 <= destinationLocalLinearIndex )  &&
+                             ( destinationLocalLinearIndex < eb_places.length() ) )
+                        {
+                        	dest = eb_places.get( destinationLocalLinearIndex );
+                            origin.inMessages[ inMessagesIndex ] = dest.callMethod(eb_functionId, origin.outMessages);
+                        }
+
+                        // Left Shadow Boundary
+                        else if( ( destinationLocalLinearIndex < 0 ) &&
+                        		 ( eb_lBoundary.length + destinationLocalLinearIndex  < eb_lBoundary.length ) )
+                        {
+							dest = eb_lBoundary[ eb_lBoundary.length + destinationLocalLinearIndex ];
+                            origin.inMessages[ inMessagesIndex ] = dest.outMessages;
+                        }
+
+                        // Right Shadow Boundary
+                        else if( ( destinationLocalLinearIndex >= eb_places.length() ) &&
+                                 ( destinationLocalLinearIndex - eb_places.length() ) < eb_rBoundary.length )
+                        {
+                            dest = eb_rBoundary[ destinationLocalLinearIndex - eb_places.length() ];
+                            origin.inMessages[ inMessagesIndex ] = dest.outMessages;
+                        } 
+
+						// Error - not found
+                        else {
+                            origin.inMessages[ inMessagesIndex ] = null;
+                        }
+                    }
+
+                    // Invalid Destination, coordinates outside this MASS.Places
+                    else {
+                        origin.inMessages[ inMessagesIndex ] = null;
+                    }
+
+                    inMessagesIndex++;
+                 } // end of destination for loop
+            }
+        	MASS.log("Exchange Boundary Update Complete!");
+        }
+    	barrier();
+    }
+
+
+	/**
+	  * Process the Remote Exchange Request between nodes
+	  * Used by both exchangeAll() and exchangeBoundary()
+	*/
     private static void processRemoteExchangeRequest( )
     {   
-                             
         java.util.Map.Entry exgRequest = null;
         String destinationHostName = null;
         ExchangeHelper helper = null;
@@ -854,8 +1067,9 @@ public class MASS
                     destinationHostName = (String)exgRequest.getKey();
                     requestList = (ArrayList<RemoteExchangeRequest>)exgRequest.getValue(); 
                     exchangeAllRequestMap.remove(destinationHostName);
-                    MASS.log("Beginning remote exchange mt version - My local thread id =  " + getThreadPosition() + " requests remaining: " + exchangeAllRequestMap.size() +
-                            " exchange destination: " + destinationHostName );
+                    MASS.log("Beginning remote exchange mt version - My local thread id =  " + getThreadPosition() 
+						+ " requests remaining: " + exchangeAllRequestMap.size() 
+                        +  " exchange destination: " + destinationHostName );
                     //exchangeAllRequestMap.notifyAll();                   
                 }               
             }
@@ -877,14 +1091,19 @@ public class MASS
                     destinationHostName = (String)exgRequest.getKey();
                     requestList = (ArrayList<RemoteExchangeRequest>)exgRequest.getValue(); 
                     exchangeAllRequestMap.remove(destinationHostName);
-                    MASS.log("Handling remaining remote exchange - My local thread id =  " + getThreadPosition() + " requests remaining: " + exchangeAllRequestMap.size() +
-                            " exchange destination: " + destinationHostName );
+                    MASS.log("Handling remaining remote exchange - My local thread id =  " + getThreadPosition() 
+							+ " requests remaining: " + exchangeAllRequestMap.size() 
+                            + " exchange destination: " + destinationHostName );
                     startRemoteExchange(destinationHostName, requestList);
                 }               
             }
         }
     } 
 
+	/**
+	  * Start Remote Exchange Request between nodes
+	  * Used by both exchangeAll() and exchangeBoundary()
+	*/
     private static void startRemoteExchange(String destinationHostName, ArrayList<RemoteExchangeRequest> requestList)
     {
         exchangeHelper[0].establishConnection(destinationHostName);
@@ -898,7 +1117,10 @@ public class MASS
 
         exchangeHelper[0].processRequest(destinationHostName);  
     }
-    
+   
+	/**
+	  * Start ExchangeHelper
+	*/ 
     static void startExchangeHelper( )
     {
         synchronized(exchangeHelper)
@@ -955,35 +1177,88 @@ public class MASS
         }
         
     } */
-    
+  
+ 
+	/**
+	  *	Perform Remote Exchange with other nodes
+	  * Used by both exchangeAll() and exchangeBoundary()
+	*/ 
     static ArrayList<RemoteExchangeRequest> doRemoteExchangeAll(ArrayList<RemoteExchangeRequest> requestList)
     {
         Place destination;
+    	RemoteExchangeRequest returnReq;
         ArrayList<RemoteExchangeRequest> retList = new ArrayList<RemoteExchangeRequest>();
-        for(RemoteExchangeRequest request : requestList)
+
+        for( RemoteExchangeRequest request : requestList )
         {            
-            destination = ea_places.get(Places.getLocalLinearIndexFromGlobalLinearIndex(request.getDestinationGlobalLinearIndex()));
-            Object returnMessage = destination.callMethod(ea_functionId, request.getOutMessage());
-            RemoteExchangeRequest returnReq = new RemoteExchangeRequest(request.getDestinationGlobalLinearIndex(),
-                                                                        request.getOriginGlobalLinearIndex(),
-                                                                        request.getInMessageIndex(),
-                                                                        returnMessage);
-            
+        	int tmpDestGlbLinIdx = request.getDestinationGlobalLinearIndex();
+        	int tmpDestLocLinIdx = Places.getLocalLinearIndexFromGlobalLinearIndex( tmpDestGlbLinIdx );
+
+            // If request is a exchangeBoundary request
+            // ----------------------------------------
+            if( request.isBoundaryRqst() ) {
+
+        		if( eb_places == null ) { MASS.log("***  ERROR: eb_places == null  ***"); System.exit(-1); }
+                destination         	= eb_places.get( tmpDestLocLinIdx );
+                Object returnMessage    = destination.callMethod( eb_functionId, request.getOutMessage() );
+
+        		// Create a new return request to send back the return values
+                returnReq       = new RemoteExchangeRequest( request.getDestinationGlobalLinearIndex(),
+                                                             request.getOriginGlobalLinearIndex(),
+                                                             returnMessage );
+            }
+
+            // If request is an exchangeAll request
+            // ----------------------------------------
+            else {
+            	destination         	= ea_places.get( tmpDestLocLinIdx );
+                Object returnMessage    = destination.callMethod( ea_functionId, request.getOutMessage() );
+
+        		// Create a new return request to send back the return values
+                returnReq       = new RemoteExchangeRequest( request.getDestinationGlobalLinearIndex(),
+                                                             request.getOriginGlobalLinearIndex(),
+                                                             request.getInMessageIndex(),
+                                                             returnMessage  );
+            }
             retList.add(returnReq);
         }
-        
         return retList;  
     }
-    
-    static void updateInMessages(ArrayList<RemoteExchangeRequest> requestList)
+   
+	/** 
+	  * Update the inMessages from messages received from other nodes 
+	  * Used by both exchangeAll() and exchangeBoundary()
+	*/
+    static void updateInMessages( ArrayList<RemoteExchangeRequest> requestList )
     {
         Place origin;
         ArrayList<RemoteExchangeRequest> retList = new ArrayList<RemoteExchangeRequest>();
 
         for(RemoteExchangeRequest request : requestList)
-        {            
-            origin = ea_places.get(Places.getLocalLinearIndexFromGlobalLinearIndex(request.getOriginGlobalLinearIndex()));
-            origin.inMessages[request.getInMessageIndex()] = request.getOutMessage();
+        {           
+
+            // If request is a exchangeBoundary request
+            // ----------------------------------------
+            if( request.isBoundaryRqst() ) {
+
+                int idx    = request.getBndryIndex();
+                int lbSize = (eb_lBoundary == null) ? 0 : eb_lBoundary.length;
+
+                // Determine the shadow boundary location (left or right), then retrieve it
+                if( idx < lbSize )  origin = eb_lBoundary[ idx ];
+                else                origin = eb_rBoundary[ idx - lbSize ];
+
+                // Update the shadow boundary outMessage variable with the retrieved value
+                origin.outMessages = request.getOutMessage();
+            }
+
+            // If request is an exchangeAll request
+            // ----------------------------------------
+            else {
+            	origin = ea_places.get(
+							Places.getLocalLinearIndexFromGlobalLinearIndex(request.getOriginGlobalLinearIndex()));
+            	origin.inMessages[request.getInMessageIndex()] = request.getOutMessage();
+			}
         }        
     }
 
@@ -1162,7 +1437,6 @@ public class MASS
             System.arraycopy(nodeRetVal, 0, ca_finalRetVals, startPos, length);           
         }
         //MASS.log("Master has finished collecting return values for call all");
-                   
         return ca_finalRetVals;
     }
     
@@ -2066,7 +2340,8 @@ public class MASS
                                     // remote, package agents up 
                                     RemoteAgentRequest agentReq = new RemoteAgentRequest(globalLinearIndex, agent);
                                      // get the host name
-                                    String destHostName = networkMap.get(globalLinearIndex); 
+                                    String destHostName = ( ea_places != null ) ? eb_places.getHostname(globalLinearIndex)
+																				: ea_places.getHostname(globalLinearIndex); 
                                     /*synchronized(RemoteAgentMigrateHostNames)
                                     {
                                         if(!RemoteAgentMigrateHostNames.contains(destHostName))

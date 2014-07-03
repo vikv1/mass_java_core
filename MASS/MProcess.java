@@ -179,16 +179,23 @@ public class MProcess
                     {
                         case Constants.INITIALIZE: // initialization
                             //log("Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName());
-                            MASS.networkMap = m.getNetworkMap();
                             MASS.nodePidMap = m.getNodePidMap();
                             DLBParams.HISTORY_BASED = m.isHistoryBasedFlag();
                             DLBParams.WINDOW_BASED = m.isWindowBasedFlag();
                             DLBParams.SLOPE_BASED = m.isSlopeBasedFlag();
-                            
-                            PLACES = new Places(m.getHandle(), m.getClassName(), m.getArgument(), m.getSize());
+                           
+                            if( m.getBndryLength() > 0 ) {
+                                PLACES = new Places( m.getHandle(), m.getClassName(), m.getArgument(),
+                                                                m.getBndryLength(), m.wrapEdges(), m.getSize());
+                                log("Initialization - Shadow Boundaries Enabled");
+                            } else {
+                                PLACES = new Places(m.getHandle(), m.getClassName(), m.getArgument(), m.getSize());
+                                log("Initialization - Shadow Boundaries Disabled");
+                            }
+
                             PLACES.dlbCount = m.getDlbCount();
-                            MASS.initBoundaries(PLACES);
-                            PlacesMap.put(h,PLACES); //Add places to map
+                            MASS.initBoundaries(PLACES);				// thread boundaries, 
+                            PlacesMap.put(h,PLACES); 					//Add places to map
 
                             MASS.log("dlb values : "+PLACES.dlbCount+"|"+DLBParams.HISTORY_BASED+"|"
                             		+DLBParams.WINDOW_BASED+"|"+DLBParams.SLOPE_BASED);
@@ -204,11 +211,10 @@ public class MProcess
                             break;
                         case Constants.CALL_ALL_RETURN_OBJECT:
                         {
-                            log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+  " Handle: " + m.getHandle() + "=============");
+                            //log("=============Calling CallAllReturnObject: FuncID: " + m.getFunctionId()+ "=============");
                             Object[] retVal = PLACES.callAll(m.getFunctionId(), (Object[])m.getArgument());
-                            //if(retVal[700] == null) System.exit(-1);
                             sendReturnValues(retVal);
-                            log("=============Finished CallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
+                            //log("=============Finished CallAllReturnObject: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         }
                         case Constants.CALL_SOME_VOID_OBJECT:
@@ -220,6 +226,11 @@ public class MProcess
                            // log("=============Calling ExchangeAll: FuncID: " + m.getFunctionId()+ "=============");
                             PLACES.exchangeAll(1, m.getFunctionId(), m.getEADestinations());
                             //log("=============Finished ExchangeAll: FuncID: " + m.getFunctionId() + "=============");
+                            break;
+                        case Constants.EXCHANGE_BOUNDARY:
+                            //log("=============Calling ExchangeBoundary: FuncID: " + m.getFunctionId()+ "=============");
+                            PLACES.exchangeBoundary(1, m.getFunctionId(), m.getEBDestinations());
+                            //log("=============Finished ExchangeBoundary: FuncID: " + m.getFunctionId() + "=============");
                             break;
                         case Constants.AGENTS_INITIALIZE:
                           //  log("============== Agent Initialization Params: Action: " + m.getAction() + " ClassName: " + m.getClassName() + "===================");

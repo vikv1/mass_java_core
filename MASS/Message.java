@@ -13,18 +13,24 @@ import java.util.Vector;
  */
 public class Message implements Serializable
 {
+	// Message Variables
     private int ACTION;
     private String ARRAY_TYPE;
     private String PLACE_TYPE;
     private String CLASS_NAME;
     private Object ARGUMENT = null;
-    private HashMap<Integer, String> NETWORK_MAP = null; // map of user array index, host name responsible
     private HashMap<String, Integer> PID_MAP = null; // map of user array index, host name responsible
     private HashMap<String, Object> message = null;
     private int[] SIZE = null;
     private int HANDLE;
     private int FUNCTION_ID;
     private Vector<int[]> EA_DESTINATIONS = null;
+
+    // Exchange Boundary Variables
+	private Vector<int[]> EB_DESTINATIONS = null;
+    private int BNDRYLENGTH; 
+    private boolean WRAPEDGES;
+
     private int AGENT_INIT_POPULATION;
     private int PLACES_HANDLE;
     private int NUM_AGENTS;
@@ -38,9 +44,11 @@ public class Message implements Serializable
     
     public Message() {}
 
+
+    // Create Initialization Message
     public void createInitializationMessage(int[] size, String arrayType, String placeType, int handle, 
-    		String className, Object argument, HashMap<Integer, String> networkMap, HashMap<String, Integer> nodePidMap, int dlbCnt, boolean historyBased,
-    		boolean windowBased, boolean slopeBased)
+    		String className, Object argument, HashMap<String, Integer> nodePidMap, int bndryLength, 
+			boolean wrap, int dlbCnt, boolean historyBased, boolean windowBased, boolean slopeBased)
     {
         ACTION = Constants.INITIALIZE;
         ARRAY_TYPE = arrayType;
@@ -49,19 +57,18 @@ public class Message implements Serializable
         this.HANDLE = handle;
         CLASS_NAME = className;
         ARGUMENT = argument;
-        NETWORK_MAP = networkMap;
         PID_MAP = nodePidMap;
+        BNDRYLENGTH = bndryLength;
+        WRAPEDGES = wrap;
         this.dlbCount = dlbCnt;
         this.historyBasedFlag = historyBased;
         this.windowBasedFlag = windowBased;
         this.slopeBasedFlag = slopeBased;
     }
     
-    public void createAgentnitializationMessage(int handle
-		, String className
-		, Object argument
-		, int placesHandle
-		, int initPopulation )
+    // Create Agent Initialization Message
+    public void createAgentnitializationMessage(int handle, String className, Object argument
+															, int placesHandle, int initPopulation )
     {
         ACTION = Constants.AGENTS_INITIALIZE;
         this.HANDLE = handle;
@@ -71,6 +78,7 @@ public class Message implements Serializable
         AGENT_INIT_POPULATION = initPopulation;
     }    
 
+    // Create Action Message
     public void createActionMessage(int action, int functionId, Object argument, int... index)
     {
         ACTION = action;
@@ -80,24 +88,37 @@ public class Message implements Serializable
             this.INDEX = index;
     }
 
+    // Create ExchangeAll Message
     public void createExchangeAllMessage(int functionId, Vector<int[]> destinations)
     {
         ACTION = Constants.EXCHANGE_ALL;
         FUNCTION_ID = functionId;
         EA_DESTINATIONS = destinations;
     }
+
+    // Create ExchangeBoundary Message
+    public void createExchangeBoundaryMessage( int functionId, Vector<int[]> destinations )
+    {
+        ACTION          = Constants.EXCHANGE_BOUNDARY;
+        FUNCTION_ID     = functionId;
+        EB_DESTINATIONS = destinations;
+    }
     
+    // Create Acknowlegement Message
     public void createAcknowlegementMessage()
     {
         ACTION = Constants.ACK;
     }
 
+
+    // Create Finish Message
     public void createFinishMessage()
     {
         ACTION = Constants.FINISH;
     }
 
     
+    // Create CallAll Return Message
     public void createCallAllReturnMessage(Object[] retVals)
     {        
         ACTION = Constants.CALL_ALL_RETURN_OBJECT;
@@ -105,12 +126,14 @@ public class Message implements Serializable
         message.put(Constants.CALL_ALL_RETURN_VALUES, retVals);
     }    
     
+    // Create ExchangeAll Request Message
     public void createExchangeAllRequestMessage(ArrayList<RemoteExchangeRequest> exchangeReqList)
     {
         message = new HashMap<String, Object>();
         message.put(Constants.EXCHANGE_ALL_MESSAGE, exchangeReqList);       
     }
     
+    // Create Agent Action Message
     public void createAgentActionMessage(int action, int handle, int functionId, Object argument)
     {
         this.HANDLE = handle;
@@ -119,23 +142,27 @@ public class Message implements Serializable
         ARGUMENT = argument;
     }
     
+    // Create Agent ManageAll Message
     public void createAgentManageAllMessage(int action, int handle)
     {
         ACTION = action;
         HANDLE = handle;
     }
     
+    // Create Agents ReportSize Message
     public void createAgentsReportSizeMessage(int size)
     {
         NUM_AGENTS = size;
     }
     
+    // Create Agent Migrate Request Message
     public void createAgentMigrateRequestMessage(ArrayList<RemoteAgentRequest> agentReqList)
     {
         message = new HashMap<String, Object>();
         message.put(Constants.AGENT_MIGRATE_MESSAGE, agentReqList);       
     }
-    
+   
+	// Create Host Name Package for Agent Migration 
     public void createHostNamePackageForAgentMigrate(ArrayList<String> hostNames)
     {
         HostNames = hostNames;
@@ -149,14 +176,16 @@ public class Message implements Serializable
     public int getFunctionId() { return this.FUNCTION_ID; }
     public String getClassName() { return this.CLASS_NAME; }
     public Object getArgument() { return this.ARGUMENT; }
-    public HashMap<Integer, String> getNetworkMap() { return this.NETWORK_MAP; }
     public HashMap<String, Integer> getNodePidMap() { return this.PID_MAP; }
     public void setMessage(HashMap<String, Object> message) { this.message = message; }
     public HashMap<String, Object> getMessage() { return this.message; }
-    public ArrayList<RemoteExchangeRequest> getExchangeAllMessage()
-    {
+    public ArrayList<RemoteExchangeRequest> getExchangeAllMessage() {
         return (ArrayList<RemoteExchangeRequest>) this.message.get(Constants.EXCHANGE_ALL_MESSAGE);
     }
+    public ArrayList<RemoteExchangeRequest> getExchangeBoundaryMessage() {
+        return (ArrayList<RemoteExchangeRequest>) this.message.get(Constants.EXCHANGE_BOUNDARY);
+    }
+    public Vector<int[]> getEBDestinations() { return EB_DESTINATIONS; }
     public Vector<int[]> getEADestinations() { return EA_DESTINATIONS; }
     public int getAgentInitPopulation() { return AGENT_INIT_POPULATION; }
     public int getPlacesHandle() { return PLACES_HANDLE; }
@@ -169,6 +198,8 @@ public class Message implements Serializable
     }  
     public ArrayList<String> getAgentMigrateHostNames() { return HostNames; }
     public int[] getIndex() { return INDEX; }
+    public int getBndryLength() { return BNDRYLENGTH; }
+    public boolean wrapEdges() { return WRAPEDGES; }
 
 	public int getDlbCount() {
 		return dlbCount;

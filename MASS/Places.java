@@ -27,21 +27,28 @@ import main.java.com.dlb.utils.DLBParams;
  */
 public class Places {
   
-  private int handle;		//the handle for this MASS.Places object
-  private Place[] holder;	//the array of MASS.Place objects
-  private int[] size;
-  private Class<?> klas;
+  private int 		handle;		//the handle for this MASS.Places object
+  private Place[] 	holder;		//the array of MASS.Place objects
+  private int[] 	size;
+  private Class<?> 	klas;
   private Constructor<?> ctor;
-  private int length;
-  private int totalLength;
-  static int[] placeInitIndex;
-  static int[] placeInitSize;
+  private int 		length;
+  private int 		totalLength;
+  static int[] 		placeInitIndex;
+  static int[] 		placeInitSize;
+
+  // New Exchange Boundary Variables 
+  private int           boundaryWidth;
+  private int           totalBoundaryLength;
+  private boolean       wrapEdges;
+  private Place[]       lBoundary;
+  private Place[]       rBoundary;
 
   private static String arrayType;
   private static String placeType;
-  private static int offSet;
-  public static int chunkSize;
-  public static int remainder;
+  private static int 	offSet;
+  public static int 	chunkSize;
+  public static int 	remainder;
   
   public static int dlbCount = 0;
   public static int methodCounter = 0;
@@ -50,6 +57,8 @@ public class Places {
   public static ThreadMXBean bean   = ManagementFactory.getThreadMXBean();
   
   static URLClassLoader loader;
+
+
 
   /**
    * Is the constructor that instantiates a size-dimensional array of
@@ -64,6 +73,23 @@ public class Places {
    */
   public Places( int handle, String className, Object argument, int... size ) throws Exception
   {
+                this( handle, className, argument, 0, false, size );
+  }
+
+  /**
+   * Constructor - instantiates a size-dimensional array of "className" objects.
+   *
+   * @throws Exception          if an element of the size is less than 1 or if the handle is already in use
+   * @param handle              a user-given non-negative number to uniquely identify
+   *                                    this distributed array over the system.
+   * @param className           the name of the class from which each array element is instantiated.
+   * @param argument            an argument passed to each array element.
+   * @param boundaryWidth       the width of each of the shadow boundaries (1st dimension)
+   * @param wrapEdge            if true, wrap the array by space shadowing each of the edges 
+   * @param size                the size of each dimension
+   */
+  public Places( int handle, String className, Object argument, int boundaryWidth, boolean wrapEdge, int... size ) throws Exception
+  {
 	  Places.bean.setThreadCpuTimeEnabled(true);
 	  
 	  /**
@@ -77,115 +103,129 @@ public class Places {
 	  
         this.handle = handle;
         if (MASS.addPlaces(this))
-        { //set the handle in the MASS.MASS object //TODO addPlaces should be later
+        { 	//set the handle in the MASS.MASS object //TODO addPlaces should be later
 
-          //figure out the length and check the size elements for invalid values
+          //Setup Variables
+          chunkSize = 1;
+          remainder = 1;
           totalLength = 1;
+          this.boundaryWidth = boundaryWidth;
+          this.totalBoundaryLength = boundaryWidth;           // set 1st dimension    
+          this.wrapEdges = wrapEdge;
+          lBoundary = null;
+          rBoundary = null;
+
+		  // Calculate totalLength of array (flattened), the chunksize, 
+          // the remainder,  and the totalBoundaryLength (flattened)
           for (int elem = 0; elem < size.length; elem++)
           {
-            if (size[elem] < 1) { throw new Exception("size value less than 1");}
-            totalLength *= size[elem]; //multiply by each element to eventually get the total length
-          }
-          this.size = size; //assign the size
-          
-          File curDir = new File(MASS.CUR_DIR);
-          loader = URLClassLoader.newInstance(new URL[] { curDir.toURI().toURL() });
-        
-          klas = Class.forName(className, true, loader); //get class
-          ctor = klas.getConstructor(Object.class); //get constructor
+            	if (size[elem] < 1) { throw new Exception("size value less than 1");}
+            	totalLength *= size[elem]; //multiply by each element to eventually get the total length
 
-          // now divide work  up and store the all the information in a map
-          chunkSize = totalLength / MASS.systemSize;
-          remainder = totalLength % MASS.systemSize;
-          
+                // Calculate chunksize and remainder. Dividing the first dimension for each machine
+                if( elem == 0 ) {
+                        chunkSize   *= size[elem] / MASS.systemSize;
+                        remainder   *= size[elem] % MASS.systemSize;
+                }
+                else {
+                        chunkSize   *= size[elem];
+                        remainder   *= size[elem];
+                }
+
+                // Multiply by each element after the 1st dimension (boundaryWidth) 
+                // to get total boundary size
+                if( boundaryWidth > 0 && elem > 0 ) {
+                        totalBoundaryLength *= size[elem];
+                }
+          }
+
+		  // Set the array size and offset
+          this.size = size; //assign the size
+          this.offSet = MASS.myPid * chunkSize;
+         
+		  // Determine command class and constructor 
+          File curDir 	= new File(MASS.CUR_DIR);
+          loader 		= URLClassLoader.newInstance(new URL[] { curDir.toURI().toURL() });
+          klas 			= Class.forName(className, true, loader); 	//get class
+          ctor 			= klas.getConstructor(Object.class); 		//get constructor
 
           // now register offset for index calculation later
-          this.offSet = MASS.myPid * chunkSize;
           arrayType = Constants.OBJECT_ARRAY;
           placeType = Constants.PLACE;
           
           
-          MASS.log("------------------Beginning Initialization sequence for place handle " + this.handle  + "-----------------"  );  
+          MASS.log("\n------------------Beginning Initialization sequence for place handle " + this.handle  
+				   + "------------------"  );  
+          // Run on Master Rank Only, and only when Multiple Machines are used
+          // ========================================================================
           if(MASS.myPid == 0  && MASS.systemSize > 1) // master rank
           {
-              MASS.log("Initialization parameters");
-              MASS.log("Total Length: " + totalLength );
-              MASS.log("Chunksize: " + chunkSize);
-              MASS.log("Remainder: " + remainder);
-              
+              	MASS.log("Initialization parameters");
+                MASS.log("-----------------------------------");
+                MASS.log("Total Length       : " + totalLength );
+                MASS.log("Chunksize          : " + chunkSize);
+                MASS.log("Remainder          : " + remainder);
+	
+   			  	// Print Shadow Boundary information
+        	  	if( totalBoundaryLength > 0 ) { 
+            		MASS.log("Boundary Shadowing : ON");
+                    MASS.log("  * Boundary Width     : " + boundaryWidth);
+                    MASS.log("  * Total Bndry Length : " + totalBoundaryLength);
+                	if( wrapEdges ) MASS.log("  * Boundary Wrapping  : ON \n" );
+            		else 			MASS.log("  * Boundary Wrapping  : OFF \n" );
+        		}   
+        		else {
+            		MASS.log("Boundary Shadowing : OFF !\n");
+        		}   
+ 
               // DEBUG
               //System.err.println(" My Rank: " + MASS.myPid + " offset:  " + this.offSet );
               
               // commence initialization communication with other nodes, this task is only handled by master rank
 
-              // populate the network map so other nodes can see what parts of the user array are on what nodes
+			  // Get local host name
               String masterRankHostName = null;
-              // get the local host name
               try 
               {
-                  InetAddress addr = InetAddress.getLocalHost();
-                    // Get IP Address
-                    byte[] ipAddr = addr.getAddress();
-                    // Get hostname
-                    masterRankHostName = addr.getHostName();
+					InetAddress addr 	= InetAddress.getLocalHost();
+                    byte[] ipAddr 		= addr.getAddress();			// get IP address
+                    masterRankHostName 	= addr.getHostName();			// get hostname
               } 
               catch (UnknownHostException e) { MASS.log("Unable to obtain the master rank host name"); }
-              
+
+             
+			  // Setup Global Linear Index 
               int globalLinearIndex = 0;             
-              // set the master rank indices 
-              for(; globalLinearIndex < chunkSize; globalLinearIndex++)
-              {
-                  MASS.networkMap.put(globalLinearIndex, masterRankHostName);
-              }
-              MASS.log("Populated master rank " + masterRankHostName + " info on the network map. Total elements so far: " + MASS.networkMap.size());
+
               String hostName = null;
               MASS.nodePidMap.put(masterRankHostName, 0);
+
               // please note that # of mNode is systemSize - 1, since the master is not a part of mNodes.
               for(int mNodeId = 0; mNodeId < MASS.systemSize - 1; mNodeId++)
               {            
                   hostName = MASS.mNodes[mNodeId].getHostName();
-                  
-                  MASS.log("Populated rank " + (mNodeId + 1) + " hostname: " + hostName + " info on the network map. Total elements so far: " + MASS.networkMap.size());
-                  
-                  int rankEndOffset = globalLinearIndex + chunkSize;
-                  for(; globalLinearIndex < rankEndOffset; globalLinearIndex++)
-                  {
-                      MASS.networkMap.put( globalLinearIndex, hostName);
-                  }
-                  if(mNodeId == MASS.systemSize - 2) // last rank gets more work
-                  {
-                      for(; globalLinearIndex < totalLength; globalLinearIndex++)
-                      {
-                          MASS.networkMap.put(globalLinearIndex, hostName);
-                      }
-                  }
                   MASS.nodePidMap.put(hostName, mNodeId + 1);
               }
-
-              // DEBUG
-              System.err.println("Created network map... Total Elements now = " + MASS.networkMap.size()  + " now sending information to remote nodes");
-              
+             
+              // Create initialization Message and send to all other nodes. Recieve Ack.
               Message m = new Message();
-              m.createInitializationMessage(size, arrayType, placeType, handle, 
-            		  className, argument, MASS.networkMap, MASS.nodePidMap, dlbCount, 
-            		  DLBParams.HISTORY_BASED, DLBParams.WINDOW_BASED, DLBParams.SLOPE_BASED);
-              for(MNode node : MASS.mNodes)
-              {
-                  node.sendMessage(m);
-              }
-              
+              m.createInitializationMessage(size, arrayType, placeType, handle, className, argument, MASS.nodePidMap, 
+				boundaryWidth, wrapEdges, dlbCount, DLBParams.HISTORY_BASED, DLBParams.WINDOW_BASED, DLBParams.SLOPE_BASED);
+
+              for(MNode node : MASS.mNodes) 	node.sendMessage(m);
               System.err.println("Information sent! Awaiting Acknowledgement... ");
               
-              for(MNode node: MASS.mNodes)
-              {
-                  node.receiveMessage();
-              }
+              for(MNode node: MASS.mNodes) 		node.receiveMessage();
               System.err.println("Received all Acknowledgement... ");
-          }
+
+          }	// END Master Rank Only
+
+
           // last rank handles the remainder
-          length =  MASS.myPid == MASS.systemSize - 1 ? chunkSize + remainder : chunkSize;
+          length =  (MASS.myPid == MASS.systemSize - 1) ? (chunkSize + remainder) : chunkSize;
           holder = new Place[length];
           placeInitIndex = new int[1];
+
           for (int i = 0; i < length; i++)
           {
             synchronized (placeInitIndex)
@@ -197,18 +237,113 @@ public class Places {
               holder[i] = plc; //Array.set(holder, i, plc);
             }
           }
+        
+ 
+      	  // Setup and Init the Left Shadow Boundary
+      	  int tmpIdx, k;
+      	  if( (MASS.myPid == 0 && wrapEdges) || MASS.myPid > 0 ) {
+          	lBoundary = new Place[ totalBoundaryLength ];
+
+        	for( int i = 0; i < totalBoundaryLength; i++ ) {
+               	synchronized( placeInitIndex )
+               	{
+               		// Note: getGlobalArrayIndex() adds offset of current machine to k when calculating
+
+                    if( MASS.myPid == 0 )   // wrapped edge 
+                    	k = (MASS.systemSize * chunkSize) + remainder  - totalBoundaryLength;
+                    else
+                       	k = i - totalBoundaryLength;
+
+                    placeInitIndex = getGlobalArrayIndex( k, size );
+                    placeInitSize = size.clone();
+                    Place plc = (Place)ctor.newInstance( argument );
+                	lBoundary[i] = plc;
+               	}
+
+            	if( i == 0 )
+                	MASS.log("Left Boundary - First Location: " + (k + offSet) );
+            	if( i == (totalBoundaryLength - 1) )
+                	MASS.log("Left Boundary - Last Location: " + (k + offSet) );
+			}
+		  }
+
+		  // Setup and Init the Right Shadow Boundary
+      	  if( (MASS.myPid == MASS.systemSize-1 && wrapEdges) || MASS.myPid < MASS.systemSize-1 ) {
+        	rBoundary = new Place[ totalBoundaryLength ];
+
+        	for( int i = 0; i < totalBoundaryLength; i++ ) {
+           		synchronized( placeInitIndex )
+               	{
+                	// Note: getGlobalArrayIndex() adds offset of current machine to k when calculating
+
+                	if( MASS.myPid == MASS.systemSize-1 ) // wrapped edge
+                    	k = i - offSet;
+                	else
+                    	k = i + chunkSize;
+
+                    placeInitIndex = getGlobalArrayIndex( k, size );
+                    placeInitSize = size.clone();
+                    Place plc = (Place)ctor.newInstance( argument );
+                	rBoundary[i] = plc;
+				}
+
+            	if( i == 0 )
+                	MASS.log("Right Boundary - First Location: " + (k + offSet) );
+            	if( i == (totalBoundaryLength - 1) )
+                	MASS.log("Right Boundary - Last Location: " + (k + offSet) );
+        	}
+
+		  }
+
+
+		// Start ExchangeHelper 
+        MASS.startExchangeHelper();
           
-          MASS.startExchangeHelper();
-          
-          MASS.log("--------------Complete Initialization for " + MASS.myPid + " with place handle " + this.handle  + "-----------------");
-          MASS.log("---Initialization variables for " + MASS.myPid + " Places(holder) length: " + holder.length + " chunksize: " + chunkSize + " total length: " + totalLength + " remainder: " + remainder );                   
+        MASS.log("--------------Complete Initialization for " + MASS.myPid + " with place handle " 
+					+ this.handle  + "-----------------");
+        MASS.log("---Initialization variables for " + MASS.myPid + " Places(holder) length: " + holder.length 
+				+ " chunksize: " + chunkSize + " total length: " + totalLength + " remainder: " + remainder );                   
         }
         else
         {
             throw new Exception ("handle already in use");
         }
   }
+
   
+  /**
+   * Returns Hostname from a global index location.
+   * @param gIdx    the global index of the location to look up
+   * @return        a string that represents the hostname of the global index loc provided
+   */
+   public String getHostname( int gIdx ) {
+
+		// Verify the provided info is valid
+    	if( gIdx < 0  ||  gIdx >= totalLength )
+        	return null;
+
+    	// Loop through each entry of the nodePidMap (node PID map)
+    	for( Map.Entry< String, Integer > entry : MASS.nodePidMap.entrySet( ) )
+    	{
+
+        	// Calculate the entry :  PID, first place location, and last place location
+        	int pid     = entry.getValue( );            // pid
+        	int fLoc    = pid * chunkSize;          	// fist place location
+        	int lLoc    = ((pid+1) * chunkSize ) - 1;   // last place location
+
+        	// Add remainder to last location
+        	if( pid + 1 == MASS.systemSize )
+            	lLoc = totalLength - 1;
+
+        	if( fLoc <= gIdx  &&  gIdx  <=  lLoc )
+            	return entry.getKey();
+    	}
+    	return null;
+  }
+
+  /**
+   *
+  */
   private static void readDLBPropertyFile() {
     String propertyFilePath = MASS.CUR_DIR + "/" + DLBParams.DLB_PROPERTY_FILE_NAME;
   	File propertyFile = new File(propertyFilePath);
@@ -246,6 +381,9 @@ public class Places {
   	}
   }
 
+    /**
+     *
+     */
 	private static boolean validatePropertyFile(boolean historyBased,
 			boolean windowBased, boolean slopeBased, int dlbCnt) {
 		
@@ -386,7 +524,7 @@ public class Places {
               Message m = new Message();
               m.setHandle(this.handle);
               m.createActionMessage(Constants.CALL_SOME_VOID_OBJECT, functionId, argument, index);
-              MASS.mNodes[MASS.nodePidMap.get(MASS.networkMap.get(globalLinearIndex)) - 1].sendMessage(m);
+              MASS.mNodes[ MASS.nodePidMap.get( getHostname(globalLinearIndex) ) - 1 ].sendMessage(m);
           }
       }
       catch (Exception e) 
@@ -443,7 +581,34 @@ public class Places {
         	doLoadBalancing();
         }
   }
-  
+ 
+
+  /** 
+  * New ExchangeBoundary Funcation
+  * @param handle       the handles associated wtih a destination array
+  * @param functionId       the identifier of a method to call
+  */
+  public void exchangeBoundary( int handle, int functionId,  Vector<int[]> destinations )
+  {
+        MASS.eb_setup( this, functionId, destinations, lBoundary, rBoundary );
+        MASS.eb_exchangeBoundary();
+        MASS.eb_update();
+        if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
+        	methodCounter++;
+        	doLoadBalancing();
+        }
+  }
+
+  /**
+  * Get Boundary Width
+  * @return int the boundary width (first dimension)
+  */
+  public int getBoundaryWidth()
+  {
+    	return boundaryWidth;
+  }
+
+ 
   /**
    * do the load balancing depending on the 
    * algorithm set. This method kicks in when the

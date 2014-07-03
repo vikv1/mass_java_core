@@ -70,6 +70,11 @@ public class Mthread extends Thread
             {
                 MASS.agentsSortAllPerThread();
             } 
+			else if (MASS.STATUS[0] == MASS.STATUS_EXCHANGE_BOUNDARY)
+			{
+				MASS.eb_exchangeBoundary();
+				MASS.eb_update();
+			}
             else 
             {
                 if (running) 

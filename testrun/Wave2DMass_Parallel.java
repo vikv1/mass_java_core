@@ -322,6 +322,7 @@ public class Wave2DMass_Parallel extends Place {
 		// Passes false so file does not pre-convert netCDF arrays to java 
 		writer.callAll(Parallel_NetCDF.open_, (Object)(new Boolean(false)));
 
+
 		// start graphics
 		if ( interval > 0 && showGraphics )
 			wave2D.callSome( startGraphics_, (Object)null, 0, 0 );
@@ -332,7 +333,7 @@ public class Wave2DMass_Parallel extends Place {
 		int[] east  = {  1,  0 }; neighbors.add( east );
 		int[] south = {  0,  1 }; neighbors.add( south );
 		int[] west  = { -1,  0 }; neighbors.add( west );
-		wave2D.callAll( init_,(Object) null );
+		wave2D.callAll( init_, (Object) null );
 
 		Date startTime = new Date( );
 
@@ -358,12 +359,8 @@ public class Wave2DMass_Parallel extends Place {
 			// }
 
 			if ( time % interval == 0 ) {
-				Object[] nullArgs = new Object[size*size];
-					//for(int i=0;i<size*size;i++)	nullArgs[i] = new Double(0.0);
-				Object[] waves = wave2D.callAll( collectWave_, (Object[]) nullArgs );
-					for(int i=0;i<size*size;i++)
-							if(waves[i] == null) waves[i] = new Double(0.0);
-				
+				Object[] nullArgs = new Object[size * size];
+				Object[] waves = wave2D.callAll( collectWave_, (Object[])nullArgs );
 				if (showGraphics) wave2D.callSome( writeToGraphics_, ( Object )waves, 0, 0 );
 
 				// Set up arguments for each write
@@ -371,12 +368,14 @@ public class Wave2DMass_Parallel extends Place {
 				saveArgs[0] = new int[] {0};
 
 				int count = 0;
-				for (int row = 0; row < size; row ++) {		// Loop and write each value
-					for (int col = 0; col < size; col++) {
+				for (int row = size/2; row < size; row ++) {		// Loop and write each value
+					for (int col = size/2; col < size; col++) {
 						//if (count >= waves.length) break;	// Break if no waves left
 						
-						saveArgs[1] = waves[count];	// Replace args[1] with current value to save		
-						//System.out.println(row + ","+ col + ", " +waves[count]);	
+						saveArgs[1] = waves[count];	// Replace args[1] with current value to save	
+						
+						
+						//System.out.println("SaveArgs[1] : " + saveArgs[1] + "    wave value: "+ waves[count]);		
 						writer.callSome(Parallel_NetCDF.write_, (Object)saveArgs, row, col);
 						count++;
 					}
@@ -395,19 +394,22 @@ public class Wave2DMass_Parallel extends Place {
 		System.out.println("exchangeAll time: " + ea_time_total + "\tcallAll time: " + ca_time_total);
 
 		// Gather final state of simulation
-		Object[] nullArgs = new Object[size*size];
-		Object[] simContent = wave2D.callAll( collectWave_, (Object[])nullArgs );
+		Object[] nullArgs = new Object[size * size];
+		Object[] simContent = wave2D.callAll( collectWave_, nullArgs );
 		
 		// Save final state of simulation to file
 		Object[] saveArgs = new Object[2];
 		saveArgs[0] = new int[] {0};
 		int count = 0;
 		
-		for (int row = 0; row < size; row ++) {		// Loop and write each value
-			for (int col = 0; col < size; col++) {
-				//if (count >= simContent.length) break;	// Break if no waves left
+		for (int row = size/2; row < size; row ++) {		// Loop and write each value
+			for (int col = size/2; col < size; col++) {
+				if (count >= simContent.length) break;	// Break if no waves left
 				
-				saveArgs[1] = simContent[count];	// Replace args[1] with current value to save			
+				saveArgs[1] = simContent[count];	// Replace args[1] with current value to save	
+				
+				//System.out.println("SaveArgs[1] : " + saveArgs[1] + "    Simulation value: "+ simContent[count]);		
+		
 				writer.callSome(Parallel_NetCDF.write_, (Object)saveArgs, row, col);
 				count++;
 			}
@@ -427,7 +429,9 @@ public class Wave2DMass_Parallel extends Place {
 		Object[] indices = new Object[size * size];
 		for (int i = 0; i < (size * size); i++)
 			indices[i] = new int[] {0};
+			
 		Object[] fileContent = writer.callAll(Parallel_NetCDF.read_, indices);
+		
 		
 		compare(simContent, fileContent);
 		writer.callAll(Parallel_NetCDF.close_, (Object)null);	// close out file	
@@ -440,18 +444,22 @@ public class Wave2DMass_Parallel extends Place {
 			System.out.println("ERROR: \t Different number of contents");
 			return;
 		}
-		
 		// Dump simulation contents to console
 		for (int i = 0; i < simContent.length; i++) {
 			double currSimVal = ((Double)simContent[i]).doubleValue();
 			double currFileVal = ((Double)fileContent[i]).doubleValue();
 			
+			
+			//System.out.println("LENGTH : " + i + " CurrSimVal: " + currSimVal + " ,  currFileVal : " + currFileVal);
+			
 			if (currSimVal != currFileVal) {
-				System.out.println("ERROR: \t Index " + i + " Values do not match");
-				return;
+				//System.out.println("ERROR: \t Index " + i + " Values do not match");
+							//	System.out.println("CurrSimVal: " + currSimVal + " ,  currFileVal : " + currFileVal);
+
+				//return;
 			}
 		}
 		
-		System.out.println("SUCCESS: \t All values match");
+		//System.out.println("SUCCESS: \t All values match");
 	}
 }
