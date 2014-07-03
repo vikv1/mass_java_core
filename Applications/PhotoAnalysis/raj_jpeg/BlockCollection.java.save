@@ -1,0 +1,83 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.text.*;
+
+
+public class BlockCollection{
+
+	ArrayList<myPix> block_pic1 = new ArrayList<myPix>(); //each block's data
+	ArrayList<myPix> block_pic2 = new ArrayList<myPix>(); //each block's data
+	
+	ColorImageScale temp = new ColorImageScale();
+	DecimalFormat df = new DecimalFormat("#.##");
+
+	int delta_x = 5;
+	int delta_y = 5;
+
+	public BlockCollection(){		
+	}
+
+	//calculate the percentage of red green and blue for each block
+	public void calcBlockPercent(Pixel[][] pix, Pixel[][] pix_2){
+		
+		for(int i = 0; i < pix.length; i+=delta_x){
+			for(int j = 0; j < pix[i].length; j+=delta_y){
+				temp.setpallet(pix, i, j,delta_x, delta_y);
+				block_pic1.add(new myPix(temp.getPerRed(), temp.getPerGreen(), temp.getPerBlue()));
+				
+			} //inner-loop
+		} //outer
+
+		for(int i = 0; i < pix_2.length; i+=delta_x){
+                        for(int j = 0; j < pix_2[i].length; j+=delta_y){
+                                temp.setpallet(pix_2, i, j,delta_x, delta_y);
+                                block_pic2.add(new myPix(temp.getPerRed(), temp.getPerGreen(), temp.getPerBlue()));
+
+                        } //inner-loop
+                } //outer
+
+		 for(int i = 0; i < 10; i++){
+
+			System.out.print("block "+ i +":	");
+                        System.out.println( df.format(block_pic1.get(i).red)+ "% "
+                        +df.format(block_pic1.get(i).green)+ "% "+ df.format(block_pic1.get(i).blue)+"% ");
+			
+			System.out.println("		"+ df.format(block_pic2.get(i).red)+ "% "
+                        +df.format(block_pic2.get(i).green)+ "% "+ df.format(block_pic2.get(i).blue)+"% ");
+                }
+
+
+	} //end of calcBlockPercentage
+
+	class myPix{
+		double red;
+		double green;
+		double blue;		
+
+		public myPix(){
+			red = 0;
+			green = 0;
+			blue = 0;
+		}
+		public myPix(double r, double g, double b){
+			red = r;
+                        green = g;
+                        blue = b;
+		}
+		public void printPix(){
+			System.out.println(red + "% "+ green+"%	"+blue+"%");
+		}
+
+	}//end of myPix class
+
+	class CompareImage{
+		double fac__red;
+		double fac_green;
+		double fac_blue;
+
+		publi
+
+	}
+
+} //end of class
+

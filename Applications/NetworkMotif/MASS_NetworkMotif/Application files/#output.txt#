@@ -1,0 +1,46 @@
+Total arguments = 5
+DLB.properties: values are :
+History Based Algo: false
+Window Based Algo: false
+Slope Based Algo: false
+ DLB step count : 4
+1 - 2  1 - 3  1 - 4  1 - 5  2 - 1  2 - 3  2 - 6  2 - 7  3 - 2  3 - 8  3 - 9  Number of agents is:17
+Number of agents is:17
+Number of agents is:17
+Number of agents is:17
+Number of agents is:17
+Number of agents is:17
+
+1 - 1 - 1 - 
+2 - 1 - 1 - Number of agents is:15
+
+3 - 2 - 1 - Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+Number of agents is:14
+
+4 - 4 - 4 - Number of agents is:13
+Number of agents is:5
+Number of agents is:5
+
+5 - 5 - 5 - Number of agents is:4
+Number of agents is:4
+Number of agents is:4
+
+6 - 6 - 6 - Number of agents is:3
+Number of agents is:3
+Number of agents is:3
+
+7 - 7 - 7 - Number of agents is:2
+Number of agents is:2
+Number of agents is:2
+
+8 - 8 - 8 - Number of agents is:1
+Number of agents is:1
+Number of agents is:1
+
+9 - 9 - 9 - Number of agents is:0

@@ -1,0 +1,250 @@
+Initialized threads - # 1
+Initialization Information - PID: 1 nProc: 2 nThreads: 1 mass_port = 1234
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 1 with place handle 1-----------------
+---Initialization variables for 1 Places(holder) length: 125000 chunksize: 125000 total length: 250000 remainder: 0
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode0.uwb.edu and destination host: hercules.uwb.edu
+Attempting to start a client connection to hercules.uwb.edu/69.91.198.231 using 1234 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode0.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO hercules.uwb.edu---------------
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Error in reading exchange request: Connection reset system shutting down..

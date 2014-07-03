@@ -1,0 +1,15 @@
+Initialized threads - # 2
+Initialization Information - PID: 1 nProc: 3 nThreads: 2 mass_port = 13222
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 1 with place handle 1-----------------
+---Initialization variables for 1 Places(holder) length: 833 chunksize: 833 total length: 2500 remainder: 1
+java.io.EOFException
+	at java.io.ObjectInputStream$BlockDataInputStream.peekByte(ObjectInputStream.java:2571)
+	at java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1315)
+	at java.io.ObjectInputStream.readObject(ObjectInputStream.java:369)
+	at MASS.MProcess.start(MProcess.java:167)
+	at MASS.MProcess.main(MProcess.java:83)
+An error occured - System shutting down... null
+Finishing remote process........
+Finishing MASS...

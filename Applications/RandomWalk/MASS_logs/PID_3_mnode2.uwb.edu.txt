@@ -1,0 +1,2105 @@
+Initialized threads - # 4
+Initialization Information - PID: 3 nProc: 4 nThreads: 4 mass_port = 12345
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 3 with place handle 1-----------------
+---Initialization variables for 3 Places(holder) length: 2500 chunksize: 2500 total length: 10000 remainder: 0
+============== Agent Initialization Params: Action: 12 ClassName: Nomad===================
+Initialization Complete.. sending ack
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: mnode1.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode2.uwb.edu and destination host: mnode1.uwb.edu
+Attempting to start a client connection to mnode1.uwb.edu/69.91.198.184 using 12345 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode2.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO mnode1.uwb.edu---------------
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode2.uwb.edu and destination host: mnode0.uwb.edu
+Attempting to start a client connection to mnode0.uwb.edu/69.91.198.183 using 12345 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode2.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO mnode0.uwb.edu---------------
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode2.uwb.edu and destination host: hercules.uwb.edu
+Attempting to start a client connection to hercules.uwb.edu/69.91.198.231 using 12345 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode2.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO hercules.uwb.edu---------------
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 3
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 3
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 1
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Nothing to send for agent migrate.. sending ack to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 3
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: mnode1.uwb.edu
+Finished remote exchange request - size: 100
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Nothing to send for agent migrate.. sending ack to mnode0.uwb.edu
+Nothing to send for agent migrate.. sending ack to hercules.uwb.edu
+Sent Agent migrate Request to mnode1.uwb.edu
+Starting remote Agent migrate request with mnode0.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Nothing to process for agent migrate.. 
+Finished remote Agent migrate request - size: 0
+Starting remote Agent migrate request with mnode1.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 2
+=============Finished Agents ManageAll: FuncID: 0=============
+=============Received FINISH command=============
+Finishing remote process........
+Finishing MASS...

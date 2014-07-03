@@ -1,0 +1,278 @@
+Initialized threads - # 4
+Initialization Information - PID: 4 nProc: 5 nThreads: 4 mass_port = 32781
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 4 with place handle 1-----------------
+---Initialization variables for 4 Places(holder) length: 50000 chunksize: 50000 total length: 250000 remainder: 0
+boundaryMap : threadId [8] lowerRange : [12500] upper[24999]
+boundaryMap : threadId [9] lowerRange : [25000] upper[37499]
+boundaryMap : threadId [10] lowerRange : [37500] upper[49999]
+boundaryMap : threadId [1] lowerRange : [0] upper[12499]
+initBoundaries pid != 0 max size : 49999
+Total MASS threads : 3 for pid : [4]
+Bhargav - dlb values : 4|false|false|true
+=============Calling CallAllReturnObject: FuncID: 0=============
+=============Finished CallAllReturnObject: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: uw1-320-20.uwb.edu and destination host: uw1-320-19.uwb.edu
+Attempting to start a client connection to uw1-320-19.uwb.edu/69.91.198.170 using 32781 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name uw1-320-20.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO uw1-320-19.uwb.edu---------------
+Finished remote exchange request - size: 500
+=============Calling CallAllReturnObject: FuncID: 3=============
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][250]
+threadTime[9][237]
+threadTime[10][329]
+threadTime[1][1276]
+*********************** doLoadBalancing -   End ************************************
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][379]
+threadTime[9][296]
+threadTime[10][375]
+threadTime[1][1818]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][457]
+threadTime[9][345]
+threadTime[10][455]
+threadTime[1][1863]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][501]
+threadTime[9][391]
+threadTime[10][563]
+threadTime[1][1910]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][545]
+threadTime[9][438]
+threadTime[10][670]
+threadTime[1][1953]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][587]
+threadTime[9][483]
+threadTime[10][775]
+threadTime[1][1996]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][632]
+threadTime[9][526]
+threadTime[10][878]
+threadTime[1][2038]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][676]
+threadTime[9][567]
+threadTime[10][980]
+threadTime[1][2081]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][720]
+threadTime[9][612]
+threadTime[10][1082]
+threadTime[1][2124]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][792]
+threadTime[9][690]
+threadTime[10][1131]
+threadTime[1][2170]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][863]
+threadTime[9][766]
+threadTime[10][1179]
+threadTime[1][2215]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][911]
+threadTime[9][817]
+threadTime[10][1278]
+threadTime[1][2262]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1005]
+threadTime[9][863]
+threadTime[10][1323]
+threadTime[1][2305]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1050]
+threadTime[9][912]
+threadTime[10][1422]
+threadTime[1][2350]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1148]
+threadTime[9][963]
+threadTime[10][1472]
+threadTime[1][2396]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1194]
+threadTime[9][1012]
+threadTime[10][1545]
+threadTime[1][2469]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  2 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1242]
+threadTime[9][1090]
+threadTime[10][1620]
+threadTime[1][2516]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1287]
+threadTime[9][1131]
+threadTime[10][1723]
+threadTime[1][2558]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1330]
+threadTime[9][1172]
+threadTime[10][1825]
+threadTime[1][2602]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1375]
+threadTime[9][1216]
+threadTime[10][1928]
+threadTime[1][2646]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1418]
+threadTime[9][1256]
+threadTime[10][2030]
+threadTime[1][2690]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1464]
+threadTime[9][1300]
+threadTime[10][2134]
+threadTime[1][2735]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1564]
+threadTime[9][1346]
+threadTime[10][2184]
+threadTime[1][2783]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1660]
+threadTime[9][1389]
+threadTime[10][2231]
+threadTime[1][2829]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+*********************** doLoadBalancing - Start ************************************
+threadTime[8][1731]
+threadTime[9][1435]
+threadTime[10][2306]
+threadTime[1][2876]
+*********************** doLoadBalancing -   End ************************************
+Beginning remote exchange mt version - My local thread id =  3 requests remaining: 0 exchange destination: uw1-320-19.uwb.edu
+Finished remote exchange request - size: 500
+=============Received FINISH command=============
+Finishing remote process........
+Finishing MASS...

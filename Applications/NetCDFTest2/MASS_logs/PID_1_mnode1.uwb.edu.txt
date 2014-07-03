@@ -1,0 +1,257 @@
+Initialized threads - # 1
+Initialization Information - PID: 1 nProc: 2 nThreads: 1 mass_port = 12386
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 1 with place handle 1-----------------
+---Initialization variables for 1 Places(holder) length: 1250 chunksize: 1250 total length: 2500 remainder: 0
+boundaryMap : threadId [1] lowerRange : [0] upper[1249]
+initBoundaries pid != 0 max size : 1249
+Total MASS threads : 0 for pid : [1]
+dlb values : 0|false|false|false
+------------------Beginning Initialization sequence for place handle 2-----------------
+--------------Complete Initialization for 1 with place handle 2-----------------
+---Initialization variables for 1 Places(holder) length: 1250 chunksize: 1250 total length: 2500 remainder: 0
+initBoundaries pid != 0 max size : 1249
+Total MASS threads : 0 for pid : [1]
+dlb values : 0|false|false|false
+filename: wave_file1
+started movefromHDFS
+read file from hadoop completed!
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode1.uwb.edu and destination host: hercules.uwb.edu
+Attempting to start a client connection to hercules.uwb.edu/69.91.198.231 using 12386 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode1.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO hercules.uwb.edu---------------
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 50
+=============Calling CallAllReturnObject: FuncID: 3 Handle: 1=============
+=============Finished CallAllReturnObject: FuncID: 3=============
+=============Calling CallAllReturnObject: FuncID: 2 Handle: 2=============
+=============Finished CallAllReturnObject: FuncID: 2=============
+started movetoHDFS
+EXECPTION2
+Writing file to Hadoop completed!
+=============Received FINISH command=============
+Finishing remote process........
+Finishing MASS...

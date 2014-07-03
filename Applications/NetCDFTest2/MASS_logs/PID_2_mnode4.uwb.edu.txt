@@ -1,0 +1,21 @@
+Initialized threads - # 2
+Initialization Information - PID: 2 nProc: 3 nThreads: 2 mass_port = 13212
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 2 with place handle 1-----------------
+---Initialization variables for 2 Places(holder) length: 834 chunksize: 833 total length: 2500 remainder: 1
+boundaryMap : threadId [7] lowerRange : [417] upper[833]
+boundaryMap : threadId [1] lowerRange : [0] upper[416]
+initBoundaries pid != 0 max size : 833
+Total MASS threads : 1 for pid : [2]
+dlb values : 0|false|false|false
+Beginning remote exchange mt version - My local thread id =  1 requests remaining: 0 exchange destination: mnode1.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode4.uwb.edu and destination host: mnode1.uwb.edu
+Attempting to start a client connection to mnode1.uwb.edu/69.91.198.184 using 13212 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode4.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO mnode1.uwb.edu---------------
+Error in reading exchange request: Connection reset system shutting down..

@@ -1,0 +1,2535 @@
+Initialized threads - # 1
+Initialization Information - PID: 1 nProc: 2 nThreads: 1 mass_port = 12345
+Successfully initlialzed connections!
+------------------Beginning Initialization sequence for place handle 1-----------------
+--------------Complete Initialization for 1 with place handle 1-----------------
+---Initialization variables for 1 Places(holder) length: 125000 chunksize: 125000 total length: 250000 remainder: 0
+============== Agent Initialization Params: Action: 12 ClassName: Nomad===================
+Initialization Complete.. sending ack
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+-------- STARTING EXCHANGE HELPER CLIENT CONNECTION ---------------
+Establishing connection between local host: mnode0.uwb.edu and destination host: hercules.uwb.edu
+Attempting to start a client connection to hercules.uwb.edu/69.91.198.231 using 12345 server port
+TCP connection established...
+Got output stream
+Got input stream
+Sending local host name mnode0.uwb.edu
+-------- ESTABLISHED EXCHANGE HELPER CLIENT CONNECTION TO hercules.uwb.edu---------------
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 17
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 35
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 32
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 34
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 36
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 32
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 39
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 32
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 32
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 32
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 17
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 15
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 14
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 22
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 19
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 36
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 31
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 37
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 16
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 42
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 17
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 34
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 34
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 36
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 33
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 17
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 27
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 37
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 21
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 25
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 18
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 37
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 20
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 39
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 36
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 29
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 39
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 26
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 28
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 23
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 30
+=============Finished Agents ManageAll: FuncID: 0=============
+Beginning remote exchange mt version - My local thread id =  0 requests remaining: 0 exchange destination: hercules.uwb.edu
+Finished remote exchange request - size: 500
+============Calling AgentsCallAllVoidObject: FuncID: 0=============
+=============Finished AgentsCallAllVoidObject: FuncID: 0=============
+=============Calling Agents ManageAll: FuncID: 0=============
+Sent Agent migrate Request to hercules.uwb.edu
+Starting remote Agent migrate request with hercules.uwb.edu
+got stream handler!
+Finished remote Agent migrate request - size: 24
+=============Finished Agents ManageAll: FuncID: 0=============
+java.io.EOFException
+	at java.io.ObjectInputStream$BlockDataInputStream.peekByte(ObjectInputStream.java:2571)
+	at java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1315)
+	at java.io.ObjectInputStream.readObject(ObjectInputStream.java:369)
+	at MASS.MProcess.start(MProcess.java:164)
+	at MASS.MProcess.main(MProcess.java:82)
+An error occured - System shutting down... null
+Finishing remote process........
+Finishing MASS...

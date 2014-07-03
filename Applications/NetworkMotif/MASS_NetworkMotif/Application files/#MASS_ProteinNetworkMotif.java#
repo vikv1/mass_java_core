@@ -1,0 +1,67 @@
+import MASS.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.ArrayList;
+
+class ProteinNetworkMotif
+{
+
+    public Object init(Object args)
+    {
+      
+    }
+
+    public static void main( String[] args )
+    {
+	int nVertices = Integer.parseInt( args[0] );
+	Places adjMatrix = new Places( 1, "AdjMatrix", NULL, nVertices, nVertices );
+
+	// read the input.txt and initialize the corresponding place
+	//TO DO: init() method to initialize the matrix, nextVerticesEdge() to use tokenizer and return two ints
+	File file = new File(test.txt);
+	try
+	{
+	   Scanner scanner = new Scanner( file );
+	   while ( scanner.hasNextLine( ) )
+	   { 
+	       int[] index = nextVerticeEdge( scanner );
+	       adjMatrix.callSome( init_, index[0], index[1] );
+	   }
+	}
+	catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+	// distribute agents over each row of adjMatrix 
+	Agents agents = new Agents( 2, "MotifFinder", new Integer( args[1] ), adjMatrix, nVertices );
+	while ( agents.nAgents( ) > 0 )
+        {
+	    agents.callAll( find_ ); // examine if this place has an edge
+	    agents.manageAll( );     // move to a next place
+	}
+	Vector<int>[] motifs = adjMatrix.callAll( collect_ );
+    }
+} 
+class MotifFinder extends Agent {
+    int motifSize;  // the size of motifs to find
+    int nEdges = 0; // # edges to traverse
+    MotifFinder( Object arg ) {
+	motifSize = ( ( Integer )arg ).intValue( );
+    }
+    Object find( Object arg ) {
+	if ( nEdges == motifSize ) { // find a motif with motfiSize
+	    place.put( motif );      // register it
+	    kill( );                 // I'm done.
+	} else if ( place.edge ) {   // this place has an edge
+	    migrate( index[1], 0 );  // prepare for migration to the next row
+	    create( index[0], index[1] + 1 ); // spawn a child that moves to a right place
+	    motifSize++;
+	} else if ( index[1] == size[1] - 1 ) // I bumped into the rightmost place on the current row
+	    kill( );                 // so, I'm terminated.
+	else
+	    migrate( index[0], index[1] + 1 );// I myself move to a right place.
+    }
+}
