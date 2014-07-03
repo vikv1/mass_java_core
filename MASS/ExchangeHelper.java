@@ -27,6 +27,7 @@ public class ExchangeHelper extends Thread
     private final int INTERVAL = 1000;         // 1 second
     private final int RETRY_LIMIT = 1000000;
     private HashMap<String, StreamHandler> connectionMap;
+    ServerSocket server;    // added by Fukuda on 11-22-13
 
     public ExchangeHelper( )
     {                                  
@@ -35,7 +36,7 @@ public class ExchangeHelper extends Thread
     
     public void run( )
     {       
-        ServerSocket server = null;
+        server = null;
         Socket client = null;
         
         try{  server = new ServerSocket( MASS.MASS_PORT ); }
@@ -47,9 +48,7 @@ public class ExchangeHelper extends Thread
                 client = server.accept( );
                 client.setSoLinger(false, 0);
             } 
-            catch ( SocketTimeoutException ste ) { /* Couldn't receive a connection request within INTERVAL */ } 
-            catch ( IOException ioe ) { /* MASS.log( "Error accepting remote request: " + ioe.getMessage() ); */ }
-
+	    catch ( Exception e ) { return; }
 
             // Check if a connection was established. If so, establish streams
             if ( client != null )
@@ -154,29 +153,57 @@ public class ExchangeHelper extends Thread
         StreamHandler sh = null;
         synchronized(connectionMap)
         {           
-            //MASS.log("processRequest - Retrieving connection object for " + hostName);
+            MASS.log("processRequest - Retrieving connection object for " + hostName);
 
             while(connectionMap.get(hostName) == null)
             {
+		MASS.log("processRequest = connectionMap.get( " + hostName + " ) is null.." ); 
                 try { connectionMap.wait(); }
                 catch(InterruptedException ie) { }
             }
 
             sh = connectionMap.get(hostName);
         }      
+        MASS.log("processRequest - readExchangeRequest start...");
         ArrayList<RemoteExchangeRequest> exgReq = sh.readExchangeRequest();
         // process the request
-        //MASS.log("Processing remote exchange request - size: " + exgReq.size());
+        MASS.log("processRequest - readExchangeRequest done  size: " + exgReq.size());
         // retrieve the local value and send it to the requesting node
         ArrayList<RemoteExchangeRequest> reqVals = MASS.doRemoteExchangeAll(exgReq);
+	MASS.log( "check 1" );
         Message exchangeMsg = new Message();
         exchangeMsg.createExchangeAllRequestMessage(reqVals); 
-        sh.sendExchangeRequest(exchangeMsg);
+	MASS.log( "check 2" );
+
+	ParallelWriter writer = new ParallelWriter( sh, exchangeMsg );
+	writer.start( );
+
+        //sh.sendExchangeRequest(exchangeMsg);
+
+	MASS.log( "check 3" );
         ArrayList<RemoteExchangeRequest> retVals = sh.readExchangeRequest();
+	
+	try {
+	    writer.join( );
+	} catch ( InterruptedException e ) { }
+
+	MASS.log( "check 4" );
         MASS.updateInMessages(retVals);
         MASS.log("Finished remote exchange request - size: " + exgReq.size());
         
     } 
+
+    private class ParallelWriter extends Thread {
+	private StreamHandler sh;
+	Message msg;
+	public ParallelWriter( StreamHandler sh, Message msg ) {
+	    this.sh = sh;
+	    this.msg = msg;
+	}
+	public void run( ) {
+	    sh.sendExchangeRequest( msg );
+	}
+    }
     
     public void sendRequest( String hostName,  Message exgReq ) 
     {     
@@ -243,6 +270,9 @@ public class ExchangeHelper extends Thread
                 connectionMap.get(entry.getKey().toString()).closeConnections();
             }
         } 
+	try {
+	    server.close( ); // added by Fukuda on 11-22-13
+	} catch( Exception e ) { }
     }
     
     private class StreamHandler

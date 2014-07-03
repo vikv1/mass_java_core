@@ -574,7 +574,7 @@ public class Places {
   public void exchangeAll( int handle, int functionId,  Vector<int[]> destinations ) 
   {
         
-        MASS.ea_setup( this, functionId, destinations);
+        MASS.ea_setup( handle, functionId, destinations);
         MASS.ea_exchangeAll();
         if (DLBParams.WINDOW_BASED || DLBParams.HISTORY_BASED || DLBParams.SLOPE_BASED) {
         	methodCounter++;
