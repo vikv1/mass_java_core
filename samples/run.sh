@@ -1,0 +1,1 @@
+java -cp ../commonjars/jsch-0.1.44.jar:MASS.jar:. Main dslab ds1ab-302 machinefile.txt 12345 5 4

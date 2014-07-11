@@ -1,92 +1,76 @@
 package MASS;
 
+import com.jcraft.jsch.*;  // Jsch used for Node connections
+import java.io.*;         // For socket input/output
 
-
-import com.jcraft.jsch.*;	// Jsch used for Node connections
-import java.io.*;		// For Input and Ouput
-import java.util.logging.Level;
-
-/**
- * @author Tim Chuang
- */
-class MNode 
-{
-
-    // private data membets
-    private String hostName;                            // HostName of the remote node
-    private ObjectInputStream mainIOS;                  // Main communication channel with the master node
-    private ObjectOutputStream mainOOS;                 // ain communication channel with the master node
-    private Channel myChannel;                          // JSCH Channel ... added by Fukuda on 11-22-13
-    protected int pid;                                  // Process ID
-
-    // Constructor for remote process
-    protected MNode( String host, int newPid )
-    {
-        hostName = host; pid = newPid;
-    }
-    
-    protected void setupMainConnection( Channel channel ) throws Exception {
-	myChannel = channel;
-       try {
+public class MNode {
+    public MNode( String hostName, int pid, Channel channel ) { 
+	this.hostName = hostName;
+	this.pid = pid;
+	this.channel = channel;
+	
+	try {
             // Setup Communication
             mainOOS = new ObjectOutputStream( channel.getOutputStream( ) );
             mainOOS.flush( );
             mainIOS = new ObjectInputStream( channel.getInputStream( ) );
-        } catch( Exception e ) { 
-            MASS.log("ERROR: mNode: Pid: " + pid + " setupMainConnection ");
-            MASS.logException(e);
-            throw e;
+        } catch( Exception e ) {
+            MASS_base.log( "ERROR: mNode: Pid: " + pid + 
+			   " setupMainConnection " + e );
+	    System.exit( -1 );
         }
     }
 
-
-    protected void closeMainConnection( ) {
-        try{
-            mainIOS.close( ); //exgOIS_A.close( );  exgOIS_B.close( ); // Add MASS.Agent Connection Close
-            mainOOS.close( ); // exgOOS_A.close( );  exgOOS_B.close( );
-	    Session session = myChannel.getSession( );
-	    myChannel.disconnect( );
+    public void closeMainConnection( ) {
+        try {
+            mainIOS.close( );
+	    mainOOS.close( );
+	    Session session = channel.getSession( );
+	    channel.disconnect( );
 	    session.disconnect( );
         } catch( Exception e ) {
-            MASS.log("ERROR: mNode: Pid: " + pid + " closeConnection " );
-            MASS.logException(e);
+            MASS_base.log( "closeMainConnection error with rank[" + pid + 
+			   "] at " + hostName );
             System.exit( -1 );
         }
     }
 
-    public void sendMessage(Message m)
-    {
-        try
-        {
-            mainOOS.writeObject(m);            
-            mainOOS.flush(); 
-        }
-        catch (Exception e)
-        {
-            MASS.log("ERROR: mNode: Pid: " + pid + " sendPackage " );
-            MASS.logException(e);
-            System.exit( -1 );
-        }
+    public void sendMessage( Message m ) { 
+        try {
+	    mainOOS.writeObject( m );
+	    mainOOS.flush( );
+	}
+        catch ( Exception e ) {
+	    MASS_base.log( "sendMessage error to rank[" + pid + "] at " +
+			   hostName );
+	    System.exit( -1 );
+	}
     }
-    
 
-    public Message receiveMessage()
-    {
-        Message m = null;
-        try
-        {
-            m = (Message)mainIOS.readObject();
-        }
-        catch (Exception e)
-        {
-            MASS.log("ERROR: mNode: Pid: " + pid + " readPackage ");
-            MASS.logException(e);
-            System.exit( -1 );
-        }
-        
+    public Message receiveMessage( ) { 
+	Message m = null;
+        try {
+		m = ( Message )mainIOS.readObject( );
+	}
+        catch ( Exception e ) {
+	    MASS_base.log( "receivMessage error from rank[" + pid + "] at " +
+			   hostName );
+	    System.exit( -1 );
+	}
         return m;
     }
-    
-    public String getHostName() { return hostName; }
-    public int getPid() { return pid; }
+
+    public String getHostName( ) {
+	return hostName;
+    }
+
+    public int getPid( ) {
+	return pid;
+    }
+
+    private final String hostName;      // the host name of this mnode
+    private final int pid;              // process ID
+    private Channel channel;            // JSCH channel
+    private ObjectInputStream mainIOS;  // from mnode to master
+    private ObjectOutputStream mainOOS; // from master to mnode
 }

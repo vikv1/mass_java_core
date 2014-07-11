@@ -1,7 +1,0 @@
-Initialized threads - # 1
-Initialization Information - PID: 5 nProc: 6 nThreads: 1 mass_port = 32782
-Successfully initlialzed connections!
-
-------------------Beginning Initialization sequence for place handle 1------------------
-Places: will create MASS.exchangeHelper[0]
-ExchangeHelper.establishConnection (passive): Address already in use

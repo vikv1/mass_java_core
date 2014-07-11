@@ -1,90 +1,118 @@
 package MASS;
 
-//
-//  MASS.Mthread.java
-//  
-//
-//  Created by John Spiger on 6/22/10.
-//  
+import java.util.*;
+
+public class Mthread extends Thread {
+    //private static final boolean printOutput = false;
+    private static final boolean printOutput = true;
+
+    public enum STATUS_TYPE { STATUS_READY,          // 0
+  	                      STATUS_TERMINATE,      // 1
+	                      STATUS_CALLALL,        // 2
+	                      STATUS_EXCHANGEALL,    // 3
+	                      STATUS_AGENTSCALLALL,  // 4
+	                      STATUS_MANAGEALL       // 5
+	    }
+
+    public static Object lock;
+    public static int barrier_count;
+    public static STATUS_TYPE status;
+
+    public static int threadCreated;
+    public static int agentBagSize;
+
+    private static int barrier_phases;
+    private int tid;                  // this mthread's id
 
 
+    public static void init( ) {
+	lock = new Object( );
+	status = STATUS_TYPE.STATUS_READY;
+	barrier_count = 0;
+	barrier_phases = 0;
+    }
 
-/**
- * MASS.MASS thread
- */
-public class Mthread extends Thread 
-{
+    public Mthread( int id ) {
+	this.tid = id;
+    }
 
-    // Vector<Long> ea_times;
-    // Vector<Long> ca_times;
+    public void run( ) {
+	synchronized( lock ) {
+	    threadCreated = tid;  // to inform MASS_base of my invocation
+	}
+	
+	// breath message
+	if ( printOutput == true )
+	    MASS_base.log( "Mthread[" + tid + "] invoked" );
 
-    /**
-     * Constructor
-     */
-    public Mthread() {}
+	// the followign variables are used to call callAll( )
+	Places_base places = null;
+	Places_base destinationPlaces = null;
+	Agents_base agents = null;
 
-    /**
-     * {@inheritDoc}
-     */
-    public void run() 
-    {
-	MASS.log( "Mthread created: " + Thread.currentThread( ) );
-        boolean running = true;
-        while (running) 
-        {
-            try 
-            {
-                synchronized (MASS.STATUS) 
-                {
-                    if (MASS.STATUS[0] == MASS.STATUS_READY) 
-                    {
-                        MASS.STATUS.wait();
-                    }
-                }
-            } 
-            catch (InterruptedException e) 
-            {
-                    e.printStackTrace();
-                    running = false;
-            } // end of catch
-            if (MASS.STATUS[0] == MASS.STATUS_TERMINATE) 
-            {
-                running = false; // break out of while loop
-            } 
-            else if (MASS.STATUS[0] == MASS.STATUS_CALLALL) 
-            {
-                MASS.ca_callAll();
-            } 
-            else if (MASS.STATUS[0] == MASS.STATUS_EXCHANGE_ALL) 
-            {
-                MASS.ea_exchangeAll();
-            } 
-            else if (MASS.STATUS[0] == MASS.STATUS_AGENTS_CALL_ALL) 
-            {
-                MASS.agentsCallAllPerThread();
-            } 
-            else if (MASS.STATUS[0] == MASS.STATUS_AGENTS_MANAGE_ALL) 
-            {
-                MASS.agentsManageAllPerThread();
-            } 
-            else if (MASS.STATUS[0] == MASS.STATUS_AGENTS_SORT_ALL) 
-            {
-                MASS.agentsSortAllPerThread();
-            } 
-			else if (MASS.STATUS[0] == MASS.STATUS_EXCHANGE_BOUNDARY)
-			{
-				MASS.eb_exchangeBoundary();
-				MASS.eb_update();
-			}
-            else 
-            {
-                if (running) 
-                {
-                    String msg = "ERROR: something is currupting MASS.MASS.STATUS and notifying MThreads.";
-                    System.out.println(msg);
-                }
-            }
-        }
-        MASS.recordThreadExit(); // thread dies at end of run()
+	int functionId = 0;
+	Object argument = null;
+	Message.ACTION_TYPE msgType = Message.ACTION_TYPE.EMPTY;
+	Vector<int[]> destinations = null;
+
+	boolean running = true;
+	while ( running ) {
+	    // wait for a new command
+	    synchronized( lock ) {
+		if ( status == STATUS_TYPE.STATUS_READY )
+		    try {
+			lock.wait( );
+		    } catch ( Exception e ) { }
+
+		// wake-up message
+		if( printOutput == true )
+		    MASS_base.log( "Mthread[" + tid + "] woken up" );
+	    }
+
+	    // perform each task
+	    switch( status ) {
+	    case STATUS_READY:
+		if ( printOutput == true )
+		    MASS_base.log( "Mthread reached STATUS_READY in switch" );
+		System.exit( -1 );
+		break;
+	    case STATUS_TERMINATE:
+		running = false;
+		break;
+	    }
+	}
+
+	// barrier
+	barrierThreads( tid );
+    }
+
+    public static void resumeThreads( STATUS_TYPE new_status ) {
+	synchronized( lock ) {
+	    status = new_status;
+	    lock.notifyAll( );
+	}
+    }
+
+    public static void barrierThreads( int tid ) {
+
+
+	synchronized( lock ) {
+	    if ( ++barrier_count < MASS_base.threads.length ) {
+		if( printOutput == true )
+		    MASS_base.log( "tid[" + tid + 
+				   "] waiting: barrier = " + barrier_phases );
+		try {
+		    lock.wait( );
+		} catch( Exception e ) { }
+	    } else {
+		barrier_count = 0;
+		status = STATUS_TYPE.STATUS_READY;
+		if( printOutput == true ) 
+		    MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
+				   + barrier_phases );
+		barrier_phases++;
+		lock.notifyAll( );
+	    }
+	}
     }
 }

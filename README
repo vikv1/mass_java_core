@@ -1,9 +1,0 @@
-To recompile MASS, change the MASS java files in MASS\ and do:
-
-javac -cp ./commonjars/DLB.jar:./commonjars/jsch-0.1.44.jar MASS/*.java
-jar cvf MASS.jar MASS/*.class
-
-
-To compile Parallel_NetCDF or wave2d_paralle put jars in source.new (out of the common jars folder) and do:
-javac -cp MASS.jar:netcdfAll-4.2.jar:jsch-0.1.44.jar:hadoop-core-1.1.2.jar:DLB.jar:. Parallel_NetCDF.java
-
