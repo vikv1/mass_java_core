@@ -16,7 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
@@ -41,9 +40,6 @@ public class UtilitiesTest extends EasyMockSupport {
 	@Mock
 	private Session mockSession;
 
-	@Mock 
-	private Channel mockChannel;
-	
 	@Mock
 	private ChannelExec mockChannelExec;
 	
