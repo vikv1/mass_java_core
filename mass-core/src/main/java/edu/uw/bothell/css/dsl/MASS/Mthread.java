@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.*;
 
@@ -79,11 +79,94 @@ public class Mthread extends Thread {
 	    case STATUS_TERMINATE:
 		running = false;
 		break;
-	    }
-	}
+	    case STATUS_CALLALL:
+		places = MASS_base.getCurrentPlaces( );
+		functionId = MASS_base.getCurrentFunctionId( );
+		argument = MASS_base.getCurrentArgument( );
+		msgType = MASS_base.getCurrentMsgType( );
 
-	// barrier
-	barrierThreads( tid );
+		if ( printOutput == true )
+		    MASS_base.log( "Mthread[" +tid + "] works on CALLALL:" +
+				   " placese = " + places +
+				   " functionId = " + functionId +
+				   " argument = " + argument +
+				   " msgType = " + msgType );
+
+		if ( msgType == 
+		     Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT ) {
+		    places.callAll( functionId, argument, tid );
+		}
+		else {
+		    places.callAll( functionId, (Object[])argument, 
+				    ((Object[])argument).length, tid );
+		}
+		break;
+
+	    case STATUS_EXCHANGEALL:
+		if ( printOutput == true )
+		    MASS_base.log( "Mthread[" + tid + 
+				   "] works on EXCHANGEALL" );
+
+		places = MASS_base.getCurrentPlaces( );
+		functionId = MASS_base.getCurrentFunctionId( );
+		destinationPlaces = MASS_base.getDestinationPlaces( );
+		destinations = MASS_base.getCurrentDestinations( );
+
+		places.exchangeAll( destinationPlaces, functionId, 
+				    destinations, tid );
+		break;
+
+	    case STATUS_AGENTSCALLALL:
+		agents = MASS_base.getCurrentAgents( );
+		functionId = MASS_base.getCurrentFunctionId( );
+		argument = MASS_base.getCurrentArgument( );
+		msgType = MASS_base.getCurrentMsgType( );
+		
+		if ( printOutput == true )
+		    MASS_base.log( "Mthread[" + tid + 
+				   "] works on AGENST_CALLALL:" +
+				   " agents = " + agents +
+				   " functionId = " + functionId +
+				   " argument = " + argument +
+				   " msgType = " + msgType );
+
+		if( msgType==Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
+		    //System.err.println( "Mthread[" + tid + 
+		    //			"] call all agent void object" );
+
+		    agents.callAll( functionId, argument, tid );
+		}else{
+		    //System.err.println( "Mthread[" + tid + 
+		    //			"] call all agents return object" );
+
+		    agents.callAll( functionId, (Object[])argument, 
+				    ( (Object[])argument ).length, tid) ;
+		}
+		break;
+
+	    case STATUS_MANAGEALL:
+		//Get agents to be called with Manageall
+		agents = MASS_base.getCurrentAgents( );
+		
+		//Send logging message
+		if ( printOutput == true )
+		    MASS_base.log( "Mthread[" + tid + "] works on MANAGEALL:" +
+				   " agents = " + agents );
+		
+		//Sent message for manageall
+		agents.manageAll( tid );
+		
+		break;
+	    }
+
+	    // barrier
+	    barrierThreads( tid );
+
+	}
+	
+	// last message
+	if ( printOutput == true )
+	    MASS_base.log( "Mthread[" + tid + "] terminated" );
     }
 
     public static void resumeThreads( STATUS_TYPE new_status ) {
@@ -94,8 +177,6 @@ public class Mthread extends Thread {
     }
 
     public static void barrierThreads( int tid ) {
-
-
 	synchronized( lock ) {
 	    if ( ++barrier_count < MASS_base.threads.length ) {
 		if( printOutput == true )

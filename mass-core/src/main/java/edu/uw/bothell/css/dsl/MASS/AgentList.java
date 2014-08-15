@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 public class AgentList {
     private final int CAPACITY_X = 1000; // max agent population = 1 million
@@ -152,7 +152,7 @@ public class AgentList {
 	return curr_x * capacity_y + next_y;
     }
 
-    private int size_unreduced( ) {
+    public int size_unreduced( ) {
 	return curr_x * capacity_y + next_y;
     }
 

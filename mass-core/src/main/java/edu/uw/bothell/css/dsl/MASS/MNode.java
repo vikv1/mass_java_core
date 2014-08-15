@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import com.jcraft.jsch.*;  // Jsch used for Node connections
 import java.io.*;         // For socket input/output

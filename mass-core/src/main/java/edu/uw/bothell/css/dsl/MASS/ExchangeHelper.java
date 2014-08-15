@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 import java.net.*;
@@ -11,6 +11,8 @@ public class ExchangeHelper {
 
     public void establishConnection( int size, int rank,
 				     Vector<String> hosts, int port ) {
+	OIS = new ObjectInputStream[size];
+	OOS = new ObjectOutputStream[size];
 	try {
 	    // prepare a server socket
 	    ServerSocket server = new ServerSocket( port );
@@ -44,6 +46,10 @@ public class ExchangeHelper {
 		    if ( hosts.get(j).equals( ipaddr ) ) {
 			// matched and assigned this socket to rank j.
 			sockets[j] = socket; 
+			OIS[j] = new 
+			    ObjectInputStream( sockets[j].getInputStream( ) );
+			OOS[j] = new
+			    ObjectOutputStream( sockets[j].getOutputStream( ));
 			if ( printOutput == true ) {
 			    MASS_base.log( "rank" + rank + 
 					   "] accepted from rank[" +
@@ -65,6 +71,10 @@ public class ExchangeHelper {
 		try {
 		    sockets[i] = new Socket( hosts.get(i), port );
 		    sockets[i].setReuseAddress( true );
+		    OOS[i] = new
+			ObjectOutputStream( sockets[i].getOutputStream( ));
+		    OIS[i] = new 
+			ObjectInputStream( sockets[i].getInputStream( ) );
 		    break;
 		} catch ( Exception e1 ) {
 		    MASS_base.log( "rank" + rank + "] " + j + 
@@ -98,7 +108,8 @@ public class ExchangeHelper {
 	    OOS[rank].flush( );
 	} catch ( Exception e ) {
 	    MASS_base.log ( "exchange.sendMessage to rank: " + rank + 
-			    ". Error: " + e );
+			    ". Error: " + e + ", OOS[rank] = " + OOS[rank] + 
+			    ", exchangeReq" + exchangeReq );
 	}
 
 	if ( printOutput == true )
@@ -117,7 +128,7 @@ public class ExchangeHelper {
 	    m = ( Message )OIS[rank].readObject( );
 	} catch ( Exception e ) {
 	    MASS_base.log ( "exchange.receiveMessage from rank: " + rank + 
-			    ". Error: " + e );
+			    ". Error: " + e + ", OOS[rank] = " + OIS[rank] );
 	}
 
 	if ( m != null ) {

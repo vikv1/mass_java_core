@@ -1,6 +1,8 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
-class AgentMigrationRequest {
+import java.io.Serializable;
+
+class AgentMigrationRequest implements Serializable {
     public AgentMigrationRequest( int destIndex, Agent agent ) {
 	this.destGlobalLinearIndex = destIndex;
 	this.agent = agent;

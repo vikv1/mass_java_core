@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 import java.util.Hashtable;
@@ -136,7 +136,7 @@ public class Message implements Serializable {
 	this.argument = argument;
 	this.hosts = null;
 	this.destinations = null;
-	this.agent_population = -1;
+	this.agent_population = initPopulation;
 	this.boundary_width= 0;
 	this.exchangeReqList = null;
 	this.migrationReqList = null;

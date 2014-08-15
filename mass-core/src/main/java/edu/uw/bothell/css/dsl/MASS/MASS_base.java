@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.FileOutputStream;
 import java.util.Vector;
@@ -93,6 +93,23 @@ public class MASS_base {
 	catch( Exception e ) {	}
     }
 
+    public static int getCores( ) {
+	// TODO: to be implemented
+	return 2;
+    }
+
+    public static int getMyPid( ) { return myPid; };
+
+    public static Places_base getCurrentPlaces( ) { return currentPlaces; }
+    public static Places_base getDestinationPlaces( ) { 
+	return destinationPlaces; }
+    public static Agents_base getCurrentAgents( ) { return currentAgents; }
+    public static int getCurrentFunctionId( ) { return currentFunctionId; }
+    public static Object getCurrentArgument( ) { return currentArgument; }
+    public static Message.ACTION_TYPE getCurrentMsgType( ) { 
+	return currentMsgType; }
+    public static Vector<int[]> getCurrentDestinations( ) {
+	return currentDestinations; }
 
     public static void setHosts( Vector<String> host_args ) {
 	if ( !hosts.isEmpty( ) ) {
@@ -129,11 +146,6 @@ public class MASS_base {
 	    }
 	    MASS_base.log( convert );
 	}
-    }
-
-    public static int getCores( ) {
-	// TODO: to be implemented
-	return 2;
     }
 
     public static Mthread[] threads;          // including main and children

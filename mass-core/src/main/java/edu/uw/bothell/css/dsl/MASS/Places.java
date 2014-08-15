@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.*;
 import java.net.*;
@@ -142,7 +142,7 @@ public class Places extends Places_base {
 	if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT )
 	    super.callAll( functionId, argument, 0 ); // 0 = the main tid
 	else
-	    super.callAll( functionId, argument, 
+	    super.callAll( functionId, (Object[])argument, 
 			   ((Object[])argument).length, 0 );
 	
 	// confirm all threads are done with callAll.

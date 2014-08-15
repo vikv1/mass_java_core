@@ -1,6 +1,8 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
-public class RemoteExchangeRequest {
+import java.io.Serializable;
+
+public class RemoteExchangeRequest implements Serializable {
     public RemoteExchangeRequest( int destIndex, int orgIndex, int inMsgIndex,
 				  Object outMsg ) {
 	this.destGlobalLinearIndex = destIndex;

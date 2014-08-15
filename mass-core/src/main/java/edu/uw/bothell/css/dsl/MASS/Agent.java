@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
@@ -56,13 +56,20 @@ public class Agent implements Serializable {
 	}
     }
 
-    protected int agentsHandle; // TODO: should be final
-    protected int placesHandle; // TODO: should be final
-    protected int agentId; // TODO: should be final
-    protected int parentId; // TODO: should be final
+    protected final int agentsHandle;
+    protected final int placesHandle;
+    protected final int agentId;
+    protected final int parentId;
     protected Place place = null;
     protected int[] index = null;
     protected boolean alive = true;
     protected int newChildren = 0;
     protected Object[] arguments = null;
+
+    public Agent ( ) {
+	agentsHandle = Agents.agentInitAgentsHandle;
+	placesHandle = Agents.agentInitPlacesHandle;
+	agentId = Agents.agentInitAgentId;
+	parentId = Agents.agentInitParentId;
+    }
 }

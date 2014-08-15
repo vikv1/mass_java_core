@@ -1,4 +1,4 @@
-package MASS;
+package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.*;
 import java.util.*;
@@ -232,6 +232,13 @@ public class MASS extends MASS_base {
 		}
 		if ( stripe == 0 && localAgents != null ) {
 		    // agents.callAll( ) with return values
+		    System.err.println( "m = " + m +
+					", m.getArgument( )" + m.getArgument() +
+					", return_values = " + return_values +
+					", nAgentsSoFar = " + nAgentsSoFar +
+					", localAgents = " + localAgents +
+					", localAgents[i + 1] = " +
+					localAgents[i + 1] );
 		    System.arraycopy( m.getArgument( ), 0,
 				      return_values, nAgentsSoFar,
 				      localAgents[i + 1] );

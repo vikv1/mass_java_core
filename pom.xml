@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  
+	<modelVersion>4.0.0</modelVersion>
+  	
+	<groupId>edu.uw.bothell.css.mass</groupId>
+  	<artifactId>MASS-Java</artifactId>
+  	<packaging>pom</packaging>
+ 	<version>${MASSVersion}</version>
+  	
+	<name>MASS Java Library and Applications</name>
+	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
+	<inceptionYear>2010</inceptionYear>
+	<url>http://depts.washington.edu/dslab/MASS/index.html</url>
+
+	<modules>
+		<module>mass-core</module>
+	</modules>
+
+	<properties>
+	
+		<!-- Version declarations -->
+		<MASSVersion>0.6.0-SNAPSHOT</MASSVersion>
+	
+		<!-- Build properties -->	
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.7</java.version>
+	
+	</properties>
+  
+	<organization>
+    	<name>University of Washington, Bothell, Computing and Software Systems</name>
+  		<url>http://www.bothell.washington.edu/css</url>
+  	</organization>
+
+	<developers>
+    		<developer>
+      		<id>mfukuda</id>
+      		<name>Dr. Munehiro Fukuda</name>
+      		<email>mfukuda@u.washington.edu</email>
+			<organization>University of Washington, Bothell, Computing and Software Systems</organization>
+      		<url>http://faculty.washington.edu/mfukuda</url>
+      		<roles>
+        			<role>architect</role>
+        			<role>developer</role>
+      		</roles>
+      		<timezone>-8</timezone>
+      		<properties>
+        			<picUrl>http://faculty.washington.edu/mfukuda/mfukuda.jpg</picUrl>
+      		</properties>
+    		</developer>
+  	</developers>
+
+	<prerequisites>
+    		<maven>3.1.0</maven>
+  	</prerequisites>
+
+	<scm>
+		<developerConnection>ssh://dslab@hercules.uwb.edu:/~/git/MASS_Java.git</developerConnection>
+	</scm>
+
+	<repositories>
+		<repository>
+    			<id>Jsch</id>
+    			<url>http://jsch.sf.net/maven2/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		
+		<!-- Unit Testing -->
+		<dependency>
+      		<groupId>junit</groupId>
+      		<artifactId>junit</artifactId>
+      		<version>4.11</version>
+      		<scope>test</scope>
+    	</dependency>
+  	
+  		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>3.2</version>
+			<scope>test</scope>
+		</dependency>
+  		
+  	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<source>${java.version}</source>
+					<bottom>
+						"Copyright 2010-2014 University of Washington. All rights reserved."
+					</bottom>
+					<!--author>false</author-->
+					<!--excludePackageNames>
+						edu.uw.bothell.css.package_to_exclude,
+						edu.uw.bothell.css.another_package_to_exclude
+					</excludePackageNames-->
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
