@@ -6,8 +6,8 @@ import java.net.InetAddress;
 import com.jcraft.jsch.Channel;
 
 public class MASS extends MASS_base {
-    //  private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    // private static final boolean printOutput = true;
     private static final int JschPort = 22;
     private static Utilities util;
 
@@ -79,7 +79,7 @@ public class MASS extends MASS_base {
 	initMASS_base( "localhost", 0, nProc, port );
 
 	// For debugging
-	System.err.println( "CUR_DIR = " + CUR_DIR );
+	// System.err.println( "CUR_DIR = " + CUR_DIR );
 
 	// Launch remote processes
 	mNodes = new Vector<MNode>( );
@@ -111,7 +111,7 @@ public class MASS extends MASS_base {
 	    }
 
 	    // MProcess and its arguments
-	    command += ". MASS.MProcess ";          // the program
+	    command += CUR_DIR + " MASS.MProcess ";          // the program
 	    command += currHostName; command += " ";// 1st arg: hostName
 	    command += pid; command += " ";         // 2nd arg: pid
 	    command += systemSize; command += " ";  // 3rd arg: #processes
@@ -232,13 +232,15 @@ public class MASS extends MASS_base {
 		}
 		if ( stripe == 0 && localAgents != null ) {
 		    // agents.callAll( ) with return values
+		    /*
 		    System.err.println( "m = " + m +
-					", m.getArgument( )" + m.getArgument() +
+					", m.getArgument( )" + m.getArgument()+
 					", return_values = " + return_values +
 					", nAgentsSoFar = " + nAgentsSoFar +
 					", localAgents = " + localAgents +
 					", localAgents[i + 1] = " +
 					localAgents[i + 1] );
+		    */
 		    System.arraycopy( m.getArgument( ), 0,
 				      return_values, nAgentsSoFar,
 				      localAgents[i + 1] );

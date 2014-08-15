@@ -5,8 +5,8 @@ import java.net.*;
 
 public class Places extends Places_base {
     //Used to toggle comments from Places.java
-    //private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    //private static final boolean printOutput = true;
 
     public Places( int handle, String className, Object argument, 
 		   int... size ) {

@@ -156,6 +156,11 @@ public class AgentList {
 	return curr_x * capacity_y + next_y;
     }
 
+    public void check_internal( ) {
+	for ( int x = 0; x < curr_x * capacity_y + next_y; x++ )
+	    MASS_base.log( "AgentList[" + get( x ) + "]" );
+    }
+
     public void clear( ) {
 	for ( int i = 0; i < size_unreduced( ); i++ )
 	    remove( i );

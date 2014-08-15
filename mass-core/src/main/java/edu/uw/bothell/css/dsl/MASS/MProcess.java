@@ -259,7 +259,8 @@ public class MProcess {
 		MASS_base.currentArgument = argument;
 		MASS_base.currentMsgType = m.getAction( );
 
-		Mthread.agentBagSize = MASS_base.currentAgents.agents.size_unreduced( );
+		Mthread.agentBagSize 
+		    = MASS_base.currentAgents.agents.size_unreduced( );
 
 		// resume threads to work on call all
 		Mthread.resumeThreads( Mthread.STATUS_TYPE.
@@ -287,7 +288,8 @@ public class MProcess {
 		MASS_base.currentReturns 
 		    = new Object[MASS_base.currentAgents.localPopulation];
 
-		Mthread.agentBagSize = MASS_base.currentAgents.agents.size_unreduced( );
+		Mthread.agentBagSize 
+		    = MASS_base.currentAgents.agents.size_unreduced( );
 
 		// resume threads to work on call all with return objects
 		Mthread.resumeThreads( Mthread.STATUS_TYPE.
@@ -317,7 +319,8 @@ public class MProcess {
 		    MASS_base.log( "AGENTS_MANAGE_ALL received" );
 		MASS_base.currentAgents = 
 		    MASS_base.agentsMap.get( new Integer( m.getHandle() ) );
-		Mthread.agentBagSize = MASS_base.currentAgents.agents.size_unreduced( );
+		Mthread.agentBagSize 
+		    = MASS_base.currentAgents.agents.size_unreduced( );
 
 		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_MANAGEALL );
 

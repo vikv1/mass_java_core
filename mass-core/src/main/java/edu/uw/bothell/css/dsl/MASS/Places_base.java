@@ -7,8 +7,8 @@ import java.lang.reflect.*;
 
 public class Places_base {
     //Used to toggle comments from Places_base.java
-    //private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    //private static final boolean printOutput = true;
 
     public Places_base( int handle, String className, int boundary_width,
 			Object argument, int[] size ) {
@@ -36,105 +36,105 @@ public class Places_base {
 	    MASS_base.log( "init_all handle = " + handle + 
 			   ", class = " + className + 
 			   ", argument = " + argument );
+	}
 
-	    String convert = null;
+	//String convert = null;
+	//for ( int i = 0; i < size.length; i++ )
+	//  convert += ( "size[" + i + "] = " + size[i] + "  " );
+	//MASS_base.log(  convert );
+	
+	// Print the current working directory
+	// MASS_base.log( "CUR_DIR = " + MASS_base.CUR_DIR );
+	
+	// load the place construtor
+	File curDir   = new File( MASS.CUR_DIR );
+	try {
+	    placeLoader =
+		URLClassLoader.
+		newInstance( new URL[] { curDir.toURI().toURL( ) } );
+	    placeClass =                                        //get class
+		Class.forName( className, true, placeLoader ); 
+	    placeConstructor =                            //get constructor
+		placeClass.getConstructor( Object.class ); 
+	    
+	    // calculate lower_boundary and upper_boundary
+	    total = 1;
 	    for ( int i = 0; i < size.length; i++ )
-		convert += ( "size[" + i + "] = " + size[i] + "  " );
-	    MASS_base.log(  convert );
-
-	    // Print the current working directory
-	    MASS_base.log( "CUR_DIR = " + MASS_base.CUR_DIR );
-
-	    // load the place construtor
-	    File curDir   = new File( MASS.CUR_DIR );
-	    try {
-		placeLoader =
-		    URLClassLoader.
-		    newInstance( new URL[] { curDir.toURI().toURL( ) } );
-		placeClass =                                        //get class
-		    Class.forName( className, true, placeLoader ); 
-		placeConstructor =                            //get constructor
-		    placeClass.getConstructor( Object.class ); 
+		total *= size[i];
+	    stripe = total / MASS_base.systemSize;
+	    
+	    lower_boundary = stripe * MASS_base.myPid;
+	    upper_boundary = (MASS_base.myPid < MASS_base.systemSize - 1) ?
+		lower_boundary + stripe - 1 : total - 1;
+	    places_size = upper_boundary - lower_boundary + 1;
+	    
+	    // instantiate Places objects
+	    this.places_size = places_size;
+	    //  maintaining an entire set
+	    places = new Place[places_size];
+	    
+	    // initialize all Places objects
+	    for ( int i = 0; i < places_size; i++ ) {
+		// instanitate a new place
+		placeInitSize = size.clone( );
+		placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
+		places[i] = 
+		    ( Place )placeConstructor.newInstance( argument );
+	    }
+	} catch ( Exception e ) {
+	    MASS_base.log( "Places_base.init_all: " + className + 
+			   " not loaded and/or instantiated " + e );
+	}
+	
+	// allocate the left/right shadows
+	
+	if ( boundary_width <= 0 ) {
+	    // no shadow space.
+	    shadow_size = 0;
+	    left_shadow = null;
+	    right_shadow = null;
+	    return;
+	}
+	
+	shadow_size = ( size.length == 1 ) 
+	    ? boundary_width : total / size[0] * boundary_width;
+	if ( printOutput == true )
+	    MASS_base.log( "Places_base.shadow_size = " + shadow_size );
+	
+	left_shadow = ( MASS_base.myPid == 0 ) ?
+	    null : new Place[ shadow_size ];
+	right_shadow = 
+	    ( MASS_base.myPid == MASS_base.systemSize - 1 ) ?
+	    null : new Place[ shadow_size ];
+	
+	// initialize the left/right shadows
+	try {
+	    for ( int i = 0; i < shadow_size; i++ ) {
 		
-		// calculate lower_boundary and upper_boundary
-		total = 1;
-		for ( int i = 0; i < size.length; i++ )
-		    total *= size[i];
-		stripe = total / MASS_base.systemSize;
-		
-		lower_boundary = stripe * MASS_base.myPid;
-		upper_boundary = (MASS_base.myPid < MASS_base.systemSize - 1) ?
-		    lower_boundary + stripe - 1 : total - 1;
-		places_size = upper_boundary - lower_boundary + 1;
-		
-		// instantiate Places objects
-		this.places_size = places_size;
-		//  maintaining an entire set
-		places = new Place[places_size];
-		
-		// initialize all Places objects
-		for ( int i = 0; i < places_size; i++ ) {
+		// left shadow initialization
+		if ( left_shadow != null ) {
 		    // instanitate a new place
 		    placeInitSize = size.clone( );
-		    placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
-		    places[i] = 
+		    placeInitIndex = 
+			getGlobalArrayIndex( lower_boundary - shadow_size 
+					     + i );
+		    left_shadow[i] = 
 			( Place )placeConstructor.newInstance( argument );
+		    left_shadow[i].outMessage = null;
 		}
-	    } catch ( Exception e ) {
-		MASS_base.log( "Places_base.init_all: " + className + 
-			       " not loaded and/or instantiated " + e );
-	    }
-
-	    // allocate the left/right shadows
-
-	    if ( boundary_width <= 0 ) {
-		// no shadow space.
-		shadow_size = 0;
-		left_shadow = null;
-		right_shadow = null;
-		return;
-	    }
-
-	    shadow_size = ( size.length == 1 ) 
-		? boundary_width : total / size[0] * boundary_width;
-	    if ( printOutput == true )
-		MASS_base.log( "Places_base.shadow_size = " + shadow_size );
-
-	    left_shadow = ( MASS_base.myPid == 0 ) ?
-		null : new Place[ shadow_size ];
-	    right_shadow = 
-		( MASS_base.myPid == MASS_base.systemSize - 1 ) ?
-		null : new Place[ shadow_size ];
-
-	    // initialize the left/right shadows
-	    try {
-		for ( int i = 0; i < shadow_size; i++ ) {
 		
-		    // left shadow initialization
-		    if ( left_shadow != null ) {
-			// instanitate a new place
-			placeInitSize = size.clone( );
-			placeInitIndex = 
-			    getGlobalArrayIndex( lower_boundary - shadow_size 
-						 + i );
-			left_shadow[i] = 
-			    ( Place )placeConstructor.newInstance( argument );
-			left_shadow[i].outMessage = null;
-		    }
-		    
-		    // right shadow initialization
-		    if ( right_shadow != null ) {
-			// instanitate a new place
-			placeInitSize = size.clone( );
-			placeInitIndex = 
-			    getGlobalArrayIndex( upper_boundary + i );
-			right_shadow[i] = 
-			    ( Place )placeConstructor.newInstance( argument );
-			right_shadow[i].outMessage = null;
-		    }
+		// right shadow initialization
+		if ( right_shadow != null ) {
+		    // instanitate a new place
+		    placeInitSize = size.clone( );
+		    placeInitIndex = 
+			getGlobalArrayIndex( upper_boundary + i );
+		    right_shadow[i] = 
+			( Place )placeConstructor.newInstance( argument );
+		    right_shadow[i].outMessage = null;
 		}
-	    } catch ( Exception e ) { } 
-	}
+	    }
+	} catch ( Exception e ) { } 
     }
 
     protected int[] getGlobalArrayIndex( int singleIndex ) {

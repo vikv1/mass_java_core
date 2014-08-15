@@ -5,8 +5,8 @@ import java.util.*;
 
 public class Agents extends Agents_base implements Serializable {
     //Used to toggle comments from Places_base.java
-    //private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    //private static final boolean printOutput = true;
 
     public Agents( int handle, String className, Object argument,
 		   Places places, int initPopulation ) {
@@ -120,7 +120,8 @@ public class Agents extends Agents_base implements Serializable {
 
 		System.err.println( "Bag Size is: " + 
 				    MASS_base.agentsMap.
-				    get( new Integer(handle) ).agents.size() );
+				    get( new Integer(handle) ).
+				    agents.size_unreduced() );
 	    }
 	    Mthread.agentBagSize = MASS_base.agentsMap.
 		get( new Integer( handle ) ).agents.size_unreduced( );

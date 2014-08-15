@@ -6,13 +6,13 @@ import java.io.*;
 
 public class ExchangeHelper {
     //Used to toggle output for ExchangeHelper
-    // private static final boolean printOutput = false;
-    private static final boolean printOutput = true;  
+    private static final boolean printOutput = false;
+    // private static final boolean printOutput = true;  
 
     public void establishConnection( int size, int rank,
 				     Vector<String> hosts, int port ) {
-	OIS = new ObjectInputStream[size];
-	OOS = new ObjectOutputStream[size];
+	inputs = new InputStream[size];
+	outputs = new OutputStream[size];
 	try {
 	    // prepare a server socket
 	    ServerSocket server = new ServerSocket( port );
@@ -46,10 +46,8 @@ public class ExchangeHelper {
 		    if ( hosts.get(j).equals( ipaddr ) ) {
 			// matched and assigned this socket to rank j.
 			sockets[j] = socket; 
-			OIS[j] = new 
-			    ObjectInputStream( sockets[j].getInputStream( ) );
-			OOS[j] = new
-			    ObjectOutputStream( sockets[j].getOutputStream( ));
+			inputs[j] =  sockets[j].getInputStream( );
+			outputs[j] = sockets[j].getOutputStream( );
 			if ( printOutput == true ) {
 			    MASS_base.log( "rank" + rank + 
 					   "] accepted from rank[" +
@@ -71,10 +69,8 @@ public class ExchangeHelper {
 		try {
 		    sockets[i] = new Socket( hosts.get(i), port );
 		    sockets[i].setReuseAddress( true );
-		    OOS[i] = new
-			ObjectOutputStream( sockets[i].getOutputStream( ));
-		    OIS[i] = new 
-			ObjectInputStream( sockets[i].getInputStream( ) );
+		    outputs[i] = sockets[i].getOutputStream( );
+		    inputs[i] = sockets[i].getInputStream( );
 		    break;
 		} catch ( Exception e1 ) {
 		    MASS_base.log( "rank" + rank + "] " + j + 
@@ -101,14 +97,30 @@ public class ExchangeHelper {
 
 	if ( printOutput == true )
 	    MASS_base.log( "exchange.sendMessage will be sent to rank: " +
-			   rank );
+			   rank + ", exchangeReq.exchangeReqList = " +
+			   exchangeReq.getExchangeReqList()  + 
+			   ", exchangeReq.migrationReqList = " +
+			   exchangeReq.getMigrationReqList() );
 
 	try {
-	    OOS[rank].writeObject( exchangeReq );
-	    OOS[rank].flush( );
+            ByteArrayOutputStream baos = new ByteArrayOutputStream( );
+            ObjectOutputStream oos 
+		= new ObjectOutputStream( baos );
+            oos.writeObject( exchangeReq );
+            oos.close( );
+            baos.close( );
+            byte[] bArray = baos.toByteArray( );
+            byte[] length = new byte[4];
+            length[0] = (byte) (bArray.length >> 24);
+            length[1] = (byte) (bArray.length >> 16);
+            length[2] = (byte) (bArray.length >> 8);
+            length[3] = (byte) bArray.length;
+            outputs[rank].write( length );
+            outputs[rank].write( bArray );
 	} catch ( Exception e ) {
 	    MASS_base.log ( "exchange.sendMessage to rank: " + rank + 
-			    ". Error: " + e + ", OOS[rank] = " + OOS[rank] + 
+			    ". Error: " + e + ", outputs[rank] = " + 
+			    outputs[rank] + 
 			    ", exchangeReq" + exchangeReq );
 	}
 
@@ -125,10 +137,26 @@ public class ExchangeHelper {
 
 	Message m = null;
 	try {
-	    m = ( Message )OIS[rank].readObject( );
+            byte[] length = new byte[4];
+            inputs[rank].read(length);
+            int intLength = 0;
+            for (int i = 0; i < 4; i++) {
+                int shift = (3 - i) * 8;
+                intLength += (length[i] & 0xff) << shift;
+            }
+            byte[] bArray = new byte[intLength];
+            for (int nRead = 0; nRead < intLength;
+                 nRead += inputs[rank].read(bArray, nRead, intLength - nRead));
+
+            ByteArrayInputStream bais  = new ByteArrayInputStream(bArray);
+            ObjectInputStream ois = new ObjectInputStream( bais );
+            m = (Message) ois.readObject();
+            bais.close();
+            ois.close();
 	} catch ( Exception e ) {
 	    MASS_base.log ( "exchange.receiveMessage from rank: " + rank + 
-			    ". Error: " + e + ", OOS[rank] = " + OIS[rank] );
+			    ". Error: " + e + ", inputs[rank] = " + 
+			    inputs[rank] );
 	}
 
 	if ( m != null ) {
@@ -161,6 +189,6 @@ public class ExchangeHelper {
 
     private static Socket socket;
     private static Socket[] sockets;
-    private static ObjectInputStream[] OIS;
-    private static ObjectOutputStream[] OOS;
+    private static InputStream[] inputs;
+    private static OutputStream[] outputs;
 }

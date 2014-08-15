@@ -5,8 +5,8 @@ import java.util.Vector;
 import java.util.Hashtable;
 
 public class MASS_base {
-    //  private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    // private static final boolean printOutput = true;
 
     public static void initMASS_base( String name, int myPid, int nProc,
 				      int port) {

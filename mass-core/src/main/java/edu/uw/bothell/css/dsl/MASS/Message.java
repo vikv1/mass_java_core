@@ -275,6 +275,6 @@ public class Message implements Serializable {
     private Vector<int[]> destinations; // all destinations of exchangeAll
     private int agent_population;
     private int boundary_width;
-    private Vector<RemoteExchangeRequest> exchangeReqList;
-    private Vector<AgentMigrationRequest> migrationReqList;
+    private Vector<RemoteExchangeRequest> exchangeReqList = null;
+    private Vector<AgentMigrationRequest> migrationReqList = null;
 }

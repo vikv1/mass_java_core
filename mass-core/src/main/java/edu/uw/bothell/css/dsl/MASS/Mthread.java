@@ -3,8 +3,8 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.*;
 
 public class Mthread extends Thread {
-    //private static final boolean printOutput = false;
-    private static final boolean printOutput = true;
+    private static final boolean printOutput = false;
+    //private static final boolean printOutput = true;
 
     public enum STATUS_TYPE { STATUS_READY,          // 0
   	                      STATUS_TERMINATE,      // 1
