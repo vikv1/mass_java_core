@@ -17,12 +17,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>gov.nist.math</groupId>
-			<artifactId>jama</artifactId>
-			<version>1.0.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.44</version>
