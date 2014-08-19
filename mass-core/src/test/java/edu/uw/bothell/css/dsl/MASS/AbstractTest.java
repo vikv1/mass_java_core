@@ -2,21 +2,38 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Random;
 
-import org.junit.Ignore;
+import org.easymock.EasyMockRunner;
+import org.easymock.EasyMockSupport;
+import org.junit.After;
+import org.junit.runner.RunWith;
 
 /**
- * TestUtils contains helper methods necessary for testing the MASS library
+ * Abstract Test contains helper classes and methods used by unit test classes
  * 
  * @author Matthew Sell
  *
  */
-@Ignore
-public class TestUtils {
+@RunWith(EasyMockRunner.class)
+public class AbstractTest extends EasyMockSupport {
+
+    // Toggle for enabling Unicode in unit Tests
+    private static final boolean ENABLE_UNICODE = false;
 
     private static Random random = new Random(System.currentTimeMillis());
 
-    // Toggle for enabling Unicode in unit Tests
-    public static final boolean USE_UNICODE = false;
+	/**
+	 * Perform any necessary cleanup and final verifications after EVERY test 
+	 */
+	@After
+	public void tearDown() {
+
+		// make sure all mock objects were called as expected
+		verifyAll();
+
+		// reset all mock objects to prepare for next test
+		resetAll();
+		
+	}
 
 	/**
      * Is the specified character a valid character for an XML document? (According to W3C specs)
@@ -24,7 +41,7 @@ public class TestUtils {
      * @param t The character to test
      * @return TRUE if the character can be included within the body of an XML document, FALSE if not
      */
-    public static boolean isValidXMLCharacter(char t) {
+    protected static boolean isValidXMLCharacter(char t) {
         if (((t < 32 || t > 55295) && (t != 9) && (t != 10) && (t != 13) && (t < 57344 || t > 65533))) return false;
         return true;
     }
@@ -33,7 +50,7 @@ public class TestUtils {
      * Generate a random boolean value
      * @return A random boolean value
      */
-    public static boolean randomBoolean() {
+    protected static boolean randomBoolean() {
         return random.nextBoolean();
     }
 
@@ -41,7 +58,7 @@ public class TestUtils {
      * Generate a random byte value
      * @return A random byte value
      */
-    public static byte randomByte() {
+    protected static byte randomByte() {
         byte returnByte = (byte) ((255 * random.nextDouble()) - 128);
         return returnByte;
     }
@@ -50,7 +67,7 @@ public class TestUtils {
      * Generate a random double value
      * @return A random double value
      */
-    public static double randomDouble() {
+    protected static double randomDouble() {
         return random.nextDouble();       
     }
 
@@ -58,7 +75,7 @@ public class TestUtils {
      * Generate a random float value
      * @return A random float value
      */
-    public static float randomFloat() {
+    protected static float randomFloat() {
         return random.nextFloat();       
     }
 	
@@ -66,7 +83,7 @@ public class TestUtils {
      * Generate a random integer value
      * @return A random integer value
      */
-    public static int randomInt() {
+    protected static int randomInt() {
         return random.nextInt();       
     }
 
@@ -76,7 +93,7 @@ public class TestUtils {
      * @param maxValue The maximum value to generate
      * @return A random integer value
      */
-    public static int randomInt(int minValue, int maxValue) {
+    protected static int randomInt(int minValue, int maxValue) {
     	
     	double val = random.nextDouble();
     	
@@ -90,7 +107,7 @@ public class TestUtils {
      * Generate a random long value
      * @return A random long value
      */
-    public static long randomLong() {
+    protected static long randomLong() {
         return random.nextLong();
     }
 
@@ -98,7 +115,7 @@ public class TestUtils {
      * Generate a random short value
      * @return A random short value
      */
-    public static short randomShort() {
+    protected static short randomShort() {
         
         // generate a value from 32767 to -32768
         short returnValue = (short) ((65535 * random.nextDouble()) - 32768); 
@@ -114,7 +131,7 @@ public class TestUtils {
      *@param length The length to the string to be generated
      *@returns A string of random characters of the length specified
     */
-    public static synchronized String randomString(int length) {
+    protected static synchronized String randomString(int length) {
     
         StringBuffer returnString = new StringBuffer("");
         
@@ -125,7 +142,7 @@ public class TestUtils {
             double randomValue = 0;
             
             // generate character "t" based on desire to use full range of characters
-            if (USE_UNICODE) {
+            if (ENABLE_UNICODE) {
             
                 do {
 

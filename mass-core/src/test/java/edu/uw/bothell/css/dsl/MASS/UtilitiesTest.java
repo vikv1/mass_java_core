@@ -7,14 +7,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.easymock.Capture;
-import org.easymock.EasyMockRunner;
-import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -23,13 +18,12 @@ import com.jcraft.jsch.UserInfo;
 
 /**
  * Perform a series of unit tests against the Utilities class to verify proper
- * behavior of the class / methods
+ * and consistent behavior of the class / methods
  * 
- * @author msell
+ * @author Matthew Sell
  *
  */
-@RunWith(EasyMockRunner.class)
-public class UtilitiesTest extends EasyMockSupport {
+public class UtilitiesTest extends AbstractTest {
 
 	@TestSubject
 	private Utilities utilities = new Utilities();
@@ -43,30 +37,14 @@ public class UtilitiesTest extends EasyMockSupport {
 	@Mock
 	private ChannelExec mockChannelExec;
 	
-	@Before
-	public void setUp() {
-		
-		// make sure SSH library is "injected" into the test class
-		utilities.setSSHCommunicationLibrary(mockJsch);
-		
-	}
-	
-	@After
-	public void tearDown() {
-		
-		// reset all mock objects to prepare for next test
-		resetAll();
-		
-	}
-	
 	@Test
 	public void testLaunchRemoteProcess() throws Exception {
 		
-		String command = TestUtils.randomString( 32 );
-		String hostName = TestUtils.randomString( 32 );
-		String passWord = TestUtils.randomString( 32 );
-		int portNumber = TestUtils.randomInt();
-		String userName = TestUtils.randomString( 32 );
+		String command = randomString( 32 );
+		String hostName = randomString( 32 );
+		String passWord = randomString( 32 );
+		int portNumber = randomInt();
+		String userName = randomString( 32 );
 		
 		// first, the JSCH library will attempt to connect to the remote host
 		expect( mockJsch.getSession( userName, hostName, portNumber )).andReturn( mockSession );
@@ -97,16 +75,13 @@ public class UtilitiesTest extends EasyMockSupport {
 		assertNull( ui.getPassphrase() );
 
 		// test proper (consistent!) behavior of the user credentials object
-		assertTrue( ui.promptPassphrase( TestUtils.randomString( 32 ) ) );	// any passphrase prompt returns TRUE
-		assertTrue( ui.promptPassword( TestUtils.randomString( 32 ) ) );		// any password prompt returns TRUE
-		assertTrue( ui.promptYesNo( TestUtils.randomString( 32 ) ) );			// any yes/no prompt returns TRUE
+		assertTrue( ui.promptPassphrase( randomString( 32 ) ) );	// any passphrase prompt returns TRUE
+		assertTrue( ui.promptPassword( randomString( 32 ) ) );		// any password prompt returns TRUE
+		assertTrue( ui.promptYesNo( randomString( 32 ) ) );			// any yes/no prompt returns TRUE
 		
 		// attempting to show a message should NOT result in an Exception
-		ui.showMessage( TestUtils.randomString( 32 ) );
+		ui.showMessage( randomString( 32 ) );
 		
-		// make sure all mock objects were called as expected
-		verifyAll();
-
 	}
 	
 }
