@@ -1,0 +1,6 @@
+UWCA/UWCA-web/target/
+UWCA/UWCA-ear/target/
+UWCA/UWCA-ejb/target/
+UWCA/UWCA-ear/src/main/application/META-INF/MANIFEST.MF
+UWCA/UWCA-ejb/src/main/resources/META-INF/MANIFEST.MF
+UWCA/UWCA-ejb/src/main/java/com/uwbothell/NewSessionBean.java

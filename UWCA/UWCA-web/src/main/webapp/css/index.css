@@ -1,0 +1,50 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Aug 11, 2014, 9:23:11 AM
+    Author     : jwoodrin
+*/
+table *{
+    border-style: solid;
+}
+th {
+    min-width: 150px;
+    
+}
+td{
+    min-width: 150px;
+    
+}
+
+#mainBody{
+    width: 100%;
+    height: 100%;  
+}
+#headerDiv{
+    width: 100%;
+    height: 25%;
+    background-color: purple;
+}
+#calcDiv{
+    width: 100%;
+    height: 25%;
+    background-color: purple;
+}
+.workflowSel{
+    width: 33%;
+}
+#workFlow{
+    padding-left: 10%;
+    width: 80%;
+    height: 100%;
+    background-color: green;
+    
+}
+#histDiv{
+    width: 100%;
+    height: 25%;
+    background-color: purple;
+}
