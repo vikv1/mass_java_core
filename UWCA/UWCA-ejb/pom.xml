@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
     <artifactId>UWCA</artifactId>
-    <groupId>com.uwbothell</groupId>
+    <groupId>edu.uw.bothell.css.uwca</groupId>
      <version>${UWCAVersion}</version>
   </parent>
 
-    <groupId>com.uwbothell</groupId>
+    <groupId>edu.uw.bothell.css.uwca</groupId>
     <artifactId>UWCA-ejb</artifactId>
      <version>${UWCAVersion}</version>
     <packaging>ejb</packaging>
