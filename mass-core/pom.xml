@@ -44,4 +44,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	<name>MASS Java Core Library</name>
 </project>

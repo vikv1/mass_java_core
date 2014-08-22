@@ -5,7 +5,7 @@
   <artifactId>UWCA</artifactId>
   <version>${UWCAVersion}</version>
   <packaging>pom</packaging>
-  <name>UWCA</name>
+  <name>UW Climate Analysis Parent Project Container</name>
   <parent>
 	<groupId>edu.uw.bothell.css.mass</groupId>
 		<artifactId>MASS-Java</artifactId>
@@ -16,4 +16,5 @@
     <module>UWCA-web</module>
     <module>UWCA-ejb</module>
   </modules>
+  <description>Climate Analysis Parent Project Container</description>
 </project>

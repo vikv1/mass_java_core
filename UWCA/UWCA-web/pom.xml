@@ -12,7 +12,7 @@
      <version>${UWCAVersion}</version>
     <packaging>war</packaging>
 
-    <name>UWCA-web</name>
+    <name>UW Climate Analysis WEB Application</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -78,4 +78,5 @@
         </plugins>
     </build>
 
+    <description>Climate Analysis Web Application</description>
 </project>

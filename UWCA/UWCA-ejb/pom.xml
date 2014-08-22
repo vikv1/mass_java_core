@@ -12,7 +12,7 @@
      <version>${UWCAVersion}</version>
     <packaging>ejb</packaging>
 
-    <name>UWCA-ejb</name>
+    <name>UW Climate Analysis EJB Business Logic</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -96,4 +96,5 @@
         </plugins>
     </build>
 
+    <description>UW Climate Analysis EJB Application</description>
 </project>

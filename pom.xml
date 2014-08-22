@@ -8,7 +8,7 @@
   	<packaging>pom</packaging>
  	<version>${MASSVersion}</version>
   	
-	<name>MASS Java Library and Applications</name>
+	<name>MASS Java Library and Applications Parent</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
 	<inceptionYear>2010</inceptionYear>
 	<url>http://depts.washington.edu/dslab/MASS/index.html</url>
