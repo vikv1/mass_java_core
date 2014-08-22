@@ -15,12 +15,14 @@
 
 	<modules>
 		<module>mass-core</module>
+		<module>UWCA</module>
 	</modules>
 
 	<properties>
 	
 		<!-- Version declarations -->
 		<MASSVersion>0.8.0-SNAPSHOT</MASSVersion>
+		<UWCAVersion>0.1.1-SNAPSHOT</UWCAVersion>
 	
 		<!-- Build properties -->	
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
