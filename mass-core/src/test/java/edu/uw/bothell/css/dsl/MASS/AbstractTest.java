@@ -5,6 +5,7 @@ import java.util.Random;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
 /**
@@ -13,6 +14,7 @@ import org.junit.runner.RunWith;
  * @author Matthew Sell
  *
  */
+@Ignore
 @RunWith(EasyMockRunner.class)
 public class AbstractTest extends EasyMockSupport {
 
