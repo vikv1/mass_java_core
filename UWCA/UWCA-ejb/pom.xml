@@ -4,12 +4,12 @@
     <parent>
     <artifactId>UWCA</artifactId>
     <groupId>com.uwbothell</groupId>
-    <version>1.0-SNAPSHOT</version>
+     <version>${UWCAVersion}</version>
   </parent>
 
     <groupId>com.uwbothell</groupId>
     <artifactId>UWCA-ejb</artifactId>
-    <version>1.0-SNAPSHOT</version>
+     <version>${UWCAVersion}</version>
     <packaging>ejb</packaging>
 
     <name>UWCA-ejb</name>
