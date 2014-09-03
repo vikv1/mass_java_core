@@ -21,6 +21,12 @@
     
     <dependencies>
         <dependency>
+            <groupId>edu.uw.bothell.css.uwca</groupId>
+            <artifactId>UWCA-ejb</artifactId>
+            <version>${UWCAVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
