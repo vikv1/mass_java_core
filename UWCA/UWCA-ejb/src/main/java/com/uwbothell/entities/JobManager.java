@@ -4,21 +4,27 @@
  */
 package com.uwbothell.entities;
 
-import edu.uw.bothell.css.dsl.MASS.MASS;
 import javax.ejb.Stateless;
-
 
 /**
  *
- * @author martin
+ * @author 
  */
 @Stateless
 public class JobManager {
+    
+    private static volatile JobManager instance = null;
+    
+    private JobManager(){
+        // start runner in the constructor (only gets called once)
+    }
 
-    public void businessMethod() {
-        MassRunner massRunner = new MassRunner();
-        
-        
+    public static synchronized JobManager getInstance() {
+     //   MassRunner massRunner = new MassRunner();
+        if (instance == null){
+            instance = new JobManager();
+        }
+        return instance;
     }
 
     // Add business logic below. (Right-click in editor and choose

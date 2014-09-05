@@ -21,10 +21,9 @@
     
     <dependencies>
         <dependency>
-            <groupId>edu.uw.bothell.css.uwca</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>UWCA-ejb</artifactId>
-            <version>${UWCAVersion}</version>
-            <scope>provided</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
