@@ -6,7 +6,7 @@
 
 package com.uwbothell.web;
 
-import com.uwbothell.entities.JobManager;
+//import com.uwbothell.entities.JobManager;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.ejb.EJB;
@@ -21,8 +21,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class UwcaServlet extends HttpServlet {
     
-    @EJB
-    public JobManager jobMgr;
+  //  @EJB
+  //  public JobManager jobMgr;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -76,8 +76,8 @@ public class UwcaServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        jobMgr = new JobManager();
-        jobMgr.businessMethod();
+     //   jobMgr = new JobManager();
+      //  jobMgr.businessMethod();
            String name = request.getParameter("name");
           String game = request.getParameter("game");
           String respMess = name + game;
