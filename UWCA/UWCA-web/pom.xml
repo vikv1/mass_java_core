@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-    <artifactId>UWCA</artifactId>
-    <groupId>edu.uw.bothell.css.uwca</groupId>
-     <version>${UWCAVersion}</version>
-  </parent>
+   
+ 	<parent>
+    	<artifactId>UWCA</artifactId>
+    	<groupId>edu.uw.bothell.css.uwca</groupId>
+     	<!--version>${UWCAVersion}</version-->
+		<version>0.1.1-SNAPSHOT</version>
+  	</parent>
 
     <groupId>edu.uw.bothell.css.uwca</groupId>
     <artifactId>UWCA-web</artifactId>
-     <version>${UWCAVersion}</version>
+     <!--version>${UWCAVersion}</version-->
     <packaging>war</packaging>
 
     <name>UW Climate Analysis WEB Application</name>
@@ -21,9 +23,9 @@
     
     <dependencies>
         <dependency>
-            <groupId>edu.uw.bothell.css.uwca</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>UWCA-ejb</artifactId>
-            <version>${UWCAVersion}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

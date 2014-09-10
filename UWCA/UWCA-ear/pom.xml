@@ -4,12 +4,13 @@
     <parent>
     <artifactId>UWCA</artifactId>
     <groupId>edu.uw.bothell.css.uwca</groupId>
-    <version>${UWCAVersion}</version>
+    <version>0.1.1-SNAPSHOT</version>
   </parent>
 
-   <groupId>edu.uw.bothell.css.uwca</groupId>
+    <groupId>edu.uw.bothell.css.uwca</groupId>
     <artifactId>UWCA-ear</artifactId>
-    <version>${UWCAVersion}</version>
+    <!--version>${UWCAVersion}</version-->
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>ear</packaging>
 
     <name>UW Climate Analysis EAR Enterprise App Container</name>

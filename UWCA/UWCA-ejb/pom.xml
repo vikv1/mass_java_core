@@ -4,12 +4,13 @@
     <parent>
     <artifactId>UWCA</artifactId>
     <groupId>edu.uw.bothell.css.uwca</groupId>
-     <version>${UWCAVersion}</version>
+     <version>0.1.1-SNAPSHOT</version>
   </parent>
 
     <groupId>edu.uw.bothell.css.uwca</groupId>
     <artifactId>UWCA-ejb</artifactId>
-     <version>${UWCAVersion}</version>
+    <!--version>${UWCAVersion}</version-->
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>ejb</packaging>
 
     <name>UW Climate Analysis EJB Business Logic</name>
