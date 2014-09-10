@@ -15,6 +15,8 @@
 		<version>0.8.0-SNAPSHOT</version>
 	</parent>
 
+	<name>MASS Java Core Library</name>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.jcraft</groupId>
@@ -44,5 +46,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	<name>MASS Java Core Library</name>
+
 </project>
