@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>edu.uw.bothell.css.uwca</groupId>
-  <artifactId>UWCA</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
+	<groupId>edu.uw.bothell.css.uwca</groupId>
+	<artifactId>UWCA</artifactId>
+	<version>0.1.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-  <parent>
-	<groupId>edu.uw.bothell.css.mass</groupId>
-	<artifactId>MASS-Java</artifactId>
-	<version>0.8.0-SNAPSHOT</version>
-  </parent>
+	<parent>
+		<groupId>edu.uw.bothell.css.mass</groupId>
+		<artifactId>MASS-Java</artifactId>
+		<version>0.8.0-SNAPSHOT</version>
+	</parent>
 
-  <name>UW Climate Analysis Parent Project Container</name>
-  <description>Climate Analysis Parent Project Container</description>
+	<name>UW Climate Analysis Parent Project Container</name>
+	<description>Climate Analysis Parent Project Container</description>
 
-  <modules>
-    <module>UWCA-ear</module>
-    <module>UWCA-web</module>
-    <module>UWCA-ejb</module>
-  </modules>
+	<properties>
+		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+	</properties>
+
+	<modules>
+		<module>UWCA-ear</module>
+		<module>UWCA-web</module>
+		<module>UWCA-ejb</module>
+	</modules>
 
 </project>

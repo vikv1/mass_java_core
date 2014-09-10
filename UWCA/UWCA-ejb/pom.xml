@@ -11,17 +11,11 @@
 
 	<groupId>edu.uw.bothell.css.uwca</groupId>
 	<artifactId>UWCA-ejb</artifactId>
-	<!--version>${UWCAVersion}</version -->
 	<version>0.1.1-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 
 	<name>UW Climate Analysis EJB Business Logic</name>
 	<description>UW Climate Analysis EJB Application</description>
-
-	<properties>
-		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -45,7 +39,7 @@
 		<dependency>
 			<groupId>edu.uw.bothell.css.mass</groupId>
 			<artifactId>mass-core</artifactId>
-			<version>${MASSVersion}</version>
+			<version>0.8.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

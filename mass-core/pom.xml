@@ -7,8 +7,6 @@
 	<artifactId>mass-core</artifactId>
 	<packaging>jar</packaging>
 
-	<!--version>${MASSVersion}</version-->
-
 	<parent>
 		<groupId>edu.uw.bothell.css.mass</groupId>
 		<artifactId>MASS-Java</artifactId>

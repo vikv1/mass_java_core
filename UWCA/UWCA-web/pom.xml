@@ -12,16 +12,10 @@
 
 	<groupId>edu.uw.bothell.css.uwca</groupId>
 	<artifactId>UWCA-web</artifactId>
-	<!--version>${UWCAVersion}</version -->
 	<packaging>war</packaging>
 
 	<name>UW Climate Analysis WEB Application</name>
 	<description>Climate Analysis Web Application</description>
-
-	<properties>
-		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<dependencies>
 		<dependency>

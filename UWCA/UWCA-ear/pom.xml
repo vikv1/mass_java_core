@@ -11,28 +11,23 @@
 
 	<groupId>edu.uw.bothell.css.uwca</groupId>
 	<artifactId>UWCA-ear</artifactId>
-	<!--version>${UWCAVersion}</version -->
 	<version>0.1.1-SNAPSHOT</version>
 	<packaging>ear</packaging>
 
 	<name>UW Climate Analysis EAR Enterprise App Container</name>
 	<description>UW Climate Analysis Enterprise Application Container</description>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-
 	<dependencies>
 		<dependency>
-			<groupId>edu.uw.bothell.css.uwca</groupId>
-			<version>${UWCAVersion}</version>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>UWCA-ejb</artifactId>
+			<version>${project.version}</version>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
-			<groupId>edu.uw.bothell.css.uwca</groupId>
-			<version>${UWCAVersion}</version>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>UWCA-web</artifactId>
+			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
 	</dependencies>
