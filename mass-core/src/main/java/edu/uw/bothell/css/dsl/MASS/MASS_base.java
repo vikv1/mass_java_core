@@ -1,8 +1,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.FileOutputStream;
-import java.util.Vector;
 import java.util.Hashtable;
+import java.util.Vector;
 
 public class MASS_base {
     private static final boolean printOutput = false;
@@ -146,6 +146,14 @@ public class MASS_base {
 	    }
 	    MASS_base.log( convert );
 	}
+    }
+
+    public static Places getPlaces( int handle ) {
+	return ( Places )placesMap.get( new Integer( handle ) );
+    }
+
+    public static Agents getAgents( int handle ) {
+	return ( Agents )agentsMap.get( new Integer( handle ) );
     }
 
     public static Mthread[] threads;          // including main and children
