@@ -6,7 +6,6 @@
 	<groupId>edu.uw.bothell.css.mass</groupId>
   	<artifactId>MASS-Java</artifactId>
   	<packaging>pom</packaging>
- 	<!--version>${MASSVersion}</version-->
 	<version>0.8.0-SNAPSHOT</version>  	
 
 	<name>MASS Java Library and Applications Parent</name>
@@ -22,8 +21,9 @@
 	<properties>
 	
 		<!-- Build properties -->	
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
 		<java.version>1.7</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	
 	</properties>
   
@@ -94,6 +94,9 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
+					<compilerArguments>
+						<endorseddirs>${endorsed.dir}</endorseddirs>
+					</compilerArguments>
 				</configuration>
 			</plugin>
 			<plugin>
