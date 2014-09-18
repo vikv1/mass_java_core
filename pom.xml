@@ -60,8 +60,9 @@
 
 	<repositories>
 		<repository>
-    			<id>Jsch</id>
-    			<url>http://jsch.sf.net/maven2/</url>
+    			<id>uwb-css-artifactory</id>
+    			<name>UWB CSS Artifactory Maven Repository Manager</name>
+    			<url>http://fukuda-cent-01.css.uwb.edu:8081/artifactory/libs-release</url>
 		</repository>
 	</repositories>
 
