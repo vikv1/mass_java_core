@@ -80,15 +80,6 @@ class Utilities {
     }
   
     /**
-     * During unit testing, this method serves as an injection point for
-     * replacing the normally used SSH library with a mock object
-     * @param library The alternate SSH library to use
-     */
-    protected void setSSHCommunicationLibrary( JSch library ) {
-    	this.jsch = library;
-    }
-    
-    /**
      * User credentials for initiating remote connections using SSH
      * @author Dr. Munehiro Fukuda
      */
