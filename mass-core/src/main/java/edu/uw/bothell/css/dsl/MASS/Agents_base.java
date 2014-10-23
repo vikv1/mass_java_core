@@ -300,25 +300,26 @@ public class Agents_base implements Serializable {
 		Agent addAgent = null;
 		Object dummyArgument = new Object( );
 		try {
-		    agentInitAgentsHandle = this.handle;
-		    agentInitPlacesHandle = this.placesHandle;
-		    agentInitAgentId = this.currentAgentId++;
-		    agentInitParentId = evaluationAgent.agentId;
-		
-		    addAgent = 
-			// validate the correspondance of arguments and 
-			// argumentcounter
-			( evaluationAgent.arguments.length > 
-			  argumentcounter ) ?
-			// yes: this child agent should recieve an argument.
-			( Agent )agentConstructor.
-			newInstance( evaluationAgent.
-				     arguments[argumentcounter++] )
-			:
-			// no:  this child agent should not receive an arg.
-			( Agent )agentConstructor.
-			newInstance( dummyArgument );
+        synchronized( this ) {
+		        agentInitAgentsHandle = this.handle;
+		        agentInitPlacesHandle = this.placesHandle;
+		        agentInitAgentId = this.currentAgentId++;
+		        agentInitParentId = evaluationAgent.agentId;
 
+		        addAgent = 
+			        // validate the correspondance of arguments and 
+			        // argumentcounter
+			        ( evaluationAgent.arguments.length > 
+			        argumentcounter ) ?
+			        // yes: this child agent should recieve an argument.
+			        ( Agent )agentConstructor.
+			        newInstance( evaluationAgent.
+				        arguments[argumentcounter++] )
+			        :
+			        // no:  this child agent should not receive an arg.
+	  		      ( Agent )agentConstructor.
+		  	      newInstance( dummyArgument );
+        }
 		    addAgent.index = evaluationAgent.index;
 		    addAgent.place = evaluationAgent.place;
 		} catch ( Exception e ) {
