@@ -141,4 +141,28 @@ public class MNode {
 
 	}
 
+	/**
+	 * Set the Hostname or IP address of this Node
+	 * @param hostName The Hostname/IP address
+	 */
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
+	}
+
+	/**
+	 * Set the unique ID (process ID) for this Node
+	 * @param pid The unique process ID number
+	 */
+	public void setPid(int pid) {
+		this.pid = pid;
+	}
+
+	/**
+	 * Set the JSCH channel (already established) with the remote Node
+	 * @param channel The initialized JSCH channel connected to the remote Node
+	 */
+	public void setChannel(Channel channel) {
+		this.channel = channel;
+	}
+
 }
