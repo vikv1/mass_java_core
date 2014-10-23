@@ -123,9 +123,11 @@ public class Agents extends Agents_base implements Serializable {
 				    get( new Integer(handle) ).
 				    agents.size_unreduced() );
 	    }
-	    Mthread.agentBagSize = MASS_base.agentsMap.
+	    
+    }
+
+    Mthread.agentBagSize = MASS_base.agentsMap.
 		get( new Integer( handle ) ).agents.size_unreduced( );
-	}
 
 	//Check for correct behavior post-Agents_base implementation
 	// retrieve the corresponding agents
