@@ -1,7 +1,16 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import com.jcraft.jsch.*;  // Jsch used for Node connections
-import java.io.*;         // For socket input/output
+import java.io.ObjectInputStream;         // For socket input/output
+import java.io.ObjectOutputStream;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.jcraft.jsch.Channel;  // Jsch used for Node connections
+import com.jcraft.jsch.Session;
 
 /**
  * MNode represents a MASS compute Node and contains references
@@ -10,6 +19,8 @@ import java.io.*;         // For socket input/output
  * @author mfukuda
  *
  */
+@XmlRootElement(name = "node")
+@XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
     private String hostName;      		// the host name of this mnode
@@ -75,6 +86,7 @@ public class MNode {
      * Return the Hostname or IP address of this Node
      * @return The Hostname/IP address
      */
+	@XmlElement(name = "address", required = true)
     public String getHostName( ) {
     	return hostName;
     }
@@ -86,6 +98,7 @@ public class MNode {
      * of the Node.
      * @return The unique process ID number for this Node
      */
+	@XmlTransient
     public int getPid( ) {
     	return pid;
     }
