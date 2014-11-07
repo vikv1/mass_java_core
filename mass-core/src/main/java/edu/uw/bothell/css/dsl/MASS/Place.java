@@ -1,6 +1,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.Vector;
+import java.util.Collections; // for synchronized set
+import java.util.HashSet;     // implementation for Agent bag
+import java.util.Set;         // local Agent bag
 
 public class Place {
     public Object callMethod( int functionId, Object argument ) {
@@ -61,7 +63,7 @@ public class Place {
     public final int[] index;
     public Object outMessage = null;
     public Object[] inMessages = null;
-    Vector<Agent> agents = new Vector<Agent>( );
+    Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 
     public Place( ) {
 	size = Places.placeInitSize.clone( );

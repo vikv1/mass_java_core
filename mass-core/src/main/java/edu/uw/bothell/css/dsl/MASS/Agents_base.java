@@ -105,7 +105,7 @@ public class Agents_base implements Serializable {
 		// store this agent in the bag of agents
 		agents.add( newAgent );
 		
-		// TODO: register newAgent into curPlace
+		// register newAgent into curPlace
 		curPlace.agents.add( newAgent );
 	    }
 	}
@@ -300,30 +300,29 @@ public class Agents_base implements Serializable {
 		Agent addAgent = null;
 		Object dummyArgument = new Object( );
 		try {
-        synchronized( this ) {
-		        agentInitAgentsHandle = this.handle;
-		        agentInitPlacesHandle = this.placesHandle;
+		    agentInitAgentsHandle = this.handle;
+		    agentInitPlacesHandle = this.placesHandle;
+		    agentInitParentId = evaluationAgent.agentId;
+		    synchronized( this ) {
 		        agentInitAgentId = this.currentAgentId++;
-		        agentInitParentId = evaluationAgent.agentId;
-
-		        addAgent = 
-			        // validate the correspondance of arguments and 
-			        // argumentcounter
-			        ( evaluationAgent.arguments.length > 
-			        argumentcounter ) ?
-			        // yes: this child agent should recieve an argument.
-			        ( Agent )agentConstructor.
-			        newInstance( evaluationAgent.
-				        arguments[argumentcounter++] )
-			        :
-			        // no:  this child agent should not receive an arg.
-	  		      ( Agent )agentConstructor.
-		  	      newInstance( dummyArgument );
-        }
+		        addAgent =
+			    // validate the correspondance of arguments and
+			    // argumentcounter
+			    ( evaluationAgent.arguments.length >
+			    argumentcounter ) ?
+				// yes: this child agent should recieve an argument.
+				( Agent )agentConstructor.
+				newInstance( evaluationAgent.
+				arguments[argumentcounter++] )
+				:
+				// no:  this child agent should not receive an arg.
+				( Agent )agentConstructor.
+				newInstance( dummyArgument );
+		    }
 		    addAgent.index = evaluationAgent.index;
 		    addAgent.place = evaluationAgent.place;
 		} catch ( Exception e ) {
-		    MASS_base.log( "Agents_base.manageAll: " + this.className 
+		    MASS_base.log( "Agents_base.manageAll: " + this.className
 				   + " not instantiated " + e );
 		}
 		
@@ -354,44 +353,17 @@ public class Agents_base implements Serializable {
 
 	    if ( evaluationAgent.alive == false ) {
 		
-		//Get the place in which evaluationAgent is 'stored' in
+		// Get the place in which evaluationAgent is 'stored' in
 		Place evaluationPlace = evaluationAgent.place;
 		
-		// Move through the list of Agents to locate which to delete
-		// Do so non-interruptively.
-		synchronized( evaluationPlace.agents ) {
-		    int evalPlaceAgents = evaluationPlace.agents.size();
-		
-		    for ( int i = 0; i < evalPlaceAgents; i++ ) {
-		    
-			//Type casting used so we can compare agentId's
-			Agent comparedAgent = evaluationPlace.agents.get(i);
-			
-			// Check the Id against the ID of the agent to be 
-			// removed. 
-			// If it matches, remove it Lock
-			if ( ( evaluationAgent.agentId == 
-			       comparedAgent.agentId ) 
-			     && 
-			     ( evaluationAgent.agentsHandle == 
-			       comparedAgent.agentsHandle ) ) {
-			    evaluationPlace.agents.remove( i );
-			    
-			    if ( printOutput == true ) 
-				MASS_base.log( "Agent_base.manageALL: Thread "
-					       + tid + " deleted " + 
-					       evaluationAgent.agentId  + 
-					       " from place[" + 
-					       evaluationPlace.index[0] + 
-					       "][" + 
-					       evaluationPlace.index[1] + 
-					       "]" );
-			    break;
-			}
-		    }
-		}
-		agents.remove( myIndex - 1 ); // remove from AgentList, too!
-		continue; // don't go down to migrate
+                // remove the agent from this place
+		evaluationPlace.agents.remove( evaluationAgent );
+
+		// remove from AgentList, too!
+		agents.remove( myIndex - 1 );
+
+		// don't go down to migrate
+		continue;
 	    }
 	    
 	    //Migrate() check
@@ -632,8 +604,8 @@ public class Agents_base implements Serializable {
 	    orgRequest = MASS_base.migrationRequests.get( destRank );
 	
 	    // for debugging
-	    synchronized( orgRequest ) {
-		if ( printOutput == true ) {
+	    if ( printOutput == true ) {
+		synchronized( orgRequest ) {
 		    MASS_base.log( "tid[" + destRank + 
 				   "] sends an exhange request to rank: " + 
 				   destRank + " size() = " + 
