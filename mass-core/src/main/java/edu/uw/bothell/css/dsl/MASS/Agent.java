@@ -7,7 +7,7 @@ public class Agent implements Serializable {
 	return null;
     }
 
-    public int map( int initPopulation, int[] size, int[] index ) {
+    public int map( int initPopulation, int[] size, int[] index, Place curPlace) {
 	// compute the total # places
 	int placeTotal = 1;
 	for ( int x = 0; x < size.length; x++ )
