@@ -150,7 +150,7 @@ public class MASS extends MASS_base {
     		}
 
     		// MProcess and its arguments
-    		command += CUR_DIR + " MASS.MProcess ";          // the program
+    		command += CUR_DIR + " edu.uw.bothell.css.dsl.MASS.MProcess ";
     		command += currHostName; command += " ";// 1st arg: hostName
     		command += pid; command += " ";         // 2nd arg: pid
     		command += systemSize; command += " ";  // 3rd arg: #processes
