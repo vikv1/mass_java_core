@@ -23,42 +23,42 @@ import com.jcraft.jsch.Session;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
-    private String hostName;      		// the host name of this mnode
+    private String hostName;      		// the host name of this node
+    private String userName;			// for SSH login, the username - optional
+    private String passWord;			// for SSH login, the password - optional
+    private String javaHome;			// where the JVM is installed on this node - optional
+    private String massHome;			// where MASS library is located - optional
     private int pid;              		// process ID
     private Channel channel;            // JSCH channel
     private ObjectInputStream mainIOS;  // from mnode to master
     private ObjectOutputStream mainOOS; // from master to mnode
 
 	/**
-	 * Constructor that initializes connections
-	 * @param hostName Hostname or IP address of this Node
-	 * @param pid Unique Process ID number to assign to this Node
-	 * @param channel An active JSCH channel connected to this Node
+	 * Perform actions necessary to initialize communications with this node
 	 */
-	public MNode( String hostName, int pid, Channel channel ) { 
-
-		this.hostName = hostName;
-		this.pid = pid;
-		this.channel = channel;
-
+	public void initialize() {
+		
 		try {
-
+		
 			// Setup Communication
 			mainOOS = new ObjectOutputStream( channel.getOutputStream( ) );
 			mainOOS.flush( );
 			mainIOS = new ObjectInputStream( channel.getInputStream( ) );
-
-		} catch( Exception e ) {
-			
+		
+		}
+		
+		// TODO - need better method of handling errors here rather than terminating application
+		catch( Exception e ) {
+		
 			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
 					" setupMainConnection " + e );
 			
 			System.exit( -1 );
-		
+	
 		}
-
+		
 	}
-
+	
 	/**
 	 * Terminate all communications channels to the remote Node
 	 */
@@ -83,13 +83,49 @@ public class MNode {
 	}
 
 	/**
+	 * Get the JSCH communications channel connected to the node
+	 * @return The JSCH communications channel
+	 */
+	@XmlTransient
+	public Channel getChannel() {
+		return channel;
+	}
+
+	/**
      * Return the Hostname or IP address of this Node
      * @return The Hostname/IP address
      */
-	@XmlElement(name = "address", required = true)
+	@XmlElement(name = "hostname", required = true)
     public String getHostName( ) {
     	return hostName;
     }
+
+    /**
+	 * Get the location on this node where the JVM is installed
+	 * @return The JVM home location
+	 */
+	@XmlElement(name = "javahome")
+    public String getJavaHome() {
+		return javaHome;
+	}
+
+	/**
+	 * Get the location where MASS (MASS.jar) resides on this node
+	 * @return The location of MASS.jar
+	 */
+	@XmlElement(name = "masshome")
+	public String getMassHome() {
+		return massHome;
+	}
+
+	/**
+	 * Get the SSH login password for this node
+	 * @return The SSH login password
+	 */
+	@XmlElement(name = "password")
+	public String getPassWord() {
+		return passWord;
+	}
 
 	/**
      * Get the process ID (PID) of this Node. The process
@@ -103,7 +139,16 @@ public class MNode {
     	return pid;
     }
 
-    /**
+	/**
+	 * Get the SSH login username for this node
+	 * @return The login username
+	 */
+	@XmlElement(name = "username")
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
 	 * Get a Message send to this Node
 	 * @return The Message received by this Node
 	 */
@@ -130,7 +175,7 @@ public class MNode {
 
 	}
 
-    /**
+	/**
 	 * Send a message to the remote Node
 	 * @param m The Message to send
 	 */
@@ -155,11 +200,43 @@ public class MNode {
 	}
 
 	/**
+	 * Set the JSCH channel (already established) with the remote Node
+	 * @param channel The initialized JSCH channel connected to the remote Node
+	 */
+	public void setChannel(Channel channel) {
+		this.channel = channel;
+	}
+
+	/**
 	 * Set the Hostname or IP address of this Node
 	 * @param hostName The Hostname/IP address
 	 */
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
+	}
+
+	/**
+	 * Set the location where the JVM is installed on this node
+	 * @param javaHome The JVM location
+	 */
+	public void setJavaHome(String javaHome) {
+		this.javaHome = javaHome;
+	}
+
+	/**
+	 * Set the location where MASS (MASS.jar) resides on this node
+	 * @param massHome The location of MASS.jar
+	 */
+	public void setMassHome(String massHome) {
+		this.massHome = massHome;
+	}
+
+	/**
+	 * Set the SSH login password for this node
+	 * @param passWord The SSH login password
+	 */
+	public void setPassWord(String passWord) {
+		this.passWord = passWord;
 	}
 
 	/**
@@ -171,11 +248,11 @@ public class MNode {
 	}
 
 	/**
-	 * Set the JSCH channel (already established) with the remote Node
-	 * @param channel The initialized JSCH channel connected to the remote Node
+	 * Set the SSH login username for this node
+	 * @param userName The SSH login username
 	 */
-	public void setChannel(Channel channel) {
-		this.channel = channel;
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 
 }

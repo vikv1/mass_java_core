@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import com.jcraft.jsch.Channel;
 
 public class MASS extends MASS_base {
@@ -20,15 +24,15 @@ public class MASS extends MASS_base {
 	private static final int JschPort = 22;
     private static Utilities util;
 
-    protected static Vector<MNode> mNodes;
+    // the collection of remote nodes
+    protected static Vector<MNode> mNodes = new Vector<MNode>( );
 
     @SuppressWarnings("unused")
 	public static void init( String[] args, int nProc, int nThr ) {
     	
-    	Vector<String> hosts = new Vector<String>( ); // a set of host names
     	util = new Utilities( );                // used for channel creation
 
-    	// variable assginment
+    	// variable assignment
     	String username = args[0];
     	String password = args[1];
     	String machineFilePath = args[2];
@@ -67,41 +71,94 @@ public class MASS extends MASS_base {
 
     	}
 
-    	// Read a given machine file
-    	BufferedReader fileReader = null;
+    	// attempt to load node definitions from specified file
+    	if (machineFilePath != null && machineFilePath.length() > 0) {
 
-    	try {
+    		// attempt to open the specified file
+    		File machineFile = new File(machineFilePath);
+    		
+    		// does the file actually exist?
+    		if (!machineFile.canRead()) {
 
-    		fileReader = new BufferedReader( new InputStreamReader
-    				( new BufferedInputStream( new FileInputStream( 
-    						new File( machineFilePath ) ) ) ) );
+    			System.err.println( "machine file: " + machineFilePath +
+        				" does not exist or is not readable." );
 
-    		while( fileReader.ready( ) )
-    			hosts.add( fileReader.readLine( ) );  
+        		System.exit( -1 );
 
-    		fileReader.close();
+    		}
+    		
+        	// is the machine file an XML document? 
+    		if (machineFilePath.toLowerCase().contains("xml")) {
+    			
+    			// yes - filename specified is an XML document - get MNodes directly from the doc
+    			try {
 
-    	} 
+        			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
+            		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
+            		mNodes.addAll(nodeList.getNodes());
+            		
+    			} 
 
-    	catch( Exception e ) {
+        		catch (JAXBException e) {
 
-    		System.err.println( "machine file: " + machineFilePath +
-    				" could not open." );
+        			System.err.println( "Error initializing JAXB parser..." +
+		    				e.getStackTrace());
 
-    		System.exit( -1 );
+		    		System.exit( -1 );
+				
+				}
+    			
+    		}
+    		
+    		else {
+    			
+    			// no - this machine file is the classic one-line-per-node format
+    			
+            	BufferedReader fileReader = null;
 
+            	try {
+
+            		fileReader = new BufferedReader( new InputStreamReader
+            				( new BufferedInputStream( new FileInputStream( 
+            						machineFile ) ) ) );
+
+            		while( fileReader.ready( ) ) {
+            			
+            			// create a new MNode for each line in the file
+            			MNode node = new MNode();
+            			mNodes.add( node );
+            			node.setHostName( fileReader.readLine( ) );
+            			
+            		}
+
+            		fileReader.close();
+
+            	} 
+
+            	catch( Exception e ) {
+
+            		System.err.println( "machine file: " + machineFilePath +
+            				" could not open." );
+
+            		System.exit( -1 );
+
+            	}
+    			
+    		}
+    		
     	}
-
+    	
     	// For debugging
     	if ( printOutput == true ) {
-    		for ( int i = 0; i < hosts.size( ); i++ )
-    			System.err.println( "rank " + (i + 1) + ": " + 
-    					hosts.get( i ) );
+    		for ( MNode node : mNodes )
+    			System.err.println( "rank " + node.getPid() + ": " + 
+    					node.getHostName() );
     	}
 
     	// Handle nProc
-    	if ( nProc < 0 || nProc > hosts.size( ) )
-    		nProc = hosts.size( ) + 1; // count the master node
+    	if ( nProc < 0 || nProc > mNodes.size( ) )
+    		nProc = mNodes.size( ) + 1; // count the master node
 
     	systemSize = nProc;
 
@@ -112,78 +169,118 @@ public class MASS extends MASS_base {
     	// System.err.println( "CUR_DIR = " + CUR_DIR );
 
     	// Launch remote processes
-    	mNodes = new Vector<MNode>( );
     	int pid = 1; // a slave process id
+    	for (MNode node : mNodes) {
+    	
+    		// set PID for this node
+    		node.setPid(pid);
+    		pid++;
 
-    	for ( int i = 0; i < hosts.size( ); i++, pid++ ) {
-
+    		// set login credentials if not defined in the node config already
+    		if (node.getUserName() == null) node.setUserName(username);
+    		if (node.getPassWord() == null) node.setPassWord(password);
+    		
+    		// set default MASS directory if not defined already per node
+    		if (node.getMassHome() == null) node.setMassHome(CUR_DIR);
+    		
     		// retrieve each canonical remote machine name
-    		String currHostName = hosts.get(i);
-
     		try {
 
-    			InetAddress addr = InetAddress.getByName( currHostName );
-    			currHostName = addr.getCanonicalHostName( );
+    			InetAddress addr = InetAddress.getByName( node.getHostName() );
+    			node.setHostName( addr.getCanonicalHostName( ) );
+    			
+    			// set hostname collection in parent class - to maintain compatibility for now
+    			hosts.add(node.getHostName());
 
     		} 
 
     		catch ( Exception e ) {
 
-    			log( "wrong host name: " + currHostName );
+    			log( "wrong host name: " + node.getHostName() );
     			System.exit( -1 );
 
     		}
 
     		// For debugging
     		if ( printOutput == true )
-    			System.err.println( "curHostName = " + currHostName );
+    			System.err.println( "curHostName = " + node.getHostName() );
 
     		// Start a remote process
     		// java attributes and its jar files
-    		String command = "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/MASS.jar:";
+    		StringBuilder commandBuilder = new StringBuilder();
+    		
+    		// add location of JVM if specified
+    		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome());
+    		
+    		// gotta specify the JVM
+    		commandBuilder.append("java ");
+    		
+    		// TODO - add configurable heap memory sizes per node
+    		commandBuilder.append("-Xms1g ");
+    		commandBuilder.append("-Xmx2g ");
+    		
+    		// set location of MASS.jar
+    		commandBuilder.append("-cp ");
+    		commandBuilder.append(node.getMassHome());
+    		commandBuilder.append("MASS.jar");
+    		
+    		//= "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/MASS.jar:";
 
+    		// add any custom JARs specified
     		if ( customJarList != null ) {
 
-    			for( String customJar : customJarList )
-    				command += CUR_DIR + "/" + customJar + ":";
+    			for( String customJar : customJarList ) {
+    				
+    				commandBuilder.append(":");
+    				commandBuilder.append(node.getMassHome());
+    				commandBuilder.append(customJar);
 
+    			}
+    		
     		}
 
+    		// add MASS home directory itself as part of the classpath
+    		commandBuilder.append(":");
+    		commandBuilder.append(node.getMassHome());
+    		commandBuilder.append(" ");
+
     		// MProcess and its arguments
-    		command += CUR_DIR + " MASS.MProcess ";          // the program
-    		command += currHostName; command += " ";// 1st arg: hostName
-    		command += pid; command += " ";         // 2nd arg: pid
-    		command += systemSize; command += " ";  // 3rd arg: #processes
-    		command += nThr; command += " ";        // 4th arg: #threads
-    		command += MASS_PORT; command += " ";   // 5th arg: MASS_PORT
-    		command += CUR_DIR;                     // 6th arg: cur working dir
+    		commandBuilder.append("MASS.MProcess ");	// the program
+    		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
+    		commandBuilder.append(node.getPid() + " ");		// 2nd arg: pid
+    		commandBuilder.append(systemSize + " ");  				// 3rd arg: #processes
+    		commandBuilder.append(nThr + " ");        				// 4th arg: #threads
+    		commandBuilder.append(MASS_PORT + " ");   				// 5th arg: MASS_PORT
+    		commandBuilder.append(node.getMassHome());		// 6th arg: cur working dir
 
     		// debug
-    		System.err.println( "MProcess on " + currHostName +
-    				" run with command: " + command );
+    		System.err.println( "MProcess on " + node.getHostName() +
+    				" run with command: " + commandBuilder );
 
     		try {
 
     			Channel ssh2connection
-    			= util.LaunchRemoteProcess( currHostName,
+    			= util.LaunchRemoteProcess( node.getHostName(),
     					JschPort,
-    					command,
-    					username, password );
+    					commandBuilder.toString(),
+    					node.getUserName(),
+    					node.getPassWord() );
 
     			if ( ssh2connection == null )
     				throw new Exception( "JSCH channel not created" );
 
     			// A new remote process launched. 
     			// The corresponding Mnode created
-    			mNodes.add( new MNode( currHostName, pid, ssh2connection ) );
-
+    			node.setChannel(ssh2connection);
+    			node.initialize();
+    			
     		}
 
     		catch ( Exception e ) {
 
     			// connection failure
     			System.err.println( "MASS: error in connection to " + 
-    					currHostName + " " + e );
+    					node.getHostName() + " " + e );
     			System.exit( -1 );
 
     		}
@@ -194,19 +291,19 @@ public class MASS extends MASS_base {
     	INITIALIZED = true;
 
     	// Synchronize with all slave processes
-    	for ( int i = 0; i < hosts.size( ); i++ ) {
-
+    	for (MNode node : mNodes) {
+    	
     		if ( printOutput == true )
     			System.err.println( "init: wait for ack from " + 
-    					mNodes.get(i).getHostName( ) );
+    					node.getHostName( ) );
 
-    		Message m = mNodes.get(i).receiveMessage( );
+    		Message m = node.receiveMessage( );
 
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
 
     			System.err.println( "init didn't receive ack from rank " +
-    					( i + 1 ) + " at " +
-    					mNodes.get(i).getHostName( ) );
+    					( node.getPid() ) + " at " +
+    					node.getHostName( ) );
     			System.exit( -1 );
 
     		}
@@ -227,17 +324,17 @@ public class MASS extends MASS_base {
     		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
-    	for ( int i = 0; i < mNodes.size( ); i++ ) {
+    	for ( MNode node : mNodes ) {
     		// Send a finish messages
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
-    		mNodes.get(i).sendMessage( m );
+    		node.sendMessage( m );
     	}
 
     	// Synchronize with all slaves
     	barrier_all_slaves( );
 
-    	for ( int i = 0; i < mNodes.size( ); i++ )
-    		mNodes.get(i).closeMainConnection( );
+    	for ( MNode node : mNodes )
+    		node.closeMainConnection( );
 
     	System.err.println( "MASS::finish: done" );
 
@@ -263,23 +360,23 @@ public class MASS extends MASS_base {
     	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
 
     	// Synchronize with all slave processes
-    	for ( int i = 0; i < mNodes.size( ); i++ ) {
+    	for ( MNode node : mNodes ) {
     		if( printOutput == true )
     			System.err.println( "barrier waits for ack from " +
-    					mNodes.get(i).getHostName( ) );
+    					node.getHostName( ) );
     		
-    		Message m = mNodes.get(i).receiveMessage( );
+    		Message m = node.receiveMessage( );
 
     		if( printOutput == true )
     			System.err.println( "barrier received a message from " +
-    					mNodes.get(i).getHostName( ) +
+    					node.getHostName( ) +
     					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
     			System.err.println( "barrier didn't receive ack from rank " + 
-    					( i + 1 ) + " at " + 
-    					mNodes.get(i).getHostName( ) +
+    					( node.getPid() ) + " at " + 
+    					node.getHostName( ) +
     					" message action type = " + m.getAction());
     			System.exit( -1 );
     		}
@@ -289,7 +386,7 @@ public class MASS extends MASS_base {
     			if ( stripe > 0 && localAgents == null ) {
     				// places.callAll( ) with return values
     				System.arraycopy( m.getArgument( ), 0, 
-    						return_values, stripe * ( i + 1 ),
+    						return_values, stripe * ( node.getPid() ),
     						stripe );
     			}
     			if ( stripe == 0 && localAgents != null ) {
@@ -305,20 +402,20 @@ public class MASS extends MASS_base {
     				 */
     				System.arraycopy( m.getArgument( ), 0,
     						return_values, nAgentsSoFar,
-    						localAgents[i + 1] );
+    						localAgents[node.getPid()] );
     			}
     		}
 
     		// retrieve agent population from each Mprocess
     		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) + 
+    			System.err.println( "localAgents[" + node.getPid() + 
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
     		}
 
     		if ( localAgents != null ) {
-    			localAgents[i + 1] = m.getAgentPopulation( );
-    			nAgentsSoFar += localAgents[i + 1];
+    			localAgents[node.getPid()] = m.getAgentPopulation( );
+    			nAgentsSoFar += localAgents[node.getPid()];
     		}
 
     		if ( printOutput == true )
