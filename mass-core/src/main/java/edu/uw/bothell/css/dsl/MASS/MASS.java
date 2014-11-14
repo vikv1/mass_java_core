@@ -245,7 +245,7 @@ public class MASS extends MASS_base {
     		commandBuilder.append(" ");
 
     		// MProcess and its arguments
-    		commandBuilder.append("MASS.MProcess ");	// the program
+    		commandBuilder.append("edu.uw.bothell.css.dsl.MASS.MProcess ");	// the program
     		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
     		commandBuilder.append(node.getPid() + " ");		// 2nd arg: pid
     		commandBuilder.append(systemSize + " ");  				// 3rd arg: #processes
