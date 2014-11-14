@@ -63,7 +63,8 @@ public class Place {
     public final int[] index;
     public Object outMessage = null;
     public Object[] inMessages = null;
-    Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+    public Set<Agent> agents = Collections.synchronizedSet(
+        new HashSet<Agent>( ) );
 
     public Place( ) {
 	size = Places.placeInitSize.clone( );
