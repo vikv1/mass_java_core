@@ -1,7 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.InputStream;
 import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,11 +41,16 @@ public class MNode {
 	public void initialize() {
 		
 		try {
-		
-			// Setup Communication
-			mainOOS = new ObjectOutputStream( channel.getOutputStream( ) );
+
+			// set input/output streams, then execute the command to start MProcess on the remote node
+			InputStream is = channel.getInputStream();
+			OutputStream os = channel.getOutputStream();
+			channel.connect();
+			
+			// with input/output channels established, set object streams
+			mainOOS = new ObjectOutputStream( os );
 			mainOOS.flush( );
-			mainIOS = new ObjectInputStream( channel.getInputStream( ) );
+			mainIOS = new ObjectInputStream( is );
 		
 		}
 		

@@ -59,9 +59,8 @@ public class UtilitiesTest extends AbstractTest {
 		// a Channel will be opened, in "exec mode"
 		expect( mockSession.openChannel( "exec" ) ).andReturn( mockChannelExec );
 		
-		// command will be executed within the Channel
+		// command set within the Channel, but not executed yet
 		mockChannelExec.setCommand( command );
-		mockChannelExec.connect();
 		
 		// put mocks into replay mode
 		replayAll();

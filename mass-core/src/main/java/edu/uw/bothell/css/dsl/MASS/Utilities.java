@@ -61,9 +61,6 @@ class Utilities {
             channel = (ChannelExec) session.openChannel( "exec" );
             channel.setCommand( Command );
             
-            // set input/output streams and execute the command
-            channel.connect( );
-        
     	}
         
     	catch ( Exception e ) {
