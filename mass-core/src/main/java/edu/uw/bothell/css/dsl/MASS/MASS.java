@@ -13,10 +13,10 @@ import java.util.Vector;
 import com.jcraft.jsch.Channel;
 
 public class MASS extends MASS_base {
-    
+
 	private static final boolean printOutput = false;
     // private static final boolean printOutput = true;
-    
+
 	private static final int JschPort = 22;
     private static Utilities util;
 
@@ -24,7 +24,7 @@ public class MASS extends MASS_base {
 
     @SuppressWarnings("unused")
 	public static void init( String[] args, int nProc, int nThr ) {
-    	
+
     	Vector<String> hosts = new Vector<String>( ); // a set of host names
     	util = new Utilities( );                // used for channel creation
 
@@ -73,15 +73,15 @@ public class MASS extends MASS_base {
     	try {
 
     		fileReader = new BufferedReader( new InputStreamReader
-    				( new BufferedInputStream( new FileInputStream( 
+    				( new BufferedInputStream( new FileInputStream(
     						new File( machineFilePath ) ) ) ) );
 
     		while( fileReader.ready( ) )
-    			hosts.add( fileReader.readLine( ) );  
+    			hosts.add( fileReader.readLine( ) );
 
     		fileReader.close();
 
-    	} 
+    	}
 
     	catch( Exception e ) {
 
@@ -95,7 +95,7 @@ public class MASS extends MASS_base {
     	// For debugging
     	if ( printOutput == true ) {
     		for ( int i = 0; i < hosts.size( ); i++ )
-    			System.err.println( "rank " + (i + 1) + ": " + 
+    			System.err.println( "rank " + (i + 1) + ": " +
     					hosts.get( i ) );
     	}
 
@@ -125,7 +125,7 @@ public class MASS extends MASS_base {
     			InetAddress addr = InetAddress.getByName( currHostName );
     			currHostName = addr.getCanonicalHostName( );
 
-    		} 
+    		}
 
     		catch ( Exception e ) {
 
@@ -173,7 +173,7 @@ public class MASS extends MASS_base {
     			if ( ssh2connection == null )
     				throw new Exception( "JSCH channel not created" );
 
-    			// A new remote process launched. 
+    			// A new remote process launched.
     			// The corresponding Mnode created
     			mNodes.add( new MNode( currHostName, pid, ssh2connection ) );
 
@@ -182,7 +182,7 @@ public class MASS extends MASS_base {
     		catch ( Exception e ) {
 
     			// connection failure
-    			System.err.println( "MASS: error in connection to " + 
+    			System.err.println( "MASS: error in connection to " +
     					currHostName + " " + e );
     			System.exit( -1 );
 
@@ -197,7 +197,7 @@ public class MASS extends MASS_base {
     	for ( int i = 0; i < hosts.size( ); i++ ) {
 
     		if ( printOutput == true )
-    			System.err.println( "init: wait for ack from " + 
+    			System.err.println( "init: wait for ack from " +
     					mNodes.get(i).getHostName( ) );
 
     		Message m = mNodes.get(i).receiveMessage( );
@@ -216,7 +216,7 @@ public class MASS extends MASS_base {
     	System.err.println( "MASS.init: done" );
 
     }
-    
+
     @SuppressWarnings("unused")
 	public static void finish( ) {
 
@@ -243,18 +243,18 @@ public class MASS extends MASS_base {
 
     }
 
-    static void barrier_all_slaves( ) { 
-    	barrier_all_slaves( null, 0,  null ); 
+    static void barrier_all_slaves( ) {
+    	barrier_all_slaves( null, 0,  null );
     }
 
-    static void barrier_all_slaves( int localAgents[] ) { 
+    static void barrier_all_slaves( int localAgents[] ) {
     	barrier_all_slaves( null, 0, localAgents );
     }
 
     static void barrier_all_slaves( Object[] return_values, int stripe ) {
-    	barrier_all_slaves( return_values, stripe, null ); 
+    	barrier_all_slaves( return_values, stripe, null );
     }
-    
+
     @SuppressWarnings("unused")
 	static void barrier_all_slaves( Object[] return_values, int stripe,
     		int localAgents[] ) {
@@ -267,7 +267,7 @@ public class MASS extends MASS_base {
     		if( printOutput == true )
     			System.err.println( "barrier waits for ack from " +
     					mNodes.get(i).getHostName( ) );
-    		
+
     		Message m = mNodes.get(i).receiveMessage( );
 
     		if( printOutput == true )
@@ -277,41 +277,45 @@ public class MASS extends MASS_base {
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " + 
-    					( i + 1 ) + " at " + 
+    			System.err.println( "barrier didn't receive ack from rank " +
+    					( i + 1 ) + " at " +
     					mNodes.get(i).getHostName( ) +
     					" message action type = " + m.getAction());
     			System.exit( -1 );
     		}
 
     		// retrieve arguments back from each Mprocess
+    		// places.callAll( ) with return values
     		if ( return_values != null ) {
     			if ( stripe > 0 && localAgents == null ) {
-    				// places.callAll( ) with return values
-    				System.arraycopy( m.getArgument( ), 0, 
-    						return_values, stripe * ( i + 1 ),
-    						stripe );
-    			}
-    			if ( stripe == 0 && localAgents != null ) {
-    				// agents.callAll( ) with return values
-    				/*
-		    System.err.println( "m = " + m +
-					", m.getArgument( )" + m.getArgument()+
-					", return_values = " + return_values +
-					", nAgentsSoFar = " + nAgentsSoFar +
-					", localAgents = " + localAgents +
-					", localAgents[i + 1] = " +
-					localAgents[i + 1] );
-    				 */
+
+    				// check if the message is from the last mNode as
+    				// the last mNode might have a remainder (stripe + rem)
+    				// for simplicity, we just use the length of the returned
+    				// array
+    				int copyLength;
+    				if ( i == mNodes.size( ) - 1 ) {
+    					copyLength = ( (Object[]) m.getArgument( ) ).length;
+    				} else {
+    					copyLength = stripe;
+    				}
+
+    				// copy the partial array into the return_values array
     				System.arraycopy( m.getArgument( ), 0,
-    						return_values, nAgentsSoFar,
-    						localAgents[i + 1] );
+    								  return_values, stripe * ( i + 1 ),
+    								  copyLength );
+    				}
+    				if ( stripe == 0 && localAgents != null ) {
+    					// agents.callAll( ) with return values
+    					System.arraycopy( m.getArgument( ), 0,
+    									  return_values, nAgentsSoFar,
+    									  localAgents[i + 1] );
+    				}
     			}
-    		}
 
     		// retrieve agent population from each Mprocess
     		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) + 
+    			System.err.println( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
     		}
