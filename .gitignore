@@ -1,11 +1,28 @@
+*.class
+
+# ignore target dirs
 UWCA/UWCA-web/target/
 UWCA/UWCA-ear/target/
 UWCA/UWCA-ejb/target/
+mass-core/target/
+
+# ignore manifest files
 UWCA/UWCA-ear/src/main/application/META-INF/MANIFEST.MF
 UWCA/UWCA-ejb/src/main/resources/META-INF/MANIFEST.MF
-mass-core/target/
+
+# ignore project files
 .project
 .settings/
 mass-core/.classpath
 UWCA/UWCA-ejb/.classpath
 UWCA/UWCA-web/.classpath
+
+# ignore maven-less mass-core compilation files
+mass-core.jar
+*.list
+
+# ignore temporary files
+*.tmp
+*.swo
+*.swp
+*~
