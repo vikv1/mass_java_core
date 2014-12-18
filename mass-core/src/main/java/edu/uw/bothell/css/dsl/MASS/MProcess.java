@@ -38,7 +38,8 @@ public class MProcess {
 	}
     }
 
-    public void start( ) {
+    @SuppressWarnings("incomplete-switch")
+	public void start( ) {
 	MASS_base.log( "MProcess started" );
 
 	// Synchronize with the master node first.
@@ -49,7 +50,7 @@ public class MProcess {
 	    // receive a new message from the master
 	    Message m = receiveMessage( );
 
-	    if ( printOutput == true )
+	    if ( printOutput )
 		MASS_base.log( "A new message received: action = " +
 			       m.getAction( ) );
 
@@ -69,7 +70,7 @@ public class MProcess {
 		break;
 		
 	    case EMPTY:
-		if( printOutput == true )
+		if( printOutput )
 		    MASS_base.log( "EMPTY received!!!!" );
 		sendAck( );
 		break;
@@ -81,12 +82,12 @@ public class MProcess {
 		MASS_base.exchange.terminateConnection( this.myPid );
 		sendAck( );
 		alive = false;
-		if( printOutput == true )
+		if( printOutput )
 		    MASS_base.log( "FINISH received and ACK sent" );
 		break;
 
 	    case PLACES_INITIALIZE:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_INITIALIZE received" );
 		// create a new Places
 		size = m.getSize( );
@@ -103,12 +104,12 @@ public class MProcess {
 		MASS_base.placesMap.put( new Integer( m.getHandle( ) ), 
 						      places );
 		sendAck( );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_INITIALIZE completed and ACK sent");
 		break;
 
 	    case PLACES_CALL_ALL_VOID_OBJECT:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_CALL_ALL_VOID_OBJECT received" );
 
 		// retrieve the corresponding places
@@ -132,7 +133,7 @@ public class MProcess {
 		break;
 
 	    case PLACES_CALL_ALL_RETURN_OBJECT:
-		if( printOutput == true )
+		if( printOutput )
 		    MASS_base.log( "PLACES_CALL_ALL_RETURN_OBJECT received" );
 
 		// retrieve the corresponding places
@@ -159,7 +160,7 @@ public class MProcess {
 		// confirm all threads are done with places.callAll w/ return
 		Mthread.barrierThreads( 0 );
 
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_CALL_ALL_RETURN_OBJECT " +
 				   "checking currentReturns" );
 
@@ -167,7 +168,7 @@ public class MProcess {
 		break;
 
 	    case PLACES_EXCHANGE_ALL:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_EXCHANGE_ALL recweived handle = " +
 				   m.getHandle( ) + " dest_handle = " +
 				   m.getDestHandle( ) );
@@ -199,16 +200,16 @@ public class MProcess {
 		// confirm all threads are done with places.exchangeall.
 		Mthread.barrierThreads( 0 );
 
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "barrier done" );
 
 		sendAck( );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_EXCHANGE_ALL sent ACK" );
 		break;
 
 	    case PLACES_EXCHANGE_BOUNDARY:
-		if ( printOutput == true ) 
+		if ( printOutput ) 
 		    MASS_base.log( "PLACES_EXCHANGE_BOUNDARY received handle="
 				   + m.getHandle( ) );
 
@@ -223,7 +224,7 @@ public class MProcess {
 		MASS_base.currentPlaces.exchangeBoundary( );
 
 		sendAck( );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "PLACES_EXCHANGE_BOUNDARY " +
 				   "completed and ACK sent" );
 		break;
@@ -234,7 +235,7 @@ public class MProcess {
 		break;
 
 	    case AGENTS_INITIALIZE:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "AGENTS_INITIALIZE received" );
 
 		agents = new Agents_base( m.getHandle( ), m.getClassname( ),
@@ -246,12 +247,12 @@ public class MProcess {
 					 agents );
 
 		sendAck( agents.localPopulation );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log("AGENTS_INITIALIZE completed and ACK sent" );
 		break;
 
 	    case AGENTS_CALL_ALL_VOID_OBJECT:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "AGENTS_CALL_ALL_VOID_OBJECT received" );
 		MASS_base.currentAgents 
 		    = MASS_base.agentsMap.get( new Integer( m.getHandle() ) );
@@ -271,14 +272,14 @@ public class MProcess {
 
 		// confirm all threads are done with agents.callAll
 		Mthread.barrierThreads( 0 );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "barrier done" );
 
 		sendAck( MASS_base.currentAgents.localPopulation );
 		break;
 
 	    case AGENTS_CALL_ALL_RETURN_OBJECT:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "AGENTS_CALL_ALL_RETURN_OBJECT received" );
 		MASS_base.currentAgents 
 		    = MASS_base.agentsMap.get( new Integer( m.getHandle() ) );
@@ -306,7 +307,7 @@ public class MProcess {
 		// confirm all threads are done with agnets.callAll with 
 		// return objects  
 		Mthread.barrierThreads( 0 );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "barrier done" );
 
 		sendReturnValues( MASS_base.currentReturns,
@@ -315,7 +316,7 @@ public class MProcess {
 		break;
 
 	    case AGENTS_MANAGE_ALL:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "AGENTS_MANAGE_ALL received" );
 		MASS_base.currentAgents = 
 		    MASS_base.agentsMap.get( new Integer( m.getHandle() ) );
@@ -328,7 +329,7 @@ public class MProcess {
 
 		// confirm all threads are done with agents.manageAll.
 		Mthread.barrierThreads( 0 );
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "sendAck will send localPopulation = " + 
 				   MASS_base.currentAgents.localPopulation );
 
@@ -350,7 +351,7 @@ public class MProcess {
 
     private void sendAck( int localPopulation ) {
 	Message msg = new Message( Message.ACTION_TYPE.ACK, localPopulation );
-	if( printOutput == true ) {
+	if( printOutput ) {
 	    MASS_base.log( "msg.getAgentPopulation = " + 
 			   msg.getAgentPopulation( ) );
 	}
@@ -401,11 +402,15 @@ public class MProcess {
 	mprocess.start( );
     }
 
-    private String hostName;         // my local host name
+    @SuppressWarnings("unused")
+	private String hostName;         // my local host name
     private int myPid;               // my pid or rank
-    private int nProc;               // # processes
-    private int nThr;                // # threads
-    private Vector<String> hosts;    // all hosts participated in computation 
+    @SuppressWarnings("unused")
+	private int nProc;               // # processes
+    @SuppressWarnings("unused")
+	private int nThr;                // # threads
+    @SuppressWarnings("unused")
+	private Vector<String> hosts;    // all hosts participated in computation 
 
     private ObjectInputStream MAIN_IOS;  // input from the master process
     private ObjectOutputStream MAIN_OOS; // output to the master process

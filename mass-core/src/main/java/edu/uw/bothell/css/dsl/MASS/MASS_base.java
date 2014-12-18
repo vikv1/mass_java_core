@@ -29,7 +29,8 @@ public class MASS_base {
 	MASS_base.CUR_DIR = System.getProperty( "user.dir" );
     }
 
-    public static boolean initializeThreads( int nThr ) {
+    @SuppressWarnings("unused")
+	public static boolean initializeThreads( int nThr ) {
 	if ( INITIALIZED ) {
 	    if( printOutput == true )
 		MASS_base.log("Error: the MASS.init is already initializecd" );
@@ -111,7 +112,8 @@ public class MASS_base {
     public static Vector<int[]> getCurrentDestinations( ) {
 	return currentDestinations; }
 
-    public static void setHosts( Vector<String> host_args ) {
+    @SuppressWarnings("unused")
+	public static void setHosts( Vector<String> host_args ) {
 	if ( !hosts.isEmpty( ) ) {
 	    // already initialized
 	    return;
@@ -138,7 +140,8 @@ public class MASS_base {
 	exchange.establishConnection( systemSize, myPid, hosts, MASS_PORT );
     }
 
-    public static void showHosts( ) {
+    @SuppressWarnings("unused")
+	public static void showHosts( ) {
 	if( printOutput == true ) {
 	    String convert = "hosts.....\n";
 	    for ( int i = 0; i < hosts.size( ); i++ ) {

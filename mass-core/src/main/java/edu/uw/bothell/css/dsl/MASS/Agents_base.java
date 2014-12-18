@@ -5,6 +5,7 @@ import java.util.*;
 import java.net.*;
 import java.lang.reflect.*;
 
+@SuppressWarnings("serial")
 public class Agents_base implements Serializable {
     //Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
@@ -12,7 +13,8 @@ public class Agents_base implements Serializable {
 
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
 
-    public Agents_base( int handle, String className, Object argument,
+    @SuppressWarnings("unused")
+	public Agents_base( int handle, String className, Object argument,
 			int placesHandle, int initPopulation ) {
 	this.handle = handle;
 	this.className = className;
@@ -111,7 +113,8 @@ public class Agents_base implements Serializable {
 	}
     }
 
-    public void callAll( int functionId, Object argument, int tid ) {
+    @SuppressWarnings("unused")
+	public void callAll( int functionId, Object argument, int tid ) {
 
 	int numOfOriginalVectors = Mthread.agentBagSize;
 
@@ -179,7 +182,8 @@ public class Agents_base implements Serializable {
 	}
     }
     
-    public void callAll( int functionId, Object[] argument, int length,
+    @SuppressWarnings("unused")
+	public void callAll( int functionId, Object[] argument, int length,
 			 int tid ) {
 
 	int numOfOriginalVectors = Mthread.agentBagSize;
@@ -247,7 +251,8 @@ public class Agents_base implements Serializable {
 	}
     }
     
-    public void manageAll( int tid ) {
+    @SuppressWarnings("unused")
+	public void manageAll( int tid ) {
 	
 	//Create the dllclass to access our agents from, out agentsDllClass 
 	// for agent instantiation, and our bag for Agent objects after they 
@@ -591,6 +596,7 @@ public class Agents_base implements Serializable {
 	    placeHandle = params[2];
 	}
 	
+	@SuppressWarnings("unused")
 	public void run( ) {
 	
 	    Vector<AgentMigrationRequest> orgRequest = null;
@@ -705,6 +711,7 @@ public class Agents_base implements Serializable {
 	    this.message = message;
 	}
 	
+	@SuppressWarnings("unused")
 	public void run( ) {
 	    if ( printOutput == true )
 		MASS_base.log( "pthread_self[" + Thread.currentThread( ) +

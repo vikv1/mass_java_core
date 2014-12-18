@@ -8,6 +8,7 @@ public class MASSBaseTest {
 	public void testInit() throws Exception {
 		
 		// instance of class under test
+		@SuppressWarnings("unused")
 		MASS_base mb = new MASS_base();
 		
 		

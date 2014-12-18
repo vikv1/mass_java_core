@@ -1,9 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
 
+@SuppressWarnings("serial")
 public class Message implements Serializable {
     public enum ACTION_TYPE{ 
 	    EMPTY,                                    // 0             
@@ -77,7 +77,7 @@ public class Message implements Serializable {
 	this.dest_handle = dest_handle;
 	this.functionId = functionId;
 	this.classname = null;
-	this.argument = argument;
+	//this.argument = argument;
 	this.hosts = null;
 	this.destinations = destinations;
 	this.agent_population = -1;
@@ -231,7 +231,7 @@ public class Message implements Serializable {
 
     // EMPTY
     Message( ) {
-	this.action = action;
+	//this.action = action;
 	this.size = null;
 	this.handle = VOID_HANDLE;
 	this.dest_handle = VOID_HANDLE;

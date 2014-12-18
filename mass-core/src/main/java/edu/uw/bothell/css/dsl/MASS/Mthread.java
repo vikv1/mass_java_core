@@ -42,10 +42,10 @@ public class Mthread extends Thread {
 	}
 	
 	// breath message
-	if ( printOutput == true )
+	if ( printOutput )
 	    MASS_base.log( "Mthread[" + tid + "] invoked" );
 
-	// the followign variables are used to call callAll( )
+	// the following variables are used to call callAll( )
 	Places_base places = null;
 	Places_base destinationPlaces = null;
 	Agents_base agents = null;
@@ -65,14 +65,14 @@ public class Mthread extends Thread {
 		    } catch ( Exception e ) { }
 
 		// wake-up message
-		if( printOutput == true )
+		if( printOutput )
 		    MASS_base.log( "Mthread[" + tid + "] woken up" );
 	    }
 
 	    // perform each task
 	    switch( status ) {
 	    case STATUS_READY:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "Mthread reached STATUS_READY in switch" );
 		System.exit( -1 );
 		break;
@@ -85,7 +85,7 @@ public class Mthread extends Thread {
 		argument = MASS_base.getCurrentArgument( );
 		msgType = MASS_base.getCurrentMsgType( );
 
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "Mthread[" +tid + "] works on CALLALL:" +
 				   " placese = " + places +
 				   " functionId = " + functionId +
@@ -103,7 +103,7 @@ public class Mthread extends Thread {
 		break;
 
 	    case STATUS_EXCHANGEALL:
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "Mthread[" + tid + 
 				   "] works on EXCHANGEALL" );
 
@@ -122,7 +122,7 @@ public class Mthread extends Thread {
 		argument = MASS_base.getCurrentArgument( );
 		msgType = MASS_base.getCurrentMsgType( );
 		
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "Mthread[" + tid + 
 				   "] works on AGENST_CALLALL:" +
 				   " agents = " + agents +
@@ -149,7 +149,7 @@ public class Mthread extends Thread {
 		agents = MASS_base.getCurrentAgents( );
 		
 		//Send logging message
-		if ( printOutput == true )
+		if ( printOutput )
 		    MASS_base.log( "Mthread[" + tid + "] works on MANAGEALL:" +
 				   " agents = " + agents );
 		
@@ -165,7 +165,7 @@ public class Mthread extends Thread {
 	}
 	
 	// last message
-	if ( printOutput == true )
+	if ( printOutput )
 	    MASS_base.log( "Mthread[" + tid + "] terminated" );
     }
 
@@ -179,7 +179,7 @@ public class Mthread extends Thread {
     public static void barrierThreads( int tid ) {
 	synchronized( lock ) {
 	    if ( ++barrier_count < MASS_base.threads.length ) {
-		if( printOutput == true )
+		if( printOutput )
 		    MASS_base.log( "tid[" + tid + 
 				   "] waiting: barrier = " + barrier_phases );
 		try {
@@ -188,7 +188,7 @@ public class Mthread extends Thread {
 	    } else {
 		barrier_count = 0;
 		status = STATUS_TYPE.STATUS_READY;
-		if( printOutput == true ) 
+		if( printOutput ) 
 		    MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
 				   + barrier_phases );
 		barrier_phases++;

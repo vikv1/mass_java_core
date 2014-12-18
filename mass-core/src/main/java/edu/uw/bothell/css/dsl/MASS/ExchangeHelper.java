@@ -9,13 +9,15 @@ public class ExchangeHelper {
     private static final boolean printOutput = false;
     // private static final boolean printOutput = true;  
 
-    public void establishConnection( int size, int rank,
+    @SuppressWarnings({ "unused", "static-access" })
+	public void establishConnection( int size, int rank,
 				     Vector<String> hosts, int port ) {
 	inputs = new InputStream[size];
 	outputs = new OutputStream[size];
 	try {
 	    // prepare a server socket
-	    ServerSocket server = new ServerSocket( port );
+	    @SuppressWarnings("resource")
+		ServerSocket server = new ServerSocket( port );
 	    
 	    // create sockets[]
 	    sockets = new Socket[size];
@@ -93,7 +95,8 @@ public class ExchangeHelper {
 	}
     }
 
-    public void sendMessage( int rank, Message exchangeReq ) {
+    @SuppressWarnings("unused")
+	public void sendMessage( int rank, Message exchangeReq ) {
 
 	if ( printOutput == true )
 	    MASS_base.log( "exchange.sendMessage will be sent to rank: " +
@@ -129,7 +132,8 @@ public class ExchangeHelper {
 			   rank );
     }
     
-    public Message receiveMessage( int rank ) {
+    @SuppressWarnings("unused")
+	public Message receiveMessage( int rank ) {
 
 	if ( printOutput == true )
 	    MASS_base.log( "exchange.receiveMessage will receive from rank: " 
@@ -174,7 +178,8 @@ public class ExchangeHelper {
 	return null;
     }
 
-    public void terminateConnection( int rank ) {
+    @SuppressWarnings("unused")
+	public void terminateConnection( int rank ) {
 	// disconnect to lower ranks
 	for ( int i = 0; i < rank; i++ ) {
 	    try {
@@ -187,7 +192,8 @@ public class ExchangeHelper {
 	}
     }
 
-    private static Socket socket;
+    @SuppressWarnings("unused")
+	private static Socket socket;
     private static Socket[] sockets;
     private static InputStream[] inputs;
     private static OutputStream[] outputs;
