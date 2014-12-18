@@ -357,62 +357,66 @@ public class MASS extends MASS_base {
     	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
 
     	// Synchronize with all slave processes
-    	for ( MNode node : mNodes ) {
+    	for ( int i = 0; i < mNodes.size( ); i++ ) {
     		if( printOutput == true )
     			System.err.println( "barrier waits for ack from " +
-    					node.getHostName( ) );
-    		
-    		Message m = node.receiveMessage( );
+    					mNodes.get(i).getHostName( ) );
+
+    		Message m = mNodes.get(i).receiveMessage( );
 
     		if( printOutput == true )
     			System.err.println( "barrier received a message from " +
-    					node.getHostName( ) +
+    					mNodes.get(i).getHostName( ) +
     					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " + 
-    					( node.getPid() ) + " at " + 
-    					node.getHostName( ) +
+    			System.err.println( "barrier didn't receive ack from rank " +
+    					( i + 1 ) + " at " +
+    					mNodes.get(i).getHostName( ) +
     					" message action type = " + m.getAction());
     			System.exit( -1 );
     		}
 
     		// retrieve arguments back from each Mprocess
+    		// places.callAll( ) with return values
     		if ( return_values != null ) {
     			if ( stripe > 0 && localAgents == null ) {
-    				// places.callAll( ) with return values
-    				System.arraycopy( m.getArgument( ), 0, 
-    						return_values, stripe * ( node.getPid() ),
-    						stripe );
-    			}
-    			if ( stripe == 0 && localAgents != null ) {
-    				// agents.callAll( ) with return values
-    				/*
-		    System.err.println( "m = " + m +
-					", m.getArgument( )" + m.getArgument()+
-					", return_values = " + return_values +
-					", nAgentsSoFar = " + nAgentsSoFar +
-					", localAgents = " + localAgents +
-					", localAgents[i + 1] = " +
-					localAgents[i + 1] );
-    				 */
+
+    				// check if the message is from the last mNode as
+    				// the last mNode might have a remainder (stripe + rem)
+    				// for simplicity, we just use the length of the returned
+    				// array
+    				int copyLength;
+    				if ( i == mNodes.size( ) - 1 ) {
+    					copyLength = ( (Object[]) m.getArgument( ) ).length;
+    				} else {
+    					copyLength = stripe;
+    				}
+
+    				// copy the partial array into the return_values array
     				System.arraycopy( m.getArgument( ), 0,
-    						return_values, nAgentsSoFar,
-    						localAgents[node.getPid()] );
+    								  return_values, stripe * ( i + 1 ),
+    								  copyLength );
+    				}
+    				if ( stripe == 0 && localAgents != null ) {
+    					// agents.callAll( ) with return values
+    					System.arraycopy( m.getArgument( ), 0,
+    									  return_values, nAgentsSoFar,
+    									  localAgents[i + 1] );
+    				}
     			}
-    		}
 
     		// retrieve agent population from each Mprocess
     		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + node.getPid() + 
+    			System.err.println( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
     		}
 
     		if ( localAgents != null ) {
-    			localAgents[node.getPid()] = m.getAgentPopulation( );
-    			nAgentsSoFar += localAgents[node.getPid()];
+    			localAgents[i + 1] = m.getAgentPopulation( );
+    			nAgentsSoFar += localAgents[i + 1];
     		}
 
     		if ( printOutput == true )
