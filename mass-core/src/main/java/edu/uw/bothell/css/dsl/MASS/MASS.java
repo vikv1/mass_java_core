@@ -189,9 +189,6 @@ public class MASS extends MASS_base {
     			InetAddress addr = InetAddress.getByName( node.getHostName() );
     			node.setHostName( addr.getCanonicalHostName( ) );
     			
-    			// set hostname collection in parent class - to maintain compatibility for now
-    			hosts.add(node.getHostName());
-
     		} 
 
     		catch ( Exception e ) {
