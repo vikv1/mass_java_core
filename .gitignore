@@ -9,3 +9,4 @@ mass-core/target/
 mass-core/.classpath
 UWCA/UWCA-ejb/.classpath
 UWCA/UWCA-web/.classpath
+mass-quickstart/.classpath
