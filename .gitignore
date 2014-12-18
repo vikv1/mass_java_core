@@ -27,3 +27,5 @@ mass-core.jar
 *.swo
 *.swp
 *~
+mass-quickstart/src/main/resources/machinefile.txt
+mass-quickstart/src/main/resources/machines.xml
