@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>mass-core</module>
+		<module>mass-quickstart</module>
 		<module>UWCA</module>
 	</modules>
 
