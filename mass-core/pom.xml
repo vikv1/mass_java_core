@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>edu.uw.bothell.css.mass</groupId>
 		<artifactId>MASS-Java</artifactId>
-		<version>0.8.0-SNAPSHOT</version>
+		<version>0.8.1-SNAPSHOT</version>
 	</parent>
 
 	<name>MASS Java Core Library</name>

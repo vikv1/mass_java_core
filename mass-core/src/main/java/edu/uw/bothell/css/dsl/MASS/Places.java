@@ -48,7 +48,7 @@ public class Places extends Places_base {
 	for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
 	    MASS.mNodes.get(i).sendMessage( m );
 	    
-	    if ( printOutput == true )
+	    if ( printOutput )
 		MASS_base.log( "PLACES_INITIALIZE sent to " + i );
 	}
 	
@@ -71,7 +71,7 @@ public class Places extends Places_base {
     
     public void callAll( int functionId, Object argument ) {
 	
-	if ( printOutput == true )
+	if ( printOutput )
 	    MASS_base.log( "callAll void object" );
 	
 	ca_setup( functionId, argument, 
@@ -80,7 +80,7 @@ public class Places extends Places_base {
     
     public Object callAll( int functionId, Object argument[] ) {
 	
-	if ( printOutput == true )
+	if ( printOutput )
 	    MASS_base.log( "callAll return object" );
 	
 	return ca_setup( functionId, ( Object )argument,
@@ -111,7 +111,7 @@ public class Places extends Places_base {
 		m = new Message( type, this.handle, functionId, 
 				 partialArguments );
 		
-		if ( printOutput == true ) 
+		if ( printOutput ) 
 		    MASS_base.log( "Places.callAll: arg_size = " + 
 				   partialArguments.length +
 				   " stripe = " + stripe + 
@@ -121,7 +121,7 @@ public class Places extends Places_base {
 	    // send it
 	    MASS.mNodes.get(i).sendMessage( m );
 	    
-	    if ( printOutput == true )
+	    if ( printOutput )
 		MASS_base.log( "PLACES_CALL_ALL " + m.getAction( ) +
 			       " sent to " + i );
 	}
@@ -162,7 +162,7 @@ public class Places extends Places_base {
 				  this.handle, dest_handle, functionId, 
 				 destinations );
 	
-	if ( printOutput == true )
+	if ( printOutput )
 	    MASS_base.log( "dest_handle = " + dest_handle );
 	
 	for ( int i =0; i < MASS.mNodes.size( ); i++ )

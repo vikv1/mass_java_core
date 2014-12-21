@@ -1,8 +1,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.*;
 
+@SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
     //Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
@@ -16,7 +16,8 @@ public class Agents extends Agents_base implements Serializable {
 	init_master( argument );
     }
 
-    public void init_master( Object argument ) {
+    @SuppressWarnings("unused")
+	public void init_master( Object argument ) {
 	// check if MASS_base.hosts is empty (i.e., Places not yet created)
 	if ( MASS_base.hosts.isEmpty( ) ) {
 	    System.err.println( "Agents(" + className + 
@@ -71,7 +72,8 @@ public class Agents extends Agents_base implements Serializable {
 			 Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
     }
 
-    Object ca_setup( int functionId, Object argument, 
+    @SuppressWarnings("unused")
+	Object ca_setup( int functionId, Object argument, 
 		     Message.ACTION_TYPE type ) {
 
 	// calculate the total number of agents
@@ -181,7 +183,8 @@ public class Agents extends Agents_base implements Serializable {
 	ma_setup( );
     }
 
-    public void ma_setup( ) {
+    @SuppressWarnings("unused")
+	public void ma_setup( ) {
 	// send an AGENTS_MANAGE_ALL message to each slave
 	Message m = null;
 	for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {

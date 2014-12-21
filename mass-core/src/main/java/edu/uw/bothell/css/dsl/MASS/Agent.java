@@ -2,6 +2,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class Agent implements Serializable {
     public Object callMethod( int functionId, Object argument ) {
 	return null;

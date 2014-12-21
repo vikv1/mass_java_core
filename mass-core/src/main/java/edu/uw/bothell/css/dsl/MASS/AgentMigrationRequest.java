@@ -2,6 +2,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 class AgentMigrationRequest implements Serializable {
     public AgentMigrationRequest( int destIndex, Agent agent ) {
 	this.destGlobalLinearIndex = destIndex;
