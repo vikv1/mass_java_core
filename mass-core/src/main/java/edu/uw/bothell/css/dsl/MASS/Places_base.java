@@ -138,15 +138,16 @@ public class Places_base {
     }
 
     protected int[] getGlobalArrayIndex( int singleIndex ) {
-	int[] index = new int[size.length];
-
-	for ( int i = size.length - 1; i >= 0; i-- ) {
-	    // calculate from lower dimensions
-	    index[i] = singleIndex % size[i];
-	    singleIndex /= size[i];
-	}
-
-	return index;
+    	
+		int[] index = new int[size.length];
+	
+		for ( int i = size.length - 1; i >= 0; i-- ) {
+		    // calculate from lower dimensions
+		    index[i] = singleIndex % size[i];
+		    singleIndex /= size[i];
+		}
+	
+		return index;
     }
 
     public void callAll( int functionId, Object argument, int tid ) {
@@ -172,206 +173,212 @@ public class Places_base {
 
     public Object callAll( int functionId, Object[] arguments, int length,
 			   int tid ) {
-	int[] range = new int[2];
-	getLocalRange( range, tid );
-
-	// debugging
-	if ( printOutput == true )
-	    MASS_base.log( "thread[" + tid + 
-			   "] callAll_return object functionId = " + 
-			   functionId + ", range[0] = " + range[0] + 
-			   " range[1] = " + range[1] +
-			   ", arguments.length = " + length );
-
-	if ( range[0] >= 0 && range[1] >= 0 ) {
-	    for ( int i = range[0]; i <= range[1]; i++ ) {
-		if ( printOutput == true )
-		    MASS_base.log( "thread[" + tid + "]: places[i] = " + 
-				   places[i] );
-
-		MASS_base.currentReturns[i] = 
-		    places[i].callMethod( functionId, arguments[i] );
-	    }
-	}
-	return null;
-    }
-
-    public void exchangeAll( Places_base dstPlaces, int functionId,
-			     Vector<int[]> destinations, int tid ) {
-
-	int[] range = new int[2];
-	getLocalRange( range, tid );
-	// debugging
-	if ( printOutput == true )
-	    MASS_base.log( "thread[" + tid + "] exchangeAll functionId = " + 
-			   functionId + ", range[0] = " + range[0] + 
-			   " range[1] = " + range[1] );
+    	
+		int[] range = new int[2];
+		getLocalRange( range, tid );
 	
-	if (printOutput == true) {
-	    MASS_base.log( "tid[" + tid + "]: checks destinations:" );
-	    for ( int i = 0; i < destinations.size( ); i++ ) {
-		int[] offset = destinations.get(i);
-		MASS_base.log( "[" + offset[0]+ "][" + offset[1] + "]  " );    
-	    }
-	}
-
-	// now scan all places within range[0] ~ range[1]
-	if ( range[0] >= 0 && range[1] >= 0 ) {
-	    for ( int i = range[0]; i <= range[1]; i++ ) {
-		// for each place
-		Place srcPlace = places[i];
-		// Java version's inMessages are an array rather than a vector.
-		srcPlace.inMessages = new Object[destinations.size( )];
-		
-		// check its neighbors
-		for ( int j = 0; j < destinations.size( ); j++ ) {
-		    
-		    // for each neighbor
-		    int[] offset = destinations.get(j);
-		    int[] neighborCoord = new int[dstPlaces.size.length];
-		    
-		    // compute its coordinate
-		    getGlobalNeighborArrayIndex( srcPlace.index, offset, 
-						 dstPlaces.size,
-						 neighborCoord );
-		    if ( printOutput == true )
-			MASS_base.log( "tid[" + tid + "]: calls from"
-				       + "[" + srcPlace.index[0]
-				       + "][" + srcPlace.index[1] + "]"
-				       + " (neighborCord[" + neighborCoord[0]
-				       + "][" + neighborCoord[1] + "]"
-				       + " dstPlaces.size[" 
-				       + dstPlaces.size[0] 
-				       + "][" + dstPlaces.size[1] + "]" );
-
-		    if ( neighborCoord[0] != -1 ) { 
-			// destination valid
-			int globalLinearIndex = 
-			    getGlobalLinearIndexFromGlobalArrayIndex( 
-						     neighborCoord,
-						     dstPlaces.size );
-
-			if ( printOutput == true ) 
-			    MASS_base.log( " linear = " + globalLinearIndex
-					   + " lower = " 
-					   + dstPlaces.lower_boundary
-					   + " upper = " 
-					   + dstPlaces.upper_boundary + ")" );
+		// debugging
+		if ( printOutput == true )
+		    MASS_base.log( "thread[" + tid + 
+				   "] callAll_return object functionId = " + 
+				   functionId + ", range[0] = " + range[0] + 
+				   " range[1] = " + range[1] +
+				   ", arguments.length = " + length );
+	
+		if ( range[0] >= 0 && range[1] >= 0 ) {
 			
-			if ( globalLinearIndex >= dstPlaces.lower_boundary &&
-			     globalLinearIndex <= dstPlaces.upper_boundary ) {
-			    // local destination
-			    int destinationLocalLinearIndex 
-				= globalLinearIndex - dstPlaces.lower_boundary;
-			    Place dstPlace = 
-				dstPlaces.places[destinationLocalLinearIndex];
-			    
-			    if ( printOutput == true )
-				MASS_base.log( " to [" + dstPlace.index[0] +
-					       "][" + dstPlace.index[1] + "]");
-
-			    // call the destination function
-			    Object inMessage =
-				dstPlace.callMethod( functionId, 
-						     srcPlace.outMessage );
-			    
-			    // store this inMessage: 
-			    srcPlace.inMessages[j] = inMessage;
-			    
-			    // for debug
-			    if ( printOutput == true )
-				MASS_base.log( " inMessage = " +
-					       srcPlace.inMessages[j] );
-			} else {
-			    // remote destination
-			    
-			    // find the destination node
-			    int destRank = getRankFromGlobalLinearIndex( 
-                                           globalLinearIndex );
-			    
-			    // create a request
-			    int orgGlobalLinearIndex =
-				getGlobalLinearIndexFromGlobalArrayIndex( 
-						        srcPlace.index, size );
-			    RemoteExchangeRequest request = new
-				RemoteExchangeRequest( globalLinearIndex,
-						       orgGlobalLinearIndex,
-						       j, // inMsgIndex
-						       srcPlace.outMessage );
-			    
-			    // enqueue the request to this node.map
-			    Vector<RemoteExchangeRequest> remoteRequests = 
-				MASS_base.remoteRequests.get( destRank );
-			    synchronized( remoteRequests ) {
-				remoteRequests.add( request );
+		    for ( int i = range[0]; i <= range[1]; i++ ) {
 				if ( printOutput == true )
-				    MASS_base.log( "remoteRequest[" + 
-						   destRank + "].add:" +
-						   " org = " + 
-						   orgGlobalLinearIndex +
-						   " dst = " + 
-						   globalLinearIndex +
-						   " size( ) = " +
-						   remoteRequests.size( ) );
-			    }
-			}
-		    } else {
-			if ( printOutput == true )
-			    MASS_base.log( " to destination invalid" );
+				    MASS_base.log( "thread[" + tid + "]: places[i] = " + 
+						   places[i] );
+		
+				MASS_base.currentReturns[i] = 
+				    places[i].callMethod( functionId, arguments[i] );
 		    }
 		}
-	    }
-	}
+		return null;
+    }
+
+    public void exchangeAll( Places_base dstPlaces, int functionId, int tid ) {
+
+		int[] range = new int[2];
+		getLocalRange( range, tid );
+		
+		// debugging
+		if ( printOutput == true )
+		    MASS_base.log( "thread[" + tid + "] exchangeAll functionId = " + 
+				   functionId + ", range[0] = " + range[0] + 
+				   " range[1] = " + range[1] );
+		
+		// TODO: Need to find a way to replace destinations with same meaning code block
+		
+	//	if (printOutput == true) {
+	//	    MASS_base.log( "tid[" + tid + "]: checks destinations:" );
+	//	    for ( int i = 0; i < destinations.size( ); i++ ) {
+	//			int[] offset = destinations.get(i);
+	//			MASS_base.log( "[" + offset[0]+ "][" + offset[1] + "]  " );    
+	//	    }
+	//	}
 	
-	// all threads must barrier synchronize here.
-	Mthread.barrierThreads( tid );
-	if ( tid == 0 ) {
-	    
-	    if ( printOutput == true )
-		MASS_base.log( "tid[" + tid + 
-			       "] now enters processRemoteExchangeRequest" );
+		// now scan all places within range[0] ~ range[1]
+		if ( range[0] >= 0 && range[1] >= 0 ) {
+			
+		    for ( int i = range[0]; i <= range[1]; i++ ) {
+		    	
+				// for each place
+				Place srcPlace = places[i];
+				// Java version's inMessages are an array rather than a vector.
+				srcPlace.inMessages = new Object[srcPlace.neighbours.size( )];
+				
+				// check its neighbors
+				for ( int j = 0; j < srcPlace.neighbours.size( ); j++ ) {
+				    
+				    // for each neighbor
+				    int[] offset = srcPlace.neighbours.get(j);
+				    int[] neighborCoord = new int[dstPlaces.size.length];
+				    
+				    // compute its coordinate
+				    getGlobalNeighborArrayIndex( srcPlace.index, offset, 
+								 dstPlaces.size,
+								 neighborCoord );
+				    if ( printOutput == true )
+					MASS_base.log( "tid[" + tid + "]: calls from"
+						       + "[" + srcPlace.index[0]
+						       + "][" + srcPlace.index[1] + "]"
+						       + " (neighborCord[" + neighborCoord[0]
+						       + "][" + neighborCoord[1] + "]"
+						       + " dstPlaces.size[" 
+						       + dstPlaces.size[0] 
+						       + "][" + dstPlaces.size[1] + "]" );
 		
-	    // the main thread spawns as many communication threads as 
-	    // the number of remote computing nodes and let each invoke 
-	    // processRemoteExchangeReq.
-	    
-	    // args to threads: 
-	    // rank, srcHandle, dstHandle, functionId, lower_boundary
-	    int[][] comThrArgs = new int[MASS_base.systemSize][5];
-	    ProcessRemoteExchangeRequest[] thread_ref
-		= new ProcessRemoteExchangeRequest[MASS_base.systemSize]; 
-	    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
+				    if ( neighborCoord[0] != -1 ) { 
+						// destination valid
+						int globalLinearIndex = 
+						    getGlobalLinearIndexFromGlobalArrayIndex( 
+									     neighborCoord,
+									     dstPlaces.size );
+			
+						if ( printOutput == true ) 
+						    MASS_base.log( " linear = " + globalLinearIndex
+								   + " lower = " 
+								   + dstPlaces.lower_boundary
+								   + " upper = " 
+								   + dstPlaces.upper_boundary + ")" );
+						
+						if ( globalLinearIndex >= dstPlaces.lower_boundary &&
+						     globalLinearIndex <= dstPlaces.upper_boundary ) {
+						    // local destination
+						    int destinationLocalLinearIndex 
+							= globalLinearIndex - dstPlaces.lower_boundary;
+						    Place dstPlace = 
+							dstPlaces.places[destinationLocalLinearIndex];
+						    
+						    if ( printOutput == true )
+							MASS_base.log( " to [" + dstPlace.index[0] +
+								       "][" + dstPlace.index[1] + "]");
+			
+						    // call the destination function
+						    Object inMessage =
+							dstPlace.callMethod( functionId, 
+									     srcPlace.outMessage );
+						    
+						    // store this inMessage: 
+						    srcPlace.inMessages[j] = inMessage;
+						    
+						    // for debug
+						    if ( printOutput == true )
+							MASS_base.log( " inMessage = " +
+								       srcPlace.inMessages[j] );
+						} else {
+						    // remote destination
+						    
+						    // find the destination node
+						    int destRank = getRankFromGlobalLinearIndex( 
+			                                           globalLinearIndex );
+						    
+						    // create a request
+						    int orgGlobalLinearIndex =
+							getGlobalLinearIndexFromGlobalArrayIndex( 
+									        srcPlace.index, size );
+						    RemoteExchangeRequest request = new
+							RemoteExchangeRequest( globalLinearIndex,
+									       orgGlobalLinearIndex,
+									       j, // inMsgIndex
+									       srcPlace.outMessage );
+						    
+						    // enqueue the request to this node.map
+						    Vector<RemoteExchangeRequest> remoteRequests = 
+							MASS_base.remoteRequests.get( destRank );
+						    synchronized( remoteRequests ) {
+							remoteRequests.add( request );
+							if ( printOutput == true )
+							    MASS_base.log( "remoteRequest[" + 
+									   destRank + "].add:" +
+									   " org = " + 
+									   orgGlobalLinearIndex +
+									   " dst = " + 
+									   globalLinearIndex +
+									   " size( ) = " +
+									   remoteRequests.size( ) );
+						    }
+						}
+				    } else {
+					if ( printOutput == true )
+					    MASS_base.log( " to destination invalid" );
+				    }
+				}
+		    }
+		}
 		
-		if ( rank == MASS_base.myPid ) // don't communicate with myself
-		    continue;
-		
-		// set arguments 
-		comThrArgs[rank][0] = rank;
-		comThrArgs[rank][1] = handle;
-		comThrArgs[rank][2] = dstPlaces.handle;
-		comThrArgs[rank][3] = functionId;
-		comThrArgs[rank][4] = lower_boundary;
-		
-		// start a communication thread
-		thread_ref[rank] = 
-		    new ProcessRemoteExchangeRequest( comThrArgs[rank] );
-		thread_ref[rank].start( );
-	    }
-	    
-	    // wait for all the communication threads to be terminated
-	    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
-		if ( rank == MASS_base.myPid ) // don't communicate with myself
-		    continue;      
-		try {
-		    thread_ref[rank].join( );
-		} catch ( Exception e ) { }
-	    }
-	}
-	else {
-	    if ( printOutput == true )
-		MASS_base.log( "tid[" + tid + 
-			       "] skips processRemoteExchangeRequest" );
-	}
+		// all threads must barrier synchronize here.
+		Mthread.barrierThreads( tid );
+		if ( tid == 0 ) {
+		    
+		    if ( printOutput == true )
+			MASS_base.log( "tid[" + tid + 
+				       "] now enters processRemoteExchangeRequest" );
+			
+		    // the main thread spawns as many communication threads as 
+		    // the number of remote computing nodes and let each invoke 
+		    // processRemoteExchangeReq.
+		    
+		    // args to threads: 
+		    // rank, srcHandle, dstHandle, functionId, lower_boundary
+		    int[][] comThrArgs = new int[MASS_base.systemSize][5];
+		    ProcessRemoteExchangeRequest[] thread_ref
+			= new ProcessRemoteExchangeRequest[MASS_base.systemSize]; 
+		    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
+			
+			if ( rank == MASS_base.myPid ) // don't communicate with myself
+			    continue;
+			
+			// set arguments 
+			comThrArgs[rank][0] = rank;
+			comThrArgs[rank][1] = handle;
+			comThrArgs[rank][2] = dstPlaces.handle;
+			comThrArgs[rank][3] = functionId;
+			comThrArgs[rank][4] = lower_boundary;
+			
+			// start a communication thread
+			thread_ref[rank] = 
+			    new ProcessRemoteExchangeRequest( comThrArgs[rank] );
+			thread_ref[rank].start( );
+		    }
+		    
+		    // wait for all the communication threads to be terminated
+		    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
+				if ( rank == MASS_base.myPid ) // don't communicate with myself
+				    continue;      
+				try {
+				    thread_ref[rank].join( );
+				} catch ( Exception e ) { }
+			}
+		}
+		else {
+		    if ( printOutput == true )
+			MASS_base.log( "tid[" + tid + 
+				       "] skips processRemoteExchangeRequest" );
+		}
     }
     
     private class ProcessRemoteExchangeRequest extends Thread {

@@ -10,30 +10,31 @@ public class MASS_base {
 
     public static void initMASS_base( String name, int myPid, int nProc,
 				      int port) {
-	MASS_base.hostName = name;
-	MASS_base.myPid = myPid;
-	MASS_base.systemSize = nProc;
-	MASS_base.MASS_PORT = port;
-	MASS_base.currentPlaces = null;
-	MASS_base.currentAgents = null;
-	MASS_base.requestCounter = 0;
-	MASS_base.hosts = new Vector<String>( );
-	MASS_base.exchange = new ExchangeHelper( );
-
-	placesMap = new Hashtable<Integer, Places_base>( );
-	agentsMap = new Hashtable<Integer, Agents_base>( );
-	remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
-	migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-
-	// Get the current working directory
-	MASS_base.CUR_DIR = System.getProperty( "user.dir" );
+    	
+		MASS_base.hostName = name;
+		MASS_base.myPid = myPid;
+		MASS_base.systemSize = nProc;
+		MASS_base.MASS_PORT = port;
+		MASS_base.currentPlaces = null;
+		MASS_base.currentAgents = null;
+		MASS_base.requestCounter = 0;
+		MASS_base.hosts = new Vector<String>( );
+		MASS_base.exchange = new ExchangeHelper( );
+	
+		placesMap = new Hashtable<Integer, Places_base>( );
+		agentsMap = new Hashtable<Integer, Agents_base>( );
+		remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
+		migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
+	
+		// Get the current working directory
+		MASS_base.CUR_DIR = System.getProperty( "user.dir" );
     }
 
     public static boolean initializeThreads( int nThr ) {
-	if ( INITIALIZED ) {
-	    if( printOutput == true )
-		MASS_base.log("Error: the MASS.init is already initializecd" );
-	    return false;
+		if ( INITIALIZED ) {
+		    if( printOutput == true )
+			MASS_base.log("Error: the MASS.init is already initializecd" );
+		    return false;
 	}
 
 	int cores = ( nThr <= 0 ) ? getCores( ) : nThr;
@@ -68,34 +69,35 @@ public class MASS_base {
     }
 
     public static void log( String msg ) {
-	try {
-	    if ( log_lock == null ) {
-		log_lock = new Object( );
-		if ( myPid > 0 )
-		    logger = new FileOutputStream( CUR_DIR + "/" + 
-						   MASS_LOGS + "/PID" + 
-						   myPid + "_" + hostName + 
-						   "result.txt" );
-	    }
-
-	    synchronized( log_lock ) {
-		if ( myPid == 0 ) {
-		    // The master directly prints out msg to standard error.
-		    System.err.println( msg );
+    	
+		try {
+		    if ( log_lock == null ) {
+			log_lock = new Object( );
+			if ( myPid > 0 )
+			    logger = new FileOutputStream( CUR_DIR + "/" + 
+							   MASS_LOGS + "/PID" + 
+							   myPid + "_" + hostName + 
+							   "result.txt" );
+		    }
+	
+		    synchronized( log_lock ) {
+			if ( myPid == 0 ) {
+			    // The master directly prints out msg to standard error.
+			    System.err.println( msg );
+			}
+			else {
+			    // All the slaves print out msge to CUR_DIR/MASS_logs/.
+			    logger.write( msg.concat( "\n" ).getBytes( ) );
+			    logger.flush( );
+			}
+		    }
 		}
-		else {
-		    // All the slaves print out msge to CUR_DIR/MASS_logs/.
-		    logger.write( msg.concat( "\n" ).getBytes( ) );
-		    logger.flush( );
-		}
-	    }
-	}
-	catch( Exception e ) {	}
+		catch( Exception e ) {	}
     }
 
     public static int getCores( ) {
-	// TODO: to be implemented
-	return 2;
+		// TODO: to be implemented
+		return 2;
     }
 
     public static int getMyPid( ) { return myPid; };
@@ -108,13 +110,13 @@ public class MASS_base {
     public static Object getCurrentArgument( ) { return currentArgument; }
     public static Message.ACTION_TYPE getCurrentMsgType( ) { 
 	return currentMsgType; }
-    public static Vector<int[]> getCurrentDestinations( ) {
-	return currentDestinations; }
+//    public static Vector<int[]> getCurrentDestinations( ) {
+//	return currentDestinations; }
 
     public static void setHosts( Vector<String> host_args ) {
-	if ( !hosts.isEmpty( ) ) {
-	    // already initialized
-	    return;
+		if ( !hosts.isEmpty( ) ) {
+		    // already initialized
+		    return;
 	}
 
 	// register all hosts including myself
@@ -139,21 +141,21 @@ public class MASS_base {
     }
 
     public static void showHosts( ) {
-	if( printOutput == true ) {
-	    String convert = "hosts.....\n";
-	    for ( int i = 0; i < hosts.size( ); i++ ) {
-		convert += "rank[" + i + "] = " + hosts.get(i) + "\n";
-	    }
-	    MASS_base.log( convert );
-	}
+		if( printOutput == true ) {
+		    String convert = "hosts.....\n";
+		    for ( int i = 0; i < hosts.size( ); i++ ) {
+			convert += "rank[" + i + "] = " + hosts.get(i) + "\n";
+		    }
+		    MASS_base.log( convert );
+		}
     }
 
     public static Places getPlaces( int handle ) {
-	return ( Places )placesMap.get( new Integer( handle ) );
+    	return ( Places )placesMap.get( new Integer( handle ) );
     }
 
     public static Agents getAgents( int handle ) {
-	return ( Agents )agentsMap.get( new Integer( handle ) );
+    	return ( Agents )agentsMap.get( new Integer( handle ) );
     }
 
     public static Mthread[] threads;          // including main and children
@@ -180,7 +182,7 @@ public class MASS_base {
     protected static int currentFunctionId;
     protected static Object currentArgument;
     protected static Object[] currentReturns;
-    protected static Vector<int[]> currentDestinations;
+//    protected static Vector<int[]> currentDestinations;
     protected static Message.ACTION_TYPE currentMsgType;
 
     private static Object log_lock;
