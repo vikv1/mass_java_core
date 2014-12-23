@@ -110,10 +110,8 @@ public class Mthread extends Thread {
 		places = MASS_base.getCurrentPlaces( );
 		functionId = MASS_base.getCurrentFunctionId( );
 		destinationPlaces = MASS_base.getDestinationPlaces( );
-		destinations = MASS_base.getCurrentDestinations( );
 
-		places.exchangeAll( destinationPlaces, functionId, 
-				    destinations, tid );
+		places.exchangeAll( destinationPlaces, functionId, tid );
 		break;
 
 	    case STATUS_AGENTSCALLALL:
