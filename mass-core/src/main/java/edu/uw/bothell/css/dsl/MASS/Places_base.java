@@ -1,16 +1,18 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import java.lang.reflect.*;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Vector;
 
 public class Places_base {
     //Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
     //private static final boolean printOutput = true;
 
-    public Places_base( int handle, String className, int boundary_width,
+    @SuppressWarnings("unused")
+	public Places_base( int handle, String className, int boundary_width,
 			Object argument, int[] size ) {
 	this.handle = handle;
 	this.className = className;
@@ -30,7 +32,8 @@ public class Places_base {
 	init_all( argument );
     }
 
-    public void init_all( Object argument ) {
+    @SuppressWarnings("unused")
+	public void init_all( Object argument ) {
 	// For debugging
 	if ( printOutput == true ) {
 	    MASS_base.log( "init_all handle = " + handle + 
@@ -69,7 +72,8 @@ public class Places_base {
 	    places_size = upper_boundary - lower_boundary + 1;
 	    
 	    // instantiate Places objects
-	    this.places_size = places_size;
+//	    this.places_size = places_size;
+	    
 	    //  maintaining an entire set
 	    places = new Place[places_size];
 	    
@@ -150,7 +154,8 @@ public class Places_base {
 		return index;
     }
 
-    public void callAll( int functionId, Object argument, int tid ) {
+    @SuppressWarnings("unused")
+	public void callAll( int functionId, Object argument, int tid ) {
 	int[] range = new int[2];
 	getLocalRange( range, tid );
 
@@ -171,7 +176,8 @@ public class Places_base {
 	}
     }
 
-    public Object callAll( int functionId, Object[] arguments, int length,
+    @SuppressWarnings("unused")
+	public Object callAll( int functionId, Object[] arguments, int length,
 			   int tid ) {
     	
 		int[] range = new int[2];
@@ -199,7 +205,8 @@ public class Places_base {
 		return null;
     }
 
-    public void exchangeAll( Places_base dstPlaces, int functionId, int tid ) {
+    @SuppressWarnings("unused")
+	public void exchangeAll( Places_base dstPlaces, int functionId, int tid ) {
 
 		int[] range = new int[2];
 		getLocalRange( range, tid );
@@ -396,6 +403,7 @@ public class Places_base {
 	    my_lower_boundary = param[4];
 	}
 
+	@SuppressWarnings("unused")
 	public void run( ) {
 	
 	    Vector<RemoteExchangeRequest> orgRequest = null;
@@ -557,7 +565,8 @@ public class Places_base {
 	}
     }
     
-    public void exchangeBoundary( ) {
+    @SuppressWarnings("unused")
+	public void exchangeBoundary( ) {
 	if ( shadow_size == 0 ) { // no boundary, no exchange
 	    MASS_base.log( "places (handle = " + handle +
 			   ") has NO boundary, " + 
@@ -619,6 +628,7 @@ public class Places_base {
 	int places_size;
 	int shadow_size;
 
+	@SuppressWarnings("unused")
 	public ExchangeBoundary_helper( int[] param ) {
 	    // identifiy the boundary space;
 	    direction = param[0];
@@ -636,6 +646,7 @@ public class Places_base {
 			       );
 	}
 	
+	@SuppressWarnings("unused")
 	public void run( ) {
 	    int startIndex = 
 		( direction == 'L' ) ? 0 : places_size -shadow_size;
@@ -716,7 +727,8 @@ public class Places_base {
 	}
     }
 
-    protected void getGlobalNeighborArrayIndex( int src_index[], 
+    @SuppressWarnings("unused")
+	protected void getGlobalNeighborArrayIndex( int src_index[], 
 						int offset[],
 						int dst_size[], 
 						int dest_index[] ) {

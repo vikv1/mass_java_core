@@ -23,7 +23,8 @@ public class Places extends Places_base {
 		init_master( argument, boundary_width );
     }
 
-    public void init_master( Object argument, int boundary_width ) {
+    @SuppressWarnings("unused")
+	public void init_master( Object argument, int boundary_width ) {
 
 		// create a list of all host names;  
 		// the master IP name
@@ -72,7 +73,8 @@ public class Places extends Places_base {
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
     }
     
-    public void callAll( int functionId, Object argument ) {
+    @SuppressWarnings("unused")
+	public void callAll( int functionId, Object argument ) {
 	
 		if ( printOutput == true )
 		    MASS_base.log( "callAll void object" );
@@ -81,7 +83,8 @@ public class Places extends Places_base {
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
     }
     
-    public Object callAll( int functionId, Object argument[] ) {
+    @SuppressWarnings("unused")
+	public Object callAll( int functionId, Object argument[] ) {
 	
 		if ( printOutput == true )
 		    MASS_base.log( "callAll return object" );
@@ -90,7 +93,8 @@ public class Places extends Places_base {
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
     }
     
-    public Object ca_setup( int functionId, Object argument,
+    @SuppressWarnings("unused")
+	public Object ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
@@ -162,7 +166,8 @@ public class Places extends Places_base {
 		return MASS_base.currentReturns;
     }
     
-    public void exchangeAll( int dest_handle, int functionId ) {
+    @SuppressWarnings("unused")
+	public void exchangeAll( int dest_handle, int functionId ) {
 	
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, 

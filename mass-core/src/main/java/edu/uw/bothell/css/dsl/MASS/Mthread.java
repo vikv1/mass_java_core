@@ -1,6 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.*;
 
 public class Mthread extends Thread {
     private static final boolean printOutput = false;
