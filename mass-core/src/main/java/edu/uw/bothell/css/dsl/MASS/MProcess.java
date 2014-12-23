@@ -178,7 +178,7 @@ public class MProcess {
 		MASS_base.destinationPlaces = 
 		    MASS_base.placesMap.get(new Integer( m.getDestHandle() ) );
 		MASS_base.currentFunctionId = m.getFunctionId( );
-		MASS_base.currentDestinations = m.getDestinations( );
+//		MASS_base.currentDestinations = m.getDestinations( );
 
 		// reset requestCounter by the main thread
 		MASS_base.requestCounter = 0;
@@ -192,9 +192,7 @@ public class MProcess {
 		// exchangeall implementation
 		MASS_base.
 		    currentPlaces.exchangeAll( MASS_base.destinationPlaces,
-					       MASS_base.currentFunctionId,
-					       MASS_base.currentDestinations, 
-					       0 );
+					       MASS_base.currentFunctionId, 0 );
 
 		// confirm all threads are done with places.exchangeall.
 		Mthread.barrierThreads( 0 );
