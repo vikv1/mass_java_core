@@ -30,42 +30,12 @@ public class MNode {
     private String passWord;			// for SSH login, the password - optional
     private String javaHome;			// where the JVM is installed on this node - optional
     private String massHome;			// where MASS library is located - optional
+    private boolean isMaster = false;	// is this the master node? - optional
     private int pid;              		// process ID
     private Channel channel;            // JSCH channel
     private ObjectInputStream mainIOS;  // from mnode to master
     private ObjectOutputStream mainOOS; // from master to mnode
 
-	/**
-	 * Perform actions necessary to initialize communications with this node
-	 */
-	public void initialize() {
-		
-		try {
-
-			// set input/output streams, then execute the command to start MProcess on the remote node
-			InputStream is = channel.getInputStream();
-			OutputStream os = channel.getOutputStream();
-			channel.connect();
-			
-			// with input/output channels established, set object streams
-			mainOOS = new ObjectOutputStream( os );
-			mainOOS.flush( );
-			mainIOS = new ObjectInputStream( is );
-		
-		}
-		
-		// TODO - need better method of handling errors here rather than terminating application
-		catch( Exception e ) {
-		
-			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
-					" setupMainConnection " + e );
-			
-			System.exit( -1 );
-	
-		}
-		
-	}
-	
 	/**
 	 * Terminate all communications channels to the remote Node
 	 */
@@ -88,7 +58,7 @@ public class MNode {
 		}
 
 	}
-
+	
 	/**
 	 * Get the JSCH communications channel connected to the node
 	 * @return The JSCH communications channel
@@ -107,7 +77,7 @@ public class MNode {
     	return hostName;
     }
 
-    /**
+	/**
 	 * Get the location on this node where the JVM is installed
 	 * @return The JVM home location
 	 */
@@ -116,7 +86,7 @@ public class MNode {
 		return javaHome;
 	}
 
-	/**
+    /**
 	 * Get the location where MASS (MASS.jar) resides on this node
 	 * @return The location of MASS.jar
 	 */
@@ -153,6 +123,46 @@ public class MNode {
 	@XmlElement(name = "username")
 	public String getUserName() {
 		return userName;
+	}
+
+	/**
+	 * Perform actions necessary to initialize communications with this node
+	 */
+	public void initialize() {
+		
+		try {
+
+			// set input/output streams, then execute the command to start MProcess on the remote node
+			InputStream is = channel.getInputStream();
+			OutputStream os = channel.getOutputStream();
+			channel.connect();
+			
+			// with input/output channels established, set object streams
+			mainOOS = new ObjectOutputStream( os );
+			mainOOS.flush( );
+			mainIOS = new ObjectInputStream( is );
+		
+		}
+		
+		// TODO - need better method of handling errors here rather than terminating application
+		catch( Exception e ) {
+		
+			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
+					" setupMainConnection " + e );
+			
+			System.exit( -1 );
+	
+		}
+		
+	}
+
+	/**
+	 * Get the master status for this node - if true, then the node represented by this instance
+	 * is the master node 
+	 * @return True if this is the master node, false if a remote node
+	 */
+	public boolean isMaster() {
+		return isMaster;
 	}
 
 	/**
@@ -236,6 +246,14 @@ public class MNode {
 	 */
 	public void setMassHome(String massHome) {
 		this.massHome = massHome;
+	}
+
+	/**
+	 * Set the master status for this node
+	 * @param isMaster Set true if this instance represents the master node, false if it represents a remote node
+	 */
+	public void setMaster(boolean isMaster) {
+		this.isMaster = isMaster;
 	}
 
 	/**
