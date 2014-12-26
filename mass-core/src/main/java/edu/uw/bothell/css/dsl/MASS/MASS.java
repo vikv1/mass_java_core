@@ -24,9 +24,34 @@ public class MASS extends MASS_base {
 	private static final int JschPort = 22;
     private static Utilities util;
 
-    // the collection of remote nodes
-    protected static Vector<MNode> mNodes = new Vector<MNode>( );
+    // the collection of all nodes
+    private static Vector<MNode> mNodes = new Vector<MNode>( );
+    
+    // for performance, collection of all remote nodes
+    private static Vector<MNode> remoteNodes = new Vector<MNode>();
+    
+    // for performance, the master node
+    private static MNode masterNode = null;
 
+    /**
+     * Add a new node to the cluster
+     * @param node The node to add to the cluster
+     */
+    public static void addNode(MNode node) {
+
+    	// add the node to the collection of all nodes
+    	mNodes.add(node);
+    	
+    	// if a remote, add to the collection of all remotes, or set the master if not
+    	// this is done so remotes and master node configurations can be obtained quickly without a lookup
+    	if (node.isMaster()) {
+    		masterNode = node;
+    	} else {
+    		remoteNodes.add(node);
+    	}
+    	
+    }
+    
     @SuppressWarnings("unused")
 	public static void init( String[] args, int nProc, int nThr ) {
     	
@@ -96,7 +121,11 @@ public class MASS extends MASS_base {
         			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
             		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
-            		mNodes.addAll(nodeList.getNodes());
+            		
+            		// iterate through the nodes, adding each
+            		for (MNode node : nodeList.getNodes()) {
+            			addNode(node);
+            		}
             		
     			} 
 
@@ -426,4 +455,20 @@ public class MASS extends MASS_base {
 
     }
 
+    /**
+	 * Get the MNode representation of the master node only
+	 * @return The MNode representation of the master node
+	 */
+	public static MNode getMasterNode() {
+		return masterNode;
+	}
+
+	/**
+     * Get all MNode objects representing remote nodes only
+     * @return MNodes representing all remote nodes
+     */
+    public static Vector<MNode> getRemoteNodes() {
+    	return remoteNodes;
+    }
+    
 }

@@ -39,8 +39,8 @@ public class Places extends Places_base {
 		}
 		
 		// all the slave IP names
-		for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
-		    hosts.add( MASS.mNodes.get(i).getHostName( ) );
+		for ( MNode node : MASS.getRemoteNodes() ) {
+		    hosts.add( node.getHostName( ) );
 		}
 	
 		// create a new list for message
@@ -49,11 +49,13 @@ public class Places extends Places_base {
 					 argument, boundary_width, hosts );
 		
 		// send a PLACES_INITIALIZE message to each slave
-		for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
-		    MASS.mNodes.get(i).sendMessage( m );
+		for ( MNode node : MASS.getRemoteNodes() ) {
+		    
+			node.sendMessage( m );
 		    
 		    if ( printOutput == true )
-			MASS_base.log( "PLACES_INITIALIZE sent to " + i );
+			MASS_base.log( "PLACES_INITIALIZE sent to " + node.getPid() );
+		
 		}
 		
 		// establish all inter-node connections within setHosts( )
@@ -106,14 +108,14 @@ public class Places extends Places_base {
 		// send a PLACES_CALLALL message to each slave
 		Message m = null;
 		
-		for ( int i = 0; i <  MASS.mNodes.size( ); i++ ) {
+		for ( int i = 0; i <  MASS.getRemoteNodes().size( ); i++ ) {
 			
 		    // create a message
 		    if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT )
 		    	m = new Message( type, this.handle, functionId, argument );
 		    else { // PLACES_CALL_ALL_RETURN_OBJECT
 		    	
-				int arg_size = ( i == MASS.mNodes.size( ) - 1 ) ?
+				int arg_size = ( i == MASS.getRemoteNodes().size( ) - 1 ) ?
 				    total - stripe * ( i + 1 ) : stripe;
 				
 				Object[] partialArguments = new Object[arg_size];
@@ -131,7 +133,7 @@ public class Places extends Places_base {
 		    }
 		    
 		    // send it
-		    MASS.mNodes.get(i).sendMessage( m );
+		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
 		    if ( printOutput == true )
 			MASS_base.log( "PLACES_CALL_ALL " + m.getAction( ) +
@@ -176,8 +178,8 @@ public class Places extends Places_base {
 		if ( printOutput == true )
 		    MASS_base.log( "dest_handle = " + dest_handle );
 		
-		for ( int i =0; i < MASS.mNodes.size( ); i++ )
-		    MASS.mNodes.get(i).sendMessage( m );
+		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
+		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		
 		// retrieve the corresponding places
 		MASS_base.currentPlaces = this;
@@ -212,8 +214,8 @@ public class Places extends Places_base {
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY, 
 					 this.handle,  0 ); // 0 is dummy
 		
-		for ( int i = 0; i < MASS.mNodes.size( ); i++ )
-		    MASS.mNodes.get(i).sendMessage( m );
+		for ( MNode node : MASS.getRemoteNodes() )
+		    node.sendMessage( m );
 	
 		// retrieve the corresponding places
 		MASS_base.currentPlaces = this;

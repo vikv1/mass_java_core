@@ -31,11 +31,11 @@ public class Agents extends Agents_base implements Serializable {
 				 className, argument );
 	
 	// send a AGENT_INITIALIZE message to each slave
-	for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
-	    MASS.mNodes.get(i).sendMessage( m );
-	    
-	    if ( printOutput == true ) 
-		MASS_base.log( "AGENT_INITIALIZE sent to " + i );
+	for (MNode node : MASS.getRemoteNodes()) {
+		
+		node.sendMessage( m );
+	    if ( printOutput == true ) MASS_base.log( "AGENT_INITIALIZE sent to " + node.getPid() );
+
 	}
 	
 	// Synchronized with all slave processes
@@ -83,8 +83,8 @@ public class Agents extends Agents_base implements Serializable {
 
 	// send a AGENTS_CALL_ALL message to each slave
 	Message m = null;
-	for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
-	    // create a message
+	for ( int i = 0; i < MASS.getRemoteNodes().size( ); i++ ) {
+		// create a message
 	    if ( type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT )
 		m = new Message( type, this.handle, functionId, argument );
 	    else {
@@ -115,7 +115,7 @@ public class Agents extends Agents_base implements Serializable {
 	    }
 
 	    // send it
-	    MASS.mNodes.get(i).sendMessage( m );
+	    MASS.getRemoteNodes().get(i).sendMessage( m );
 	    if ( printOutput == true ) {
 		System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
 				    " sent to " + i );
@@ -187,17 +187,19 @@ public class Agents extends Agents_base implements Serializable {
 	public void ma_setup( ) {
 	// send an AGENTS_MANAGE_ALL message to each slave
 	Message m = null;
-	for ( int i = 0; i < MASS.mNodes.size( ); i++ ) {
-	    // create a message
+	for (MNode node : MASS.getRemoteNodes()) {
+
+		// create a message
 	    m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, 
 			     this.handle, 0 );
 
 	    //send it
-	    MASS.mNodes.get(i).sendMessage( m );
+	    node.sendMessage( m );
 
 	    // MThread Update
 	    Mthread.agentBagSize = MASS_base.agentsMap.
 		get( new Integer( handle ) ).agents.size_unreduced( );
+	
 	}
 
 	// retrieve the corresponding agents

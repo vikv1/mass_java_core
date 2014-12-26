@@ -161,6 +161,7 @@ public class MNode {
 	 * is the master node 
 	 * @return True if this is the master node, false if a remote node
 	 */
+	@XmlElement(name = "master", required = false)
 	public boolean isMaster() {
 		return isMaster;
 	}
