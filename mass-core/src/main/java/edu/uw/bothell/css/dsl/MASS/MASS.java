@@ -25,13 +25,16 @@ public class MASS extends MASS_base {
     private static Utilities util;
 
     // the collection of all nodes
-    private static Vector<MNode> mNodes = new Vector<MNode>( );
+    private static Vector<MNode> allNodes = new Vector<MNode>( );
     
     // for performance, collection of all remote nodes
     private static Vector<MNode> remoteNodes = new Vector<MNode>();
     
     // for performance, the master node
     private static MNode masterNode = null;
+    
+    // remember the last PID used
+    private static int lastPid = 0;
 
     /**
      * Add a new node to the cluster
@@ -40,14 +43,23 @@ public class MASS extends MASS_base {
     public static void addNode(MNode node) {
 
     	// add the node to the collection of all nodes
-    	mNodes.add(node);
+    	allNodes.add(node);
     	
     	// if a remote, add to the collection of all remotes, or set the master if not
     	// this is done so remotes and master node configurations can be obtained quickly without a lookup
     	if (node.isMaster()) {
+
+    		node.setPid(0);		// master node ALWAYS has a PID of zero
     		masterNode = node;
+    		
     	} else {
-    		remoteNodes.add(node);
+    		
+    		// increment last PID and set for this remote node
+    		lastPid++;
+        	node.setPid(lastPid);
+
+        	remoteNodes.add(node);
+    	
     	}
     	
     }
@@ -154,10 +166,10 @@ public class MASS extends MASS_base {
 
             		while( fileReader.ready( ) ) {
             			
-            			// create a new MNode for each line in the file
+            			// create a new MNode for each line in the file (these will all be remote nodes)
             			MNode node = new MNode();
-            			mNodes.add( node );
             			node.setHostName( fileReader.readLine( ) );
+            			addNode( node );
             			
             		}
 
@@ -180,14 +192,14 @@ public class MASS extends MASS_base {
     	
     	// For debugging
     	if ( printOutput == true ) {
-    		for ( MNode node : mNodes )
+    		for ( MNode node : getRemoteNodes() )
     			System.err.println( "rank " + node.getPid() + ": " + 
     					node.getHostName() );
     	}
 
     	// Handle nProc
-    	if ( nProc < 0 || nProc > mNodes.size( ) )
-    		nProc = mNodes.size( ) + 1; // count the master node
+    	if ( nProc < 0 || nProc > getAllNodes().size( ) )
+    		nProc = getAllNodes().size(); // count the master node and all remotes
 
     	systemSize = nProc;
 
@@ -198,13 +210,8 @@ public class MASS extends MASS_base {
     	// System.err.println( "CUR_DIR = " + CUR_DIR );
 
     	// Launch remote processes
-    	int pid = 1; // a slave process id
-    	for (MNode node : mNodes) {
+    	for (MNode node : getRemoteNodes()) {
     	
-    		// set PID for this node
-    		node.setPid(pid);
-    		pid++;
-
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(username);
     		if (node.getPassWord() == null) node.setPassWord(password);
@@ -317,7 +324,7 @@ public class MASS extends MASS_base {
     	INITIALIZED = true;
 
     	// Synchronize with all slave processes
-    	for (MNode node : mNodes) {
+    	for (MNode node : getRemoteNodes()) {
     	
     		if ( printOutput == true )
     			System.err.println( "init: wait for ack from " + 
@@ -350,7 +357,7 @@ public class MASS extends MASS_base {
     		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
-    	for ( MNode node : mNodes ) {
+    	for ( MNode node : getRemoteNodes() ) {
     		// Send a finish messages
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
@@ -359,7 +366,7 @@ public class MASS extends MASS_base {
     	// Synchronize with all slaves
     	barrier_all_slaves( );
 
-    	for ( MNode node : mNodes )
+    	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
 
     	System.err.println( "MASS::finish: done" );
@@ -386,23 +393,23 @@ public class MASS extends MASS_base {
     	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
 
     	// Synchronize with all slave processes
-    	for ( int i = 0; i < mNodes.size( ); i++ ) {
+    	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
     		if( printOutput == true )
     			System.err.println( "barrier waits for ack from " +
-    					mNodes.get(i).getHostName( ) );
+    					getRemoteNodes().get(i).getHostName( ) );
 
-    		Message m = mNodes.get(i).receiveMessage( );
+    		Message m = getRemoteNodes().get(i).receiveMessage( );
 
     		if( printOutput == true )
     			System.err.println( "barrier received a message from " +
-    					mNodes.get(i).getHostName( ) +
+    					getRemoteNodes().get(i).getHostName( ) +
     					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
     			System.err.println( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
-    					mNodes.get(i).getHostName( ) +
+    					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
     			System.exit( -1 );
     		}
@@ -417,7 +424,7 @@ public class MASS extends MASS_base {
     				// for simplicity, we just use the length of the returned
     				// array
     				int copyLength;
-    				if ( i == mNodes.size( ) - 1 ) {
+    				if ( i == getRemoteNodes().size( ) - 1 ) {
     					copyLength = ( (Object[]) m.getArgument( ) ).length;
     				} else {
     					copyLength = stripe;
@@ -454,6 +461,14 @@ public class MASS extends MASS_base {
     	}
 
     }
+
+    /**
+     * Get all MNode objects, master and remotes
+     * @return MNodes representing all nodes
+	 */
+	public static Vector<MNode> getAllNodes() {
+		return allNodes;
+	}
 
     /**
 	 * Get the MNode representation of the master node only
