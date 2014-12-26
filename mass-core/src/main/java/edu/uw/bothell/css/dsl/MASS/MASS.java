@@ -6,7 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -22,7 +23,7 @@ public class MASS extends MASS_base {
     // private static final boolean printOutput = true;
     
 	private static final int JschPort = 22;
-    private static Utilities util;
+    private static Utilities util = new Utilities( );  // used for channel creation
 
     // the collection of all nodes
     private static Vector<MNode> allNodes = new Vector<MNode>( );
@@ -35,7 +36,31 @@ public class MASS extends MASS_base {
     
     // remember the last PID used
     private static int lastPid = 0;
+    
+    // the list of libraries ("Jars") to load
+    private static Set<String> libraries = new HashSet<String>();
+    
+    // the number of threads to spawn on each node
+    private static int numThreads;
+    
+    // default user credentials (can be overridden via XML)
+    private static String defaultUsername;
+    private static String defaultPassword;
+    
+    // name of file containing cluster node definitions
+    private static String nodeFilePath = "nodes.xml";
+    
+    // the port number used for inter-node communication
+    private static int communicationPort = 3400;
 
+    /**
+     * Add a library ("Jar") to be loaded by the classloader on each node
+     * @param libraryName The name of the library to load
+     */
+    public static void addLibrary(String libraryName) {
+    	libraries.add(libraryName);
+    }
+    
     /**
      * Add a new node to the cluster
      * @param node The node to add to the cluster
@@ -64,25 +89,25 @@ public class MASS extends MASS_base {
     	
     }
     
-    @SuppressWarnings("unused")
+    /**
+     * Initialize the MASS library using arguments
+     * @param args An array of command-line style arguments
+     * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
+     * @param nThr The number of threads to spawn
+     */
 	public static void init( String[] args, int nProc, int nThr ) {
     	
-    	util = new Utilities( );                // used for channel creation
-
     	// variable assignment
-    	String username = args[0];
-    	String password = args[1];
-    	String machineFilePath = args[2];
-    	int port = Integer.parseInt( args[3] );
-
-    	// load any custom jars
-    	ArrayList<String> customJarList = null; // storage for custom jars
+    	setDefaultUsername(args[0]);
+    	setDefaultPassword(args[1]);
+    	setNodeFilePath(args[2]);
+    	setCommunicationPort(Integer.parseInt( args[3] ));
+    	setNumThreads(nThr);
 
     	try {
 
     		if ( args.length > 4 ) {
 
-    			customJarList = new ArrayList<String>();
     			String jarList = args[4];
     			String next;
     			// args list needs to be a semicolon delimited string
@@ -91,7 +116,7 @@ public class MASS extends MASS_base {
     			while( tokenizer.hasMoreTokens( ) ) {
 
     				next = tokenizer.nextToken( );
-    				customJarList.add( next );
+    				addLibrary( next );
 
     			}
 
@@ -107,17 +132,28 @@ public class MASS extends MASS_base {
     		System.exit( -1 );
 
     	}
+    
+    	// after parameters have been set, perform initialization
+    	init();
+    	
+	}
+
+	/**
+	 * Initialize the MASS library (using settings made previously via setters)
+	 */
+	@SuppressWarnings("unused")
+	public static void init() {
 
     	// attempt to load node definitions from specified file
-    	if (machineFilePath != null && machineFilePath.length() > 0) {
+    	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
 
     		// attempt to open the specified file
-    		File machineFile = new File(machineFilePath);
+    		File machineFile = new File(getNodeFilePath());
     		
     		// does the file actually exist?
     		if (!machineFile.canRead()) {
 
-    			System.err.println( "machine file: " + machineFilePath +
+    			System.err.println( "machine file: " + getNodeFilePath() +
         				" does not exist or is not readable." );
 
         		System.exit( -1 );
@@ -125,7 +161,7 @@ public class MASS extends MASS_base {
     		}
     		
         	// is the machine file an XML document? 
-    		if (machineFilePath.toLowerCase().contains("xml")) {
+    		if (getNodeFilePath().toLowerCase().contains("xml")) {
     			
     			// yes - filename specified is an XML document - get MNodes directly from the doc
     			try {
@@ -179,7 +215,7 @@ public class MASS extends MASS_base {
 
             	catch( Exception e ) {
 
-            		System.err.println( "machine file: " + machineFilePath +
+            		System.err.println( "machine file: " + getNodeFilePath() +
             				" could not open." );
 
             		System.exit( -1 );
@@ -197,24 +233,27 @@ public class MASS extends MASS_base {
     					node.getHostName() );
     	}
 
+    	// if not already defined, create master node representation
+    	if (getMasterNode() == null) {
+    		
+    		MNode masterNode = new MNode();
+    		masterNode.setMaster(true);
+    		addNode(masterNode);
+    		
+    	}
+    	
     	// Handle nProc
-    	if ( nProc < 0 || nProc > getAllNodes().size( ) )
-    		nProc = getAllNodes().size(); // count the master node and all remotes
-
-    	systemSize = nProc;
-
+    	systemSize = getAllNodes().size();
+    	
     	// Initialize MASS_base.constants and identify the CWD.
-    	initMASS_base( "localhost", 0, nProc, port );
-
-    	// For debugging
-    	// System.err.println( "CUR_DIR = " + CUR_DIR );
+    	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
 
     	// Launch remote processes
     	for (MNode node : getRemoteNodes()) {
     	
     		// set login credentials if not defined in the node config already
-    		if (node.getUserName() == null) node.setUserName(username);
-    		if (node.getPassWord() == null) node.setPassWord(password);
+    		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
+    		if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
     		
     		// set default MASS directory if not defined already per node
     		if (node.getMassHome() == null) node.setMassHome(CUR_DIR);
@@ -260,18 +299,14 @@ public class MASS extends MASS_base {
     		//= "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/MASS.jar:";
 
     		// add any custom JARs specified
-    		if ( customJarList != null ) {
-
-    			for( String customJar : customJarList ) {
+   			for( String customJar : getLibraries() ) {
     				
-    				commandBuilder.append(":");
-    				commandBuilder.append(node.getMassHome());
-    				commandBuilder.append(customJar);
+   				commandBuilder.append(":");
+   				commandBuilder.append(node.getMassHome());
+   				commandBuilder.append(customJar);
 
-    			}
+   			}
     		
-    		}
-
     		// add MASS home directory itself as part of the classpath
     		commandBuilder.append(":");
     		commandBuilder.append(node.getMassHome());
@@ -280,11 +315,11 @@ public class MASS extends MASS_base {
     		// MProcess and its arguments
     		commandBuilder.append("edu.uw.bothell.css.dsl.MASS.MProcess ");	// the program
     		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
-    		commandBuilder.append(node.getPid() + " ");		// 2nd arg: pid
-    		commandBuilder.append(systemSize + " ");  				// 3rd arg: #processes
-    		commandBuilder.append(nThr + " ");        				// 4th arg: #threads
-    		commandBuilder.append(MASS_PORT + " ");   				// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome());		// 6th arg: cur working dir
+    		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
+    		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
+    		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
+    		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
+    		commandBuilder.append(node.getMassHome());			// 6th arg: cur working dir
 
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +
@@ -320,7 +355,7 @@ public class MASS extends MASS_base {
 
     	}
 
-    	initializeThreads( nThr );
+    	initializeThreads( getNumThreads() );
     	INITIALIZED = true;
 
     	// Synchronize with all slave processes
@@ -470,6 +505,14 @@ public class MASS extends MASS_base {
 		return allNodes;
 	}
 
+	/**
+	 * Get a collection of all library names to be used by the classloaders on each node
+	 * @return The collection of library names
+	 */
+	public static Set<String> getLibraries() {
+		return libraries;
+	}
+	
     /**
 	 * Get the MNode representation of the master node only
 	 * @return The MNode representation of the master node
@@ -485,5 +528,85 @@ public class MASS extends MASS_base {
     public static Vector<MNode> getRemoteNodes() {
     	return remoteNodes;
     }
+
+	/**
+	 * Get the number of threads that will be spawned on each node
+	 * @return The number of threads spawned
+	 */
+	public static int getNumThreads() {
+		return numThreads;
+	}
+
+	/**
+	 * Set the number of threads to spawn on each node
+	 * @param numThreads The number of threads to spawn
+	 */
+	public static void setNumThreads(int numThreads) {
+		MASS.numThreads = numThreads;
+	}
+
+	/**
+	 * Get the default username for connecting to remote nodes
+	 * @return The default login username
+	 */
+	public static String getDefaultUsername() {
+		return defaultUsername;
+	}
+
+	/**
+	 * Set the default username for connecting to remote nodes
+	 * @param defaultUsername The default login username
+	 */
+	public static void setDefaultUsername(String defaultUsername) {
+		MASS.defaultUsername = defaultUsername;
+	}
+
+	/**
+	 * Get the default password for connecting to remote nodes
+	 * @return The default login password
+	 */
+	public static String getDefaultPassword() {
+		return defaultPassword;
+	}
+
+	/**
+	 * Set the default password for connecting to remote nodes
+	 * @param defaultPassword The default password
+	 */
+	public static void setDefaultPassword(String defaultPassword) {
+		MASS.defaultPassword = defaultPassword;
+	}
+
+	/**
+	 * Get the filename for the cluster node definition file
+	 * @return The cluster node definition filename
+	 */
+	public static String getNodeFilePath() {
+		return nodeFilePath;
+	}
+
+	/**
+	 * Set the filename for the cluster node definition file
+	 * @param nodeFilePath The cluster node definition filename
+	 */
+	public static void setNodeFilePath(String nodeFilePath) {
+		MASS.nodeFilePath = nodeFilePath;
+	}
+
+	/**
+	 * Get the port number used for inter-node communications
+	 * @return The port number
+	 */
+	public static int getCommunicationPort() {
+		return communicationPort;
+	}
+
+	/**
+	 * Set the port number used for inter-node communications
+	 * @param communicationPort The port number
+	 */
+	public static void setCommunicationPort(int communicationPort) {
+		MASS.communicationPort = communicationPort;
+	}
     
 }
