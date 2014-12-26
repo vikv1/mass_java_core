@@ -29,3 +29,4 @@ mass-core.jar
 *~
 mass-quickstart/src/main/resources/machinefile.txt
 mass-quickstart/src/main/resources/machines.xml
+mass-quickstart/src/main/resources/nodes.xml
