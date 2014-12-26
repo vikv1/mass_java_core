@@ -8,23 +8,21 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
     <body id="mainBody">
-        <div id="headerDiv">  <h1>Welcome to University of Washington Climate Analysis</h1>
+        <div id="headerDiv">  <h1 id='titleText'>University of Washington Climate Analysis</h1>
         </div>
         <div id="calcDiv">
             <div id="workFlow">
                 <select multiple id="mgtParams" class="workflowSel">
-                    <option>Param 2</option>
+                    <option value="tmax">tmax</option>
                 </select>
                 <select multiple id="inputParams" class="workflowSel">
-                     <option>Model 1</option>
-                     <option>Model 2</option>
-                     <option>Model 3</option>
+                     <option value='conus_c5'>conus_c5</option>
                 </select>
                 <select multiple id="mgtParams" class="workflowSel">
-                     <option>ToE 1</option>
-                     <option>ToE 2</option>
-                     <option>ToE 3</option>
+               
                 </select>
+                <input id='submitBtn' type='button' value='Submit'>
+                <input id='statusBtn' type='button' value='Refresh Status'>
             </div>
         </div>
         <div id="histDiv">
@@ -36,32 +34,13 @@
                         <th>ToE Calculation</th>
                         <th>Status</th>
                         <th></th>
-                    </tr>
-                    <tr>
-                        <td>Param 2</td>
-                        <td>Model 1</td>
-                        <td>ToE 1</td>
-                        <td>Queued</td>
-                        <td></td>
-                    </tr>
-                     <tr>
-                        <td>Param 2</td>
-                        <td>Model 2</td>
-                        <td>ToE 2</td>
-                        <td>In Progress</td>
-                        <td></td>
-                    </tr>
-                     <tr>
-                        <td>Param 2</td>
-                        <td>Model 3</td>
-                        <td>ToE 3</td>
-                        <td>Completed</td>
-                        <td><input type="button" value="Visualize"></td>
-                    </tr>
-                    
-                </table>                
+                    </tr>                    
+                </table>    
+                <div id='statusTableBodyDiv'>
+                    <table id='statusTableBody'>                        
+                    </table>
+                </div>
             </div>
-        </div>
-      
+        </div>      
     </body>
 </html>

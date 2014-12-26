@@ -2,6 +2,7 @@ package com.uwbothell.entities;
 
 import java.io.*;
 import java.util.*;
+import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayFloat;     // for netCDF reader
@@ -204,6 +205,7 @@ public class InputAdapter {
         ArrayDouble.D2 d2Var;            // 3D NetCDF float array
         List<Variable> inputVariables;
         double[][] results;             // holds retreived values
+        
 
         // Initialize results
         results = new double[xRng][yRng];
