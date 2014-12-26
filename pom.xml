@@ -6,7 +6,7 @@
 	<groupId>edu.uw.bothell.css.mass</groupId>
   	<artifactId>MASS-Java</artifactId>
   	<packaging>pom</packaging>
-	<version>0.8.1-SNAPSHOT</version>  	
+	<version>0.8.2-SNAPSHOT</version>  	
 
 	<name>MASS Java Library and Applications Parent</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
