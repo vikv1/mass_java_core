@@ -89,6 +89,9 @@ public class MASS_base {
     	thisNode.setPort(port);    	
     	
 		setSystemSize(nProc);
+		
+		// init from the MNode object
+		initMASS_base(thisNode);
 
 //		MASS_base.currentPlaces = null;
 //		MASS_base.currentAgents = null;
