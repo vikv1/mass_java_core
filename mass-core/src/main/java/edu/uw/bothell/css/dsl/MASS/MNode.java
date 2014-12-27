@@ -32,10 +32,11 @@ public class MNode {
     private String massHome;			// where MASS library is located - optional
     private boolean isMaster = false;	// is this the master node? - optional
     private int pid;              		// process ID
+    private int port;					// the port number used for inter-node communications - optional
     private Channel channel;            // JSCH channel
-    private ObjectInputStream mainIOS;  // from mnode to master
-    private ObjectOutputStream mainOOS; // from master to mnode
-
+    private ObjectInputStream mainIOS;  // from remote to master
+    private ObjectOutputStream mainOOS; // from master to remote
+    
 	/**
 	 * Terminate all communications channels to the remote Node
 	 */
@@ -279,6 +280,22 @@ public class MNode {
 	 */
 	public void setUserName(String userName) {
 		this.userName = userName;
+	}
+
+	/**
+	 * Set the port number used to communicate with this node, for inter-node socket communications
+	 * @return The port number
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * Set the port number used to communicate with this node, for inter-node socket communications
+	 * @param port The port number to use
+	 */
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 }

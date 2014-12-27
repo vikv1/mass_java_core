@@ -4,31 +4,35 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
-    //Used to toggle comments from Places_base.java
+
+	//Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
     //private static final boolean printOutput = true;
+
+    private int[] localAgents; // localAgents[i] = # agents in rank[i]
+    private int total;
 
     public Agents( int handle, String className, Object argument,
 		   Places places, int initPopulation ) {
 	super( handle, className, argument, places.getHandle( ), 
 	       initPopulation );
-	localAgents = new int[MASS_base.systemSize];
+	localAgents = new int[MASS_base.getSystemSize()];
 	init_master( argument );
     }
 
     @SuppressWarnings("unused")
 	public void init_master( Object argument ) {
 	// check if MASS_base.hosts is empty (i.e., Places not yet created)
-	if ( MASS_base.hosts.isEmpty( ) ) {
-	    System.err.println( "Agents(" + className + 
+	if ( MASS_base.getHosts().isEmpty( ) ) {
+	    System.err.println( "Agents(" + getClassName() + 
 				") can't be created without Places!!" );
 	    System.exit( -1 );
 	}
 	
 	// create a new list for message
 	Message m = new Message( Message.ACTION_TYPE.AGENTS_INITIALIZE, 
-				 initPopulation, handle, placesHandle, 
-				 className, argument );
+				 getInitPopulation(), getHandle(), getPlacesHandle(), 
+				 getClassName(), argument );
 	
 	// send a AGENT_INITIALIZE message to each slave
 	for (MNode node : MASS.getRemoteNodes()) {
@@ -40,10 +44,10 @@ public class Agents extends Agents_base implements Serializable {
 	
 	// Synchronized with all slave processes
 	MASS.barrier_all_slaves( localAgents );
-	localAgents[0] = localPopulation;
+	localAgents[0] = getLocalPopulation();
 	
 	total = 0;
-	for ( int i = 0; i < MASS_base.systemSize; i++ ) {
+	for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
 	    total += localAgents[i];
 	    // for debugging
 	    
@@ -54,7 +58,7 @@ public class Agents extends Agents_base implements Serializable {
 	}
 	
 	// register this agents in the places hash map
-	MASS_base.agentsMap.put( new Integer( handle ), this );
+	MASS_base.getAgentsMap().put( new Integer( getHandle() ), this );
     }
 
     public void callAll( int functionId ) {
@@ -78,7 +82,7 @@ public class Agents extends Agents_base implements Serializable {
 
 	// calculate the total number of agents
 	total = 0;
-	for ( int i = 0; i < MASS_base.systemSize; i++ )
+	for ( int i = 0; i < MASS_base.getSystemSize(); i++ )
 	    total += localAgents[i];
 
 	// send a AGENTS_CALL_ALL message to each slave
@@ -86,7 +90,7 @@ public class Agents extends Agents_base implements Serializable {
 	for ( int i = 0; i < MASS.getRemoteNodes().size( ); i++ ) {
 		// create a message
 	    if ( type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT )
-		m = new Message( type, this.handle, functionId, argument );
+		m = new Message( type, this.getHandle(), functionId, argument );
 	    else {
 		// calculate argument position
 		int arg_pos = 0;
@@ -106,7 +110,7 @@ public class Agents extends Agents_base implements Serializable {
 				  partitioned_argument, 0,
 				  localAgents[i + 1] );
 
-		m = new Message( type, this.handle, functionId,
+		m = new Message( type, this.getHandle(), functionId,
 				 partitioned_argument );
 
 		if ( printOutput == true )
@@ -121,31 +125,33 @@ public class Agents extends Agents_base implements Serializable {
 				    " sent to " + i );
 
 		System.err.println( "Bag Size is: " + 
-				    MASS_base.agentsMap.
-				    get( new Integer(handle) ).
-				    agents.size_unreduced() );
+				    MASS_base.getAgentsMap().
+				    get( new Integer(getHandle()) ).
+				    getAgents().size_unreduced() );
 	    }
 	    
     }
 
-    Mthread.agentBagSize = MASS_base.agentsMap.
-		get( new Integer( handle ) ).agents.size_unreduced( );
+    Mthread.agentBagSize = MASS_base.getAgentsMap().
+		get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
 
 	//Check for correct behavior post-Agents_base implementation
 	// retrieve the corresponding agents
-	MASS_base.currentAgents = this;
-	MASS_base.currentFunctionId = functionId;
-	MASS_base.currentArgument = argument;
-	MASS_base.currentMsgType = type;
-	MASS_base.currentReturns = 
-	    ( type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT ) ?
-	    null :               // no return from callAll( )
-	    new Object[ total ]; // prepare an  entire return space
+	MASS_base.setCurrentAgents(this);
+	MASS_base.setCurrentFunctionId(functionId);
+	MASS_base.setCurrentArgument(argument);
+	MASS_base.setCurrentMsgType(type);
+	
+	if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
+		MASS_base.setCurrentReturns(null);
+	} else {
+		MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
+	}
 
 	// resume threads
 	if ( printOutput == true ) {
 	    MASS_base.log( "MASS_base.currentgAgents = " +
-			   MASS_base.currentAgents );
+			   MASS_base.getCurrentAgents() );
 	    MASS_base.log( "MASS_base.getCurrentgAgents = " +
 			   MASS_base.getCurrentAgents( ) );
 	}
@@ -161,14 +167,14 @@ public class Agents extends Agents_base implements Serializable {
 
 	// confirm all threads are done with agents.callAll
 	Mthread.barrierThreads( 0 );
-	localAgents[0] = localPopulation;
+	localAgents[0] = getLocalPopulation();
 
 	// Synchronized with all slave processes by main thread.
-	MASS.barrier_all_slaves( MASS_base.currentReturns, 0, 
+	MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), 0, 
 				 localAgents );
 
 	total = 0;
-	for ( int i = 0; i < MASS_base.systemSize; i++ ) {
+	for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
 	    total += localAgents[i];
 	    // for debugging
 	    if ( printOutput == true )
@@ -176,7 +182,7 @@ public class Agents extends Agents_base implements Serializable {
 				    "]'s local agent population = " +
 				    localAgents[i] );
 	}
-	return MASS_base.currentReturns;
+	return MASS_base.getCurrentReturns();
     }
 
     public void manageAll( ) {
@@ -191,20 +197,20 @@ public class Agents extends Agents_base implements Serializable {
 
 		// create a message
 	    m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, 
-			     this.handle, 0 );
+			     this.getHandle(), 0 );
 
 	    //send it
 	    node.sendMessage( m );
 
 	    // MThread Update
-	    Mthread.agentBagSize = MASS_base.agentsMap.
-		get( new Integer( handle ) ).agents.size_unreduced( );
+	    Mthread.agentBagSize = MASS_base.getAgentsMap().
+		get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
 	
 	}
 
 	// retrieve the corresponding agents
-	MASS_base.currentAgents = this;
-	MASS_base.currentMsgType = Message.ACTION_TYPE.AGENTS_MANAGE_ALL;
+	MASS_base.setCurrentAgents(this);
+	MASS_base.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
 
 	// resume threads
 	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_MANAGEALL );
@@ -217,10 +223,10 @@ public class Agents extends Agents_base implements Serializable {
 
 	// Synchronized with all slave processes
 	MASS.barrier_all_slaves( localAgents );
-	localAgents[0] = localPopulation;
+	localAgents[0] = getLocalPopulation();
 
 	total = 0;
-	for ( int i = 0; i < MASS_base.systemSize; i++ ) {
+	for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
 	    total += localAgents[i];
 	    // for debugging
 	    if ( printOutput == true )
@@ -232,11 +238,9 @@ public class Agents extends Agents_base implements Serializable {
     
     public int nAgents( ) {
 	int nAgents = 0;
-	for ( int i = 0; i < MASS_base.systemSize; i++ )
+	for ( int i = 0; i < MASS_base.getSystemSize(); i++ )
 	    nAgents += localAgents[i];
 	return nAgents;
     }
 
-    private int[] localAgents; // localAgents[i] = # agents in rank[i]
-    private int total;
 }

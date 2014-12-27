@@ -5,6 +5,22 @@ import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class Message implements Serializable {
+
+	private static final int VOID_HANDLE = -1;
+    private ACTION_TYPE action;
+    private int[] size;
+    private int handle;
+    private int dest_handle;
+    private int functionId;
+    private String classname;      // classname.class must be located in CWD.
+    private Object argument;
+    private Vector<String> hosts; // all hosts participated in computation
+    private Vector<int[]> destinations; // all destinations of exchangeAll
+    private int agent_population;
+    private int boundary_width;
+    private Vector<RemoteExchangeRequest> exchangeReqList = null;
+    private Vector<AgentMigrationRequest> migrationReqList = null;
+
     public enum ACTION_TYPE{ 
 	    EMPTY,                                    // 0             
 	    FINISH,                                   // 1             
@@ -263,18 +279,4 @@ public class Message implements Serializable {
     public Vector<AgentMigrationRequest> getMigrationReqList( )
     { return migrationReqList; }
     
-    private static final int VOID_HANDLE = -1;
-    private ACTION_TYPE action;
-    private int[] size;
-    private int handle;
-    private int dest_handle;
-    private int functionId;
-    private String classname;      // classname.class must be located in CWD.
-    private Object argument;
-    private Vector<String> hosts; // all hosts participated in computation
-    private Vector<int[]> destinations; // all destinations of exchangeAll
-    private int agent_population;
-    private int boundary_width;
-    private Vector<RemoteExchangeRequest> exchangeReqList = null;
-    private Vector<AgentMigrationRequest> migrationReqList = null;
 }

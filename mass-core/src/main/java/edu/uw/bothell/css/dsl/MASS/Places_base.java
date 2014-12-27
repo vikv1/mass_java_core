@@ -7,9 +7,33 @@ import java.net.URLClassLoader;
 import java.util.Vector;
 
 public class Places_base {
-    //Used to toggle comments from Places_base.java
+
+	//Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
     //private static final boolean printOutput = true;
+
+    private int total;
+    private int stripe;
+
+    private final int handle;
+    private final String className;
+    
+    private int lower_boundary;
+    private int upper_boundary;
+    private int places_size;
+    private int[] size;
+    private int shadow_size;
+    private int boundary_width;
+    
+    private static URLClassLoader placeLoader;
+    private Class<?> placeClass;
+    private Constructor<?> placeConstructor;
+    private Place[] places;
+    private Place[] left_shadow;
+    private Place[] right_shadow;
+
+    private static int[] placeInitIndex;
+    private static int[] placeInitSize;
 
     @SuppressWarnings("unused")
 	public Places_base( int handle, String className, int boundary_width,
@@ -50,7 +74,7 @@ public class Places_base {
 	// MASS_base.log( "CUR_DIR = " + MASS_base.CUR_DIR );
 	
 	// load the place construtor
-	File curDir   = new File( MASS.CUR_DIR );
+	File curDir   = new File( MASS.getWorkingDirectory() );
 	try {
 	    placeLoader =
 		URLClassLoader.
@@ -64,10 +88,10 @@ public class Places_base {
 	    total = 1;
 	    for ( int i = 0; i < size.length; i++ )
 		total *= size[i];
-	    stripe = total / MASS_base.systemSize;
+	    stripe = total / MASS_base.getSystemSize();
 	    
-	    lower_boundary = stripe * MASS_base.myPid;
-	    upper_boundary = (MASS_base.myPid < MASS_base.systemSize - 1) ?
+	    lower_boundary = stripe * MASS_base.getMyPid();
+	    upper_boundary = (MASS_base.getMyPid() < MASS_base.getSystemSize() - 1) ?
 		lower_boundary + stripe - 1 : total - 1;
 	    places_size = upper_boundary - lower_boundary + 1;
 	    
@@ -105,10 +129,10 @@ public class Places_base {
 	if ( printOutput == true )
 	    MASS_base.log( "Places_base.shadow_size = " + shadow_size );
 	
-	left_shadow = ( MASS_base.myPid == 0 ) ?
+	left_shadow = ( MASS_base.getMyPid() == 0 ) ?
 	    null : new Place[ shadow_size ];
 	right_shadow = 
-	    ( MASS_base.myPid == MASS_base.systemSize - 1 ) ?
+	    ( MASS_base.getMyPid() == MASS_base.getSystemSize() - 1 ) ?
 	    null : new Place[ shadow_size ];
 	
 	// initialize the left/right shadows
@@ -124,7 +148,7 @@ public class Places_base {
 					     + i );
 		    left_shadow[i] = 
 			( Place )placeConstructor.newInstance( argument );
-		    left_shadow[i].outMessage = null;
+		    left_shadow[i].setOutMessage(null);
 		}
 		
 		// right shadow initialization
@@ -135,7 +159,7 @@ public class Places_base {
 			getGlobalArrayIndex( upper_boundary + i );
 		    right_shadow[i] = 
 			( Place )placeConstructor.newInstance( argument );
-		    right_shadow[i].outMessage = null;
+		    right_shadow[i].setOutMessage(null);
 		}
 	    }
 	} catch ( Exception e ) { } 
@@ -198,7 +222,7 @@ public class Places_base {
 				    MASS_base.log( "thread[" + tid + "]: places[i] = " + 
 						   places[i] );
 		
-				MASS_base.currentReturns[i] = 
+				MASS_base.getCurrentReturns()[i] = 
 				    places[i].callMethod( functionId, arguments[i] );
 		    }
 		}
@@ -235,23 +259,23 @@ public class Places_base {
 				// for each place
 				Place srcPlace = places[i];
 				// Java version's inMessages are an array rather than a vector.
-				srcPlace.inMessages = new Object[srcPlace.neighbours.size( )];
+				srcPlace.setInMessages(new Object[srcPlace.getNeighbours().size( )]);
 				
 				// check its neighbors
-				for ( int j = 0; j < srcPlace.neighbours.size( ); j++ ) {
+				for ( int j = 0; j < srcPlace.getNeighbours().size( ); j++ ) {
 				    
 				    // for each neighbor
-				    int[] offset = srcPlace.neighbours.get(j);
+				    int[] offset = srcPlace.getNeighbours().get(j);
 				    int[] neighborCoord = new int[dstPlaces.size.length];
 				    
 				    // compute its coordinate
-				    getGlobalNeighborArrayIndex( srcPlace.index, offset, 
+				    getGlobalNeighborArrayIndex( srcPlace.getIndex(), offset, 
 								 dstPlaces.size,
 								 neighborCoord );
 				    if ( printOutput == true )
 					MASS_base.log( "tid[" + tid + "]: calls from"
-						       + "[" + srcPlace.index[0]
-						       + "][" + srcPlace.index[1] + "]"
+						       + "[" + srcPlace.getIndex()[0]
+						       + "][" + srcPlace.getIndex()[1] + "]"
 						       + " (neighborCord[" + neighborCoord[0]
 						       + "][" + neighborCoord[1] + "]"
 						       + " dstPlaces.size[" 
@@ -281,21 +305,21 @@ public class Places_base {
 							dstPlaces.places[destinationLocalLinearIndex];
 						    
 						    if ( printOutput == true )
-							MASS_base.log( " to [" + dstPlace.index[0] +
-								       "][" + dstPlace.index[1] + "]");
+							MASS_base.log( " to [" + dstPlace.getIndex()[0] +
+								       "][" + dstPlace.getIndex()[1] + "]");
 			
 						    // call the destination function
 						    Object inMessage =
 							dstPlace.callMethod( functionId, 
-									     srcPlace.outMessage );
+									     srcPlace.getOutMessage() );
 						    
 						    // store this inMessage: 
-						    srcPlace.inMessages[j] = inMessage;
+						    srcPlace.getInMessages()[j] = inMessage;
 						    
 						    // for debug
 						    if ( printOutput == true )
 							MASS_base.log( " inMessage = " +
-								       srcPlace.inMessages[j] );
+								       srcPlace.getInMessages()[j] );
 						} else {
 						    // remote destination
 						    
@@ -306,16 +330,16 @@ public class Places_base {
 						    // create a request
 						    int orgGlobalLinearIndex =
 							getGlobalLinearIndexFromGlobalArrayIndex( 
-									        srcPlace.index, size );
+									        srcPlace.getIndex(), size );
 						    RemoteExchangeRequest request = new
 							RemoteExchangeRequest( globalLinearIndex,
 									       orgGlobalLinearIndex,
 									       j, // inMsgIndex
-									       srcPlace.outMessage );
+									       srcPlace.getOutMessage() );
 						    
 						    // enqueue the request to this node.map
 						    Vector<RemoteExchangeRequest> remoteRequests = 
-							MASS_base.remoteRequests.get( destRank );
+							MASS_base.getRemoteRequests().get( destRank );
 						    synchronized( remoteRequests ) {
 							remoteRequests.add( request );
 							if ( printOutput == true )
@@ -351,12 +375,12 @@ public class Places_base {
 		    
 		    // args to threads: 
 		    // rank, srcHandle, dstHandle, functionId, lower_boundary
-		    int[][] comThrArgs = new int[MASS_base.systemSize][5];
+		    int[][] comThrArgs = new int[MASS_base.getSystemSize()][5];
 		    ProcessRemoteExchangeRequest[] thread_ref
-			= new ProcessRemoteExchangeRequest[MASS_base.systemSize]; 
-		    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
+			= new ProcessRemoteExchangeRequest[MASS_base.getSystemSize()]; 
+		    for ( int rank = 0; rank < MASS_base.getSystemSize(); rank++ ) {
 			
-			if ( rank == MASS_base.myPid ) // don't communicate with myself
+			if ( rank == MASS_base.getMyPid() ) // don't communicate with myself
 			    continue;
 			
 			// set arguments 
@@ -373,8 +397,8 @@ public class Places_base {
 		    }
 		    
 		    // wait for all the communication threads to be terminated
-		    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
-				if ( rank == MASS_base.myPid ) // don't communicate with myself
+		    for ( int rank = 0; rank < MASS_base.getSystemSize(); rank++ ) {
+				if ( rank == MASS_base.getMyPid() ) // don't communicate with myself
 				    continue;      
 				try {
 				    thread_ref[rank].join( );
@@ -413,7 +437,7 @@ public class Places_base {
 			       "]: starts processRemoteExchangeRequest" );
 	    
 	    // pick up the next rank to process
-	    orgRequest = MASS_base.remoteRequests.get(destRank);
+	    orgRequest = MASS_base.getRemoteRequests().get(destRank);
 	    
 	    // for debugging
 	    synchronized( orgRequest ) {
@@ -425,10 +449,10 @@ public class Places_base {
 		    for ( int i = 0; i < orgRequest.size( ); i++ )
 			MASS_base.log( "send from " +
 				       orgRequest.get(i).
-				       orgGlobalLinearIndex + " to " +
+				       getOrgGlobalLinearIndex() + " to " +
 				       orgRequest.get(i).
-				       destGlobalLinearIndex + " at " +
-				       orgRequest.get(i).inMessageIndex );
+				       getDestGlobalLinearIndex() + " at " +
+				       orgRequest.get(i).getInMessageIndex() );
 		}
 	    }
 	    
@@ -445,7 +469,7 @@ public class Places_base {
 	    
 	    // receive a message by myself
 	    Message messageFromSrc = 
-		MASS_base.exchange.receiveMessage( destRank );
+		MASS_base.getExchange().receiveMessage( destRank );
 	    
 	    // at this point, the message must be exchanged.
 	    try {
@@ -458,7 +482,7 @@ public class Places_base {
 	    
 	    int destHandle_at_dst = messageFromSrc.getDestHandle( );
 	    Places_base dstPlaces = 
-		MASS_base.placesMap.get( new Integer( destHandle_at_dst ) );
+		MASS_base.getPlacesMap().get( new Integer( destHandle_at_dst ) );
 	    
 	    if ( printOutput == true ) {
 		MASS_base.log( "request from rank[" + destRank + "] = " +
@@ -475,18 +499,18 @@ public class Places_base {
 		if ( printOutput == true )
 		    MASS_base.log( "received from " +
 				   receivedRequest.get(i).
-				   orgGlobalLinearIndex + " to " +
+				   getOrgGlobalLinearIndex() + " to " +
 				   receivedRequest.get(i).
-				   destGlobalLinearIndex + " at " +
-				   receivedRequest.get(i).inMessageIndex + 
+				   getDestGlobalLinearIndex() + " at " +
+				   receivedRequest.get(i).getInMessageIndex() + 
 				   " dstPlaces.lower = " + 
 				   dstPlaces.lower_boundary +
 				   " dstPlaces.upper = " + 
 				   dstPlaces.upper_boundary );
 
 		int globalLinearIndex = 
-		    receivedRequest.get(i).destGlobalLinearIndex;
-		Object outMessage = receivedRequest.get(i).outMessage;
+		    receivedRequest.get(i).getDestGlobalLinearIndex();
+		Object outMessage = receivedRequest.get(i).getOutMessage();
 		
 		if ( globalLinearIndex >= dstPlaces.lower_boundary &&
 		     globalLinearIndex <= dstPlaces.upper_boundary ) {
@@ -516,7 +540,7 @@ public class Places_base {
 	    
 	    // receive return values by myself in parallel
 	    Message messageFromDest 
-		= MASS_base.exchange.receiveMessage( destRank );
+		= MASS_base.getExchange().receiveMessage( destRank );
 	    
 	    // at this point, the message must be exchanged.
 	    try {
@@ -529,26 +553,26 @@ public class Places_base {
 	    for ( int i = 0; i < orgRequest.size( ); i++ ) {
 		// local source
 		int orgLocalLinearIndex
-		    = orgRequest.get(i).orgGlobalLinearIndex - 
+		    = orgRequest.get(i).getOrgGlobalLinearIndex() - 
 		    my_lower_boundary;
 		
 		// locate a local place
 		Places_base srcPlaces 
-		    = MASS_base.placesMap.get( new Integer( srcHandle ) );
+		    = MASS_base.getPlacesMap().get( new Integer( srcHandle ) );
 		Place srcPlace = srcPlaces.places[orgLocalLinearIndex];
 		
 		// store a return value to it
 		Object inMessage = argument[i];
 		
 		// insert an item at inMessageIndex or just append it.
-		srcPlace.inMessages[orgRequest.get(i).inMessageIndex]
+		srcPlace.getInMessages()[orgRequest.get(i).getInMessageIndex()]
 		    = inMessage;
 		
 		if ( printOutput == true )
-		    MASS_base.log( "srcPlace[" + srcPlace.index[0]+ "][" 
-				   + srcPlace.index[1] + "] inserted " 
+		    MASS_base.log( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
+				   + srcPlace.getIndex()[1] + "] inserted " 
 				   + "at " 
-				   + orgRequest.get(i).inMessageIndex );
+				   + orgRequest.get(i).getInMessageIndex() );
 	    }
 	}
     }
@@ -561,7 +585,7 @@ public class Places_base {
 	    this.message = message;
 	}
 	public void run( ) {
-	    MASS_base.exchange.sendMessage( rank, message );
+	    MASS_base.getExchange().sendMessage( rank, message );
 	}
     }
     
@@ -581,7 +605,7 @@ public class Places_base {
 	}
 	
 	int[][] param = new int[2][4];
-	if ( MASS_base.myPid < MASS_base.systemSize - 1 ) {
+	if ( MASS_base.getMyPid() < MASS_base.getSystemSize() - 1 ) {
 	    // create a child in charge of handling the right shadow.
 	    param[0][0] = 'R';
 	    param[0][1] = handle;
@@ -596,7 +620,7 @@ public class Places_base {
 	    thread_ref.start( );
 	}
 	
-	if ( MASS_base.myPid > 0 ) {
+	if ( MASS_base.getMyPid() > 0 ) {
 	    // the main takes charge of handling the left shadow.
 	    param[1][0] = 'L';
 	    param[1][1] = handle;    
@@ -654,7 +678,7 @@ public class Places_base {
 
 	    // copy all the outMessages into the buffer
 	    for ( int i = 0; i < shadow_size; i++ )
-		buffer[i] = places[startIndex + i].outMessage;
+		buffer[i] = places[startIndex + i].getOutMessage();
 	    
 	    if ( printOutput == true ) {
 		MASS_base.log( "Places_base.exchangeBoundary_helper direction"+
@@ -673,7 +697,7 @@ public class Places_base {
 	    
 	    // compose a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message
 	    int destRank = ( direction == 'L' ) ? 
-		MASS_base.myPid - 1 : MASS_base.myPid + 1;
+		MASS_base.getMyPid() - 1 : MASS_base.getMyPid() + 1;
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "Places_base.exchangeBoundary_helper direction"+
@@ -688,7 +712,7 @@ public class Places_base {
 	    // receive a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message from 
 	    // my neighbor
 	    Message messageFromDest 
-		= MASS_base.exchange.receiveMessage( destRank );
+		= MASS_base.getExchange().receiveMessage( destRank );
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "Places_base.exchangeBoundary_helper direction"+
@@ -716,12 +740,12 @@ public class Places_base {
 	    
 	    // copy the buffer contents into the corresponding shadow
 	    for ( int i = 0; i < shadow_size; i++ ) {
-		shadow[i].outMessage = buffer[i];
+		shadow[i].setOutMessage(buffer[i]);
 		if ( printOutput == true ) 
 		    MASS_base.log( "Places_base.exchangeBoundary_helper " +
 				   "direction = " + direction +
 				   ", shadow[" + i + "].outMessage = " +
-				   shadow[i].outMessage +
+				   shadow[i].getOutMessage() +
 				   ", buffer = " + buffer[i] );
 	    }  
 	}
@@ -770,22 +794,22 @@ public class Places_base {
 	    total = 1;
 	    for ( int i = 0; i < size.length; i++ )
 		total *= size[i];
-	    stripe = total / MASS_base.systemSize;
+	    stripe = total / MASS_base.getSystemSize();
 	}
 	
 	int rank, scope;
-	for ( rank = 0, scope = stripe ; rank < MASS_base.systemSize; 
+	for ( rank = 0, scope = stripe ; rank < MASS_base.getSystemSize(); 
 	      rank++, scope += stripe ) {
 	    if ( globalLinearIndex < scope )
 		break;
 	}
 	
-	return ( rank == MASS_base.systemSize ) ? rank - 1 : rank;
+	return ( rank == MASS_base.getSystemSize() ) ? rank - 1 : rank;
     }
 
 
     private void getLocalRange( int[] range, int tid ) {
-	int nThreads = MASS_base.threads.length;
+	int nThreads = MASS_base.getThreads().length;
 	int portion = places_size / nThreads; // per-thread allocated  range
 	int remainder = places_size % nThreads;
 
@@ -827,26 +851,44 @@ public class Places_base {
 	return places_size;
     }
 
-    private int total;
-    private int stripe;
+	public Place[] getPlaces() {
+		return places;
+	}
 
-    protected final int handle;
-    protected final String className;
-    
-    protected int lower_boundary;
-    protected int upper_boundary;
-    protected int places_size;
-    protected int[] size;
-    protected int shadow_size;
-    protected int boundary_width;
-    
-    private static URLClassLoader placeLoader;
-    private Class<?> placeClass;
-    private Constructor<?> placeConstructor;
-    protected Place[] places;
-    protected Place[] left_shadow;
-    protected Place[] right_shadow;
+	public int[] getSize() {
+		return size;
+	}
 
-    public static int[] placeInitIndex;
-    public static int[] placeInitSize;
+	public int getLowerBoundary() {
+		return lower_boundary;
+	}
+
+	public int getUpperBoundary() {
+		return upper_boundary;
+	}
+
+	public int getShadowSize() {
+		return shadow_size;
+	}
+
+	public Place[] getLeftShadow() {
+		return left_shadow;
+	}
+
+	public Place[] getRightShadow() {
+		return right_shadow;
+	}
+
+	public static int[] getPlaceInitIndex() {
+		return placeInitIndex;
+	}
+
+	public static int[] getPlaceInitSize() {
+		return placeInitSize;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
 }

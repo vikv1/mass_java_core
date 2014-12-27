@@ -5,9 +5,16 @@ import java.net.*;
 import java.io.*;
 
 public class ExchangeHelper {
-    //Used to toggle output for ExchangeHelper
+
+	//Used to toggle output for ExchangeHelper
     private static final boolean printOutput = false;
     // private static final boolean printOutput = true;  
+
+    @SuppressWarnings("unused")
+	private static Socket socket;
+    private static Socket[] sockets;
+    private static InputStream[] inputs;
+    private static OutputStream[] outputs;
 
     @SuppressWarnings({ "unused", "static-access" })
 	public void establishConnection( int size, int rank,
@@ -192,9 +199,4 @@ public class ExchangeHelper {
 	}
     }
 
-    @SuppressWarnings("unused")
-	private static Socket socket;
-    private static Socket[] sockets;
-    private static InputStream[] inputs;
-    private static OutputStream[] outputs;
 }

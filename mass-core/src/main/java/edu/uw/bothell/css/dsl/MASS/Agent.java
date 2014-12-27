@@ -4,7 +4,25 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
-    public Object callMethod( int functionId, Object argument ) {
+    
+    @SuppressWarnings("unused")
+	private final int agentsHandle;
+    
+    @SuppressWarnings("unused")
+	private final int placesHandle;
+    
+    private final int agentId;
+    
+    @SuppressWarnings("unused")
+	private final int parentId;
+    
+    private Place place = null;
+    private int[] index = null;
+    private boolean alive = true;
+    private int newChildren = 0;
+    private Object[] arguments = null;
+
+	public Object callMethod( int functionId, Object argument ) {
 	return null;
     }
 
@@ -37,7 +55,7 @@ public class Agent implements Serializable {
 
     //Set index for an Agent to migrate to
     protected boolean migrate( int... index ) { 
-	int[] placesSize = place.size;
+	int[] placesSize = place.getSize();
 	for ( int i = 0; i < placesSize.length; i++ ) {
 	    if ( index[i] >= 0 && index[i] < placesSize[i] )
 		continue;
@@ -57,20 +75,46 @@ public class Agent implements Serializable {
 	}
     }
 
-    protected final int agentsHandle;
-    protected final int placesHandle;
-    protected final int agentId;
-    protected final int parentId;
-    protected Place place = null;
-    protected int[] index = null;
-    protected boolean alive = true;
-    protected int newChildren = 0;
-    protected Object[] arguments = null;
-
     public Agent ( ) {
-	agentsHandle = Agents.agentInitAgentsHandle;
-	placesHandle = Agents.agentInitPlacesHandle;
-	agentId = Agents.agentInitAgentId;
-	parentId = Agents.agentInitParentId;
+	agentsHandle = Agents.getAgentInitAgentsHandle();
+	placesHandle = Agents.getAgentInitPlacesHandle();
+	agentId = Agents.getAgentInitAgentId();
+	parentId = Agents.getAgentInitParentId();
     }
+
+	public Place getPlace() {
+		return place;
+	}
+
+	public void setPlace(Place place) {
+		this.place = place;
+	}
+
+	public int[] getIndex() {
+		return index;
+	}
+
+	public void setIndex(int[] index) {
+		this.index = index;
+	}
+
+	public int getAgentId() {
+		return agentId;
+	}
+
+	public int getNewChildren() {
+		return newChildren;
+	}
+
+	public void setNewChildren(int newChildren) {
+		this.newChildren = newChildren;
+	}
+
+	public Object[] getArguments() {
+		return arguments;
+	}
+
+	public boolean isAlive() {
+		return alive;
+	}
 }

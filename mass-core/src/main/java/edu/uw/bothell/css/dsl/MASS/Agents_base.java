@@ -1,17 +1,38 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import java.lang.reflect.*;
+import java.io.File;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class Agents_base implements Serializable {
-    //Used to toggle comments from Places_base.java
+
+	//Used to toggle comments from Places_base.java
     private static final boolean printOutput = false;
     //private static final boolean printOutput = true;
 
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
+
+    private final int handle;
+    private final String className;
+    private final int placesHandle;
+
+    private int initPopulation;
+    private int localPopulation;
+    private int currentAgentId;
+    private AgentList agents;
+
+    private static URLClassLoader agentLoader;
+    private Class<?> agentClass;
+    private Constructor<?> agentConstructor;
+
+    private static int agentInitAgentsHandle;
+    private static int agentInitPlacesHandle;
+    private static int agentInitAgentId;
+    private static int agentInitParentId;
 
     @SuppressWarnings("unused")
 	public Agents_base( int handle, String className, Object argument,
@@ -32,7 +53,7 @@ public class Agents_base implements Serializable {
 	
 	// load the construtor and destructor
 	try {
-	    File curDir = new File( MASS.CUR_DIR );
+	    File curDir = new File( MASS.getWorkingDirectory() );
 	    agentLoader =
 		URLClassLoader.
 		newInstance( new URL[] { curDir.toURI().toURL( ) } );
@@ -47,7 +68,7 @@ public class Agents_base implements Serializable {
 	}
 
 	// initialize currentAgentId and localPopulation
-	currentAgentId = MASS_base.myPid * MAX_AGENTS_PER_NODE;
+	currentAgentId = MASS_base.getMyPid() * MAX_AGENTS_PER_NODE;
 	localPopulation = 0;
 	
 	// instantiate just one agent to call its map( ) function
@@ -65,7 +86,7 @@ public class Agents_base implements Serializable {
 	
 	// retrieve the corresponding places
 	Places_base curPlaces = 
-	    MASS_base.placesMap.get( new Integer( placesHandle ) );
+	    MASS_base.getPlacesMap().get( new Integer( placesHandle ) );
 	
 	if ( printOutput == true )
 	    MASS_base.log( "Agets_base constructor: placesDillClass = "
@@ -74,14 +95,14 @@ public class Agents_base implements Serializable {
 	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
 	    
 	    // scan each place to see how many agents it can create
-	    Place curPlace = curPlaces.places[i];
+	    Place curPlace = curPlaces.getPlaces()[i];
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "Agent_base constructor place[" + i + "]" );
 	    // create as many new agents as nColonists
 	    for ( int nColonists =
-		      protoAgent.map( initPopulation, curPlace.size, 
-				      curPlace.index, curPlace );
+		      protoAgent.map( initPopulation, curPlace.getSize(), 
+				      curPlace.getIndex(), curPlace );
 		  nColonists > 0; nColonists--, localPopulation++ ) {
 		
 		// agent instanstantiation and initialization
@@ -101,14 +122,14 @@ public class Agents_base implements Serializable {
 		    MASS_base.log( " newAgent[" + localPopulation + "] = " + 
 				   (Object)newAgent );
 
-		newAgent.place = curPlace;
-		newAgent.index = curPlace.index;
+		newAgent.setPlace(curPlace);
+		newAgent.setIndex(curPlace.getIndex());
 		
 		// store this agent in the bag of agents
 		agents.add( newAgent );
 		
 		// register newAgent into curPlace
-		curPlace.agents.add( newAgent );
+		curPlace.getAgents().add( newAgent );
 	    }
 	}
     }
@@ -175,7 +196,7 @@ public class Agents_base implements Serializable {
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "Agents_base:callAll: agents.size = " +
-			       MASS_base.agentsMap.get( new Integer(handle) ).
+			       MASS_base.getAgentsMap().get( new Integer(handle) ).
 			       agents.size_unreduced( ) + "\n" +
 			       "Agents_base:callAll: agentsBagSize = " +
 			       Mthread.agentBagSize );
@@ -218,10 +239,10 @@ public class Agents_base implements Serializable {
 		if ( printOutput == true )
 		    MASS_base.log( "Thread[" + tid + "]: agent("+ myIndex + 
 				   "): MASS_base::currentReturns  = " + 
-				   MASS_base.currentReturns );
+				   MASS_base.getCurrentReturns() );
 		
 		//Use the Agents' callMethod to have it begin running
-		( (Object[])MASS_base.currentReturns )[myIndex - 1] =
+		( (Object[])MASS_base.getCurrentReturns() )[myIndex - 1] =
 		    tmpAgent.callMethod( functionId, 
 					 argument[ myIndex - 1 ] );
 		
@@ -244,7 +265,7 @@ public class Agents_base implements Serializable {
 	    
 	    if ( printOutput == true ) 
 		MASS_base.log( "Agents_base:callAll: agents.size = " + 
-			       MASS_base.agentsMap.get( new Integer(handle) ).
+			       MASS_base.getAgentsMap().get( new Integer(handle) ).
 			       agents.size_unreduced( ) + "\n" +
 			       "Agents_base:callAll: agentsBagSize = " + 
 			       Mthread.agentBagSize );
@@ -258,7 +279,7 @@ public class Agents_base implements Serializable {
 	// for agent instantiation, and our bag for Agent objects after they 
 	// have finished processing
 	Places_base evaluatedPlaces 
-	    = MASS_base.placesMap.get( new Integer( placesHandle ) );
+	    = MASS_base.getPlacesMap().get( new Integer( placesHandle ) );
 	
 	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
 	// agents  sequentially.
@@ -277,7 +298,7 @@ public class Agents_base implements Serializable {
 		if ( printOutput == true ) 
 		    MASS_base.log( "Agents_base.manageALL: Thread " + tid + 
 				   " picked up " 
-				   + evaluationAgent.agentId );
+				   + evaluationAgent.getAgentId() );
 		
 	    }
 	    int argumentcounter = 0;
@@ -287,19 +308,19 @@ public class Agents_base implements Serializable {
 	    // current location.
 
 	    // Spawn() Check
-	    int childrenCounter = evaluationAgent.newChildren;
+	    int childrenCounter = evaluationAgent.getNewChildren();
 	    
 	    if ( printOutput == true ) 
-		MASS_base.log( "agent " + evaluationAgent.agentId +
+		MASS_base.log( "agent " + evaluationAgent.getAgentId() +
 			       "'s childrenCounter = " + childrenCounter );
 	    
 	    while ( childrenCounter > 0 ) {
 		if ( printOutput == true )
 		    MASS_base.log( "Agent_base.manageALL: Thread " + tid +
 				   " will spawn a child of agent " + 
-				   evaluationAgent.agentId +
+				   evaluationAgent.getAgentId() +
 				   "...arguments.size( ) = " +
-				   evaluationAgent.arguments.length +
+				   evaluationAgent.getArguments().length +
 				   ", argumentcounter = " + argumentcounter );
 		
 		Agent addAgent = null;
@@ -307,25 +328,25 @@ public class Agents_base implements Serializable {
 		try {
 		    agentInitAgentsHandle = this.handle;
 		    agentInitPlacesHandle = this.placesHandle;
-		    agentInitParentId = evaluationAgent.agentId;
+		    agentInitParentId = evaluationAgent.getAgentId();
 		    synchronized( this ) {
 		        agentInitAgentId = this.currentAgentId++;
 		        addAgent =
 			    // validate the correspondance of arguments and
 			    // argumentcounter
-			    ( evaluationAgent.arguments.length >
+			    ( evaluationAgent.getArguments().length >
 			    argumentcounter ) ?
 				// yes: this child agent should recieve an argument.
 				( Agent )agentConstructor.
 				newInstance( evaluationAgent.
-				arguments[argumentcounter++] )
+				getArguments()[argumentcounter++] )
 				:
 				// no:  this child agent should not receive an arg.
 				( Agent )agentConstructor.
 				newInstance( dummyArgument );
 		    }
-		    addAgent.index = evaluationAgent.index;
-		    addAgent.place = evaluationAgent.place;
+		    addAgent.setIndex(evaluationAgent.getIndex());
+		    addAgent.setPlace(evaluationAgent.getPlace());
 		} catch ( Exception e ) {
 		    MASS_base.log( "Agents_base.manageAll: " + this.className
 				   + " not instantiated " + e );
@@ -334,35 +355,35 @@ public class Agents_base implements Serializable {
 		// Push the created agent into our bag for returns and 
 		// update the counter needed to keep track of our agents.
 		
-		addAgent.place.agents.add( addAgent ); // auto sync
+		addAgent.getPlace().getAgents().add( addAgent ); // auto sync
 		this.agents.add( addAgent );           // auto syn
 		
 		// Decrement the newChildren counter once an Agent has been 
 		// spawned
-		evaluationAgent.newChildren--;
+		evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
 		childrenCounter--;
 		
 		if ( printOutput == true )
 		    MASS_base.log( "Agent_base.manageALL: Thread " + tid +
 				   " spawned a child of agent " + 
-				   evaluationAgent.agentId +
-				   " and put the child " + addAgent.agentId +
+				   evaluationAgent.getAgentId() +
+				   " and put the child " + addAgent.getAgentId() +
 				   " child into retBag." );
 	    }
 	    
 	    // Kill() Check
 	    if ( printOutput == true )
 		MASS_base.log( "Agent_base.manageALL: Thread " + tid +
-			       " check " + evaluationAgent.agentId + 
-			       "'s alive = " + evaluationAgent.alive );
+			       " check " + evaluationAgent.getAgentId() + 
+			       "'s alive = " + evaluationAgent.isAlive() );
 
-	    if ( evaluationAgent.alive == false ) {
+	    if ( evaluationAgent.isAlive() == false ) {
 		
 		// Get the place in which evaluationAgent is 'stored' in
-		Place evaluationPlace = evaluationAgent.place;
+		Place evaluationPlace = evaluationAgent.getPlace();
 		
                 // remove the agent from this place
-		evaluationPlace.agents.remove( evaluationAgent );
+		evaluationPlace.getAgents().remove( evaluationAgent );
 
 		// remove from AgentList, too!
 		agents.remove( myIndex - 1 );
@@ -375,18 +396,18 @@ public class Agents_base implements Serializable {
 	    
 	    //Iterate over all dimensions of the agent to check its location
 	    //against that of its place. If they are the same, return back.
-	    int agentIndex = evaluationAgent.index.length;
+	    int agentIndex = evaluationAgent.getIndex().length;
 	    int[] destCoord = new int[agentIndex];
 	    
 	    // compute its coordinate
-	    getGlobalAgentArrayIndex( evaluationAgent.index, 
-				      evaluatedPlaces.size, destCoord );
+	    getGlobalAgentArrayIndex( evaluationAgent.getIndex(), 
+				      evaluatedPlaces.getSize(), destCoord );
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
 			       "tid[" + tid + "]: calls from" +
-			       "[" + evaluationAgent.index[0] +
-			       "][" + evaluationAgent.index[1] + "]" +
+			       "[" + evaluationAgent.getIndex()[0] +
+			       "][" + evaluationAgent.getIndex()[1] + "]" +
 			       " (destCoord[" + destCoord[0] +
 			       "][" + destCoord[1] + "]" );
 	    
@@ -396,27 +417,27 @@ public class Agents_base implements Serializable {
 		    evaluatedPlaces.
 		    getGlobalLinearIndexFromGlobalArrayIndex( destCoord,
 							      evaluatedPlaces.
-							      size );
+							      getSize() );
 
 		if ( printOutput == true )
 		    MASS_base.log( " linear = " + globalLinearIndex +
-				   " lower = " + evaluatedPlaces.lower_boundary
+				   " lower = " + evaluatedPlaces.getLowerBoundary()
 				   + " upper = " + 
-				   evaluatedPlaces.upper_boundary + ")" );
+				   evaluatedPlaces.getUpperBoundary() + ")" );
 		
 
-		if ( globalLinearIndex >= evaluatedPlaces.lower_boundary &&
-		     globalLinearIndex <= evaluatedPlaces.upper_boundary ) {
+		if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
+		     globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
 		    // local destination
 		    
 		    // Should remove the pointer object in the place that 
 		    // points to the migrting Agent
-		    Place oldPlace = evaluationAgent.place;
-		    if ( oldPlace.agents.remove( evaluationAgent ) == false ) {
+		    Place oldPlace = evaluationAgent.getPlace();
+		    if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
 			// should not happen
 			if ( printOutput == true ) 
 			    MASS_base.log( "evaluationAgent " + 
-					   evaluationAgent.agentId 
+					   evaluationAgent.getAgentId() 
 					   + " couldn't been found in " +
 					   "the old place!" );
 			System.exit( -1 );
@@ -424,36 +445,35 @@ public class Agents_base implements Serializable {
 
 		    if ( printOutput == true )
 			MASS_base.log( "evaluationAgent " + 
-				       evaluationAgent.agentId 
+				       evaluationAgent.getAgentId() 
 				       + " was removed from the oldPlace["
-				       + oldPlace.index[0] + "]["
-				       + oldPlace.index[1] + "]" );
+				       + oldPlace.getIndex()[0] + "]["
+				       + oldPlace.getIndex()[1] + "]" );
 		    
 		    // insert the migration Agent to a local destination place
 		    int destinationLocalLinearIndex 
-			= globalLinearIndex - evaluatedPlaces.lower_boundary;
+			= globalLinearIndex - evaluatedPlaces.getLowerBoundary();
 		    
 		    if ( printOutput == true )
 			MASS_base.log( "destinationLocalLinerIndex = " 
 				       + destinationLocalLinearIndex );
 
-		    evaluationAgent.place
-			= MASS_base.placesMap.
+		    evaluationAgent.setPlace(MASS_base.getPlacesMap().
 			get( new Integer( placesHandle ) ).
-			places[destinationLocalLinearIndex];
+			getPlaces()[destinationLocalLinearIndex]);
 		    
 		    if ( printOutput == true )
 			MASS_base.log( "evaluationAgent.place = " 
-				       + evaluationAgent.place );
+				       + evaluationAgent.getPlace() );
 		    
-		    evaluationAgent.place.agents.add( evaluationAgent );
+		    evaluationAgent.getPlace().getAgents().add( evaluationAgent );
 		    
 		    if ( printOutput == true ) 
 			MASS_base.log( "evaluationAgent " + 
-				       evaluationAgent.agentId +
+				       evaluationAgent.getAgentId() +
 				       " was inserted into the destPlace[" +
-				       evaluationAgent.place.index[0] + "][" +
-				       evaluationAgent.place.index[1] + "]" );
+				       evaluationAgent.getPlace().getIndex()[0] + "][" +
+				       evaluationAgent.getPlace().getIndex()[1] + "]" );
 		} 
 		else {
 		    // remote destination
@@ -467,7 +487,7 @@ public class Agents_base implements Serializable {
 			getRankFromGlobalLinearIndex( globalLinearIndex );
 
 		    // relinquish the old place
-		    evaluationAgent.place = null;
+		    evaluationAgent.setPlace(null);
 		    
 		    // create a request
 		    AgentMigrationRequest request 
@@ -480,7 +500,7 @@ public class Agents_base implements Serializable {
 		    
 		    // enqueue the request to this node.map
 		    Vector<AgentMigrationRequest> migrationReqList 
-			= MASS_base.migrationRequests.get( destRank );
+			= MASS_base.getMigrationRequests().get( destRank );
 
 		    synchronized( migrationReqList ) {
 			migrationReqList.add( request );
@@ -516,21 +536,21 @@ public class Agents_base implements Serializable {
 	    // number of remote computing nodes and let each invoke 
 	    // processAgentMigrationReq. 
 	    // args to threads: rank, agentHandle, placeHandle, lower_boundary
-	    int[][] comThrArgs = new int[MASS_base.systemSize][4];
+	    int[][] comThrArgs = new int[MASS_base.getSystemSize()][4];
 
 	    // communication thread id
 	    ProcessAgentMigrationRequest[] thread_ref
-		= new ProcessAgentMigrationRequest[MASS_base.systemSize]; 
-	    for ( int rank = 0; rank < MASS_base.systemSize; rank++ ) {
+		= new ProcessAgentMigrationRequest[MASS_base.getSystemSize()]; 
+	    for ( int rank = 0; rank < MASS_base.getSystemSize(); rank++ ) {
 		
-		if ( rank == MASS_base.myPid ) // don't communicate with myself
+		if ( rank == MASS_base.getMyPid() ) // don't communicate with myself
 		    continue;
 		
 		// set arguments 
 		comThrArgs[rank][0] = rank;
 		comThrArgs[rank][1] = handle; // agents' handle
-		comThrArgs[rank][2] = evaluatedPlaces.handle;
-		comThrArgs[rank][3] = evaluatedPlaces.lower_boundary;
+		comThrArgs[rank][2] = evaluatedPlaces.getHandle();
+		comThrArgs[rank][3] = evaluatedPlaces.getLowerBoundary();
 		
 		// start a communication thread
 		thread_ref[rank] 
@@ -544,15 +564,15 @@ public class Agents_base implements Serializable {
 	    }
 	    
 	    // wait for all the communication threads to be terminated
-	    for ( int rank = MASS_base.systemSize - 1; rank >= 0; rank-- ) {
+	    for ( int rank = MASS_base.getSystemSize() - 1; rank >= 0; rank-- ) {
 		
 		if ( printOutput == true )
 		    MASS_base.log( "Agents_base.manageAll will join " +
 				   "processAgentMigrationRequest A thread["
 				   + rank + "] = " + thread_ref[rank] + 
-				   " myPid = " + MASS_base.myPid );
+				   " myPid = " + MASS_base.getMyPid() );
 
-		if ( rank == MASS_base.myPid ) // don't communicate with myself
+		if ( rank == MASS_base.getMyPid() ) // don't communicate with myself
 		    continue;      
 		
 		if ( printOutput == true )
@@ -607,7 +627,7 @@ public class Agents_base implements Serializable {
 			       "]: starts processAgentMigrationRequest" );
 	
 	    // pick up the next rank to process
-	    orgRequest = MASS_base.migrationRequests.get( destRank );
+	    orgRequest = MASS_base.getMigrationRequests().get( destRank );
 	
 	    // for debugging
 	    if ( printOutput == true ) {
@@ -642,7 +662,7 @@ public class Agents_base implements Serializable {
 	
 	    // receive a message by myself
 	    Message messageFromSrc = 
-		MASS_base.exchange.receiveMessage( destRank );
+		MASS_base.getExchange().receiveMessage( destRank );
 	
 	    // at this point, the message must be exchanged.
 	    try {
@@ -662,7 +682,7 @@ public class Agents_base implements Serializable {
 	    
 	    int agentsHandle = messageFromSrc.getHandle( );
 	    int placesHandle = messageFromSrc.getDestHandle( );
-	    Places_base dstPlaces = MASS_base.placesMap.
+	    Places_base dstPlaces = MASS_base.getPlacesMap().
 		get( new Integer( placesHandle ) );
 	
 	    if ( printOutput == true )
@@ -680,18 +700,18 @@ public class Agents_base implements Serializable {
 		
 		// local destination
 		int destinationLocalLinearIndex 
-		    = globalLinearIndex - dstPlaces.lower_boundary;
+		    = globalLinearIndex - dstPlaces.getLowerBoundary();
 		
 		if ( printOutput == true )
 		    MASS_base.log( " dstLocal = " + 
 				   destinationLocalLinearIndex );
 		
 		Place dstPlace = 
-		    dstPlaces.places[destinationLocalLinearIndex];
+		    dstPlaces.getPlaces()[destinationLocalLinearIndex];
 		
 		// push this agent into the place and the entire agent bag.
-		agent.place = dstPlace;
-		dstPlace.agents.add( agent ); // auto sync
+		agent.setPlace(dstPlace);
+		dstPlace.getAgents().add( agent ); // auto sync
 		agents.add( agent );          // auto sync
 	    }
 	    
@@ -717,7 +737,7 @@ public class Agents_base implements Serializable {
 		MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
 			       "] sendMessageByChild to " + rank + " starts" );
 	    
-	    MASS_base.exchange.sendMessage( rank, message );
+	    MASS_base.getExchange().sendMessage( rank, message );
 	    
 	    if ( printOutput == true )
 		MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
@@ -755,21 +775,44 @@ public class Agents_base implements Serializable {
 	return null;
     }
 
-    protected final int handle;
-    protected final String className;
-    protected final int placesHandle;
+	public static int getAgentInitAgentsHandle() {
+		return agentInitAgentsHandle;
+	}
 
-    protected int initPopulation;
-    protected int localPopulation;
-    protected int currentAgentId;
-    protected AgentList agents;
+	public static int getAgentInitPlacesHandle() {
+		return agentInitPlacesHandle;
+	}
 
-    private static URLClassLoader agentLoader;
-    private Class<?> agentClass;
-    private Constructor<?> agentConstructor;
+	public static int getAgentInitParentId() {
+		return agentInitParentId;
+	}
 
-    public static int agentInitAgentsHandle;
-    public static int agentInitPlacesHandle;
-    public static int agentInitAgentId;
-    public static int agentInitParentId;
+	public static int getAgentInitAgentId() {
+		return agentInitAgentId;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public int getInitPopulation() {
+		return initPopulation;
+	}
+
+	public int getHandle() {
+		return handle;
+	}
+
+	public int getPlacesHandle() {
+		return placesHandle;
+	}
+
+	public int getLocalPopulation() {
+		return localPopulation;
+	}
+
+	public AgentList getAgents() {
+		return agents;
+	}
+
 }

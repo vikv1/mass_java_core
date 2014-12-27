@@ -178,7 +178,7 @@ public class Mthread extends Thread {
 
     public static void barrierThreads( int tid ) {
 	synchronized( lock ) {
-	    if ( ++barrier_count < MASS_base.threads.length ) {
+	    if ( ++barrier_count < MASS_base.getThreads().length ) {
 		if( printOutput )
 		    MASS_base.log( "tid[" + tid + 
 				   "] waiting: barrier = " + barrier_phases );

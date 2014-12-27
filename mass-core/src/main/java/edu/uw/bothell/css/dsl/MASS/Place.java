@@ -6,7 +6,14 @@ import java.util.Set;         // local Agent bag
 import java.util.Vector;
 
 public class Place {
-	
+
+	private final int[] size;
+    private final int[] index;
+    private Object outMessage = null;
+    private Object[] inMessages = null;
+    private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+    private Vector< int[] > neighbours = null;
+
     public Object callMethod( int functionId, Object argument ) {
     	return null;
     }
@@ -32,47 +39,73 @@ public class Place {
     private Place findDstPlace( int handle, int offset[] ) {
     	
 		// compute the global linear index from offset[]
-		Places_base places = MASS_base.placesMap.get( new Integer( handle ) );
-		int[] neighborCoord = new int[places.size.length];
-		places.getGlobalNeighborArrayIndex( index, offset, places.size,
+		Places_base places = MASS_base.getPlacesMap().get( new Integer( handle ) );
+		int[] neighborCoord = new int[places.getSize().length];
+		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
 						    neighborCoord );
 		int globalLinearIndex
 		    = places.getGlobalLinearIndexFromGlobalArrayIndex( neighborCoord,
-								       places.size );
+								       places.getSize() );
 	
 		if ( globalLinearIndex == Integer.MIN_VALUE )
 		    return null;
 	
 		// identify the destination place  
 		int destinationLocalLinearIndex
-		    = globalLinearIndex - places.lower_boundary;
+		    = globalLinearIndex - places.getLowerBoundary();
 		
 		Place dstPlace = null;
 		int shadow_index;
 		if ( destinationLocalLinearIndex >= 0 &&
-			destinationLocalLinearIndex < places.places_size )
-		    dstPlace = places.places[ destinationLocalLinearIndex ];
+			destinationLocalLinearIndex < places.getPlacesSize() )
+		    dstPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
 			  ( shadow_index = destinationLocalLinearIndex + 
-			    places.shadow_size ) >= 0 )
-		    dstPlace = places.left_shadow[ shadow_index ];
+			    places.getShadowSize() ) >= 0 )
+		    dstPlace = places.getLeftShadow()[ shadow_index ];
 		else if ( (shadow_index = 
-			   destinationLocalLinearIndex - places.places_size) >= 0
-			  && shadow_index < places.shadow_size )
-		    dstPlace = places.right_shadow[ shadow_index ];
+			   destinationLocalLinearIndex - places.getPlacesSize()) >= 0
+			  && shadow_index < places.getShadowSize() )
+		    dstPlace = places.getRightShadow()[ shadow_index ];
 		
 		return dstPlace;
     }
 
-    public final int[] size;
-    public final int[] index;
-    public Object outMessage = null;
-    public Object[] inMessages = null;
-    public Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
-    public Vector< int[] > neighbours = null;
-
     public Place( ) {
-		size = Places.placeInitSize.clone( );
-		index = Places.placeInitIndex.clone( );
+		size = Places.getPlaceInitSize().clone( );
+		index = Places.getPlaceInitIndex().clone( );
     }
+
+	public int[] getSize() {
+		return size;
+	}
+
+	public int[] getIndex() {
+		return index;
+	}
+
+	public Set<Agent> getAgents() {
+		return agents;
+	}
+
+	public void setOutMessage(Object outMessage) {
+		this.outMessage = outMessage;
+	}
+
+	public void setInMessages(Object[] inMessages) {
+		this.inMessages = inMessages;
+	}
+
+	public Vector<int[]> getNeighbours() {
+		return neighbours;
+	}
+
+	public Object getOutMessage() {
+		return outMessage;
+	}
+
+	public Object[] getInMessages() {
+		return inMessages;
+	}
+	
 }

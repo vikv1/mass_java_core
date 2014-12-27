@@ -9,7 +9,6 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -25,18 +24,6 @@ public class MASS extends MASS_base {
 	private static final int JschPort = 22;
     private static Utilities util = new Utilities( );  // used for channel creation
 
-    // the collection of all nodes
-    private static Vector<MNode> allNodes = new Vector<MNode>( );
-    
-    // for performance, collection of all remote nodes
-    private static Vector<MNode> remoteNodes = new Vector<MNode>();
-    
-    // for performance, the master node
-    private static MNode masterNode = null;
-    
-    // remember the last PID used
-    private static int lastPid = 0;
-    
     // the list of libraries ("Jars") to load
     private static Set<String> libraries = new HashSet<String>();
     
@@ -61,33 +48,6 @@ public class MASS extends MASS_base {
     	libraries.add(libraryName);
     }
     
-    /**
-     * Add a new node to the cluster
-     * @param node The node to add to the cluster
-     */
-    public static void addNode(MNode node) {
-
-    	// add the node to the collection of all nodes
-    	allNodes.add(node);
-    	
-    	// if a remote, add to the collection of all remotes, or set the master if not
-    	// this is done so remotes and master node configurations can be obtained quickly without a lookup
-    	if (node.isMaster()) {
-
-    		node.setPid(0);		// master node ALWAYS has a PID of zero
-    		masterNode = node;
-    		
-    	} else {
-    		
-    		// increment last PID and set for this remote node
-    		lastPid++;
-        	node.setPid(lastPid);
-
-        	remoteNodes.add(node);
-    	
-    	}
-    	
-    }
     
     /**
      * Initialize the MASS library using arguments
@@ -242,9 +202,6 @@ public class MASS extends MASS_base {
     		
     	}
     	
-    	// Handle nProc
-    	systemSize = getAllNodes().size();
-    	
     	// Initialize MASS_base.constants and identify the CWD.
     	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
 
@@ -254,9 +211,6 @@ public class MASS extends MASS_base {
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
     		if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
-    		
-    		// set default MASS directory if not defined already per node
-    		if (node.getMassHome() == null) node.setMassHome(CUR_DIR);
     		
     		// retrieve each canonical remote machine name
     		try {
@@ -356,7 +310,7 @@ public class MASS extends MASS_base {
     	}
 
     	initializeThreads( getNumThreads() );
-    	INITIALIZED = true;
+    	setInitialized(true);	// this node is now running
 
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
@@ -497,13 +451,6 @@ public class MASS extends MASS_base {
 
     }
 
-    /**
-     * Get all MNode objects, master and remotes
-     * @return MNodes representing all nodes
-	 */
-	public static Vector<MNode> getAllNodes() {
-		return allNodes;
-	}
 
 	/**
 	 * Get a collection of all library names to be used by the classloaders on each node
@@ -513,21 +460,6 @@ public class MASS extends MASS_base {
 		return libraries;
 	}
 	
-    /**
-	 * Get the MNode representation of the master node only
-	 * @return The MNode representation of the master node
-	 */
-	public static MNode getMasterNode() {
-		return masterNode;
-	}
-
-	/**
-     * Get all MNode objects representing remote nodes only
-     * @return MNodes representing all remote nodes
-     */
-    public static Vector<MNode> getRemoteNodes() {
-    	return remoteNodes;
-    }
 
 	/**
 	 * Get the number of threads that will be spawned on each node
