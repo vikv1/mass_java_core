@@ -30,9 +30,7 @@ public class Places extends Places_base {
 		// the master IP name
 		Vector<String> hosts = new Vector<String>( );
 		try {
-		    String localhost 
-			= InetAddress.getLocalHost( ).getCanonicalHostName( );
-		    hosts.add( localhost );
+		    hosts.add( MASS.getMasterNode().getHostName() );
 		} catch ( Exception e ) {
 		    MASS_base.log( "init_master: InetAddress.getLocalHost( ) " + e );
 		    System.exit( -1 );

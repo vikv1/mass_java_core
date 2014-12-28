@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -25,7 +26,7 @@ import com.jcraft.jsch.Session;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
-    private String hostName;      		// the host name of this node
+    private String hostName;			// the host name of this node
     private String userName;			// for SSH login, the username - optional
     private String passWord;			// for SSH login, the password - optional
     private String javaHome;			// where the JVM is installed on this node - optional
@@ -133,6 +134,9 @@ public class MNode {
 		
 		try {
 
+			// hostname should have been set already, if not, set to default
+			if (getHostName() == null) setHostName(InetAddress.getLocalHost( ).getCanonicalHostName( ));
+			
 			// set input/output streams, then execute the command to start MProcess on the remote node
 			InputStream is = channel.getInputStream();
 			OutputStream os = channel.getOutputStream();
