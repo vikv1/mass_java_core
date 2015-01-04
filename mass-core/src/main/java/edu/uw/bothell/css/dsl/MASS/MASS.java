@@ -203,7 +203,17 @@ public class MASS extends MASS_base {
     	}
     	
     	// Initialize MASS_base.constants and identify the CWD.
-    	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
+    	if (getMasterNode() != null) {
+    		
+    		// init using Master node config
+    		initMASS_base(getMasterNode());
+    		
+    	} else {
+    	
+    		// init using "old" method
+        	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
+
+    	}
 
     	// Launch remote processes
     	for (MNode node : getRemoteNodes()) {

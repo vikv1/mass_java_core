@@ -66,6 +66,7 @@ public class MASS_base {
 		MASS_base.hostName = nodeConfig.getHostName();
 		MASS_base.myPid = nodeConfig.getPid();
 		MASS_base.MASS_PORT = nodeConfig.getPort();
+		MASS_base.setWorkingDirectory(nodeConfig.getMassHome());
 		
 		// Set the current working directory to default value if not set previously
 		if (MASS_base.workingDirectory == null) MASS_base.workingDirectory = System.getProperty( "user.dir" );
@@ -293,6 +294,7 @@ public class MASS_base {
 
     		node.setPid(0);		// master node ALWAYS has a PID of zero
     		masterNode = node;
+    		
     		
     	} else {
     		
