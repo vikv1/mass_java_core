@@ -117,4 +117,16 @@ public class Agent implements Serializable {
 	public boolean isAlive() {
 		return alive;
 	}
+    
+    //get debug data of the agent
+    public Object getDebugData(){
+	Integer id = new Integer(agentId);
+        return (Object)id;
+    }
+
+    //modify debug data of the agent
+    public void setDebugData(Object argument){
+
+    }
+
 }

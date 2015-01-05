@@ -1,7 +1,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.*;
-import java.net.*;
+import java.util.Vector;
 
 public class Places extends Places_base {
 	

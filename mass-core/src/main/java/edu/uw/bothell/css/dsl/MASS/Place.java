@@ -107,5 +107,13 @@ public class Place {
 	public Object[] getInMessages() {
 		return inMessages;
 	}
+
+    public Object getDebugData(){
+	return null;
+    }
+
+    public void setDebugData(Object argument){
 	
+    }
+
 }
