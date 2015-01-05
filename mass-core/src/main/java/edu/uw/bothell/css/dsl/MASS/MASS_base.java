@@ -329,7 +329,13 @@ public class MASS_base {
 	 * @return The number of nodes
 	 */
 	public static int getSystemSize() {
+		
+		// if nodes have been defined, use the number of nodes as the system size
+		if (allNodes.size() > 0) return allNodes.size();
+		
+		// must be using a legacy method of init, use the old method
 		return systemSize;
+
 	}
 
 	/**
