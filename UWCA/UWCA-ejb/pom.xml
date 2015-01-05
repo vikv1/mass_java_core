@@ -15,6 +15,8 @@
 
 	<name>UW Climate Analysis EJB Business Logic</name>
 	<description>UW Climate Analysis EJB Application</description>
+       
+
 
 	<dependencies>
 		<dependency>
@@ -23,12 +25,7 @@
 			<version>7.0</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>edu.ucar</groupId>
-			<artifactId>netcdf</artifactId>
-			<version>4.2</version>
-			<scope>compile</scope>
-		</dependency>
+	
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -38,9 +35,24 @@
 		<dependency>
 			<groupId>edu.uw.bothell.css.mass</groupId>
 			<artifactId>mass-core</artifactId>
-			<version>0.8.1-SNAPSHOT</version>
+			<version>0.8.2-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
+                
+<!-- netcdf jar, locally installed -->
+<dependency>
+  <groupId>com.ucar</groupId>
+  <artifactId>netcdf</artifactId>
+  <version>4.5</version>
+</dependency>
+<!-- Apache commons math, locally installed -->
+<dependency>
+  <groupId>com.apache</groupId>
+  <artifactId>apachemath</artifactId>
+  <version>3.3.3</version>
+</dependency>
+
+
 	</dependencies>
 
 	<build>

@@ -3,18 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+package uwca;
 
-package com.uwbothell.entities;
-
-import com.google.gson.Gson;
+//import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
+import uwca.calculations.toe.Tasmax;
+import uwca.climatemodels.Tasmax_1;
 
 /**
  *
- * @author jwoodrin
- * JobManger class manages the jobs to be submitted by the user, 
- * and executed by the JobRunner
+ * @author jason
  */
 public class JobManager {
     private static volatile JobManager instance = null;
@@ -47,19 +46,27 @@ public class JobManager {
      * @param mgmtVar the var to calculate
      * @param model  the model to use
      */
-    public synchronized void submitJob(String mgmtVar, String model){
+    public synchronized void submitJob(String var, String model, String[] params){
         Job job = new Job();
-        switch(mgmtVar){
+        switch(var){
             case "tmax":       
-                String mgmtVarName = "analytics.Tmax";
-                job.setVar(mgmtVarName);
-                job.setVarName(mgmtVar);
-                job.setDataModel(model);
+                job.setVariable(new Tasmax(params)); 
+                job.setVarName(var);
                 job.setStatus("Queued");
                 break;
             default:
                 break;
         }
+        switch(model){
+            case "conus_c5":
+                job.setInputModel(new Tasmax_1());
+                job.setInputModelName(model);
+                break;
+            default:                    
+                 break;
+        
+        }
+        // add the job to the queue
         jobs.add(job);
     }
     
@@ -73,15 +80,16 @@ public class JobManager {
         int i = 0;
         for(Job j : jobs){
             returnData[i][0] = j.getVarName();
-            returnData[i][1] = j.getDataModel();
+            returnData[i][1] = j.getInputModelName();
             returnData[i][2] = "";
             returnData[i][3] = j.getStatus();
             i++;
         }
         // return json formatted data for the browser
-        Gson gson = new Gson();
-        String json = gson.toJson(returnData);        
-        return json;        
+      //  Gson gson = new Gson();
+     //   String json = gson.toJson(returnData);        
+      //  return json; 
+        return "";
     }
     
     /**
