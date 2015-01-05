@@ -75,4 +75,13 @@ public class Place {
 		size = Places.placeInitSize.clone( );
 		index = Places.placeInitIndex.clone( );
     }
+    
+    public Object getDebugData(){
+	return null;
+    }
+
+    public void setDebugData(Object argument){
+	
+    }
+
 }
