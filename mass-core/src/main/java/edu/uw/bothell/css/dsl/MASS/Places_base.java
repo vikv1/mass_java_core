@@ -2,6 +2,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Vector;
@@ -109,7 +110,16 @@ public class Places_base {
 		places[i] = 
 		    ( Place )placeConstructor.newInstance( argument );
 	    }
-	} catch ( Exception e ) {
+	} 
+	
+	catch (InvocationTargetException ite) {
+		
+	    MASS_base.log( "Places_base.init_all: " + className + 
+				   " invocation target exception: " + ite.getTargetException() );
+		
+	}
+	
+	catch ( Exception e ) {
 	    MASS_base.log( "Places_base.init_all: " + className + 
 			   " not loaded and/or instantiated " + e );
 	}
