@@ -19,16 +19,16 @@ public class RemoteExchangeRequest implements Serializable {
     
 	}
 
-	public int getOrgGlobalLinearIndex() {
-		return orgGlobalLinearIndex;
-	}
-
 	public int getDestGlobalLinearIndex() {
 		return destGlobalLinearIndex;
 	}
 
 	public int getInMessageIndex() {
 		return inMessageIndex;
+	}
+
+	public int getOrgGlobalLinearIndex() {
+		return orgGlobalLinearIndex;
 	}
 
 	public Object getOutMessage() {
