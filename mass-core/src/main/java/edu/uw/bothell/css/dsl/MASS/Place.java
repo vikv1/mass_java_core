@@ -8,92 +8,71 @@ import java.util.Vector;
 public class Place {
 
 	private final int[] size;
-    private final int[] index;
-    private Object outMessage = null;
-    private Object[] inMessages = null;
-    private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
-    private Vector< int[] > neighbours = null;
+	private final int[] index;
+	private Object outMessage = null;
+	private Object[] inMessages = null;
+	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	private Vector< int[] > neighbours = null;
 
-    public Object callMethod( int functionId, Object argument ) {
-    	return null;
-    }
+	public Place( ) {
+		size = Places.getPlaceInitSize().clone( );
+		index = Places.getPlaceInitIndex().clone( );
+	}
 
-    protected Object getOutMessage( int handle, int[] offset_index ) {
-    	
-		Place dstPlace = findDstPlace( handle, offset_index );
-	
-		// return the destination outMessage
-		return ( dstPlace != null ) ? dstPlace.outMessage : null;
-    }
+	public Object callMethod( int functionId, Object argument ) {
+		return null;
+	}
 
-    protected void putInMessage( int handle, int[] offset_index, int position,
-				 Object value ) {
-    	
-		Place dstPlace = findDstPlace( handle, offset_index );
-	
-		// write to the destination inMessage[position]
-		if ( dstPlace != null && position < dstPlace.inMessages.length )
-		    dstPlace.inMessages[position] = value;
-    }
+	private Place findDstPlace( int handle, int offset[] ) {
 
-    private Place findDstPlace( int handle, int offset[] ) {
-    	
 		// compute the global linear index from offset[]
 		Places_base places = MASS_base.getPlacesMap().get( new Integer( handle ) );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
-						    neighborCoord );
+				neighborCoord );
 		int globalLinearIndex
-		    = places.getGlobalLinearIndexFromGlobalArrayIndex( neighborCoord,
-								       places.getSize() );
-	
+		= places.getGlobalLinearIndexFromGlobalArrayIndex( neighborCoord,
+				places.getSize() );
+
 		if ( globalLinearIndex == Integer.MIN_VALUE )
-		    return null;
-	
+			return null;
+
 		// identify the destination place  
 		int destinationLocalLinearIndex
-		    = globalLinearIndex - places.getLowerBoundary();
-		
+		= globalLinearIndex - places.getLowerBoundary();
+
 		Place dstPlace = null;
 		int shadow_index;
 		if ( destinationLocalLinearIndex >= 0 &&
-			destinationLocalLinearIndex < places.getPlacesSize() )
-		    dstPlace = places.getPlaces()[ destinationLocalLinearIndex ];
+				destinationLocalLinearIndex < places.getPlacesSize() )
+			dstPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
-			  ( shadow_index = destinationLocalLinearIndex + 
-			    places.getShadowSize() ) >= 0 )
-		    dstPlace = places.getLeftShadow()[ shadow_index ];
+				( shadow_index = destinationLocalLinearIndex + 
+				places.getShadowSize() ) >= 0 )
+			dstPlace = places.getLeftShadow()[ shadow_index ];
 		else if ( (shadow_index = 
-			   destinationLocalLinearIndex - places.getPlacesSize()) >= 0
-			  && shadow_index < places.getShadowSize() )
-		    dstPlace = places.getRightShadow()[ shadow_index ];
-		
+				destinationLocalLinearIndex - places.getPlacesSize()) >= 0
+				&& shadow_index < places.getShadowSize() )
+			dstPlace = places.getRightShadow()[ shadow_index ];
+
 		return dstPlace;
-    }
-
-    public Place( ) {
-		size = Places.getPlaceInitSize().clone( );
-		index = Places.getPlaceInitIndex().clone( );
-    }
-
-	public int[] getSize() {
-		return size;
-	}
-
-	public int[] getIndex() {
-		return index;
+	
 	}
 
 	public Set<Agent> getAgents() {
 		return agents;
 	}
 
-	public void setOutMessage(Object outMessage) {
-		this.outMessage = outMessage;
+	public Object getDebugData(){
+		return null;
 	}
 
-	public void setInMessages(Object[] inMessages) {
-		this.inMessages = inMessages;
+	public int[] getIndex() {
+		return index;
+	}
+
+	public Object[] getInMessages() {
+		return inMessages;
 	}
 
 	public Vector<int[]> getNeighbours() {
@@ -104,16 +83,39 @@ public class Place {
 		return outMessage;
 	}
 
-	public Object[] getInMessages() {
-		return inMessages;
+	protected Object getOutMessage( int handle, int[] offset_index ) {
+
+		Place dstPlace = findDstPlace( handle, offset_index );
+
+		// return the destination outMessage
+		return ( dstPlace != null ) ? dstPlace.outMessage : null;
+	
 	}
 
-    public Object getDebugData(){
-	return null;
-    }
+	public int[] getSize() {
+		return size;
+	}
 
-    public void setDebugData(Object argument){
+	protected void putInMessage( int handle, int[] offset_index, int position, Object value ) {
+
+		Place dstPlace = findDstPlace( handle, offset_index );
+
+		// write to the destination inMessage[position]
+		if ( dstPlace != null && position < dstPlace.inMessages.length )
+			dstPlace.inMessages[position] = value;
 	
-    }
+	}
+
+	// To be overridden by developer - for debugging
+	public void setDebugData(Object argument) {
+	}
+
+	public void setInMessages(Object[] inMessages) {
+		this.inMessages = inMessages;
+	}
+
+	public void setOutMessage(Object outMessage) {
+		this.outMessage = outMessage;
+	}
 
 }
