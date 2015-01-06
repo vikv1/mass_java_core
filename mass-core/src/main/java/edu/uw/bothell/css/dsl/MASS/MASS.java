@@ -16,6 +16,9 @@ import javax.xml.bind.Unmarshaller;
 
 import com.jcraft.jsch.Channel;
 
+import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+
 public class MASS extends MASS_base {
     
 	private static final boolean printOutput = false;
@@ -39,13 +42,27 @@ public class MASS extends MASS_base {
     
     // the port number used for inter-node communication
     private static int communicationPort = 3400;
+    
+    // object factories are singletons, so we'll use this opportunity to initialize it
+    private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     /**
      * Add a library ("Jar") to be loaded by the classloader on each node
      * @param libraryName The name of the library to load
      */
     public static void addLibrary(String libraryName) {
+    	
+    	// add the library to the object factory
+    	try {
+    		objectFactory.addLibrary(libraryName);
+    	}
+    	catch (Exception e) {
+    		// TODO - should handle exceptions better here
+    	}
+
+    	// remember the specified library so it can be set on remote nodes as well
     	libraries.add(libraryName);
+    
     }
     
     

@@ -1,11 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Vector;
+
+import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class Places_base {
 
@@ -23,14 +21,15 @@ public class Places_base {
     private int[] size;
     private int shadow_size;
     private int boundary_width;
-    private static URLClassLoader placeLoader;
-    private Class<?> placeClass;
-    private Constructor<?> placeConstructor;
+//    private static URLClassLoader placeLoader;
+//    private Class<?> placeClass;
+//    private Constructor<?> placeConstructor;
     private Place[] places;
     private Place[] left_shadow;
     private Place[] right_shadow;
     private static int[] placeInitIndex;
     private static int[] placeInitSize;
+    private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	@SuppressWarnings("unused")
 	public Places_base( int handle, String className, int boundary_width, Object argument, int[] size ) {
@@ -910,15 +909,15 @@ public class Places_base {
     	// MASS_base.log( "CUR_DIR = " + MASS_base.CUR_DIR );
 
     	// load the place construtor
-    	File curDir   = new File( MASS.getWorkingDirectory() );
+//    	File curDir   = new File( MASS.getWorkingDirectory() );
     	try {
-    		placeLoader =
-    				URLClassLoader.
-    				newInstance( new URL[] { curDir.toURI().toURL( ) } );
-    		placeClass =                                        //get class
-    				Class.forName( className, true, placeLoader ); 
-    		placeConstructor =                            //get constructor
-    				placeClass.getConstructor( Object.class ); 
+//    		placeLoader =
+//    				URLClassLoader.
+//    				newInstance( new URL[] { curDir.toURI().toURL( ) } );
+//    		placeClass =                                        //get class
+//    				Class.forName( className, true, placeLoader ); 
+//    		placeConstructor =                            //get constructor
+//    				placeClass.getConstructor( Object.class ); 
 
     		// calculate lower_boundary and upper_boundary
     		total = 1;
@@ -943,19 +942,21 @@ public class Places_base {
     			// instanitate a new place
     			placeInitSize = size.clone( );
     			placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
-    			places[i] = 
-    					( Place )placeConstructor.newInstance( argument );
-    		
+//    			places[i] = 
+//    					( Place )placeConstructor.newInstance( argument );
+    			
+    			places[i] = objectFactory.getInstance(className, argument);
+    			
     		}
     	
     	} 
 
-    	catch (InvocationTargetException ite) {
-
-    		MASS_base.log( "Places_base.init_all: " + className + 
-    				" invocation target exception: " + ite.getTargetException() );
-
-    	}
+//    	catch (InvocationTargetException ite) {
+//
+//    		MASS_base.log( "Places_base.init_all: " + className + 
+//    				" invocation target exception: " + ite.getTargetException() );
+//
+//    	}
 
     	catch ( Exception e ) {
     		MASS_base.log( "Places_base.init_all: " + className + 
@@ -997,8 +998,8 @@ public class Places_base {
     				placeInitIndex = 
     						getGlobalArrayIndex( lower_boundary - shadow_size 
     								+ i );
-    				left_shadow[i] = 
-    						( Place )placeConstructor.newInstance( argument );
+    				left_shadow[i] = objectFactory.getInstance(className, argument);
+//    						( Place )placeConstructor.newInstance( argument );
     				left_shadow[i].setOutMessage(null);
     			
     			}
@@ -1009,8 +1010,8 @@ public class Places_base {
     				placeInitSize = size.clone( );
     				placeInitIndex = 
     						getGlobalArrayIndex( upper_boundary + i );
-    				right_shadow[i] = 
-    						( Place )placeConstructor.newInstance( argument );
+    				right_shadow[i] = objectFactory.getInstance(className, argument); 
+//    						( Place )placeConstructor.newInstance( argument );
     				right_shadow[i].setOutMessage(null);
     			
     			}

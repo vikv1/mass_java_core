@@ -1,11 +1,12 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Vector;
+
+import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 @SuppressWarnings("serial")
 public class Agents_base implements Serializable {
@@ -25,11 +26,11 @@ public class Agents_base implements Serializable {
 
     private AgentList agents;
 
-    private static URLClassLoader agentLoader;
+//    private static URLClassLoader agentLoader;
     
-    private Class<?> agentClass;
+//    private Class<?> agentClass;
     
-    private Constructor<?> agentConstructor;
+//    private Constructor<?> agentConstructor;
     
     private static int agentInitAgentsHandle;
     
@@ -38,6 +39,8 @@ public class Agents_base implements Serializable {
     private static int agentInitAgentId;
     
     private static int agentInitParentId;
+    
+    private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     @SuppressWarnings("unused")
     public Agents_base( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
@@ -59,15 +62,15 @@ public class Agents_base implements Serializable {
     	// load the construtor and destructor
     	try {
     		
-    		File curDir = new File( MASS.getWorkingDirectory() );
-    		
-    		agentLoader = URLClassLoader.newInstance( new URL[] { curDir.toURI().toURL( ) } );
-    		
-    		// get class
-    		agentClass = Class.forName( className, true, agentLoader );
-    		
-    		// get constructor
-    		agentConstructor = agentClass.getConstructor ( Object.class );
+//    		File curDir = new File( MASS.getWorkingDirectory() );
+//    		
+//    		agentLoader = URLClassLoader.newInstance( new URL[] { curDir.toURI().toURL( ) } );
+//    		
+//    		// get class
+//    		agentClass = Class.forName( className, true, agentLoader );
+//    		
+//    		// get constructor
+//    		agentConstructor = agentClass.getConstructor ( Object.class );
 
     	} catch ( Exception e ) {
     		
@@ -87,7 +90,8 @@ public class Agents_base implements Serializable {
     	agentInitParentId = -1; // no parent
     	Agent protoAgent = null;
     	try {
-    		protoAgent = ( Agent )agentConstructor.newInstance( argument );
+//    		protoAgent = ( Agent )agentConstructor.newInstance( argument );
+    		protoAgent = objectFactory.getInstance(className, argument);
     	} catch ( Exception e ) {
     		MASS_base.log( "Agents_base.constructor: " + className +
     				" not instantiated " + e );
@@ -123,7 +127,8 @@ public class Agents_base implements Serializable {
     				agentInitPlacesHandle = placesHandle;
     				agentInitAgentId = currentAgentId++;
     				agentInitParentId = -1; // no parent
-    				newAgent = (Agent)agentConstructor.newInstance( argument );
+//    				newAgent = (Agent)agentConstructor.newInstance( argument );
+    				newAgent = objectFactory.getInstance(className, argument);
     			
     			} catch ( Exception e ) {
     				
@@ -428,7 +433,7 @@ public class Agents_base implements Serializable {
     					"'s childrenCounter = " + childrenCounter );
 
     		while ( childrenCounter > 0 ) {
-    			
+
     			if ( printOutput == true )
     				MASS_base.log( "Agent_base.manageALL: Thread " + tid +
     						" will spawn a child of agent " + 
@@ -439,34 +444,38 @@ public class Agents_base implements Serializable {
 
     			Agent addAgent = null;
     			Object dummyArgument = new Object( );
-    			
+
     			try {
-    				
+
     				agentInitAgentsHandle = this.handle;
     				agentInitPlacesHandle = this.placesHandle;
     				agentInitParentId = evaluationAgent.getAgentId();
-    				
+
     				synchronized( this ) {
-    					
+
     					agentInitAgentId = this.currentAgentId++;
     					addAgent =
-    							// validate the correspondance of arguments and
-    							// argumentcounter
-    							( evaluationAgent.getArguments().length >
-    							argumentcounter ) ?
-    									// yes: this child agent should recieve an argument.
-    									( Agent )agentConstructor.
-    									newInstance( evaluationAgent.
-    											getArguments()[argumentcounter++] )
+    							(Agent) (// validate the correspondance of arguments and
+    									// argumentcounter
+    									( evaluationAgent.getArguments().length >
+    									argumentcounter ) ?
+    											// yes: this child agent should recieve an argument.
+    											//    									( Agent )agentConstructor.
+    											//    									newInstance( evaluationAgent.
+    											//    											getArguments()[argumentcounter++] )
+    											objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
     											:
     												// no:  this child agent should not receive an arg.
-    												( Agent )agentConstructor.
-    												newInstance( dummyArgument );
+    												//    												( Agent )agentConstructor.
+    												//    												newInstance( dummyArgument ));
+    												objectFactory.getInstance(className, dummyArgument)
+    									);
+
     				}
-    				
+
     				addAgent.setIndex(evaluationAgent.getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
-    			
+
     			} catch ( Exception e ) {
     				MASS_base.log( "Agents_base.manageAll: " + this.className
     						+ " not instantiated " + e );
