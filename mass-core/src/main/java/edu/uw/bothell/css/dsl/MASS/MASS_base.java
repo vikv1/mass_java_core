@@ -1,8 +1,12 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS_base {
 
@@ -70,6 +74,10 @@ public class MASS_base {
 
 	// remember the last PID used
     private static int lastPid = 0;
+    
+    // object factories are singletons, continue configuration within this class
+    private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+
 
 	/**
      * Add a new node to the cluster
@@ -276,6 +284,13 @@ public class MASS_base {
 		
 		// Set the current working directory to default value if not set previously
 		if (MASS_base.workingDirectory == null) MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		
+		// add MASS home to the list of URLs to be used by the object factory
+		try {
+			objectFactory.addUri(new File(MASS_base.getWorkingDirectory()).toURI().toString());
+		} catch (Exception e) {
+			// TODO need to handle exceptions here better
+		}
 		
 	}
     
