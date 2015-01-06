@@ -71,14 +71,30 @@ public class SimpleObjectFactory implements ObjectFactory {
 
 		Class<T> newClass = null;
 		Constructor<T> newClassConstructor = null;
-		
+
+		// first, try using the current classloader to get the class
 		try {
-			newClass = (Class<T>) Class.forName( className, true, classLoader ); 
+			
+			newClass = (Class<T>) Class.forName(className); 
+		
 		}
 		catch (ClassNotFoundException e) {
-			throw new Exception("Unable to find " + className, e);
+
+			// not found, try using the local classloader to get the class
+			try {
+				
+				newClass = (Class<T>) Class.forName( className, true, classLoader ); 
+
+			}
+			catch (ClassNotFoundException cnfe) {
+				
+				// class could not be found using either method - fatal
+				throw new Exception("Unable to find " + className, cnfe);
+			
+			}
+
 		}
-	
+
 		try {
 			newClassConstructor = newClass.getConstructor( Object.class );
 		}
