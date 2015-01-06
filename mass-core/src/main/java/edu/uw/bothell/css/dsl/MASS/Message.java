@@ -32,150 +32,78 @@ public class Message implements Serializable {
     
 	private static final int VOID_HANDLE = -1;
     private ACTION_TYPE action;
-    private int[] size;
-    private int handle;
-    private int dest_handle;
-    private int functionId;
-    private String classname;      // classname.class must be located in CWD.
-    private Object argument;
-    private Vector<String> hosts; // all hosts participated in computation
-    private Vector<int[]> destinations; // all destinations of exchangeAll
-    private int agent_population;
-    private int boundary_width;
+    private int[] size = null;
+    private int handle = VOID_HANDLE;
+    private int dest_handle = VOID_HANDLE;
+    private int functionId = 0;
+    private String classname = null;      // classname.class must be located in CWD.
+    private Object argument = null;
+    private Vector<String> hosts = null; // all hosts participated in computation
+    private Vector<int[]> destinations = null; // all destinations of exchangeAll
+    private int agent_population = -1;
+    private int boundary_width = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
 
     // EMPTY
-    Message( ) {
-
-    	//this.action = action;
-    	this.size = null;
-    	this.handle = VOID_HANDLE;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
-   
-    }
+    public Message( ) { }
 
     // FINISH
     // ACK
-    Message( ACTION_TYPE action ) {
+    public Message( ACTION_TYPE action ) {
 
     	this.action = action;
-    	this.size = null;
-    	this.handle = VOID_HANDLE;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
     
     }
 
     // ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
-    Message( ACTION_TYPE action, int localPopulation ) {
+    public Message( ACTION_TYPE action, int localPopulation ) {
 
     	this.action = action;
-    	this.size = null;
-    	this.handle = VOID_HANDLE;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
     	this.agent_population = localPopulation;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
     
     }
 
     // AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
-    Message( ACTION_TYPE action, int handle, int dummy ) {
+    public Message( ACTION_TYPE action, int handle, int dummy ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = handle;
     	this.dest_handle = handle;
-    	this.functionId = 0;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
     
     }	
 
     // AGENTS_INITIALIZE
-    Message( ACTION_TYPE action, int initPopulation, int handle, int placeHandle, String className, Object argument ) {
+    public Message( ACTION_TYPE action, int initPopulation, int handle, int placeHandle, String className, Object argument ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = handle;
     	this.dest_handle = placeHandle;
-    	this.functionId = 0;
     	this.classname = className;
     	this.argument = argument;
-    	this.hosts = null;
-    	this.destinations = null;
     	this.agent_population = initPopulation;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
 
     }
 
     // PLACES_EXCHANGE_ALL
-    Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<int[]> destinations ) {
+    public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<int[]> destinations ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = handle;
     	this.dest_handle = dest_handle;
     	this.functionId = functionId;
-    	this.classname = null;
-    	//this.argument = argument;
-    	this.hosts = null;
     	this.destinations = destinations;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
     
     }
 
     // PLACES_EXCHANGE_ALL_REMOTE_REQUEST
-    Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
+    public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = handle;
     	this.dest_handle = dest_handle;
     	this.functionId = functionId;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
     	this.exchangeReqList = exchangeReqList;
-    	this.migrationReqList = null;
 
     }
 
@@ -186,36 +114,18 @@ public class Message implements Serializable {
     public Message( ACTION_TYPE action, int handle, int functionId, Object argument ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = handle;
-    	this.dest_handle = VOID_HANDLE;
     	this.functionId = functionId;
-    	this.classname = null;
     	this.argument = argument;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
 
     }
 
     // AGENTS_MIGRATION_REMOTE_REQUEST
-    Message( ACTION_TYPE action, int agentHandle, int placeHandle, Vector<AgentMigrationRequest> migrationReqList ) {
+    public Message( ACTION_TYPE action, int agentHandle, int placeHandle, Vector<AgentMigrationRequest> migrationReqList ) {
 
     	this.action = action;
-    	this.size = null;
     	this.handle = agentHandle;
     	this.dest_handle = placeHandle;
-    	this.functionId = 0;
-    	this.classname = null;
-    	this.argument = null;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
     	this.migrationReqList = migrationReqList;
     
     }
@@ -226,56 +136,29 @@ public class Message implements Serializable {
     	this.action = action;
     	this.size = size;
     	this.handle = handle;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
     	this.classname = classname;
     	this.argument = argument;
     	this.hosts = hosts;
-    	this.destinations = null;
-    	this.agent_population = -1;
     	this.boundary_width= boundary_width;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
     
     }
 
     // PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
     // PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,
     // ACK used for PLACES_CALL_ALL_RETURN_OBJECT
-    Message( ACTION_TYPE action, Object retVals ) {
+    public Message( ACTION_TYPE action, Object retVals ) {
 
     	this.action = action;
-    	this.size = null;
-    	this.handle = VOID_HANDLE;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
-    	this.classname = null;
     	this.argument = retVals;
-    	this.hosts = null;
-    	this.destinations = null;
-    	this.agent_population = -1;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
 
     }
 
     // ACK used for AGENTS_CALL_ALL_RETURN_OBJECT
-    Message( ACTION_TYPE action, Object argument, int localPopulation ) {
+    public Message( ACTION_TYPE action, Object argument, int localPopulation ) {
 
     	this.action = action;
-    	this.size = null;
-    	this.handle = VOID_HANDLE;
-    	this.dest_handle = VOID_HANDLE;
-    	this.functionId = 0;
-    	this.classname = null;
     	this.argument = argument;
-    	this.hosts = null;
-    	this.destinations = null;
     	this.agent_population = localPopulation;
-    	this.boundary_width= 0;
-    	this.exchangeReqList = null;
-    	this.migrationReqList = null;
 
     }
 
