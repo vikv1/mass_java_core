@@ -8,90 +8,20 @@ public class Places extends Places_base {
     private static final boolean printOutput = false;
     //private static final boolean printOutput = true;
 
-    public Places( int handle, String className, Object argument, 
-		   int... size ) {
-    	
-		super( handle, className, 0, argument, size );
-		init_master( argument, 0 );
-    }
-
-    public Places( int handle, String className, int boundary_width, 
-		   Object argument, int... size ) {
+    public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
     	
 		super( handle, className, boundary_width, argument, size );
 		init_master( argument, boundary_width );
-    }
-
-    @SuppressWarnings("unused")
-	public void init_master( Object argument, int boundary_width ) {
-
-		// create a list of all host names;  
-		// the master IP name
-		Vector<String> hosts = new Vector<String>( );
-		try {
-		    hosts.add( MASS.getMasterNode().getHostName() );
-		} catch ( Exception e ) {
-		    MASS_base.log( "init_master: InetAddress.getLocalHost( ) " + e );
-		    System.exit( -1 );
-		}
-		
-		// all the slave IP names
-		for ( MNode node : MASS.getRemoteNodes() ) {
-		    hosts.add( node.getHostName( ) );
-		}
-	
-		// create a new list for message
-		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
-					 getHandle(), getClassName(),
-					 argument, boundary_width, hosts );
-		
-		// send a PLACES_INITIALIZE message to each slave
-		for ( MNode node : MASS.getRemoteNodes() ) {
-		    
-			node.sendMessage( m );
-		    
-		    if ( printOutput == true )
-			MASS_base.log( "PLACES_INITIALIZE sent to " + node.getPid() );
-		
-		}
-		
-		// establish all inter-node connections within setHosts( )
-		MASS_base.setHosts( hosts );
-	
-		// register this places in the places hash map
-		MASS_base.getPlacesMap().put( new Integer( getHandle() ), this );
-		
-		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( );
-	
-
-    }
-
-    public void callAll( int functionId ) {
-		ca_setup( functionId, null, 
-			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
-    }
     
-    @SuppressWarnings("unused")
-	public void callAll( int functionId, Object argument ) {
-	
-		if ( printOutput == true )
-		    MASS_base.log( "callAll void object" );
-		
-		ca_setup( functionId, argument, 
-			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
     }
+
+    public Places( int handle, String className, Object argument, int... size ) {
+    	
+		super( handle, className, 0, argument, size );
+		init_master( argument, 0 );
     
-    @SuppressWarnings("unused")
-	public Object callAll( int functionId, Object argument[] ) {
-	
-		if ( printOutput == true )
-		    MASS_base.log( "callAll return object" );
-		
-		return ca_setup( functionId, ( Object )argument,
-				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
     }
-    
+
     @SuppressWarnings("unused")
 	public Object ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
@@ -110,7 +40,10 @@ public class Places extends Places_base {
 		    // create a message
 		    if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT )
 		    	m = new Message( type, this.getHandle(), functionId, argument );
-		    else { // PLACES_CALL_ALL_RETURN_OBJECT
+		    
+		    else { 
+		    	
+		    	// PLACES_CALL_ALL_RETURN_OBJECT
 		    	
 				int arg_size = ( i == MASS.getRemoteNodes().size( ) - 1 ) ?
 				    total - stripe * ( i + 1 ) : stripe;
@@ -166,6 +99,33 @@ public class Places extends Places_base {
 		MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), stripe );
 		
 		return MASS_base.getCurrentReturns();
+    
+    }
+
+    public void callAll( int functionId ) {
+		ca_setup( functionId, null, Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
+    }
+    
+    @SuppressWarnings("unused")
+	public void callAll( int functionId, Object argument ) {
+	
+		if ( printOutput == true )
+		    MASS_base.log( "callAll void object" );
+		
+		ca_setup( functionId, argument, 
+			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
+    
+    }
+    
+    @SuppressWarnings("unused")
+	public Object callAll( int functionId, Object argument[] ) {
+	
+		if ( printOutput == true )
+		    MASS_base.log( "callAll return object" );
+		
+		return ca_setup( functionId, ( Object )argument,
+				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
+    
     }
     
     @SuppressWarnings("unused")
@@ -205,6 +165,7 @@ public class Places extends Places_base {
 		
 		// Synchronized with all slave processes
 		MASS.barrier_all_slaves( );
+    
     }
     
     public void exchangeBoundary( ) {
@@ -227,5 +188,52 @@ public class Places extends Places_base {
 		
 		// Synchronized with all slave processes
 		MASS.barrier_all_slaves( );
+    
     }
+    
+    @SuppressWarnings("unused")
+	public void init_master( Object argument, int boundary_width ) {
+
+		// create a list of all host names;  
+		// the master IP name
+		Vector<String> hosts = new Vector<String>( );
+		
+		try {
+		    hosts.add( MASS.getMasterNode().getHostName() );
+		} catch ( Exception e ) {
+		    MASS_base.log( "init_master: InetAddress.getLocalHost( ) " + e );
+		    System.exit( -1 );
+		}
+		
+		// all the slave IP names
+		for ( MNode node : MASS.getRemoteNodes() ) {
+		    hosts.add( node.getHostName( ) );
+		}
+	
+		// create a new list for message
+		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
+					 getHandle(), getClassName(),
+					 argument, boundary_width, hosts );
+		
+		// send a PLACES_INITIALIZE message to each slave
+		for ( MNode node : MASS.getRemoteNodes() ) {
+		    
+			node.sendMessage( m );
+		    
+		    if ( printOutput == true )
+			MASS_base.log( "PLACES_INITIALIZE sent to " + node.getPid() );
+		
+		}
+		
+		// establish all inter-node connections within setHosts( )
+		MASS_base.setHosts( hosts );
+	
+		// register this places in the places hash map
+		MASS_base.getPlacesMap().put( new Integer( getHandle() ), this );
+		
+		// Synchronized with all slave processes
+		MASS.barrier_all_slaves( );
+
+    }
+
 }
