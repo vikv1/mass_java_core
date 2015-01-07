@@ -76,7 +76,7 @@ public class SimpleObjectFactory implements ObjectFactory {
 		// first, try using the current classloader to get the class
 		try {
 			
-			newClass = (Class<T>) Class.forName(className); 
+			newClass = (Class<T>) Class.forName(className, true, Thread.currentThread().getContextClassLoader()); 
 		
 		}
 		catch (ClassNotFoundException e) {
