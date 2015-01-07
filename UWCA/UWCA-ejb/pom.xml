@@ -38,22 +38,18 @@
 			<version>0.8.2-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
-                
-<!-- netcdf jar, locally installed -->
-<dependency>
-  <groupId>com.ucar</groupId>
-  <artifactId>netcdf</artifactId>
-  <version>4.5</version>
-</dependency>
-<!-- Apache commons math, locally installed -->
-<dependency>
-  <groupId>com.apache</groupId>
-  <artifactId>apachemath</artifactId>
-  <version>3.3.3</version>
-</dependency>
-
-
-	</dependencies>
+        <dependency>
+  			<groupId>edu.ucar</groupId>
+  			<artifactId>netcdf4</artifactId>
+  			<version>4.5.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.4</version>
+			<scope>compile</scope>
+		</dependency>
+ 	</dependencies>
 
 	<build>
 		<plugins>
