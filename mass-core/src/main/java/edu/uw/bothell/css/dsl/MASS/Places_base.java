@@ -27,8 +27,8 @@ public class Places_base {
     private Place[] places;
     private Place[] left_shadow;
     private Place[] right_shadow;
-    private static int[] placeInitIndex;
-    private static int[] placeInitSize;
+    private static int[] placeInitIndex = new int[0];
+    private static int[] placeInitSize = new int[0];
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	@SuppressWarnings("unused")
