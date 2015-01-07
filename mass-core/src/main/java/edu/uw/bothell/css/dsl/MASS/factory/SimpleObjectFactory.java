@@ -2,6 +2,7 @@ package edu.uw.bothell.css.dsl.MASS.factory;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -105,7 +106,13 @@ public class SimpleObjectFactory implements ObjectFactory {
 			throw new Exception("Class " + className + " lacks the necessary privileges to execute in this environment", e);
 		}
 	
-		T newObjectInstance =  newClassConstructor.newInstance( constructorArgument );
+		T newObjectInstance = null;
+		try {
+			newObjectInstance =  newClassConstructor.newInstance( constructorArgument );
+		}
+		catch (InvocationTargetException e) {
+			throw new Exception("Exception occurred during instantiation of " + className + ": " + e.getCause(), e.getCause());
+		}
 		
 		return newObjectInstance;
 	
