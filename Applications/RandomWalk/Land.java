@@ -52,8 +52,8 @@ public class Land extends Place {
    * @param args formally declared but actually not used
    */
   public Object init( Object args ) {
-	sizeX = size[0]; sizeY = size[1]; // size  is the base data members
-	myX = index[0];  myY = index[1];  // index is the base data members
+	sizeX = getSize()[0]; sizeY = getSize()[1]; // size  is the base data members
+	myX = getIndex()[0];  myY = getIndex()[1];  // index is the base data members
         
 	return null;
   }
@@ -61,7 +61,7 @@ public class Land extends Place {
   // start a graphics window ------------------------------------------------------
   public Object startGraphics( Object args ) {
 	// define the array size
-	N = size[0];
+	N = getSize()[0];
 	
 	// Graphics must be handled by a single thread
 	bgColor = new Color( 255, 255, 255 );//white background
@@ -169,7 +169,7 @@ public class Land extends Place {
    */
   public double collectAgents( Object args ) {
       //if(agents.size() > 0 ) System.err.println(agents.size());     
-      return ( agents.size() ); 
+      return ( getAgents().size() ); 
   }
   
   /**
@@ -201,7 +201,7 @@ public class Land extends Place {
      * @param args formally requested but actuall not used.
      */
     public Object exchange( Object args ) {
-        return new Integer( agents.size( ) );
+        return new Integer( getAgents().size( ) );
     }
 
     /**
@@ -212,9 +212,9 @@ public class Land extends Place {
         int index = 0;
         for ( int x = 0; x < 2; x++ )
             for ( int y = 0; y < 2; y++ )
-                neighbors[x][y] = ( inMessages[index] == null ) ?
+                neighbors[x][y] = ( getInMessages()[index] == null ) ?
                     Integer.MAX_VALUE : 
-                    ( ( Integer )inMessages[index] ).intValue( );
+                    ( ( Integer )getInMessages()[index] ).intValue( );
         return null;
     }
 }

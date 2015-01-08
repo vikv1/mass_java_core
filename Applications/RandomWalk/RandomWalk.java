@@ -61,7 +61,7 @@ public class RandomWalk
 	// now go into a cyclic simulation
 	for ( int time = 0; time < maxTime; time++ ) {
 	    // exchange #agents with four neighbors
-	    land.exchangeAll( 1, Land.exchange_, neighbors );
+	    land.exchangeAll( 1, Land.exchange_ );
 	    land.callAll( Land.update_ );
 
 	    // move agents to a neighbor with the least population
