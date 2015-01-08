@@ -42,7 +42,7 @@ public class Matrix extends Place {
 	public Object findHostName(Object o){
 		
 		try{
-        	return (String) "Place located at: " + InetAddress.getLocalHost().getCanonicalHostName() +" " + Integer.toString(index[0]) + ":" + Integer.toString(index[1]) + ":" + Integer.toString(index[2]);
+        	return (String) "Place located at: " + InetAddress.getLocalHost().getCanonicalHostName() +" " + Integer.toString(getIndex()[0]) + ":" + Integer.toString(getIndex()[1]) + ":" + Integer.toString(getIndex()[2]);
         }
 		
 		catch (Exception e) {

@@ -5,8 +5,10 @@ import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class Message implements Serializable {
-    public enum ACTION_TYPE{ 
-	    EMPTY,                                    // 0             
+
+	public enum ACTION_TYPE { 
+	    
+    	EMPTY,                                    // 0             
 	    FINISH,                                   // 1             
 	    ACK,                                      // 2             
 
@@ -25,256 +27,195 @@ public class Message implements Serializable {
 	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
 	    AGENTS_MANAGE_ALL,                        // 15            
 	    AGENTS_MIGRATION_REMOTE_REQUEST           // 16   
+    
+    }
+    
+	private static final int VOID_HANDLE = -1;
+    private ACTION_TYPE action;
+    private int[] size = null;
+    private int handle = VOID_HANDLE;
+    private int dest_handle = VOID_HANDLE;
+    private int functionId = 0;
+    private String classname = null;      // classname.class must be located in CWD.
+    private Object argument = null;
+    private Vector<String> hosts = null; // all hosts participated in computation
+    private Vector<int[]> destinations = null; // all destinations of exchangeAll
+    private int agent_population = -1;
+    private int boundary_width = 0;
+    private Vector<RemoteExchangeRequest> exchangeReqList = null;
+    private Vector<AgentMigrationRequest> migrationReqList = null;
+
+    // EMPTY
+    public Message( ) { }
+
+    // FINISH
+    // ACK
+    public Message( ACTION_TYPE action ) {
+
+    	this.action = action;
+    
     }
 
-    // PLACES_INITIALIZE
-    Message( ACTION_TYPE action,
-	     int[] size, int handle,  String classname, Object argument,
-	     int boundary_width, Vector<String> hosts ) {
-	this.action = action;
-	this.size = size;
-	this.handle = handle;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = classname;
-	this.argument = argument;
-	this.hosts = hosts;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= boundary_width;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
+    // ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
+    public Message( ACTION_TYPE action, int localPopulation ) {
+
+    	this.action = action;
+    	this.agent_population = localPopulation;
+    
+    }
+
+    // AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
+    public Message( ACTION_TYPE action, int handle, int dummy ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.dest_handle = handle;
+    
+    }	
+
+    // AGENTS_INITIALIZE
+    public Message( ACTION_TYPE action, int initPopulation, int handle, int placeHandle, String className, Object argument ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.dest_handle = placeHandle;
+    	this.classname = className;
+    	this.argument = argument;
+    	this.agent_population = initPopulation;
+
+    }
+
+    // PLACES_EXCHANGE_ALL
+    public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<int[]> destinations ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.dest_handle = dest_handle;
+    	this.functionId = functionId;
+    	this.destinations = destinations;
+    
+    }
+
+    // PLACES_EXCHANGE_ALL_REMOTE_REQUEST
+    public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.dest_handle = dest_handle;
+    	this.functionId = functionId;
+    	this.exchangeReqList = exchangeReqList;
+
     }
 
     // PLACES_CALL_ALL_VOID_OBJECT,
     // PLACES_CALL_ALL_RETURN_OBJECT,
     // AGENTS_CALL_ALL_VOID_OBJECT,
     // AGENTS_CALL_ALL_RETURN_OBJECT
-    Message( ACTION_TYPE action,
-	     int handle, int functionId, Object argument ) {
-	this.action = action;
-	this.size = null;
-	this.handle = handle;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = functionId;
-	this.classname = null;
-	this.argument = argument;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
+    public Message( ACTION_TYPE action, int handle, int functionId, Object argument ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.functionId = functionId;
+    	this.argument = argument;
+
     }
 
-    // PLACES_EXCHANGE_ALL
-    Message( ACTION_TYPE action,
-	     int handle, int dest_handle, int functionId,
-	     Vector<int[]> destinations ) {
-	this.action = action;
-	this.size = null;
-	this.handle = handle;
-	this.dest_handle = dest_handle;
-	this.functionId = functionId;
-	this.classname = null;
-	//this.argument = argument;
-	this.hosts = null;
-	this.destinations = destinations;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
+    // AGENTS_MIGRATION_REMOTE_REQUEST
+    public Message( ACTION_TYPE action, int agentHandle, int placeHandle, Vector<AgentMigrationRequest> migrationReqList ) {
+
+    	this.action = action;
+    	this.handle = agentHandle;
+    	this.dest_handle = placeHandle;
+    	this.migrationReqList = migrationReqList;
+    
     }
 
-    // PLACES_EXCHANGE_ALL_REMOTE_REQUEST
-    Message( ACTION_TYPE action,
-	     int handle, int dest_handle, int functionId,
-	     Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
-	this.action = action;
-	this.size = null;
-	this.handle = handle;
-	this.dest_handle = dest_handle;
-	this.functionId = functionId;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = exchangeReqList;
-	this.migrationReqList = null;
-    }	
+    // PLACES_INITIALIZE
+    public Message( ACTION_TYPE action, int[] size, int handle,  String classname, Object argument, int boundary_width, Vector<String> hosts ) {
+
+    	this.action = action;
+    	this.size = size;
+    	this.handle = handle;
+    	this.classname = classname;
+    	this.argument = argument;
+    	this.hosts = hosts;
+    	this.boundary_width= boundary_width;
+    
+    }
 
     // PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
     // PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,
     // ACK used for PLACES_CALL_ALL_RETURN_OBJECT
-    Message( ACTION_TYPE action, Object retVals ) {
-	this.action = action;
-	this.size = null;
-	this.handle = VOID_HANDLE;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = retVals;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
-    }
+    public Message( ACTION_TYPE action, Object retVals ) {
 
-    // AGENTS_INITIALIZE
-    Message( ACTION_TYPE action, int initPopulation, int handle,
-	     int placeHandle, String className, Object argument ) {
-	this.action = action;
-	this.size = null;
-	this.handle = handle;
-	this.dest_handle = placeHandle;
-	this.functionId = 0;
-	this.classname = className;
-	this.argument = argument;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = initPopulation;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
-    }
+    	this.action = action;
+    	this.argument = retVals;
 
-    // AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
-    Message( ACTION_TYPE action, int handle, int dummy ) {
-	this.action = action;
-	this.size = null;
-	this.handle = handle;
-	this.dest_handle = handle;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
-    }
-
-    // AGENTS_MIGRATION_REMOTE_REQUEST
-    Message( ACTION_TYPE action, int agentHandle, int placeHandle,
-             Vector<AgentMigrationRequest> migrationReqList ) {
-	this.action = action;
-	this.size = null;
-	this.handle = agentHandle;
-	this.dest_handle = placeHandle;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = migrationReqList;
-    }
-
-    // FINISH
-    // ACK
-    Message( ACTION_TYPE action ) {
-	this.action = action;
-	this.size = null;
-	this.handle = VOID_HANDLE;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
     }
 
     // ACK used for AGENTS_CALL_ALL_RETURN_OBJECT
-    Message( ACTION_TYPE action, Object argument, int localPopulation ) {
-	this.action = action;
-	this.size = null;
-	this.handle = VOID_HANDLE;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = argument;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = localPopulation;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
+    public Message( ACTION_TYPE action, Object argument, int localPopulation ) {
+
+    	this.action = action;
+    	this.argument = argument;
+    	this.agent_population = localPopulation;
+
     }
 
-    // ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
-    Message( ACTION_TYPE action, int localPopulation ) {
-	this.action = action;
-	this.size = null;
-	this.handle = VOID_HANDLE;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = localPopulation;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
+    public ACTION_TYPE getAction( ) { 
+    	return action;
     }
-
-    // EMPTY
-    Message( ) {
-	//this.action = action;
-	this.size = null;
-	this.handle = VOID_HANDLE;
-	this.dest_handle = VOID_HANDLE;
-	this.functionId = 0;
-	this.classname = null;
-	this.argument = null;
-	this.hosts = null;
-	this.destinations = null;
-	this.agent_population = -1;
-	this.boundary_width= 0;
-	this.exchangeReqList = null;
-	this.migrationReqList = null;
-    }
-
-    public ACTION_TYPE getAction( ) { return action; }
-    public int[] getSize( ) { return size; }
-    public int getHandle( ) { return handle; }
-    public int getDestHandle( ) { return dest_handle; }
-    public int getFunctionId( ) { return functionId; }
-    public String getClassname( ) { return classname; }
-    public boolean isArgumentValid( ) { return ( argument != null ); }
-    public Object getArgument( ) { return argument; }
-    public int getBoundaryWidth( ) { return boundary_width; }
-    public int getAgentPopulation( ) { return agent_population; }
-    public Vector<String> getHosts( ) { return hosts; }
-    public Vector<int[]> getDestinations( ) { return destinations; }
-    public Vector<RemoteExchangeRequest> getExchangeReqList( )
-    { return exchangeReqList; }
-    public Vector<AgentMigrationRequest> getMigrationReqList( )
-    { return migrationReqList; }
     
-    private static final int VOID_HANDLE = -1;
-    private ACTION_TYPE action;
-    private int[] size;
-    private int handle;
-    private int dest_handle;
-    private int functionId;
-    private String classname;      // classname.class must be located in CWD.
-    private Object argument;
-    private Vector<String> hosts; // all hosts participated in computation
-    private Vector<int[]> destinations; // all destinations of exchangeAll
-    private int agent_population;
-    private int boundary_width;
-    private Vector<RemoteExchangeRequest> exchangeReqList = null;
-    private Vector<AgentMigrationRequest> migrationReqList = null;
+    public int getAgentPopulation( ) { 
+    	return agent_population;
+    }
+    
+    public Object getArgument( ) { 
+    	return argument;
+    }
+    
+    public int getBoundaryWidth( ) { 
+    	return boundary_width;
+    }
+    
+    public String getClassname( ) { 
+    	return classname;
+    }
+    
+    public int getDestHandle( ) { 
+    	return dest_handle;
+    }
+    
+    public Vector<int[]> getDestinations( ) { 
+    	return destinations;
+    }
+    
+    public Vector<RemoteExchangeRequest> getExchangeReqList( ) {
+    	return exchangeReqList;
+    }
+    
+    public int getFunctionId( ) { 
+    	return functionId;
+    }
+    
+    public int getHandle( ) { 
+    	return handle; 
+    }
+    
+    public Vector<String> getHosts( ) { 
+    	return hosts;
+    }
+    
+    public Vector<AgentMigrationRequest> getMigrationReqList( ) {
+    	return migrationReqList;
+    }
+    
+    public int[] getSize( ) { 
+    	return size; 
+    }
+    
+    public boolean isArgumentValid( ) { 
+    	return ( argument != null );
+    }
+
 }

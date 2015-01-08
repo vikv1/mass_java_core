@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>edu.uw.bothell.css.mass</groupId>
 		<artifactId>MASS-Java</artifactId>
-		<version>0.8.1-SNAPSHOT</version>
+		<version>0.8.2-SNAPSHOT</version>
 	</parent>
 
 	<name>MASS Java Quick Start Application</name>
@@ -18,7 +18,7 @@
 		<dependency>
 			<groupId>edu.uw.bothell.css.mass</groupId>
 			<artifactId>mass-core</artifactId>
-			<version>0.8.1-SNAPSHOT</version>
+			<version>0.8.2-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

@@ -51,7 +51,7 @@ public class Nomad extends Agent {
 	public Object findHostName(Object o){
 
 		try{
-             return (String) "Agent located at: " + InetAddress.getLocalHost().getCanonicalHostName() + " " + Integer.toString(index[0]) + ":" + Integer.toString(index[1]) + ":" + Integer.toString(index[2]);
+             return (String) "Agent located at: " + InetAddress.getLocalHost().getCanonicalHostName() + " " + Integer.toString(getIndex()[0]) + ":" + Integer.toString(getIndex()[1]) + ":" + Integer.toString(getIndex()[2]);
         }
         
         catch(Exception e) {
@@ -67,9 +67,9 @@ public class Nomad extends Agent {
 	 */
 	public Object move(Object o) {
 		
-		int xModifier = this.place.index[0];
-        int yModifier = this.place.index[1];
-        int zModifier = this.place.index[2];
+		int xModifier = this.getPlace().getIndex()[0];
+        int yModifier = this.getPlace().getIndex()[1];
+        int zModifier = this.getPlace().getIndex()[2];
         xModifier++;
 	        
         migrate(xModifier, yModifier, zModifier);
