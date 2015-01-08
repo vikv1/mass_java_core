@@ -16,7 +16,9 @@
 	<name>UW Climate Analysis EJB Business Logic</name>
 	<description>UW Climate Analysis EJB Application</description>
        
-
+  	<properties>
+    	<netcdf-java.version>4.5.2</netcdf-java.version>
+  	</properties>
 
 	<dependencies>
 		<dependency>
@@ -41,7 +43,12 @@
         <dependency>
   			<groupId>edu.ucar</groupId>
   			<artifactId>netcdf4</artifactId>
-  			<version>4.5.3</version>
+  			<version>${netcdf-java.version}</version>
+		</dependency>
+	    <dependency>
+  			<groupId>edu.ucar</groupId>
+  			<artifactId>cdm</artifactId>
+  			<version>${netcdf-java.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
