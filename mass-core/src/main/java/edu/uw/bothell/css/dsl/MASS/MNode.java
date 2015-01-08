@@ -58,7 +58,7 @@ public class MNode {
 		catch( Exception e ) {
 		
 			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
-					" setupMainConnection " + e );
+					" setupMainConnection " + e + " stacktrace: ");
 			
 			System.exit( -1 );
 	

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-import MASS.*;             // Library for Multi-Agent Spatial Simulation
+import edu.uw.bothell.css.dsl.MASS.*;             // Library for Multi-Agent Spatial Simulation
 import java.util.Random;
 import java.util.Vector;   // for Vector
 

@@ -18,8 +18,8 @@ import com.jcraft.jsch.Channel;
 
 public class MASS extends MASS_base {
     
-	private static final boolean printOutput = false;
-    // private static final boolean printOutput = true;
+	//private static final boolean printOutput = false;
+     private static final boolean printOutput = true;
     
 	private static final int JschPort = 22;
     private static Utilities util;
