@@ -37,7 +37,7 @@ public class Job {
     // our array list which collects prov information
     List<String> provCollector = new ArrayList<String>();
     
-    String[] massArgs = new String[]{"","","machinefile.txt","45454"};  
+    String[] massArgs = new String[]{"","","nodes.xml","45454"};  
     int numProc = 1;
     int numThr = 2;
               

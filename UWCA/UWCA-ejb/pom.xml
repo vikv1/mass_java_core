@@ -40,16 +40,19 @@
 			<version>0.8.2-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
+                <dependency>
+            
   			<groupId>edu.ucar</groupId>
   			<artifactId>netcdf4</artifactId>
   			<version>${netcdf-java.version}</version>
-		</dependency>
-	    <dependency>
+                 
+		</dependency>              
+                <dependency>
   			<groupId>edu.ucar</groupId>
   			<artifactId>cdm</artifactId>
   			<version>${netcdf-java.version}</version>
 		</dependency>
+              
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>

@@ -190,9 +190,9 @@ public class TasmaxAgent extends Agent{
     }
     
     public Object calculateHistoricalTolerance(Object o){
-        
+        double minMax = (double)o;
         double temp1 = historicalTolMax + abs(historicalTolMin);
-        double temp2 = temp1 * 0.10;
+        double temp2 = temp1 * minMax;
         historicalTolMax = historicalTolMax - temp2;
         
         historicalTolMin = historicalTolMin + temp2;

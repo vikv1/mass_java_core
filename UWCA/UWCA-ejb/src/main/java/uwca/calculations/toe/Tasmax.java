@@ -62,8 +62,28 @@ public class Tasmax extends AbstractToe{
     int[][] toePls;
     int[][] toeMin;
     
-    public Tasmax(String[] params){
+    // params
+    float climateThreshold;
+    double minMaxTol;
+    int numOfYears;
+    int toeThreshold;
     
+    /**
+     * Main constructor
+     * Accepts params arguments from web page
+     * @param params 
+     */
+    public Tasmax(String[] params){
+        
+//        climateThreshold = Float.parseFloat(params[0]);
+//        minMaxTol = Double.parseDouble(params[1]);
+//        numOfYears = Integer.parseInt(params[2]);
+//        toeThreshold = Integer.parseInt(params[3]);
+        
+        climateThreshold = 30.0f;
+        minMaxTol = 0.10;
+        numOfYears = 200;
+        toeThreshold = 120;
     }
     
     /**
@@ -80,6 +100,8 @@ public class Tasmax extends AbstractToe{
         massArgs = args;
         numProcesses = numProc;
         numThreads = numThr;    
+        numProcesses = 3;
+        numThreads = 1;   
         
         inputClimateModel = inputModel;
         
@@ -96,13 +118,14 @@ public class Tasmax extends AbstractToe{
     }
     
     private void massInit(){
-        String massLib = "UWCA-ejb-0.1.1-SNAPSHOT.jar";
-        String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\temp\\nodes.xml";
-        MASS.addLibrary(massLib);
-        MASS.setNodeFilePath(filePath);
+    //    String massLib = "apachemath-3.3.3.jar";
+     //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\temp\\nodes.xml";
+  //      MASS.addLibrary(massLib);
+    //    MASS.setNodeFilePath(filePath);
         MASS.init();
+       
         
- //       MASS.init(massArgs, numProcesses, numThreads);
+   //    MASS.init(massArgs, numProcesses, numThreads);
         int interv = 0;
 
         int[][] grid = inputClimateModel.getDimensions();
@@ -110,8 +133,8 @@ public class Tasmax extends AbstractToe{
         y = grid[0][1]; // long
         z = 150;        // time     
         
-        x = 46; // longitude(east / west)
-        y = 22; // latitude (north / south)
+        x = 10; // longitude(east / west)
+        y = 5; // latitude (north / south)
 //        z = 150; // time      
         
         // instanciate our places
@@ -119,15 +142,14 @@ public class Tasmax extends AbstractToe{
         
         agents = new Agents(2, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
     }
+    
     /**
-     * STEP 1
+     * STEP 1: Read NetCDF year into TasmaxPlaces
+     *     Read in each year into a place by lat && long coordinates
+     *    - each place in the time dimension will have 365 - 366 days
      */
     private void readDataIntoPlaces(){
-         /**
-         * STEP 1: Read NetCDF year into TasmaxPlaces
-         *     Read in each year into a place by lat && long coordinates
-         *    - each place in the time dimension will have 365 - 366 days
-         */
+  
         // set climate model
         // places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
         int[][] yearIndices =   inputClimateModel.findYearReadIndexes();        
@@ -137,31 +159,24 @@ public class Tasmax extends AbstractToe{
     }
     
     /**
-     * STEP 2
-     */
-    private void calculateDaysOverThreshold(){
-            /**
-         * STEP 2: Each place iterates through the 365-6 days to find days over threshold
-         *  Each place iterates through the 365-6 days to find days over threshold (PARAM 1). The result will be     
-         *    the number of days over threshold
-         *    - one int # kept by place class output
-         */
+      * STEP 2: Each place iterates through the 365-6 days to find days over threshold
+      *  Each place iterates through the 365-6 days to find days over threshold (PARAM 1). The result will be     
+      *    the number of days over threshold
+      *    - one int # kept by place class output
+      */
+    private void calculateDaysOverThreshold(){ 
         places.callAll(TasmaxPlace.calculateDaysOverThreshold);
     }
     
-    /**
-     * STEP 3
-     * @return 
+        /**
+     * STEP 3:
+     * Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
+     *  Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
+     *    - 2 double min / max number output
      */
     private void findHistoricalTolerance(){
-            /**
-         * STEP 3:
-         * Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
-         *  Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
-         *    - 2 double min / max number output
-         */
-                // AGENTS
-        
+
+        // AGENTS        
         // set the initial position for the agents to begin step 3 calculations
         agents.callAll(TasmaxAgent.decideInitialPosition, new int[]{x, y});
         // update agent statuses
@@ -172,20 +187,17 @@ public class Tasmax extends AbstractToe{
             agents.callAll(TasmaxAgent.gatherHistoricalTolerance);
             agents.manageAll();
         }
-        agents.callAll(TasmaxAgent.calculateHistoricalTolerance);
-        agents.manageAll();      
-
+        agents.callAll(TasmaxAgent.calculateHistoricalTolerance, minMaxTol);
+        agents.manageAll();  
     }
     
     /**
-     * STEP 4
+     * STEP 4:
+     * Find Climatology - 1980 - 2010 average 
+     * - 2 dim array output
      */
     private void findClimatology(){
-        /**
-         * STEP 4:
-         * Find Climatology - 1980 - 2010 average 
-         * - 2 dim array output
-         */
+
         agents.callAll(TasmaxAgent.setClimatologyInitPosition);
         agents.manageAll();
         
@@ -200,16 +212,14 @@ public class Tasmax extends AbstractToe{
     }    
     
     /**
-     * STEP 5
-     */
+    * STEP 5:
+    * LSR - Least Squared Regression
+    *    For 2006-2099 range produce 2 2d arrays (full lat and long coordinates)
+    *      5a. 2d array of slopes (use the 150 years and apache package)
+    *      5b. 2d array of Confidence Interval (rstdx * tvalue)
+    */
     private void leastSquaredRegression(){
-            /**
-         * STEP 5:
-         * LSR - Least Squared Regression
-         *    For 2006-2099 range produce 2 2d arrays (full lat and long coordinates)
-         *      5a. 2d array of slopes (use the 150 years and apache package)
-         *      5b. 2d array of Confidence Interval (rstdx * tvalue)
-         */
+
         slopes = new double[x][y];
         confidenceInterval = new double[x][y];
         // set the initial position for step 5
@@ -222,8 +232,7 @@ public class Tasmax extends AbstractToe{
             agents.callAll(TasmaxAgent.migrateZDimension);
             agents.manageAll();
             
-        }
-        
+        }        
         // now that the agents have found the values, lets have the agents return the values
       //  Object[] lsrValues = (Object[]) agents.callAll(TasmaxAgent.getLsrValues, new Object[x*y]);
         
@@ -298,12 +307,11 @@ public class Tasmax extends AbstractToe{
          * ToE
          *    3 2d array output of what year temperature rises above user defined threshold (PARAM 5)
          */
-        int numOfYears = 200;
+        
         double[][][] reg = new double[x][y][numOfYears];
         double[][][] min = new double[x][y][numOfYears];
         double[][][] pls = new double[x][y][numOfYears];
-        
-        double threshold = 30.0f;
+                
         toeReg = new int[x][y];
         toePls = new int[x][y];
         toeMin = new int[x][y];
@@ -316,15 +324,15 @@ public class Tasmax extends AbstractToe{
                         pls[i][k][j] = climaSlope2[i][k];
                         min[i][k][j] = climaSlope3[i][k];
                         
-                        if(reg[i][k][j] >= threshold)
+                        if(reg[i][k][j] >= toeThreshold)
                             toeReg[i][k] = 1950 + j;
                         else 
                             toeReg[i][k] = 0;
-                        if(pls[i][k][j] >= threshold)
+                        if(pls[i][k][j] >= toeThreshold)
                             toePls[i][k] = 1950 + j;
                         else 
                             toePls[i][k] = 0;
-                        if(min[i][k][j] >= threshold)
+                        if(min[i][k][j] >= toeThreshold)
                             toeMin[i][k] = 1950 + j;
                         else 
                             toeMin[i][k] = 0;
@@ -334,11 +342,11 @@ public class Tasmax extends AbstractToe{
                         pls[i][k][j] = reg[i][k][j-1] + slopePlusConInt[i][k];
                         min[i][k][j] = reg[i][k][j-1] + slopeMinusConInt[i][k];
                         
-                        if(reg[i][k][j] != 0 && reg[i][k][j] >= threshold)
+                        if(reg[i][k][j] != 0 && reg[i][k][j] >= toeThreshold)
                             toeReg[i][k] = 1950 + j;
-                        if(pls[i][k][j] != 0 && pls[i][k][j] >= threshold)
+                        if(pls[i][k][j] != 0 && pls[i][k][j] >= toeThreshold)
                             toePls[i][k] = 1950 + j;
-                        if(min[i][k][j] != 0 && min[i][k][j] >= threshold)
+                        if(min[i][k][j] != 0 && min[i][k][j] >= toeThreshold)
                             toeMin[i][k] = 1950 + j;
                         
                         
@@ -358,17 +366,22 @@ public class Tasmax extends AbstractToe{
 //        readDataIntoPlaces();
 //        // step 2 find days over threshold
 //        calculateDaysOverThreshold();
-        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
-        // step 3
-        findHistoricalTolerance();
-        // step 4
-        findClimatology();
-        // step 5
-        leastSquaredRegression();
-        // step 6
-        climatologyManipulations();
-        // step 7 && 8
-        findToe();
+//        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
+//        // step 3
+//        findHistoricalTolerance();
+//        // step 4
+//        findClimatology();
+//        // step 5
+//        leastSquaredRegression();
+//        // step 6
+//        climatologyManipulations();
+//        // step 7 && 8
+//        findToe();
+        
+        this.placesTest();
+        this.agentTest();
+        
+        
  
         
         /**
@@ -382,6 +395,21 @@ public class Tasmax extends AbstractToe{
 
         // end mass
         MASS.finish();
+    }
+    
+    public void placesTest(){
+        
+        Object[] placesIndexes = (Object[])places.callAll(TasmaxPlace.findHostName, new Object[x * y * z]);
+    
+        String s = "";
+    
+    }
+    
+    public void agentTest(){
+        
+        Object[] agentIndexes = (Object[])agents.callAll(TasmaxAgent.getPlaceIndex, new Object[x*y]);
+        
+        String s = "";
     }
     
     /**
