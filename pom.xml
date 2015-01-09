@@ -64,6 +64,9 @@
     			<id>uwb-css-artifactory-release</id>
     			<name>UWB CSS Artifactory Maven Repository Manager</name>
     			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
+    			<snapshots>
+        			<enabled>false</enabled>
+    			</snapshots>
 		</repository>
 		<repository>
     			<id>uwb-css-artifactory-snapshot</id>
