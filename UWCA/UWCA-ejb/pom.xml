@@ -17,50 +17,65 @@
 	<description>UW Climate Analysis EJB Application</description>
        
   	<properties>
-    	<netcdf-java.version>4.5.2</netcdf-java.version>
+    	<netcdf-java.version>4.5.0</netcdf-java.version>
   	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-			<version>7.0</version>
-			<scope>provided</scope>
-		</dependency>
-	
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>edu.uw.bothell.css.mass</groupId>
-			<artifactId>mass-core</artifactId>
-			<version>0.8.2-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
-                <dependency>
-            
-  			<groupId>edu.ucar</groupId>
-  			<artifactId>netcdf4</artifactId>
-  			<version>${netcdf-java.version}</version>
-                 
-		</dependency>              
-                <dependency>
-  			<groupId>edu.ucar</groupId>
-  			<artifactId>cdm</artifactId>
-  			<version>${netcdf-java.version}</version>
-		</dependency>
-              
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>3.4</version>
-			<scope>compile</scope>
-		</dependency>
- 	</dependencies>
-
+        <dependencies>
+            <dependency>
+                <groupId>javax</groupId>
+                <artifactId>javaee-api</artifactId>
+                <version>7.0</version>
+                <scope>provided</scope>
+            </dependency>	
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.3</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>edu.uw.bothell.css.mass</groupId>
+                <artifactId>mass-core</artifactId>
+                <version>0.8.2-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.4</version>
+                <scope>compile</scope>
+            </dependency>              
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>bufr</artifactId>
+                <version>${netcdf-java.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>grib</artifactId>
+                <version>${netcdf-java.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>netcdf4</artifactId>
+                <version>${netcdf-java.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>opendap</artifactId>
+                <version>${netcdf-java.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>visadCdm</artifactId>
+                <version>${netcdf-java.version}</version>
+                <scope>compile</scope>
+            </dependency>                
+        </dependencies>
 	<build>
 		<plugins>
 			<plugin>
