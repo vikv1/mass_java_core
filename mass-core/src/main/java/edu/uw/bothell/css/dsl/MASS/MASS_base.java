@@ -274,7 +274,6 @@ public class MASS_base {
      * Initialize MASS_base, using an MNode object representing this node as the source for configuration
      * @param nodeConfig The MNode object representing this node
      */
-	// TODO - will need to specify system size potentially? Maybe pass in all MNodes?
     public static void initMASS_base(MNode nodeConfig) {
 		
 		MASS_base.hostName = nodeConfig.getHostName();
@@ -310,22 +309,9 @@ public class MASS_base {
     	thisNode.setPid(myPid);
     	thisNode.setPort(port);    	
     	
-		setSystemSize(nProc);
-		
 		// init from the MNode object
 		initMASS_base(thisNode);
 
-//		MASS_base.currentPlaces = null;
-//		MASS_base.currentAgents = null;
-//		MASS_base.requestCounter = 0;
-//		MASS_base.hosts = new Vector<String>( );
-//		MASS_base.exchange = new ExchangeHelper( );
-	
-//		placesMap = new Hashtable<Integer, Places_base>( );
-//		agentsMap = new Hashtable<Integer, Agents_base>( );
-//		remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
-//		migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-	
     }
     
     /**
