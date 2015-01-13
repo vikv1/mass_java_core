@@ -11,56 +11,33 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 public class MASS_base {
 
     private static final boolean printOutput = false;
-    // private static final boolean printOutput = true;
 
     private static Mthread[] threads;          // including main and children
-
     private static final String MASS_LOGS = "MASS_logs";
-
 	private static int MASS_PORT;           // port # of the MASS library
-
     private static boolean initialized;  	// check if Mthreads are initialized
-
     private static String workingDirectory; // the current working directory
-
 	private static String hostName;         // my local host name
-
 	private static int myPid;               // my pid or rank
-
 	private static int systemSize;          // # of processes (nodes) in the cluster
-
 	private static FileOutputStream logger; // logger
-
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
-
 	private static Hashtable<Integer, Places_base> placesMap = new Hashtable<Integer, Places_base>( );
-
 	private static Hashtable<Integer, Agents_base> agentsMap = new Hashtable<Integer, Agents_base>( );
-
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
-
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
 
 	@SuppressWarnings("unused")
 	private static int requestCounter;
 
 	private static Places_base currentPlaces = null;
-
 	private static Agents_base currentAgents = null;
-
 	private static ExchangeHelper exchange = new ExchangeHelper( );
-
 	private static Places_base destinationPlaces;
-
 	private static int currentFunctionId;
-
 	private static Object currentArgument;
-
 	private static Object[] currentReturns;
-
-	//    private static Vector<int[]> currentDestinations;
 	private static Message.ACTION_TYPE currentMsgType;
-
 	private static Object log_lock;
 
 	// the collection of all nodes
@@ -77,7 +54,6 @@ public class MASS_base {
     
     // object factories are singletons, continue configuration within this class
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-
 
 	/**
      * Add a new node to the cluster
@@ -111,6 +87,7 @@ public class MASS_base {
 	public static Agents getAgents( int handle ) {
     	return ( Agents )agentsMap.get( new Integer( handle ) );
     }
+	
 	public static Hashtable<Integer, Agents_base> getAgentsMap() {
 		return agentsMap;
 	}
@@ -122,22 +99,28 @@ public class MASS_base {
 	public static Vector<MNode> getAllNodes() {
 		return allNodes;
 	}
+	
 	public static int getCores( ) {
 		// TODO: to be implemented
 		return 2;
     }
+	
 	public static Agents_base getCurrentAgents( ) {
     	return currentAgents; 
     }
+	
 	public static Object getCurrentArgument( ) { 
     	return currentArgument;
     }
+	
 	public static int getCurrentFunctionId( ) { 
     	return currentFunctionId; 
     }
+	
 	public static Message.ACTION_TYPE getCurrentMsgType( ) { 
     	return currentMsgType;
     }
+	
 	/**
      * Get the current Places object being worked on
      * @return The current Places object
@@ -145,13 +128,15 @@ public class MASS_base {
     public static Places_base getCurrentPlaces( ) { 
     	return currentPlaces; 
     }
-	public static Object[] getCurrentReturns() {
+	
+    public static Object[] getCurrentReturns() {
 		return currentReturns;
 	}
 
 	public static Places_base getDestinationPlaces( ) { 
     	return destinationPlaces; 
     }
+	
 	/**
 	 * Get the ExchangeHelper used by this instance of MASS_base
 	 * @return The ExchangeHelper used by this instance
@@ -159,9 +144,11 @@ public class MASS_base {
 	public static ExchangeHelper getExchange() {
 		return exchange;
 	}
+	
 	public static Vector<String> getHosts() {
 		return hosts;
 	}
+	
 	/**
 	 * Get the MNode representation of the master node only
 	 * @return The MNode representation of the master node
@@ -178,6 +165,7 @@ public class MASS_base {
 	public static Places getPlaces( int handle ) {
     	return ( Places )placesMap.get( new Integer( handle ) );
     }
+	
 	/**
 	 * Get the collection of Places located on this node
 	 * @return Places located on this node
@@ -185,6 +173,7 @@ public class MASS_base {
 	public static Hashtable<Integer, Places_base> getPlacesMap() {
 		return placesMap;
 	}
+	
 	/**
      * Get all MNode objects representing remote nodes only
      * @return MNodes representing all remote nodes
@@ -192,10 +181,12 @@ public class MASS_base {
     public static Vector<MNode> getRemoteNodes() {
     	return remoteNodes;
     }
-	public static Vector<Vector<RemoteExchangeRequest>> getRemoteRequests() {
+	
+    public static Vector<Vector<RemoteExchangeRequest>> getRemoteRequests() {
 		return remoteRequests;
 	}
-	/**
+	
+    /**
 	 * Get the total number of nodes in the cluster
 	 * @return The number of nodes
 	 */
@@ -208,10 +199,12 @@ public class MASS_base {
 		return systemSize;
 
 	}
+	
 	public static Mthread[] getThreads() {
 		return threads;
 	}
-/**
+
+	/**
 	 * Get the directory ("MASS Home") that this node is working from
 	 * @return The working directory
 	 */
@@ -456,9 +449,6 @@ public class MASS_base {
 		MASS_base.remoteRequests = remoteRequests;
 	}
     
-    //    public static Vector<int[]> getCurrentDestinations( ) {
-    //	return currentDestinations; }
-
     /**
 	 * Set the number of nodes in the cluster
 	 * @param systemSize The number of nodes
