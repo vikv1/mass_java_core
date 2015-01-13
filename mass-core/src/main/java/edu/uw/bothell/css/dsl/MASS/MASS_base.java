@@ -100,9 +100,12 @@ public class MASS_base {
 		return allNodes;
 	}
 	
+	/**
+	 * Get the number of cores (Hyperthreading included!) in this system
+	 * @return The number of CPU cores
+	 */
 	public static int getCores( ) {
-		// TODO: to be implemented
-		return 2;
+		return Runtime.getRuntime().availableProcessors();
     }
 	
 	public static Agents_base getCurrentAgents( ) {
