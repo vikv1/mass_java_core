@@ -20,33 +20,35 @@ import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
-    
+
 	private static final boolean printOutput = false;
     // private static final boolean printOutput = true;
-    
-	private static final int JschPort = 22;
-    private static Utilities util = new Utilities( );  // used for channel creation
 
-    // the list of libraries ("Jars") to load
+	private static final int JschPort = 22;
+
+	private static Utilities util = new Utilities( );  // used for channel creation
+
+	// the list of libraries ("Jars") to load
     private static Set<String> libraries = new HashSet<String>();
-    
-    // the number of threads to spawn on each node
+
+	// the number of threads to spawn on each node
     private static int numThreads;
-    
-    // default user credentials (can be overridden via XML)
+
+	// default user credentials (can be overridden via XML)
     private static String defaultUsername;
-    private static String defaultPassword;
-    
-    // name of file containing cluster node definitions
+
+	private static String defaultPassword;
+
+	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-    
-    // the port number used for inter-node communication
+
+	// the port number used for inter-node communication
     private static int communicationPort = 3400;
-    
-    // object factories are singletons, so we'll use this opportunity to initialize it
+
+	// object factories are singletons, so we'll use this opportunity to initialize it
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-    /**
+	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
      * @param libraryName The name of the library to load
      */
@@ -65,54 +67,167 @@ public class MASS extends MASS_base {
     
     }
     
+	static void barrier_all_slaves( ) { 
+    	barrier_all_slaves( null, 0,  null ); 
+    }
+
+	static void barrier_all_slaves( int localAgents[] ) { 
+    	barrier_all_slaves( null, 0, localAgents );
+    }
+
+    static void barrier_all_slaves( Object[] return_values, int stripe ) {
+    	barrier_all_slaves( return_values, stripe, null ); 
+    }
     
-    /**
-     * Initialize the MASS library using arguments
-     * @param args An array of command-line style arguments
-     * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
-     * @param nThr The number of threads to spawn
-     */
-	public static void init( String[] args, int nProc, int nThr ) {
-    	
-    	// variable assignment
-    	setDefaultUsername(args[0]);
-    	setDefaultPassword(args[1]);
-    	setNodeFilePath(args[2]);
-    	setCommunicationPort(Integer.parseInt( args[3] ));
-    	setNumThreads(nThr);
+    @SuppressWarnings("unused")
+	static void barrier_all_slaves( Object[] return_values, int stripe,
+    		int localAgents[] ) {
 
-    	try {
+    	// counts the agent population from each Mprocess
+    	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
 
-    		if ( args.length > 4 ) {
+    	// Synchronize with all slave processes
+    	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
+    		if( printOutput == true )
+    			System.err.println( "barrier waits for ack from " +
+    					getRemoteNodes().get(i).getHostName( ) );
 
-    			String jarList = args[4];
-    			String next;
-    			// args list needs to be a semicolon delimited string
-    			StringTokenizer tokenizer = new StringTokenizer(jarList, ";");
+    		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    			while( tokenizer.hasMoreTokens( ) ) {
+    		if( printOutput == true )
+    			System.err.println( "barrier received a message from " +
+    					getRemoteNodes().get(i).getHostName( ) +
+    					"...message = " + m );
 
-    				next = tokenizer.nextToken( );
-    				addLibrary( next );
-
-    			}
-
+    		// check this is an Ack
+    		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
+    			System.err.println( "barrier didn't receive ack from rank " +
+    					( i + 1 ) + " at " +
+    					getRemoteNodes().get(i).getHostName( ) +
+    					" message action type = " + m.getAction());
+    			System.exit( -1 );
     		}
 
+    		// retrieve arguments back from each Mprocess
+    		// places.callAll( ) with return values
+    		if ( return_values != null ) {
+    			if ( stripe > 0 && localAgents == null ) {
+
+    				// check if the message is from the last mNode as
+    				// the last mNode might have a remainder (stripe + rem)
+    				// for simplicity, we just use the length of the returned
+    				// array
+    				int copyLength;
+    				if ( i == getRemoteNodes().size( ) - 1 ) {
+    					copyLength = ( (Object[]) m.getArgument( ) ).length;
+    				} else {
+    					copyLength = stripe;
+    				}
+
+    				// copy the partial array into the return_values array
+    				System.arraycopy( m.getArgument( ), 0,
+    								  return_values, stripe * ( i + 1 ),
+    								  copyLength );
+    				}
+    				if ( stripe == 0 && localAgents != null ) {
+    					// agents.callAll( ) with return values
+    					System.arraycopy( m.getArgument( ), 0,
+    									  return_values, nAgentsSoFar,
+    									  localAgents[i + 1] );
+    				}
+    			}
+
+    		// retrieve agent population from each Mprocess
+    		if( printOutput == true ) {
+    			System.err.println( "localAgents[" + (i + 1) +
+    					"] = m.getAgentPopulation: "
+    					+ m.getAgentPopulation( ) );
+    		}
+
+    		if ( localAgents != null ) {
+    			localAgents[i + 1] = m.getAgentPopulation( );
+    			nAgentsSoFar += localAgents[i + 1];
+    		}
+
+    		if ( printOutput == true )
+    			System.err.println( "message deleted" );
+
     	}
 
-    	catch ( Exception e ) {
-
-    		System.err.println( "Error during MASS.init() optional argument" +
-    				"parsing " + e.getStackTrace());
-
-    		System.exit( -1 );
-
-    	}
+    }
     
-    	// after parameters have been set, perform initialization
-    	init();
-    	
+    @SuppressWarnings("unused")
+	public static void finish( ) {
+
+    	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
+    	Mthread.barrierThreads( 0 );
+
+    	if ( printOutput == true )
+    		System.err.println( "MASS::finish: all MASS threads terminated" );
+
+    	// Close connection and finish each mprocess
+    	for ( MNode node : getRemoteNodes() ) {
+    		// Send a finish messages
+    		Message m = new Message( Message.ACTION_TYPE.FINISH );
+    		node.sendMessage( m );
+    	}
+
+    	// Synchronize with all slaves
+    	barrier_all_slaves( );
+
+    	for ( MNode node : getRemoteNodes() )
+    		node.closeMainConnection( );
+
+    	System.err.println( "MASS::finish: done" );
+
+    }
+    
+    /**
+	 * Get the port number used for inter-node communications
+	 * @return The port number
+	 */
+	public static int getCommunicationPort() {
+		return communicationPort;
+	}
+    
+    /**
+	 * Get the default password for connecting to remote nodes
+	 * @return The default login password
+	 */
+	public static String getDefaultPassword() {
+		return defaultPassword;
+	}
+    
+    /**
+	 * Get the default username for connecting to remote nodes
+	 * @return The default login username
+	 */
+	public static String getDefaultUsername() {
+		return defaultUsername;
+	}
+    
+    /**
+	 * Get a collection of all library names to be used by the classloaders on each node
+	 * @return The collection of library names
+	 */
+	public static Set<String> getLibraries() {
+		return libraries;
+	}
+
+    /**
+	 * Get the filename for the cluster node definition file
+	 * @return The cluster node definition filename
+	 */
+	public static String getNodeFilePath() {
+		return nodeFilePath;
+	}
+    
+    /**
+	 * Get the number of threads that will be spawned on each node
+	 * @return The number of threads spawned
+	 */
+	public static int getNumThreads() {
+		return numThreads;
 	}
 
 	/**
@@ -363,137 +478,85 @@ public class MASS extends MASS_base {
 
     }
     
-    @SuppressWarnings("unused")
-	public static void finish( ) {
+    /**
+     * Initialize the MASS library using arguments
+     * @param args An array of command-line style arguments
+     * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
+     * @param nThr The number of threads to spawn
+     */
+	public static void init( String[] args, int nProc, int nThr ) {
+    	
+    	// variable assignment
+    	setDefaultUsername(args[0]);
+    	setDefaultPassword(args[1]);
+    	setNodeFilePath(args[2]);
+    	setCommunicationPort(Integer.parseInt( args[3] ));
+    	setNumThreads(nThr);
 
-    	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
-    	Mthread.barrierThreads( 0 );
+    	try {
 
-    	if ( printOutput == true )
-    		System.err.println( "MASS::finish: all MASS threads terminated" );
+    		if ( args.length > 4 ) {
 
-    	// Close connection and finish each mprocess
-    	for ( MNode node : getRemoteNodes() ) {
-    		// Send a finish messages
-    		Message m = new Message( Message.ACTION_TYPE.FINISH );
-    		node.sendMessage( m );
-    	}
+    			String jarList = args[4];
+    			String next;
+    			// args list needs to be a semicolon delimited string
+    			StringTokenizer tokenizer = new StringTokenizer(jarList, ";");
 
-    	// Synchronize with all slaves
-    	barrier_all_slaves( );
+    			while( tokenizer.hasMoreTokens( ) ) {
 
-    	for ( MNode node : getRemoteNodes() )
-    		node.closeMainConnection( );
+    				next = tokenizer.nextToken( );
+    				addLibrary( next );
 
-    	System.err.println( "MASS::finish: done" );
-
-    }
-
-    static void barrier_all_slaves( ) { 
-    	barrier_all_slaves( null, 0,  null ); 
-    }
-
-    static void barrier_all_slaves( int localAgents[] ) { 
-    	barrier_all_slaves( null, 0, localAgents );
-    }
-
-    static void barrier_all_slaves( Object[] return_values, int stripe ) {
-    	barrier_all_slaves( return_values, stripe, null ); 
-    }
-    
-    @SuppressWarnings("unused")
-	static void barrier_all_slaves( Object[] return_values, int stripe,
-    		int localAgents[] ) {
-
-    	// counts the agent population from each Mprocess
-    	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
-
-    	// Synchronize with all slave processes
-    	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		if( printOutput == true )
-    			System.err.println( "barrier waits for ack from " +
-    					getRemoteNodes().get(i).getHostName( ) );
-
-    		Message m = getRemoteNodes().get(i).receiveMessage( );
-
-    		if( printOutput == true )
-    			System.err.println( "barrier received a message from " +
-    					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
-
-    		// check this is an Ack
-    		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " +
-    					( i + 1 ) + " at " +
-    					getRemoteNodes().get(i).getHostName( ) +
-    					" message action type = " + m.getAction());
-    			System.exit( -1 );
-    		}
-
-    		// retrieve arguments back from each Mprocess
-    		// places.callAll( ) with return values
-    		if ( return_values != null ) {
-    			if ( stripe > 0 && localAgents == null ) {
-
-    				// check if the message is from the last mNode as
-    				// the last mNode might have a remainder (stripe + rem)
-    				// for simplicity, we just use the length of the returned
-    				// array
-    				int copyLength;
-    				if ( i == getRemoteNodes().size( ) - 1 ) {
-    					copyLength = ( (Object[]) m.getArgument( ) ).length;
-    				} else {
-    					copyLength = stripe;
-    				}
-
-    				// copy the partial array into the return_values array
-    				System.arraycopy( m.getArgument( ), 0,
-    								  return_values, stripe * ( i + 1 ),
-    								  copyLength );
-    				}
-    				if ( stripe == 0 && localAgents != null ) {
-    					// agents.callAll( ) with return values
-    					System.arraycopy( m.getArgument( ), 0,
-    									  return_values, nAgentsSoFar,
-    									  localAgents[i + 1] );
-    				}
     			}
 
-    		// retrieve agent population from each Mprocess
-    		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) +
-    					"] = m.getAgentPopulation: "
-    					+ m.getAgentPopulation( ) );
     		}
-
-    		if ( localAgents != null ) {
-    			localAgents[i + 1] = m.getAgentPopulation( );
-    			nAgentsSoFar += localAgents[i + 1];
-    		}
-
-    		if ( printOutput == true )
-    			System.err.println( "message deleted" );
 
     	}
 
-    }
+    	catch ( Exception e ) {
 
+    		System.err.println( "Error during MASS.init() optional argument" +
+    				"parsing " + e.getStackTrace());
 
-	/**
-	 * Get a collection of all library names to be used by the classloaders on each node
-	 * @return The collection of library names
-	 */
-	public static Set<String> getLibraries() {
-		return libraries;
+    		System.exit( -1 );
+
+    	}
+    
+    	// after parameters have been set, perform initialization
+    	init();
+    	
 	}
-	
 
-	/**
-	 * Get the number of threads that will be spawned on each node
-	 * @return The number of threads spawned
+    /**
+	 * Set the port number used for inter-node communications
+	 * @param communicationPort The port number
 	 */
-	public static int getNumThreads() {
-		return numThreads;
+	public static void setCommunicationPort(int communicationPort) {
+		MASS.communicationPort = communicationPort;
+	}
+
+    /**
+	 * Set the default password for connecting to remote nodes
+	 * @param defaultPassword The default password
+	 */
+	public static void setDefaultPassword(String defaultPassword) {
+		MASS.defaultPassword = defaultPassword;
+	}
+
+    /**
+	 * Set the default username for connecting to remote nodes
+	 * @param defaultUsername The default login username
+	 */
+	public static void setDefaultUsername(String defaultUsername) {
+		MASS.defaultUsername = defaultUsername;
+	}
+    
+    /**
+	 * Set the filename for the cluster node definition file
+	 * @param nodeFilePath The cluster node definition filename
+	 */
+	public static void setNodeFilePath(String nodeFilePath) {
+		MASS.nodeFilePath = nodeFilePath;
 	}
 
 	/**
@@ -503,69 +566,5 @@ public class MASS extends MASS_base {
 	public static void setNumThreads(int numThreads) {
 		MASS.numThreads = numThreads;
 	}
-
-	/**
-	 * Get the default username for connecting to remote nodes
-	 * @return The default login username
-	 */
-	public static String getDefaultUsername() {
-		return defaultUsername;
-	}
-
-	/**
-	 * Set the default username for connecting to remote nodes
-	 * @param defaultUsername The default login username
-	 */
-	public static void setDefaultUsername(String defaultUsername) {
-		MASS.defaultUsername = defaultUsername;
-	}
-
-	/**
-	 * Get the default password for connecting to remote nodes
-	 * @return The default login password
-	 */
-	public static String getDefaultPassword() {
-		return defaultPassword;
-	}
-
-	/**
-	 * Set the default password for connecting to remote nodes
-	 * @param defaultPassword The default password
-	 */
-	public static void setDefaultPassword(String defaultPassword) {
-		MASS.defaultPassword = defaultPassword;
-	}
-
-	/**
-	 * Get the filename for the cluster node definition file
-	 * @return The cluster node definition filename
-	 */
-	public static String getNodeFilePath() {
-		return nodeFilePath;
-	}
-
-	/**
-	 * Set the filename for the cluster node definition file
-	 * @param nodeFilePath The cluster node definition filename
-	 */
-	public static void setNodeFilePath(String nodeFilePath) {
-		MASS.nodeFilePath = nodeFilePath;
-	}
-
-	/**
-	 * Get the port number used for inter-node communications
-	 * @return The port number
-	 */
-	public static int getCommunicationPort() {
-		return communicationPort;
-	}
-
-	/**
-	 * Set the port number used for inter-node communications
-	 * @param communicationPort The port number
-	 */
-	public static void setCommunicationPort(int communicationPort) {
-		MASS.communicationPort = communicationPort;
-	}
-    
+	
 }
