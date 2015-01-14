@@ -13,6 +13,9 @@
 <nodes>
 
 	<node>
+	
+		<!–- Not required, but if set TRUE will represent node configuration for the master node -->
+		<master>true</master>
 		
 		<!-- Hostname is required, and may either be an FQDN or IP address -->
 		<!-- Make sure the name/address specified is reachable by all other nodes -->
