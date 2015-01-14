@@ -238,7 +238,8 @@ public class TasmaxAgent extends Agent{
      * @return 
      */
     public Object decideInitialPosition(Object o){
-        int ind[] = (int[])o;
+     //   int ind[] = (int[])o;
+        int ind[] = new int[] {10, 5};
         
         int xModifier = this.getAgentId() % ind[0];
         int yModifier = this.getAgentId() / ind[0];

@@ -5,6 +5,8 @@
  */
 package uwca;
 
+import edu.uw.bothell.css.dsl.MASS.Agents;
+import edu.uw.bothell.css.dsl.MASS.Places;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,9 +39,7 @@ public class Job {
     // our array list which collects prov information
     List<String> provCollector = new ArrayList<String>();
     
-    String[] massArgs = new String[]{"","","nodes.xml","45454"};  
-    int numProc = 1;
-    int numThr = 2;
+  
               
     
     /**
@@ -53,8 +53,8 @@ public class Job {
     /**
      * Starts the main calculations for the job
      */
-    public void executeJob(){
-        variable.setArgs(massArgs, numProc, numThr, inputModel, jobNumber);
+    public void executeJob(Places places, Agents agents){
+        variable.setArgs(inputModel, jobNumber, places, agents);
         variable.executeCalculations();
     }
 

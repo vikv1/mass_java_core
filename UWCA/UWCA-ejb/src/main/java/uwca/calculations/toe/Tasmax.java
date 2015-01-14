@@ -32,10 +32,6 @@ public class Tasmax extends AbstractToe{
     
     public int jobNumber;
     
-    private String[] massArgs;
-    private int numProcesses;
-    private int numThreads;
-    
     int x;
     int y;
     int z;
@@ -63,7 +59,7 @@ public class Tasmax extends AbstractToe{
     int[][] toeMin;
     
     // params
-    float climateThreshold;
+    float climateTempThreshold;
     double minMaxTol;
     int numOfYears;
     int toeThreshold;
@@ -75,12 +71,12 @@ public class Tasmax extends AbstractToe{
      */
     public Tasmax(String[] params){
         
-//        climateThreshold = Float.parseFloat(params[0]);
+//        climateTempThreshold = Float.parseFloat(params[0]);
 //        minMaxTol = Double.parseDouble(params[1]);
 //        numOfYears = Integer.parseInt(params[2]);
 //        toeThreshold = Integer.parseInt(params[3]);
         
-        climateThreshold = 30.0f;
+        climateTempThreshold = 30.0f;
         minMaxTol = 0.10;
         numOfYears = 200;
         toeThreshold = 120;
@@ -93,17 +89,12 @@ public class Tasmax extends AbstractToe{
      * @param numProc
      * @param numThr 
      */
-    public void setArgs(String[] args, int numProc, int numThr, ClimateModelInterface inputModel, int jobNum){
-       
-        jobNumber =  jobNum;
-    
-        massArgs = args;
-        numProcesses = numProc;
-        numThreads = numThr;    
-        numProcesses = 3;
-        numThreads = 1;   
-        
+    public void setArgs(ClimateModelInterface inputModel, int jobNum, Places pl, Agents ag){
+
         inputClimateModel = inputModel;
+        jobNumber =  jobNum;  
+//        places = pl;
+//        agents = ag;
         
         // create job directory
         File dir = new File("jobs/"+Integer.toString(jobNumber));
@@ -113,19 +104,14 @@ public class Tasmax extends AbstractToe{
             tmp.createNewFile();
         } catch (IOException ex) {
             Logger.getLogger(Tasmax.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-   
+        }    
     }
     
+    /**
+     * Inits the MASS library
+     */
     private void massInit(){
-    //    String massLib = "apachemath-3.3.3.jar";
-     //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\temp\\nodes.xml";
-  //      MASS.addLibrary(massLib);
-    //    MASS.setNodeFilePath(filePath);
-        MASS.init();
-       
-        
-   //    MASS.init(massArgs, numProcesses, numThreads);
+
         int interv = 0;
 
         int[][] grid = inputClimateModel.getDimensions();
@@ -146,10 +132,16 @@ public class Tasmax extends AbstractToe{
     /**
      * STEP 1: Read NetCDF year into TasmaxPlaces
      *     Read in each year into a place by lat && long coordinates
-     *    - each place in the time dimension will have 365 - 366 days
+     *     - each place in the time dimension will have 365 - 366 days
+     * STEP 2: Each place iterates through the 365-6 days to find days over threshold
+     *     Each place iterates through the 365-6 days to find days over threshold (PARAM 1). The result will be     
+     *     the number of days over threshold
+     *     - one int # kept by place class output 
      */
     private void readDataIntoPlaces(){
   
+        // first set the climate threshold
+        places.callAll(TasmaxPlace.setClimateTempThreshold, this.climateTempThreshold);
         // set climate model
         // places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
         int[][] yearIndices =   inputClimateModel.findYearReadIndexes();        
@@ -159,16 +151,6 @@ public class Tasmax extends AbstractToe{
     }
     
     /**
-      * STEP 2: Each place iterates through the 365-6 days to find days over threshold
-      *  Each place iterates through the 365-6 days to find days over threshold (PARAM 1). The result will be     
-      *    the number of days over threshold
-      *    - one int # kept by place class output
-      */
-    private void calculateDaysOverThreshold(){ 
-        places.callAll(TasmaxPlace.calculateDaysOverThreshold);
-    }
-    
-        /**
      * STEP 3:
      * Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
      *  Find Historical tolerance 1950 - 1999. Find the min / max %'s (PARAM 2 && 3)
@@ -178,7 +160,11 @@ public class Tasmax extends AbstractToe{
 
         // AGENTS        
         // set the initial position for the agents to begin step 3 calculations
-        agents.callAll(TasmaxAgent.decideInitialPosition, new int[]{x, y});
+        int[] dims = new int[2];
+        dims[0] = x;
+        dims[1] = y;
+     //   agents.callAll(TasmaxAgent.decideInitialPosition, (Object)dims);
+         agents.callAll(TasmaxAgent.decideInitialPosition);
         // update agent statuses
         agents.manageAll();            
         
@@ -362,10 +348,13 @@ public class Tasmax extends AbstractToe{
     public void executeCalculations(){
         // init MASS
         massInit();
-        // step 1 read data
-//        readDataIntoPlaces();
-//        // step 2 find days over threshold
-//        calculateDaysOverThreshold();
+        
+        this.placesTest();
+        this.agentTest();
+        
+        // step 1 && 2 read data
+       // readDataIntoPlaces();
+
 //        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
 //        // step 3
 //        findHistoricalTolerance();
@@ -378,23 +367,17 @@ public class Tasmax extends AbstractToe{
 //        // step 7 && 8
 //        findToe();
         
-        this.placesTest();
-        this.agentTest();
-        
-        
- 
+    
         
         /**
          * write the netcdf data to file
          */
         NetCdf fileWriter = new NetCdf();
-        fileWriter.writeToeFile("jobs/"+jobNumber+"/toeReg.nc", x, y, toeReg);
-        fileWriter.writeToeFile("jobs/"+jobNumber+"/toePls.nc", x, y, toePls);
-        fileWriter.writeToeFile("jobs/"+jobNumber+"/toeMin.nc", x, y, toeMin);
+//        fileWriter.writeToeFile("jobs/"+jobNumber+"/toeReg.nc", x, y, toeReg);
+//        fileWriter.writeToeFile("jobs/"+jobNumber+"/toePls.nc", x, y, toePls);
+//        fileWriter.writeToeFile("jobs/"+jobNumber+"/toeMin.nc", x, y, toeMin);
 
-
-        // end mass
-        MASS.finish();
+ 
     }
     
     public void placesTest(){
@@ -422,7 +405,7 @@ public class Tasmax extends AbstractToe{
         Tasmax_1 reader = new Tasmax_1();        
         for(int i = 0; i < 150; i++){
             
-            Object obj = reader.readFullYear(i, yearIndices);
+            Object obj = reader.readFullYear(x, y, i, yearIndices);
   
             float[][][] tempVals = (float[][][])obj;
             float[] yearData = tempVals[0][0];
@@ -440,14 +423,16 @@ public class Tasmax extends AbstractToe{
                    */                    
                     int m = (a * y) + (b % y);
                     int ind = m * z;
-                    placesArgs[ind] = tempVals[a][b];
+                    try{
+                    placesArgs[ind] = tempVals[b][a];
+                    }catch(Exception e){
+                        String s = e.toString();
+                    }
                     
                 }
             }
-            places.callAll(TasmaxPlace.setDaysArray, placesArgs);
-
-            System.out.println("Year " + year + " Array size: " + tempVals.length);
-   
+            // set the temp year values 
+            places.callAll(TasmaxPlace.setDaysArray, placesArgs);   
         }
     }
     

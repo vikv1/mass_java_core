@@ -264,7 +264,7 @@ public class Tasmax_1 implements ClimateModelInterface{
      * @param readIndex
      * @return 
      */
-    public Object readFullYear(int z, int[][] yearIndices){
+    public Object readFullYear(int x, int y, int z, int[][] yearIndices){
         readIndexes = yearIndices;
 
         NetcdfFile inputFile = null;    // target netCDF file   
@@ -309,8 +309,8 @@ public class Tasmax_1 implements ClimateModelInterface{
         // get the netcdf variable
         ncdfTasMaxVar = inputFile.findVariable(varname);          
 
-        latitude = 222;
-        longitude = 462;
+        latitude = x;  // 222
+        longitude = y; // 462
         
         orgin = new int[]{readIndex, 0, 0};
         shape = new int[]{readAmount, latitude, longitude};   

@@ -5,6 +5,8 @@
  */
 package uwca.calculations.toe;
 
+import edu.uw.bothell.css.dsl.MASS.Agents;
+import edu.uw.bothell.css.dsl.MASS.Places;
 import uwca.climatemodels.ClimateModelInterface;
 
 /**
@@ -15,6 +17,6 @@ public interface ToeInterface {
     
     public void executeCalculations();
     
-    public void setArgs(String[] args, int numProc, int numThr, ClimateModelInterface inputModel, int jobNum);
+    public void setArgs(ClimateModelInterface inputModel, int jobNum, Places pl, Agents ag);
     
 }

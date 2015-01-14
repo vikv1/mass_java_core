@@ -35,7 +35,8 @@ public class TasmaxPlace extends Place{
     private int interval;
     private int x;
     
-  //  private float climateThreshold = 0;
+    // set for step 1 && 2
+    private float climateTempThreshold = 0;
     
     public static final int readNetCdfData = 1;
     public static final int setClimateModel = 2;
@@ -47,6 +48,7 @@ public class TasmaxPlace extends Place{
      public static final int returnInt = 55;
     public static final int calculateDaysOverThreshold = 12;
     public static final int setMinMaxThresholdUserValues = 13;
+    public static final int setClimateTempThreshold = 21;
     
     public int[] myPlace;
     
@@ -102,9 +104,23 @@ public class TasmaxPlace extends Place{
                 return calculateDaysOverThreshold(o);     
             case setMinMaxThresholdUserValues:
                 return setMinMaxThresholdUserValues(o);
+            case setClimateTempThreshold:
+                return setClimateTempThreshold(o);
             default:
                 return null;              
         }
+    }
+    
+    /**
+     * Sets the climate temp threshold for step 2
+     * @param o
+     * @return 
+     */
+    public Object setClimateTempThreshold(Object o){
+        try{
+            climateTempThreshold = (float)o;
+        }catch(Exception e){}
+        return null;
     }
     
     /**
@@ -127,8 +143,8 @@ public class TasmaxPlace extends Place{
         if(o != null){
             daysTemps = (float[])o;
             calculateDaysOverThreshold(new Object());
-        }
-        
+            daysTemps = null;
+        }        
         return null;
     }
     
@@ -139,11 +155,10 @@ public class TasmaxPlace extends Place{
      * @return 
      */
     public Object calculateDaysOverThreshold(Object o){
-        if(daysTemps == null) return null;
-        float climateThreshold = (float)o;
+        if(daysTemps == null) return null;      
         // step through the array stored and see how many days are over threshold
         for(float f: daysTemps){
-            if(climateThreshold <= f && f != 1.0E20f){
+            if(climateTempThreshold <= f && f != 1.0E20f){
                 daysOverThreshold++;
             }
         }

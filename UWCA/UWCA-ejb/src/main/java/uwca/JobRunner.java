@@ -6,6 +6,11 @@
 
 package uwca;
 
+import edu.uw.bothell.css.dsl.MASS.Agents;
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.Places;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 
@@ -23,15 +28,48 @@ public class JobRunner {
   //  private JobManagerSingleton jobMgr;
     JobManager jobMgr;
     
+    
+    int numProc = 1;
+    int numThr = 2;
+    
+    Places places; // our data grid
+    Agents agents;
+    
     /**
      * Our default Constructor
      */
     public JobRunner(){
         jobMgr = JobManager.getInstance();
+        
     }
     
     /**
-     *  Our scheduled job runner
+     * Starts up MASS on deployment
+     */
+    @PostConstruct
+    public void initMassLibrary(){
+    
+   //  String massLib = "apachemath-3.3.3.jar";
+  //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\UWCA-ejb\\target\\classes\\nodes.xml";
+  //   MASS.addLibrary(massLib);
+ //    MASS.setNodeFilePath(filePath);  
+        
+       MASS.setCommunicationPort(45454); // port # to use
+       MASS.setNumThreads(2);
+       MASS.init();
+   //    MASS.init(massArgs, numProc, numThr);
+    }
+    
+    /**
+     * Shut down mass on re-deploy
+     */
+    @PreDestroy
+    public void finishMassLibrary(){
+        // end mass
+        MASS.finish();
+    }
+    /**
+     *  Our scheduled job runner -- runs continuously
      */
     @Schedule(second="*/1", minute="*",hour="*", persistent=false)
     public void doWork(){
@@ -43,12 +81,13 @@ public class JobRunner {
          //   Thread.sleep(10000);
             if(j != null){
                 // run the calculations
-                j.executeJob();
+                j.executeJob(places, agents);
                 // update job status
-                j.setStatus("Completed");
+                j.setStatus("Completed");  
             }
         }catch(Exception e){
             // TODO: error reporting here
+            String s = e.toString();
         }
     }
     

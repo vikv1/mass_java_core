@@ -25,7 +25,7 @@ public interface ClimateModelInterface {
     
     public int[][] findYearReadIndexes();
     
-    public Object readFullYear(int z, int[][] yearIndices);
+    public Object readFullYear(int x, int y, int z, int[][] yearIndices);
     
     public float[] readLocalizedYear(int x, int y, int z);
     
