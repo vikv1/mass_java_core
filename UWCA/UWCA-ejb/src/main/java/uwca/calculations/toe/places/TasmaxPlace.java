@@ -10,16 +10,16 @@ package uwca.calculations.toe.places;
 import uwca.climatemodels.Tasmax_1;
 import edu.uw.bothell.css.dsl.MASS.*;
 import java.net.InetAddress;
-import java.util.Calendar;
-import java.util.Date;
-import ucar.ma2.Array;
-import ucar.ma2.Index;
-import ucar.nc2.Attribute;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-import ucar.nc2.units.DateUnit;
+//import java.util.Calendar;
+//import java.util.Date;
+//import ucar.ma2.Array;
+//import ucar.ma2.Index;
+//import ucar.nc2.Attribute;
+//import ucar.nc2.NetcdfFile;
+//import ucar.nc2.Variable;
+//import ucar.nc2.units.DateUnit;
 import java.util.Random;
-import uwca.calculations.toe.AbstractToe;
+
 
 
 /**
@@ -35,11 +35,10 @@ public class TasmaxPlace extends Place{
     private int interval;
     private int x;
     
-    private float climateThreshold = 0;
+  //  private float climateThreshold = 0;
     
     public static final int readNetCdfData = 1;
     public static final int setClimateModel = 2;
-    public static final int setClimateThreshold = 3;
     public static final int getDaysOverThreshold = 4;
     public static final int readNetCdfDataFullYear = 5;
     public static final int falsifyDaysOverThreshold = 10;
@@ -87,8 +86,6 @@ public class TasmaxPlace extends Place{
         switch(method){
             case setClimateModel:
                 return setInputClimateModel(o);       
-            case setClimateThreshold:
-                return setClimateThreshold(o);
             case getDaysOverThreshold:
                 return getDaysOverThreshold(o);
             case falsifyDaysOverThreshold:
@@ -129,7 +126,9 @@ public class TasmaxPlace extends Place{
     public Object setDaysArray(Object o){
         if(o != null){
             daysTemps = (float[])o;
+            calculateDaysOverThreshold(new Object());
         }
+        
         return null;
     }
     
@@ -141,6 +140,7 @@ public class TasmaxPlace extends Place{
      */
     public Object calculateDaysOverThreshold(Object o){
         if(daysTemps == null) return null;
+        float climateThreshold = (float)o;
         // step through the array stored and see how many days are over threshold
         for(float f: daysTemps){
             if(climateThreshold <= f && f != 1.0E20f){
@@ -175,16 +175,6 @@ public class TasmaxPlace extends Place{
      */
     public Object getDaysOverThreshold(Object o){
         return daysOverThreshold; 
-    }
-    
-    /**
-     * Sets the climate threshold 
-     * @param o
-     * @return 
-     */
-    public Object setClimateThreshold(Object o){
-        climateThreshold = (Float) o;
-        return null;
     }
     
     /**

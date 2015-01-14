@@ -72,7 +72,6 @@ public class UwcaServlet extends HttpServlet {
                 params[1] = request.getParameter("param2");
                 params[2] = request.getParameter("param3");
                 params[3] = request.getParameter("param4");
-                params[4] = request.getParameter("param5");
                 break;
             default:
                 break;
