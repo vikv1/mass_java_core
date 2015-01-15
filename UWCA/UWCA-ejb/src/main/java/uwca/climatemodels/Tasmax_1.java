@@ -313,7 +313,7 @@ public class Tasmax_1 implements ClimateModelInterface{
         longitude = y; // 462
         
         orgin = new int[]{readIndex, 0, 0};
-        shape = new int[]{readAmount, latitude, longitude};   
+        shape = new int[]{readAmount, longitude, latitude};   
         Object yearData = null;
         try{
             dataSection = ncdfTasMaxVar.read(orgin, shape);  

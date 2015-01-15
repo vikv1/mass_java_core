@@ -119,14 +119,14 @@ public class Tasmax extends AbstractToe{
         y = grid[0][1]; // long
         z = 150;        // time     
         
-        x = 10; // longitude(east / west)
-        y = 5; // latitude (north / south)
-//        z = 150; // time      
+        x = 5; // longitude(east / west)
+        y = 3; // latitude (north / south)
+        z = 2; // time      
         
         // instanciate our places
         places = new Places(1, "uwca.calculations.toe.places.TasmaxPlace", (Object)interv, x, y, z);  
         
-        agents = new Agents(2, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
+   //     agents = new Agents(2, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
     }
     
     /**
@@ -347,13 +347,10 @@ public class Tasmax extends AbstractToe{
      */
     public void executeCalculations(){
         // init MASS
-        massInit();
-        
-        this.placesTest();
-        this.agentTest();
+        massInit();   
         
         // step 1 && 2 read data
-       // readDataIntoPlaces();
+ //       readDataIntoPlaces();
 
 //        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
 //        // step 3
@@ -367,7 +364,8 @@ public class Tasmax extends AbstractToe{
 //        // step 7 && 8
 //        findToe();
         
-    
+        this.placesTest();
+  //      this.agentTest();
         
         /**
          * write the netcdf data to file
@@ -421,10 +419,11 @@ public class Tasmax extends AbstractToe{
                    * z = the number of elements in the z dimension of the array
                    * m = (xindex * ymax) + (yindex % ymax)
                    */                    
-                    int m = (a * y) + (b % y);
-                    int ind = m * z;
+                    int m = (a * y) + b;
+                    //  int m = (a * y) + (b % y);
+                    int ind = (m * z) + i; // i being the year index modifier
                     try{
-                    placesArgs[ind] = tempVals[b][a];
+                    placesArgs[ind] = tempVals[a][b];
                     }catch(Exception e){
                         String s = e.toString();
                     }

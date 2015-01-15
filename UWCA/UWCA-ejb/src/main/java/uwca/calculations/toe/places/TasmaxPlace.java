@@ -144,6 +144,13 @@ public class TasmaxPlace extends Place{
             daysTemps = (float[])o;
             calculateDaysOverThreshold(new Object());
             daysTemps = null;
+            /**
+             * Next section for de-bugging
+             */
+            String ind = Integer.toString(this.getIndex()[0]) + " " 
+                    + Integer.toString(this.getIndex()[1])+ " " 
+                    + Integer.toString(this.getIndex()[2]);
+            int i = 0;
         }        
         return null;
     }

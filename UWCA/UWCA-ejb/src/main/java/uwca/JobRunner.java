@@ -55,7 +55,7 @@ public class JobRunner {
  //    MASS.setNodeFilePath(filePath);  
         
        MASS.setCommunicationPort(45454); // port # to use
-       MASS.setNumThreads(2);
+       MASS.setNumThreads(8);
        MASS.init();
    //    MASS.init(massArgs, numProc, numThr);
     }
