@@ -85,7 +85,7 @@ public class Mthread extends Thread {
     }
     
     public void run( ) {
-    	
+    	 // Initialization portion
     	synchronized( lock ) {
     		threadCreated = tid;  // to inform MASS_base of my invocation
     	}
@@ -104,6 +104,7 @@ public class Mthread extends Thread {
     	Message.ACTION_TYPE msgType = Message.ACTION_TYPE.EMPTY;
     	//Vector<int[]> destinations = null;
 
+    	// END Initialization
     	boolean running = true;
     	while ( running ) {
     		

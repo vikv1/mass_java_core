@@ -90,6 +90,8 @@ public class Agents extends Agents_base implements Serializable {
 
 		//Check for correct behavior post-Agents_base implementation
 		// retrieve the corresponding agents
+		
+		// shared between agents
 		MASS_base.setCurrentAgents(this);
 		MASS_base.setCurrentFunctionId(functionId);
 		MASS_base.setCurrentArgument(argument);
