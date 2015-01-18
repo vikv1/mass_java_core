@@ -17,6 +17,6 @@ public interface ToeInterface {
     
     public void executeCalculations();
     
-    public void setArgs(ClimateModelInterface inputModel, int jobNum, Places pl, Agents ag);
+    public void setArgs(ClimateModelInterface inputModel, int jobNum);
     
 }

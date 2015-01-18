@@ -23,17 +23,10 @@ import javax.ejb.Singleton;
 public class JobRunner {
     
     // our reference to our singleton job manager class
- //   @Inject
-  //  @EJB
-  //  private JobManagerSingleton jobMgr;
-    JobManager jobMgr;
-    
+    JobManager jobMgr;    
     
     int numProc = 1;
     int numThr = 2;
-    
-    Places places; // our data grid
-    Agents agents;
     
     /**
      * Our default Constructor
@@ -49,15 +42,15 @@ public class JobRunner {
     @PostConstruct
     public void initMassLibrary(){
     
-   //  String massLib = "apachemath-3.3.3.jar";
-  //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\UWCA-ejb\\target\\classes\\nodes.xml";
+   //  String massLib = "apachemath-3.3.3.jar";  
   //   MASS.addLibrary(massLib);
+        
+ //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\UWCA-ejb\\target\\classes\\nodes.xml";
  //    MASS.setNodeFilePath(filePath);  
         
        MASS.setCommunicationPort(45454); // port # to use
-       MASS.setNumThreads(8);
+       MASS.setNumThreads(8);            // # of threads to use
        MASS.init();
-   //    MASS.init(massArgs, numProc, numThr);
     }
     
     /**
@@ -81,7 +74,7 @@ public class JobRunner {
          //   Thread.sleep(10000);
             if(j != null){
                 // run the calculations
-                j.executeJob(places, agents);
+                j.executeJob();
                 // update job status
                 j.setStatus("Completed");  
             }

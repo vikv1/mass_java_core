@@ -53,8 +53,8 @@ public class Job {
     /**
      * Starts the main calculations for the job
      */
-    public void executeJob(Places places, Agents agents){
-        variable.setArgs(inputModel, jobNumber, places, agents);
+    public void executeJob(){
+        variable.setArgs(inputModel, jobNumber);
         variable.executeCalculations();
     }
 

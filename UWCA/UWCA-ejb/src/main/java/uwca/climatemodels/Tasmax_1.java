@@ -240,8 +240,7 @@ public class Tasmax_1 implements ClimateModelInterface{
     String longitude = "longitude";
     String latitude = "latitude";
     String time = "time";
-    String varname = "tasmax";
-    private int startLeapYear = 1948;
+    String varname = "tasmax";   
     private int startYear = 1950;
     private int endYear = 2099;
 
@@ -279,7 +278,7 @@ public class Tasmax_1 implements ClimateModelInterface{
         Variable ncdfTasMaxVar;
         Array dataSection;
         String varname = "tasmax";
-        yr = z + startYear;      
+        yr = z + getStartYear();      
         
         readIndex = readIndexes[z][0];
         readAmount = readIndexes[z][1] - readIndexes[z][0];
@@ -356,7 +355,7 @@ public class Tasmax_1 implements ClimateModelInterface{
         // starting index always 0
         indices[0][0] = 0;
         
-        int activeYear = startYear;
+        int activeYear = getStartYear();
         
         // loop through each of the five files
         for(String file: files){
@@ -523,5 +522,19 @@ public class Tasmax_1 implements ClimateModelInterface{
                 inputFile.close();
             }catch(Exception e){}
         return daysTemps;
+    }
+
+    /**
+     * @return the startYear
+     */
+    public int getStartYear() {
+        return startYear;
+    }
+
+    /**
+     * @return the tvalue
+     */
+    public double getTvalue() {
+        return tvalue;
     }
 }

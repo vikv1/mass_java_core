@@ -16,6 +16,10 @@ public interface ClimateModelInterface {
      * @return 
      */
     public String[] getFiles();
+    
+    public int getStartYear();
+    
+    public double getTvalue();
      
     /**
      * Gets the dimensions of the variable

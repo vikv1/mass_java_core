@@ -19,6 +19,7 @@ import java.net.InetAddress;
 //import ucar.nc2.Variable;
 //import ucar.nc2.units.DateUnit;
 import java.util.Random;
+import uwca.climatemodels.ClimateModelInterface;
 
 
 
@@ -28,16 +29,32 @@ import java.util.Random;
  */
 public class TasmaxPlace extends Place{
     
-    // our days over threshold value which each place is responsible for
-    // STEP 2
+    /**
+     * Step 1 && 2 variables
+     */
+    // our days over threshold value which each place is responsible for 
     public int daysOverThreshold = 0;
-        
-    private int interval;
-    private int x;
+    private float climateTempThreshold = 0;    
+    private float[] daysTemps;  
+
     
-    // set for step 1 && 2
-    private float climateTempThreshold = 0;
+    /**
+     * Step 3 variables
+     * historicalThresholds[0] = min value
+     * historicalThresholds[1] = max value
+     */
+    private double[] historicalThresholds;
     
+    /**
+     * The input climate model
+     * This variable is only necessary for when you do reading in from the individual Places
+     */
+    private ClimateModelInterface inputClimateModel = null;
+  
+    private int interval;      
+    /**
+     * Methods that are callable from callAll
+     */
     public static final int readNetCdfData = 1;
     public static final int setClimateModel = 2;
     public static final int getDaysOverThreshold = 4;
@@ -45,31 +62,9 @@ public class TasmaxPlace extends Place{
     public static final int falsifyDaysOverThreshold = 10;
     public static final int findHostName = 20;
     public static final int setDaysArray = 11;
-     public static final int returnInt = 55;
     public static final int calculateDaysOverThreshold = 12;
-    public static final int setMinMaxThresholdUserValues = 13;
     public static final int setClimateTempThreshold = 21;
-    
-    public int[] myPlace;
-    
-    private float[] daysTemps;
-    
-    
-    // historicalThresholds[0] = min value
-    // historicalThresholds[1] = max value
-    private double[] historicalThresholds;
-    
-    private Tasmax_1 inputClimateModel = null;
-    
-
-   //   Variable ncdfVar;               // NetCDF Variable
- //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
- //     List<Variable> inputVariables;
-
-      String longitude = "longitude";
-      String latitude = "latitude";
-      String time = "time";
-      String varname = "tasmax";
+      
     /**
      * public constructor
      * @param interval 
@@ -78,6 +73,7 @@ public class TasmaxPlace extends Place{
         this.interval = ( ( Integer)interval ).intValue();
         
     }
+    
     /**
      * 
      * @param i the method to be called
@@ -98,12 +94,9 @@ public class TasmaxPlace extends Place{
                 return findHostName(o);
             case setDaysArray:
                 return setDaysArray(o);
-            case returnInt:
-                return getInt();
             case calculateDaysOverThreshold:
                 return calculateDaysOverThreshold(o);     
-            case setMinMaxThresholdUserValues:
-                return setMinMaxThresholdUserValues(o);
+
             case setClimateTempThreshold:
                 return setClimateTempThreshold(o);
             default:
@@ -112,30 +105,21 @@ public class TasmaxPlace extends Place{
     }
     
     /**
-     * Sets the climate temp threshold for step 2
-     * @param o
+     * Sets the climate model at the place level. 
+     * @param o The climate model variable we will be using
      * @return 
      */
-    public Object setClimateTempThreshold(Object o){
-        try{
-            climateTempThreshold = (float)o;
-        }catch(Exception e){}
+    public Object setInputClimateModel(Object o){
+     //   inputClimateModel = (Tasmax_1)o
+        inputClimateModel = new Tasmax_1();
         return null;
-    }
+    }   
     
+    /******************************************************************************************************************
+     * STEP 1: Find days over temperature threshold
+     *****************************************************************************************************************/
     /**
-     * Sets the user defined thresholds for historical min max calculations
-     * @param o
-     * @return 
-     */
-    public Object setMinMaxThresholdUserValues(Object o){
-        
-        historicalThresholds = (double[])o;        
-        return null;    
-    }
-    
-    /**
-     * sets the 365-6 days array of values to be processed into management variable
+     * Part of STEP 1: sets the 365-6 days array of values to be processed into management variable
      * @param o
      * @return 
      */
@@ -156,8 +140,19 @@ public class TasmaxPlace extends Place{
     }
     
     /**
-     * Determines the number of days over the threshold
-     * This is STEP 2
+     * Part of STEP 1: Set the climate threshold (user defined)
+     * @param o
+     * @return 
+     */
+    public Object setClimateTempThreshold(Object o){
+        try{
+            climateTempThreshold = (float)o;
+        }catch(Exception e){}
+        return null;
+    }
+    
+    /**
+     * Part of STEP 1: Determines the number of days over the threshold
      * @param o
      * @return 
      */
@@ -170,17 +165,19 @@ public class TasmaxPlace extends Place{
             }
         }
         return null;
-    }
+    }   
     
-    public Object findHostName(Object o){
-        String s = "error";
-        try{
-             s =  InetAddress.getLocalHost().getHostName() +" " + Integer.toString(this.getIndex()[0]) + ":" + Integer.toString(this.getIndex()[1]) + ":" + Integer.toString(this.getIndex()[2]);
-        }catch(Exception e){}
-        return s;
-    }
+   /**
+     * Simply returns the daysOverThreshold value -- primarily used by Agents in further steps 
+     * @param o
+     * @return 
+     */
+    public Object getDaysOverThreshold(Object o){
+        return daysOverThreshold; 
+    }    
+    
     /**
-     * 
+     * Tester method which bypasses the read operations (not used by sequence normally)
      * @param o
      * @return 
      */
@@ -188,39 +185,27 @@ public class TasmaxPlace extends Place{
         Random rn = new Random();
         daysOverThreshold =  rn.nextInt(50);
         return null;
-    }
-    
-    /**
-     * 
-     * @param o
-     * @return 
-     */
-    public Object getDaysOverThreshold(Object o){
-        return daysOverThreshold; 
-    }
-    
-    /**
-     * Sets the climate model at the place level. 
-     * @param o The climate model variable we will be using
-     * @return 
-     */
-    public Object setInputClimateModel(Object o){
-     //   inputClimateModel = (Tasmax_1)o
-        inputClimateModel = new Tasmax_1();
-        return null;
     }    
-    
+
+
     /**
-     * This method reads in the entire year chunk of data at a time
+     * This method reads in the entire year chunk of data at a time specific to the place
      * @param o
      * @return 
      */
     public Object readNetCdfDataFullYear(Object o){
+        
+   //   Variable ncdfVar;               // NetCDF Variable
+ //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
+ //     List<Variable> inputVariables;
+        String longitude = "longitude";
+        String latitude = "latitude";
+        String time = "time";
+        String varname = "tasmax";
         // we read in one z slice at a time, if this isnt the right slice, return
         int element = (Integer)o;
-        if(this.getIndex()[2] != element) return null;
-        
-        inputClimateModel= new Tasmax_1();
+        if(this.getIndex()[2] != element) return null;        
+     
         daysTemps = inputClimateModel.readLocalizedYear(this.getIndex()[0], this.getIndex()[1], this.getIndex()[2]);
 
         return null;
@@ -325,7 +310,17 @@ public class TasmaxPlace extends Place{
 //            }catch(Exception e){}
 //        return null;
     }
-        public double getInt(){
-        return x;
+    
+    /**
+     * Returns host name and place index
+     * @param o
+     * @return 
+     */
+    public Object findHostName(Object o){
+        String s = "error";
+        try{
+             s =  InetAddress.getLocalHost().getHostName() +" " + Integer.toString(this.getIndex()[0]) + ":" + Integer.toString(this.getIndex()[1]) + ":" + Integer.toString(this.getIndex()[2]);
+        }catch(Exception e){}
+        return s;
     }
 }
