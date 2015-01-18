@@ -1,10 +1,10 @@
-package edu.uw.bothell.css.dsl.MASS.QuickStart;
+package edu.uw.bothell.css.dsl.MASS.Mandelbrot;
 
 import edu.uw.bothell.css.dsl.MASS.Agents;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.Places;
 
-public class QuickStart {
+public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-quickstart-0.8.2-SNAPSHOT.jar";
