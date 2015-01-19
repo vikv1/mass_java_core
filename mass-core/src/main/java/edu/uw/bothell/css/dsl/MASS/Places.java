@@ -4,10 +4,6 @@ import java.util.Vector;
 
 public class Places extends Places_base {
 	
-    //Used to toggle comments from Places.java
-    private static final boolean printOutput = false;
-    //private static final boolean printOutput = true;
-
     public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
     	
 		super( handle, className, boundary_width, argument, size );
@@ -22,7 +18,6 @@ public class Places extends Places_base {
     
     }
 
-    @SuppressWarnings("unused")
 	public Object ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
     	
@@ -55,7 +50,7 @@ public class Places extends Places_base {
 				m = new Message( type, this.getHandle(), functionId, 
 						 partialArguments );
 				
-				if ( printOutput == true ) 
+				if ( MASS.isConsoleLoggingEnabled() ) 
 				    MASS_base.log( "Places.callAll: arg_size = " + 
 						   partialArguments.length +
 						   " stripe = " + stripe + 
@@ -65,7 +60,7 @@ public class Places extends Places_base {
 		    // send it
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
-		    if ( printOutput == true )
+		    if ( MASS.isConsoleLoggingEnabled() )
 			MASS_base.log( "PLACES_CALL_ALL " + m.getAction( ) +
 				       " sent to " + i );
 		}
@@ -106,10 +101,9 @@ public class Places extends Places_base {
 		ca_setup( functionId, null, Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
     }
     
-    @SuppressWarnings("unused")
 	public void callAll( int functionId, Object argument ) {
 	
-		if ( printOutput == true )
+		if ( MASS.isConsoleLoggingEnabled() )
 		    MASS_base.log( "callAll void object" );
 		
 		ca_setup( functionId, argument, 
@@ -117,10 +111,9 @@ public class Places extends Places_base {
     
     }
     
-    @SuppressWarnings("unused")
 	public Object callAll( int functionId, Object argument[] ) {
 	
-		if ( printOutput == true )
+		if ( MASS.isConsoleLoggingEnabled() )
 		    MASS_base.log( "callAll return object" );
 		
 		return ca_setup( functionId, ( Object )argument,
@@ -128,14 +121,13 @@ public class Places extends Places_base {
     
     }
     
-    @SuppressWarnings("unused")
 	public void exchangeAll( int dest_handle, int functionId ) {
 	
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, 
 					  this.getHandle(), dest_handle, functionId );
 		
-		if ( printOutput == true )
+		if ( MASS.isConsoleLoggingEnabled() )
 		    MASS_base.log( "dest_handle = " + dest_handle );
 		
 		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
@@ -191,7 +183,6 @@ public class Places extends Places_base {
     
     }
     
-    @SuppressWarnings("unused")
 	public void init_master( Object argument, int boundary_width ) {
 
 		// create a list of all host names;  
@@ -220,7 +211,7 @@ public class Places extends Places_base {
 		    
 			node.sendMessage( m );
 		    
-		    if ( printOutput == true )
+		    if ( MASS.isConsoleLoggingEnabled() )
 			MASS_base.log( "PLACES_INITIALIZE sent to " + node.getPid() );
 		
 		}

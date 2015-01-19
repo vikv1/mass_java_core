@@ -12,20 +12,12 @@ public class Mthread extends Thread {
 		STATUS_MANAGEALL       // 5
 	}
 
-    //private static final boolean printOutput = true;
-    private static final boolean printOutput = false;
-
-    public static Object lock;
-    public static int barrier_count;
-
-    public static STATUS_TYPE status;
-    public static int threadCreated;
-
-
-    public static int agentBagSize;
-
+    private static Object lock;
+    private static int barrier_count;
+    private static STATUS_TYPE status;
+    private static int threadCreated;
+    private static int agentBagSize;
     private static int barrier_phases;
-
     private int tid;                  // this mthread's id
 
     public Mthread( int id ) {
@@ -38,7 +30,7 @@ public class Mthread extends Thread {
     		
     		if ( ++barrier_count < MASS_base.getThreads().length ) {
     			
-    			if( printOutput )
+    			if( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "tid[" + tid + 
     						"] waiting: barrier = " + barrier_phases );
     			
@@ -54,7 +46,7 @@ public class Mthread extends Thread {
     			
     			barrier_count = 0;
     			status = STATUS_TYPE.STATUS_READY;
-    			if( printOutput ) 
+    			if( MASS.isConsoleLoggingEnabled() ) 
     				MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
     						+ barrier_phases );
     			barrier_phases++;
@@ -87,11 +79,11 @@ public class Mthread extends Thread {
     public void run( ) {
     	
     	synchronized( lock ) {
-    		threadCreated = tid;  // to inform MASS_base of my invocation
+    		//threadCreated = tid;  // to inform MASS_base of my invocation
     	}
 
     	// breath message
-    	if ( printOutput )
+    	if ( MASS.isConsoleLoggingEnabled() )
     		MASS_base.log( "Mthread[" + tid + "] invoked" );
 
     	// the following variables are used to call callAll( )
@@ -122,7 +114,7 @@ public class Mthread extends Thread {
     			}
 
     			// wake-up message
-    			if( printOutput )
+    			if( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread[" + tid + "] woken up" );
     		
     		}
@@ -132,7 +124,7 @@ public class Mthread extends Thread {
     		
     		case STATUS_READY:
     			
-    			if ( printOutput )
+    			if ( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread reached STATUS_READY in switch" );
     			System.exit( -1 );
     			break;
@@ -149,7 +141,7 @@ public class Mthread extends Thread {
     			argument = MASS_base.getCurrentArgument( );
     			msgType = MASS_base.getCurrentMsgType( );
 
-    			if ( printOutput )
+    			if ( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread[" +tid + "] works on CALLALL:" +
     						" placese = " + places +
     						" functionId = " + functionId +
@@ -167,7 +159,7 @@ public class Mthread extends Thread {
 
     		case STATUS_EXCHANGEALL:
     			
-    			if ( printOutput )
+    			if ( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread[" + tid + 
     						"] works on EXCHANGEALL" );
 
@@ -188,7 +180,7 @@ public class Mthread extends Thread {
     			argument = MASS_base.getCurrentArgument( );
     			msgType = MASS_base.getCurrentMsgType( );
 
-    			if ( printOutput )
+    			if ( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread[" + tid + 
     						"] works on AGENST_CALLALL:" +
     						" agents = " + agents +
@@ -221,7 +213,7 @@ public class Mthread extends Thread {
     			agents = MASS_base.getCurrentAgents( );
 
     			//Send logging message
-    			if ( printOutput )
+    			if ( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "Mthread[" + tid + "] works on MANAGEALL:" +
     						" agents = " + agents );
 
@@ -238,9 +230,33 @@ public class Mthread extends Thread {
     	}
 
     	// last message
-    	if ( printOutput )
+    	if ( MASS.isConsoleLoggingEnabled() )
     		MASS_base.log( "Mthread[" + tid + "] terminated" );
     
     }
+
+	public static int getAgentBagSize() {
+		return agentBagSize;
+	}
+
+	public static void setAgentBagSize(int agentBagSize) {
+		Mthread.agentBagSize = agentBagSize;
+	}
+
+	public static Object getLock() {
+		return lock;
+	}
+
+	public static void setLock(Object lock) {
+		Mthread.lock = lock;
+	}
+
+	public static int getThreadCreated() {
+		return threadCreated;
+	}
+
+	public static void setThreadCreated(int threadCreated) {
+		Mthread.threadCreated = threadCreated;
+	}
 
 }
