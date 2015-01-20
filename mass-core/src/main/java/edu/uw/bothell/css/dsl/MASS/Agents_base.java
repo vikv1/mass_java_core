@@ -241,8 +241,8 @@ public class Agents_base implements Serializable {
     				MASS_base.log( "Starting index value is: " +
     						Mthread.getAgentBagSize() );
     			
-    			myIndex = Mthread.getAgentBagSize() - 1; // myIndex == agentId + 1
-    			Mthread.setAgentBagSize(myIndex);
+    			myIndex = Mthread.getAgentBagSize(); // myIndex == agentId + 1
+    			Mthread.setAgentBagSize(myIndex - 1);
 
     			//Error Checking
     			if ( MASS.isConsoleLoggingEnabled() == true )
