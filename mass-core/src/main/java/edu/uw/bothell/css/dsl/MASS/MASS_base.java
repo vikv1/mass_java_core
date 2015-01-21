@@ -17,7 +17,6 @@ public class MASS_base {
     private static String workingDirectory; // the current working directory
 	private static String hostName;         // my local host name
 	private static int myPid;               // my pid or rank
-//	private static int systemSize;          // # of processes (nodes) in the cluster
 	private static FileOutputStream logger; // logger
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, Places_base> placesMap = new Hashtable<Integer, Places_base>( );
@@ -36,6 +35,9 @@ public class MASS_base {
 	private static Message.ACTION_TYPE currentMsgType;
 	private static Object log_lock;
 
+	// TODO - this is dumb. Calculate from number of hosts identified.
+	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
+	
 	// the collection of all nodes
     private static Vector<MNode> allNodes = new Vector<MNode>( );
 
@@ -194,8 +196,12 @@ public class MASS_base {
 		// if nodes have been defined, use the number of nodes as the system size
 		if (allNodes.size() > 0) return allNodes.size();
 		
+		// have the hosts been identified this way?
+		if (hosts.size() > 0) return hosts.size();
+		
+		// TODO - should not need to set system size using constructor
 		// must be using a legacy method of init, use the old method
-		return hosts.size();
+		return systemSize;
 
 	}
 	
@@ -299,6 +305,10 @@ public class MASS_base {
     	thisNode.setHostName(name);
     	thisNode.setPid(myPid);
     	thisNode.setPort(port);    	
+    	
+    	// TODO - this is a hack. System size is the number of identified hosts, not some
+    	// command-line argument.
+    	systemSize = nProc;
     	
 		// init from the MNode object
 		initMASS_base(thisNode);
