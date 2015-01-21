@@ -4,12 +4,13 @@ package edu.uw.bothell.css.dsl.MASS;
 public class Mthread extends Thread {
 
 	public enum STATUS_TYPE { 
-		STATUS_READY,          // 0
-		STATUS_TERMINATE,      // 1
-		STATUS_CALLALL,        // 2
-		STATUS_EXCHANGEALL,    // 3
-		STATUS_AGENTSCALLALL,  // 4
-		STATUS_MANAGEALL       // 5
+		STATUS_READY,              // 0
+		STATUS_TERMINATE,          // 1
+		STATUS_CALLALL,            // 2
+		STATUS_EXCHANGEALL,        // 3
+		STATUS_AGENTSCALLALL,      // 4
+		STATUS_MANAGEALL,          // 5
+		STATUS_AGENTSCALLALL_ASYNC // 6
 	}
 
     //private static final boolean printOutput = true;

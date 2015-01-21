@@ -566,4 +566,25 @@ public class MASS extends MASS_base {
 		MASS.numThreads = numThreads;
 	}
 	
+	/**
+	 * BEGIN Async methods
+	 */
+	
+	public static void initAsync() {
+	  // init();
+	  // TODO call slave to initAsync();
+	  MASS_base.initAsyncCommunicationThreads();
+	}
+	
+	public static void finishAsync() {
+	  MASS_base.getAsyncOutputThread().finish();
+	  MASS_base.getAsyncInputThread().finish();
+	  // finish();
+	  // TODO call slave to finishAsync();
+	}
+	
+	/**
+	 * END Async methods
+	 */
+	
 }

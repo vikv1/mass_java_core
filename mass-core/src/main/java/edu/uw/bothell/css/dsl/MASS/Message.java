@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.Vector;
 
 @SuppressWarnings("serial")
@@ -26,8 +27,11 @@ public class Message implements Serializable {
 	    AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
 	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
 	    AGENTS_MANAGE_ALL,                        // 15            
-	    AGENTS_MIGRATION_REMOTE_REQUEST           // 16   
-    
+	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16  
+	    
+	    /** Async section **/
+	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,      // 17
+	    FINISH_ASYNC_SERVER                       // 18
     }
     
 	private static final int VOID_HANDLE = -1;
@@ -44,6 +48,9 @@ public class Message implements Serializable {
     private int boundary_width = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
+    
+    // Async vars
+    private LinkedList<Integer> functionIds = null;
 
     // EMPTY
     public Message( ) { }
@@ -216,6 +223,17 @@ public class Message implements Serializable {
     
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
+    }
+    
+    // Async methods
+    // AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
+    public Message( ACTION_TYPE action, int handle, LinkedList<Integer> functionIds, Object argument ) {
+
+      this.action = action;
+      this.handle = handle;
+      this.functionIds = functionIds;
+      this.argument = argument;
+
     }
 
 }

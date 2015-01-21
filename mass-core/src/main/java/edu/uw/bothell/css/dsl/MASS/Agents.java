@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
@@ -148,6 +149,107 @@ public class Agents extends Agents_base implements Serializable {
 	
 	}
 
+	@SuppressWarnings("unused")
+  private Object ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+
+    // calculate the total number of agents
+    total = 0;
+    for ( int i = 0; i < MASS_base.getSystemSize(); i++ )
+    {
+      total += localAgents[i];
+    }
+    
+ // send a AGENTS_CALL_ALL_ASYNC message to each slave
+    Message m = null;
+    for ( int i = 0; i < MASS.getRemoteNodes().size( ); i++ ) 
+    {
+      // calculate argument position
+      int arg_pos = 0;
+      for ( int dest = 0; dest <= i; dest++ ) 
+      {
+        arg_pos += localAgents[dest];
+        if ( printOutput == true )
+        {
+          System.err.println( "Agents.callAll: calc arg_pos = " 
+              + arg_pos + 
+              " localAgents[" + ( dest + 1) + 
+              "] = " + localAgents[dest + 1] );
+        }      
+      }
+
+      Object[] partitioned_argument = 
+          new Object[localAgents[i + 1]];      
+      System.arraycopy( (Object[])arguments, arg_pos, 
+          partitioned_argument, 0, localAgents[i + 1] );
+      m = new Message( Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT, 
+          this.getHandle(), functionIds, partitioned_argument );
+      if ( printOutput == true )
+      {
+        System.err.println( "Agents.callAll: to rank[" + (i + 1) +
+            "] arg_pos = " + arg_pos );
+      }
+      
+      // send it
+      MASS.getRemoteNodes().get(i).sendMessage( m );      
+      if ( printOutput == true ) {        
+        System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
+            " sent to " + i );
+        System.err.println( "Bag Size is: " + 
+            MASS_base.getAgentsMap().
+            get( new Integer(getHandle()) ).
+            getAgents().size_unreduced() );      
+      }
+    }
+    
+    // TODO robocopy section DOESN"T WORK
+    Mthread.agentBagSize = MASS_base.getAgentsMap().
+        get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
+
+    // shared between agents
+    // TODO What is share here? SET EACH agent's functionList
+    /*
+    MASS_base.setCurrentAgents(this);
+    MASS_base.setCurrentFunctionId(functionId);
+    MASS_base.setCurrentArgument(argument);
+    MASS_base.setCurrentMsgType(type); */
+
+    MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
+
+    // resume threads
+    if ( printOutput == true ) {      
+      MASS_base.log( "MASS_base.currentgAgents = " +
+          MASS_base.getCurrentAgents() );      
+      MASS_base.log( "MASS_base.getCurrentgAgents = " +
+          MASS_base.getCurrentAgents( ) );    
+    }
+
+    Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC );
+
+    super.callAllAsync( functionIds, (Object[])arguments, 
+          ( (Object[])arguments ).length, 0 );
+
+    // confirm all threads are done with agents.callAll
+    Mthread.barrierThreads( 0 );
+    localAgents[0] = getLocalPopulation();
+
+    // Synchronized with all slave processes by main thread.
+    MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), 0, 
+        localAgents );
+    total = 0;
+    for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
+      total += localAgents[i];      
+      // for debugging
+      if ( printOutput == true )
+      {
+        System.err.println( "rank[" + i + 
+            "]'s local agent population = " +
+            localAgents[i] );
+      }    
+    }
+    
+    return MASS_base.getCurrentReturns();
+	}
+	
 	public void callAll( int functionId ) {
 		ca_setup( functionId, null, 
 				Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT );
@@ -161,6 +263,10 @@ public class Agents extends Agents_base implements Serializable {
 	public Object callAll( int functionId, Object[] argument ) {
 		return ca_setup( functionId, argument,
 				Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
+	}
+	
+	public Object callAllAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+	  return ca_setupAsync(functionIds, arguments);
 	}
 
 	@SuppressWarnings("unused")

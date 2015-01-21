@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.net.URLClassLoader;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -341,6 +342,11 @@ public class Agents_base implements Serializable {
     
     }
 
+	@SuppressWarnings("unused")
+  public void callAllAsync(LinkedList<Integer> functionIds, Object[] arguments, int length, int tid ) {
+	  
+	}
+	
 	public AgentList getAgents() {
 		return agents;
 	}

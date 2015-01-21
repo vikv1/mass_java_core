@@ -54,6 +54,15 @@ public class MASS_base {
     
     // object factories are singletons, continue configuration within this class
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    
+    /**
+     * BEGIN ASync vars section
+     */
+    private static AsyncInputThread inputThread = null;
+    private static AsyncOutputThread outputThread = null;
+    /**
+     * END Async vars section
+     */
 
 	/**
      * Add a new node to the cluster
@@ -484,5 +493,28 @@ public class MASS_base {
     	}
     
     }
+    
+    /**
+     * BEGIN Async methods
+     */
+    
+    public static AsyncInputThread getAsyncInputThread()
+    {
+      return inputThread;
+    }
+    
+    public static AsyncOutputThread getAsyncOutputThread()
+    {
+      return outputThread;
+    }
+    
+    public static void initAsyncCommunicationThreads() {
+      inputThread = new AsyncInputThread(MASS_PORT + 1);
+      outputThread = new AsyncOutputThread();
+    }
+    
+    /**
+     * END Async methods
+     */
 
 }

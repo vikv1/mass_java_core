@@ -111,6 +111,10 @@ public class Agent implements Serializable {
 		return true;
 	
 	}
+	
+	protected boolean migrateAsync(int... index) {
+	  return false;
+	}
 
 	// TODO - modify debug data of the agent, overridden as necessary by the developer for now
 	public void setDebugData(Object argument){
