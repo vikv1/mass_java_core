@@ -6,10 +6,6 @@ import java.util.LinkedList;
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
 
-	//Used to toggle comments from Places_base.java
-	private static final boolean printOutput = false;
-	//private static final boolean printOutput = true;
-
 	private int[] localAgents; // localAgents[i] = # agents in rank[i]
 	private int total;
 
@@ -21,7 +17,6 @@ public class Agents extends Agents_base implements Serializable {
 	
 	}
 
-	@SuppressWarnings("unused")
 	Object ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
 
 		// calculate the total number of agents
@@ -45,7 +40,7 @@ public class Agents extends Agents_base implements Serializable {
 				for ( int dest = 0; dest <= i; dest++ ) {
 					arg_pos += localAgents[dest];
 
-					if ( printOutput == true )
+					if ( MASS.isConsoleLoggingEnabled() == true )
 						System.err.println( "Agents.callAll: calc arg_pos = " 
 								+ arg_pos + 
 								" localAgents[" + ( dest + 1) + 
@@ -63,7 +58,7 @@ public class Agents extends Agents_base implements Serializable {
 				m = new Message( type, this.getHandle(), functionId,
 						partitioned_argument );
 
-				if ( printOutput == true )
+				if ( MASS.isConsoleLoggingEnabled() == true )
 					System.err.println( "Agents.callAll: to rank[" + (i + 1) +
 							"] arg_pos = " + arg_pos );
 			
@@ -72,7 +67,7 @@ public class Agents extends Agents_base implements Serializable {
 			// send it
 			MASS.getRemoteNodes().get(i).sendMessage( m );
 			
-			if ( printOutput == true ) {
+			if ( MASS.isConsoleLoggingEnabled() == true ) {
 				
 				System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
 						" sent to " + i );
@@ -86,8 +81,8 @@ public class Agents extends Agents_base implements Serializable {
 
 		}
 
-		Mthread.agentBagSize = MASS_base.getAgentsMap().
-				get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
+		Mthread.setAgentBagSize(MASS_base.getAgentsMap().
+				get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
 
 		//Check for correct behavior post-Agents_base implementation
 		// retrieve the corresponding agents
@@ -105,7 +100,7 @@ public class Agents extends Agents_base implements Serializable {
 		}
 
 		// resume threads
-		if ( printOutput == true ) {
+		if ( MASS.isConsoleLoggingEnabled() == true ) {
 			
 			MASS_base.log( "MASS_base.currentgAgents = " +
 					MASS_base.getCurrentAgents() );
@@ -138,7 +133,7 @@ public class Agents extends Agents_base implements Serializable {
 			total += localAgents[i];
 			
 			// for debugging
-			if ( printOutput == true )
+			if ( MASS.isConsoleLoggingEnabled() == true )
 				System.err.println( "rank[" + i + 
 						"]'s local agent population = " +
 						localAgents[i] );
@@ -269,7 +264,6 @@ public class Agents extends Agents_base implements Serializable {
 	  return ca_setupAsync(functionIds, arguments);
 	}
 
-	@SuppressWarnings("unused")
 	public void init_master( Object argument ) {
 		
 		// check if MASS_base.hosts is empty (i.e., Places not yet created)
@@ -288,7 +282,7 @@ public class Agents extends Agents_base implements Serializable {
 		for (MNode node : MASS.getRemoteNodes()) {
 
 			node.sendMessage( m );
-			if ( printOutput == true ) MASS_base.log( "AGENT_INITIALIZE sent to " + node.getPid() );
+			if ( MASS.isConsoleLoggingEnabled() == true ) MASS_base.log( "AGENT_INITIALIZE sent to " + node.getPid() );
 
 		}
 
@@ -302,7 +296,7 @@ public class Agents extends Agents_base implements Serializable {
 			total += localAgents[i];
 			// for debugging
 
-			if ( printOutput == true )
+			if ( MASS.isConsoleLoggingEnabled() == true )
 				System.err.println( "rank[" + i + 
 						"]'s local agent population = " +
 						localAgents[i] );
@@ -314,7 +308,6 @@ public class Agents extends Agents_base implements Serializable {
 	
 	}
 
-	@SuppressWarnings("unused")
 	public void ma_setup( ) {
 		
 		// send an AGENTS_MANAGE_ALL message to each slave
@@ -329,8 +322,8 @@ public class Agents extends Agents_base implements Serializable {
 			node.sendMessage( m );
 
 			// MThread Update
-			Mthread.agentBagSize = MASS_base.getAgentsMap().
-					get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
+			Mthread.setAgentBagSize(MASS_base.getAgentsMap().
+					get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
 
 		
 		}
@@ -358,7 +351,7 @@ public class Agents extends Agents_base implements Serializable {
 			total += localAgents[i];
 			
 			// for debugging
-			if ( printOutput == true )
+			if ( MASS.isConsoleLoggingEnabled() == true )
 				System.err.println( "rank[" + i + 
 						"]'s local agent population = "
 						+ localAgents[i] );

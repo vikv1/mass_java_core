@@ -10,26 +10,21 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS_base {
 
-    private static final boolean printOutput = false;
-
     private static Mthread[] threads;          // including main and children
     private static final String MASS_LOGS = "MASS_logs";
-	private static int MASS_PORT;           // port # of the MASS library
+	private static int MASS_PORT = 3400;    // port # of the MASS library
     private static boolean initialized;  	// check if Mthreads are initialized
     private static String workingDirectory; // the current working directory
 	private static String hostName;         // my local host name
 	private static int myPid;               // my pid or rank
-	private static int systemSize;          // # of processes (nodes) in the cluster
 	private static FileOutputStream logger; // logger
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, Places_base> placesMap = new Hashtable<Integer, Places_base>( );
 	private static Hashtable<Integer, Agents_base> agentsMap = new Hashtable<Integer, Agents_base>( );
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-
-	@SuppressWarnings("unused")
-	private static int requestCounter;
-
+	//@SuppressWarnings("unused")
+	//private static int requestCounter;
 	private static Places_base currentPlaces = null;
 	private static Agents_base currentAgents = null;
 	private static ExchangeHelper exchange = new ExchangeHelper( );
@@ -40,6 +35,9 @@ public class MASS_base {
 	private static Message.ACTION_TYPE currentMsgType;
 	private static Object log_lock;
 
+	// TODO - this is dumb. Calculate from number of hosts identified.
+	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
+	
 	// the collection of all nodes
     private static Vector<MNode> allNodes = new Vector<MNode>( );
 
@@ -207,6 +205,10 @@ public class MASS_base {
 		// if nodes have been defined, use the number of nodes as the system size
 		if (allNodes.size() > 0) return allNodes.size();
 		
+		// have the hosts been identified this way?
+		if (hosts.size() > 0) return hosts.size();
+		
+		// TODO - should not need to set system size using constructor
 		// must be using a legacy method of init, use the old method
 		return systemSize;
 
@@ -224,12 +226,11 @@ public class MASS_base {
 		return workingDirectory;
 	}
 
-    @SuppressWarnings("unused")
 	public static boolean initializeThreads( int nThr ) {
 		
 		if ( initialized ) {
 			
-			if( printOutput == true )
+			if( MASS.isConsoleLoggingEnabled() == true )
 				MASS_base.log("Error: the MASS.init is already initializecd" );
 			
 			return false;
@@ -246,8 +247,8 @@ public class MASS_base {
 		Mthread.init( );
 
 		// now launch child threads
-		synchronized( Mthread.lock ) {
-			Mthread.threadCreated = 0;
+		synchronized( Mthread.getLock() ) {
+			Mthread.setThreadCreated(0);
 		}
 		
 		for ( int i = 1; i < cores; i++ ) {
@@ -257,8 +258,8 @@ public class MASS_base {
 			
 			while ( true ) {
 				
-				synchronized( Mthread.lock ) {
-					if ( Mthread.threadCreated == i )
+				synchronized( Mthread.getLock() ) {
+					if ( Mthread.getThreadCreated() == i )
 						break;
 				
 				}
@@ -267,7 +268,7 @@ public class MASS_base {
 		
 		}
 
-		if( printOutput == true )
+		if( MASS.isConsoleLoggingEnabled() == true )
 			log( "Initialized threads - # " + cores );
 
 		initialized = true;
@@ -283,8 +284,8 @@ public class MASS_base {
 		
 		MASS_base.hostName = nodeConfig.getHostName();
 		MASS_base.myPid = nodeConfig.getPid();
-		MASS_base.MASS_PORT = nodeConfig.getPort();
-		MASS_base.setWorkingDirectory(nodeConfig.getMassHome());
+		setCommunicationPort(nodeConfig.getPort());
+		setWorkingDirectory(nodeConfig.getMassHome());
 		
 		// Set the current working directory to default value if not set previously
 		if (MASS_base.workingDirectory == null) MASS_base.workingDirectory = System.getProperty( "user.dir" );
@@ -313,6 +314,10 @@ public class MASS_base {
     	thisNode.setHostName(name);
     	thisNode.setPid(myPid);
     	thisNode.setPort(port);    	
+    	
+    	// TODO - this is a hack. System size is the number of identified hosts, not some
+    	// command-line argument.
+    	systemSize = nProc;
     	
 		// init from the MNode object
 		initMASS_base(thisNode);
@@ -370,7 +375,7 @@ public class MASS_base {
 	 * Reset the request counter
 	 */
 	public static void resetRequestCounter() {
-		requestCounter = 0;
+		//requestCounter = 0;
 	}
 	
 	public static void setAgentsMap(Hashtable<Integer, Agents_base> agentsMap) {
@@ -409,7 +414,6 @@ public class MASS_base {
 		MASS_base.destinationPlaces = destinationPlaces;
 	}
     
-    @SuppressWarnings("unused")
     public static void setHosts( Vector<String> host_args ) {
 
     	if ( !hosts.isEmpty( ) ) {
@@ -421,25 +425,28 @@ public class MASS_base {
     	// register all hosts including myself
     	for ( int i = 0; i < host_args.size( ); i++ ) {
 
-    		if ( printOutput == true )
-    			log( host_args.get(i) );
+    		if ( MASS.isConsoleLoggingEnabled() )
+    			log( "MASS_base.setHosts: Adding host " + host_args.get(i) );
 
     		hosts.add( host_args.get(i) );
 
     	}
+    	
+		if ( MASS.isConsoleLoggingEnabled() )
+			log( "MASS_base.setHosts: System size = " + getSystemSize() );
 
     	// instantiate remoteRequests: Vector< Vector<RemoteExchangeReques> >
     	// as well as migrationRequests for the purpose of agent migration.
     	remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
     	migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
 
-    	for ( int i = 0; i < systemSize; i++ ) {
+    	for ( int i = 0; i < getSystemSize(); i++ ) {
     		remoteRequests.add( new Vector<RemoteExchangeRequest>() );
     		migrationRequests.add( new Vector<AgentMigrationRequest>() );
     	}
 
     	// establish inter-MASS connection
-    	exchange.establishConnection( systemSize, myPid, hosts, MASS_PORT );
+    	exchange.establishConnection( getSystemSize(), myPid, hosts, MASS_PORT );
 
     }
     
@@ -462,14 +469,6 @@ public class MASS_base {
 	}
     
     /**
-	 * Set the number of nodes in the cluster
-	 * @param systemSize The number of nodes
-	 */
-	public static void setSystemSize(int systemSize) {
-		MASS_base.systemSize = systemSize;
-	}
-
-    /**
 	 * Set (override) the working directory ("MASS Home") for this node
 	 * @param workingDirectory The new working directory for this node
 	 */
@@ -477,10 +476,9 @@ public class MASS_base {
 		MASS_base.workingDirectory = workingDirectory;
 	}
 
-    @SuppressWarnings("unused")
     public static void showHosts( ) {
     	
-    	if( printOutput == true ) {
+    	if( MASS.isConsoleLoggingEnabled() == true ) {
     		
     		String convert = "hosts.....\n";
     		
@@ -516,5 +514,26 @@ public class MASS_base {
     /**
      * END Async methods
      */
+
+    /**
+	 * Get the port number used for inter-node communications
+	 * @return The port number
+	 */
+	public static int getCommunicationPort() {
+		return MASS_PORT;
+	}
+
+    /**
+	 * Set the port number used for inter-node communications
+	 * @param communicationPort The port number
+	 */
+	public static void setCommunicationPort(int communicationPort) {
+		
+		// can't set port to zero
+		if (communicationPort == 0) return;
+		
+		MASS_PORT = communicationPort;
+	
+	}
 
 }

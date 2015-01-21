@@ -20,29 +20,25 @@ import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
-    
-	//private static final boolean printOutput = false;
-     private static final boolean printOutput = true;
-    	private static final int JschPort = 22;
+
+	private static final boolean printOutput = true;
+
+	private static final int JschPort = 22;
 
 	private static Utilities util = new Utilities( );  // used for channel creation
 
 	// the list of libraries ("Jars") to load
     private static Set<String> libraries = new HashSet<String>();
 
-	// the number of threads to spawn on each node
-    private static int numThreads;
+	// the number of threads to spawn on each node (default to 1)
+    private static int numThreads = 1;
 
 	// default user credentials (can be overridden via XML)
     private static String defaultUsername;
-
 	private static String defaultPassword;
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-
-	// the port number used for inter-node communication
-    private static int communicationPort = 3400;
 
 	// object factories are singletons, so we'll use this opportunity to initialize it
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
@@ -182,14 +178,6 @@ public class MASS extends MASS_base {
     }
     
     /**
-	 * Get the port number used for inter-node communications
-	 * @return The port number
-	 */
-	public static int getCommunicationPort() {
-		return communicationPort;
-	}
-    
-    /**
 	 * Get the default password for connecting to remote nodes
 	 * @return The default login password
 	 */
@@ -227,6 +215,11 @@ public class MASS extends MASS_base {
 	 */
 	public static int getNumThreads() {
 		return numThreads;
+	}
+
+	// TODO - replace with a logger library hopefully
+	public static boolean isConsoleLoggingEnabled() {
+		return printOutput;
 	}
 
 	/**
@@ -377,7 +370,7 @@ public class MASS extends MASS_base {
     		StringBuilder commandBuilder = new StringBuilder();
     		
     		// add location of JVM if specified
-    		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome());
+    		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome() + "/");
     		
     		// gotta specify the JVM
     		commandBuilder.append("java ");
@@ -388,7 +381,7 @@ public class MASS extends MASS_base {
     		
     		// set location of MASS.jar
     		commandBuilder.append("-cp ");
-    		commandBuilder.append(node.getMassHome());
+    		if (node.getMassHome() != null) commandBuilder.append(node.getMassHome() + "/");
     		commandBuilder.append("MASS.jar");
     		
     		//= "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/MASS.jar:";
@@ -397,15 +390,17 @@ public class MASS extends MASS_base {
    			for( String customJar : getLibraries() ) {
     				
    				commandBuilder.append(":");
-   				commandBuilder.append(node.getMassHome());
+   				if (node.getMassHome() != null) commandBuilder.append(node.getMassHome() + "/");
    				commandBuilder.append(customJar);
 
    			}
     		
     		// add MASS home directory itself as part of the classpath
-    		commandBuilder.append(":");
-    		commandBuilder.append(node.getMassHome());
-    		commandBuilder.append(" ");
+   			if (node.getMassHome() != null) {
+   				commandBuilder.append(":");
+	    		commandBuilder.append(node.getMassHome());
+	    		commandBuilder.append(" ");
+   			}
 
     		// MProcess and its arguments
     		commandBuilder.append("edu.uw.bothell.css.dsl.MASS.MProcess ");	// the program
@@ -527,14 +522,6 @@ public class MASS extends MASS_base {
 	}
 
     /**
-	 * Set the port number used for inter-node communications
-	 * @param communicationPort The port number
-	 */
-	public static void setCommunicationPort(int communicationPort) {
-		MASS.communicationPort = communicationPort;
-	}
-
-    /**
 	 * Set the default password for connecting to remote nodes
 	 * @param defaultPassword The default password
 	 */
@@ -563,7 +550,12 @@ public class MASS extends MASS_base {
 	 * @param numThreads The number of threads to spawn
 	 */
 	public static void setNumThreads(int numThreads) {
+		
+		// can't set number of threads < 1
+		if (numThreads < 1) return;
+		
 		MASS.numThreads = numThreads;
+		
 	}
 	
 	/**

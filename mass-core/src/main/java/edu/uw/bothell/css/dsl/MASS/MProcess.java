@@ -6,18 +6,14 @@ import java.util.Vector;
 
 public class MProcess {
 
-	//  private static final boolean printOutput = false;
-	//  private static final boolean printOutput = true;
-    @SuppressWarnings("unused")
-	private String hostName;         // my local host name
+    //@SuppressWarnings("unused")
+	//private String hostName;         // my local host name
     private int myPid;               // my pid or rank
-    @SuppressWarnings("unused")
-	private int nProc;               // # processes
-    @SuppressWarnings("unused")
-	private int nThr;                // # threads
+    //@SuppressWarnings("unused")
+	//private int nProc;               // # processes
 
-    @SuppressWarnings("unused")
-	private Vector<String> hosts;    // all hosts participated in computation 
+    //@SuppressWarnings("unused")
+	//private Vector<String> hosts;    // all hosts participated in computation 
     private ObjectInputStream MAIN_IOS;  // input from the master process
 
     private ObjectOutputStream MAIN_OOS; // output to the master process
@@ -39,23 +35,25 @@ public class MProcess {
 
     public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir ) {
 
-    	this.hostName = hostName;
+    	//this.hostName = hostName;
     	this.myPid = myPid;
-    	this.nProc = nProc;
-    	this.nThr = nThr;
+    	//this.nProc = nProc;
+    	MASS.setNumThreads(nThr);
     	MASS_base.initMASS_base( hostName, myPid, nProc, port );
     	MASS_base.setWorkingDirectory(curDir); // mprocess manually changes it.
 
-    	// Create a logger
-    	//	try {
-    	//	    File massLogDir = new File( curDir + "/" + MASS_base.MASS_LOGS );
-    	//	    if( !massLogDir.exists( ) )
-    	//		massLogDir.mkdir( );
-    	//	} catch( Exception e ) {
-    	//	    System.exit( -1 );
-    	//	}
+    	if ( MASS.isConsoleLoggingEnabled() ) {
+    		MASS_base.log( "Launching MProcess... ("
+    				+ "hostname = " + hostName
+    				+ ", myPid = " + myPid
+    				+ ", nProc = " + nProc
+    				+ ", nThr = " + nThr
+    				+ ", port = " + port
+    				+ ", curDir = " + curDir
+    				+ ")");
+    	}
 
-    	MASS_base.initializeThreads( nThr );
+    	MASS_base.initializeThreads( MASS.getNumThreads() );
 
     	// set up a connection with the master process
     	try {
@@ -162,8 +160,8 @@ public class MProcess {
     			break;
 
     		case EMPTY:
-    			//		if( printOutput )
-    			//		    MASS_base.log( "EMPTY received!!!!" );
+    			if( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "EMPTY received!!!!" );
     			sendAck( );
     			break;
 
@@ -179,8 +177,10 @@ public class MProcess {
     			break;
 
     		case PLACES_INITIALIZE:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_INITIALIZE received" );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_INITIALIZE received" );
+    			
     			// create a new Places
     			size = m.getSize( );
 
@@ -195,13 +195,14 @@ public class MProcess {
 
     			MASS_base.getPlacesMap().put( new Integer( m.getHandle( ) ), places );
     			sendAck( );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_INITIALIZE completed and ACK sent");
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_INITIALIZE completed and ACK sent");
     			break;
 
     		case PLACES_CALL_ALL_VOID_OBJECT:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_CALL_ALL_VOID_OBJECT received" );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_CALL_ALL_VOID_OBJECT received" );
 
     			// retrieve the corresponding places
     			MASS_base.setCurrentPlaces(MASS_base.getPlacesMap().get( new Integer( m.getHandle( ) ) ));
@@ -223,8 +224,9 @@ public class MProcess {
     			break;
 
     		case PLACES_CALL_ALL_RETURN_OBJECT:
-    			//		if( printOutput )
-    			//		    MASS_base.log( "PLACES_CALL_ALL_RETURN_OBJECT received" );
+    			
+    			if( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_CALL_ALL_RETURN_OBJECT received" );
 
     			// retrieve the corresponding places
     			MASS_base.setCurrentPlaces(MASS_base.getPlacesMap().get( new Integer( m.getHandle( ) ) ));
@@ -256,10 +258,11 @@ public class MProcess {
     			break;
 
     		case PLACES_EXCHANGE_ALL:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_EXCHANGE_ALL recweived handle = " +
-    			//				   m.getHandle( ) + " dest_handle = " +
-    			//				   m.getDestHandle( ) );
+    					
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_EXCHANGE_ALL recweived handle = " +
+    				m.getHandle( ) + " dest_handle = " +
+    				m.getDestHandle( ) );
 
     			// retrieve the corresponding places
     			MASS_base.setCurrentPlaces(MASS_base.getPlacesMap().get( new Integer( m.getHandle( ) ) ) );
@@ -284,18 +287,21 @@ public class MProcess {
     			// confirm all threads are done with places.exchangeall.
     			Mthread.barrierThreads( 0 );
 
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "barrier done" );
+				if ( MASS.isConsoleLoggingEnabled() )
+    			    MASS_base.log( "barrier done" );
 
     			sendAck( );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_EXCHANGE_ALL sent ACK" );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_EXCHANGE_ALL sent ACK" );
+    			
     			break;
 
     		case PLACES_EXCHANGE_BOUNDARY:
-    			//		if ( printOutput ) 
-    			//		    MASS_base.log( "PLACES_EXCHANGE_BOUNDARY received handle="
-    			//				   + m.getHandle( ) );
+
+    			if ( MASS.isConsoleLoggingEnabled() ) 
+    				MASS_base.log( "PLACES_EXCHANGE_BOUNDARY received handle="
+    				+ m.getHandle( ) );
 
     			// retrieve the corresponding places
     			MASS_base.setCurrentPlaces(MASS_base.getPlacesMap().get( new Integer( m.getHandle( ) ) ));
@@ -307,9 +313,11 @@ public class MProcess {
     			MASS_base.getCurrentPlaces().exchangeBoundary( );
 
     			sendAck( );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "PLACES_EXCHANGE_BOUNDARY " +
-    			//				   "completed and ACK sent" );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "PLACES_EXCHANGE_BOUNDARY " +
+    				"completed and ACK sent" );
+    			
     			break;
 
     		case PLACES_EXCHANGE_ALL_REMOTE_REQUEST:
@@ -318,8 +326,9 @@ public class MProcess {
     			break;
 
     		case AGENTS_INITIALIZE:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "AGENTS_INITIALIZE received" );
+
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "AGENTS_INITIALIZE received" );
 
     			agents = new Agents_base( m.getHandle( ), m.getClassname( ),
     					argument,
@@ -330,19 +339,23 @@ public class MProcess {
     					agents );
 
     			sendAck( agents.getLocalPopulation() );
-    			//		if ( printOutput )
-    			//		    MASS_base.log("AGENTS_INITIALIZE completed and ACK sent" );
+    					
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log("AGENTS_INITIALIZE completed and ACK sent" );
+
     			break;
 
     		case AGENTS_CALL_ALL_VOID_OBJECT:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "AGENTS_CALL_ALL_VOID_OBJECT received" );
+
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "AGENTS_CALL_ALL_VOID_OBJECT received" );
+    			
     			MASS_base.setCurrentAgents(MASS_base.getAgentsMap().get( new Integer( m.getHandle() ) ));
     			MASS_base.setCurrentFunctionId(m.getFunctionId( ));
     			MASS_base.setCurrentArgument(argument);
     			MASS_base.setCurrentMsgType(m.getAction( ));
 
-    			Mthread.agentBagSize = MASS_base.getCurrentAgents().getAgents().size_unreduced( );
+    			Mthread.setAgentBagSize(MASS_base.getCurrentAgents().getAgents().size_unreduced( ));
 
     			// resume threads to work on call all
     			Mthread.resumeThreads( Mthread.STATUS_TYPE. STATUS_AGENTSCALLALL );
@@ -351,23 +364,25 @@ public class MProcess {
 
     			// confirm all threads are done with agents.callAll
     			Mthread.barrierThreads( 0 );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "barrier done" );
+				
+    			if ( MASS.isConsoleLoggingEnabled() )
+					MASS_base.log( "barrier done" );
 
     			sendAck( MASS_base.getCurrentAgents().getLocalPopulation() );
     			break;
 
     		case AGENTS_CALL_ALL_RETURN_OBJECT:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "AGENTS_CALL_ALL_RETURN_OBJECT received" );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "AGENTS_CALL_ALL_RETURN_OBJECT received" );
+    			
     			MASS_base.setCurrentAgents(MASS_base.getAgentsMap().get( new Integer( m.getHandle() ) ));
     			MASS_base.setCurrentFunctionId(m.getFunctionId( ));
     			MASS_base.setCurrentArgument(argument);
     			MASS_base.setCurrentMsgType(m.getAction( ));
     			MASS_base.setCurrentReturns(new Object[MASS_base.getCurrentAgents().getLocalPopulation()]);
 
-    			Mthread.agentBagSize 
-    			= MASS_base.getCurrentAgents().getAgents().size_unreduced( );
+    			Mthread.setAgentBagSize(MASS_base.getCurrentAgents().getAgents().size_unreduced( ));
 
     			// resume threads to work on call all with return objects
     			Mthread.resumeThreads( Mthread.STATUS_TYPE.
@@ -384,8 +399,8 @@ public class MProcess {
     			// confirm all threads are done with agnets.callAll with 
     			// return objects  
     			Mthread.barrierThreads( 0 );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "barrier done" );
+				if ( MASS.isConsoleLoggingEnabled() )
+					MASS_base.log( "barrier done" );
 
     			sendReturnValues( MASS_base.getCurrentReturns(),
     					MASS_base.getCurrentAgents().getLocalPopulation() );
@@ -393,11 +408,12 @@ public class MProcess {
     			break;
 
     		case AGENTS_MANAGE_ALL:
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "AGENTS_MANAGE_ALL received" );
+
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "AGENTS_MANAGE_ALL received" );
+    			
     			MASS_base.setCurrentAgents(MASS_base.getAgentsMap().get( new Integer( m.getHandle() ) ));
-    			Mthread.agentBagSize 
-    			= MASS_base.getCurrentAgents().getAgents().size_unreduced( );
+    			Mthread.setAgentBagSize(MASS_base.getCurrentAgents().getAgents().size_unreduced( ));
 
     			Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_MANAGEALL );
 
@@ -405,9 +421,10 @@ public class MProcess {
 
     			// confirm all threads are done with agents.manageAll.
     			Mthread.barrierThreads( 0 );
-    			//		if ( printOutput )
-    			//		    MASS_base.log( "sendAck will send localPopulation = " + 
-    			//				   MASS_base.currentAgents.localPopulation );
+    			
+    			if ( MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "sendAck will send localPopulation = " + 
+    				MASS_base.getCurrentAgents().getLocalPopulation() );
 
     			sendAck( MASS_base.getCurrentAgents().getLocalPopulation() );
 
