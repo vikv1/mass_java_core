@@ -33,4 +33,6 @@ public interface ClimateModelInterface {
     
     public float[] readLocalizedYear(int x, int y, int z);
     
+    public int getNumYears();
+    
 }

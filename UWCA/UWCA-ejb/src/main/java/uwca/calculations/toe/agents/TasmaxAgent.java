@@ -202,7 +202,8 @@ public class TasmaxAgent extends Agent{
         int yModifier = this.getPlace().getIndex()[1];
         int zModifier = this.getPlace().getIndex()[2];
         zModifier++;
-        climatology = climatology + (Double)this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);
+        int daysOverThres = (int)this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);        
+        climatology = climatology + (1.0 * daysOverThres);
         migrate(xModifier, yModifier, zModifier);        
         return null;
     }

@@ -243,6 +243,7 @@ public class Tasmax_1 implements ClimateModelInterface{
     String varname = "tasmax";   
     private int startYear = 1950;
     private int endYear = 2099;
+    private int numYears = 150;
 
     /**
      * @return the files
@@ -536,5 +537,12 @@ public class Tasmax_1 implements ClimateModelInterface{
      */
     public double getTvalue() {
         return tvalue;
+    }
+
+    /**
+     * @return the numYears
+     */
+    public int getNumYears() {
+        return numYears;
     }
 }

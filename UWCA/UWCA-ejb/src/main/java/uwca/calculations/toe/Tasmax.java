@@ -123,12 +123,18 @@ public class Tasmax extends AbstractToe{
         int[][] grid = inputClimateModel.getDimensions();
         x = grid[0][0]; // longitude(east / west)
         y = grid[0][1]; // latitude (north / south)
-        z = 150;        // time     
+        z = 150;        // time    
+        
+        x = 2;
+        y = 2;
+        
+             
         
         // instanciate our places
         places = new Places(jobNumber, "uwca.calculations.toe.places.TasmaxPlace", (Object)interv, x, y, z);  
         // set the input climate model
-        places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
+  //      places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
+   //     places.callAll(TasmaxPlace.setClimateModel);
         
         agents = new Agents(jobNumber, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
     }
@@ -193,11 +199,15 @@ public class Tasmax extends AbstractToe{
          * historicalToleranceVals[2] = agent place x index
          * historicalToleranceVals[3] = agent place y index
          */
+        minHistTolVals = new double[x][y];
+        maxHistTolVals = new double[x][y];
         for(int i = 0; i < historicalToleranceVals.length; i++){
-            int[] vals = (int[]) historicalToleranceVals[i];
+            double[] vals = (double[]) historicalToleranceVals[i];
+            int xIndex = (int)vals[2];
+            int yIndex = (int)vals[3];
             // set our array vals
-            minHistTolVals[vals[2]][vals[3]] = vals[0];
-            maxHistTolVals[vals[2]][vals[3]] = vals[1];
+            minHistTolVals[xIndex][yIndex] = vals[0];
+            maxHistTolVals[xIndex][yIndex] = vals[1];
         }
     }
     
@@ -208,7 +218,7 @@ public class Tasmax extends AbstractToe{
      */
     private void findClimatology(){
 
-        agents.callAll(TasmaxAgent.setClimatologyInitPosition);
+        agents.callAll(TasmaxAgent.setClimatologyInitPosition, 29);
         agents.manageAll();
         
         // get our historical min / max values
@@ -244,11 +254,13 @@ public class Tasmax extends AbstractToe{
         slopePlusConInt = new double[x][y];
         slopeMinusConInt = new double[x][y];
         // set the initial position for step 5
-        agents.callAll(TasmaxAgent.setInitialLsrPosition, (Integer)29);
+        int lsrStartPosition = 2006 - inputClimateModel.getStartYear();
+        int lsrEndPosition = z - 1;
+        agents.callAll(TasmaxAgent.setInitialLsrPosition, (Integer)lsrStartPosition);
         // update agent statuses
         agents.manageAll();
         // move the agents along the z axis and gather values
-        for(int i = 0; i < 120; i++){
+        for(int i = 0; i < lsrEndPosition; i++){
             agents.callAll(TasmaxAgent.gatherLsrValue);
             agents.callAll(TasmaxAgent.migrateZDimension);
             agents.manageAll();            
@@ -378,8 +390,8 @@ public class Tasmax extends AbstractToe{
         massInit();   
         
         // step 1 && 2 read data
-        readDataIntoPlaces();
-  //      places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
+    //    readDataIntoPlaces();
+        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
         // step 3
         findHistoricalTolerance();
         // step 4
@@ -392,7 +404,7 @@ public class Tasmax extends AbstractToe{
         findToe();
         
 //        this.placesTest();
-  //      this.agentTest();
+//        this.agentTest();
         
         /**
          * write the netcdf data to file
@@ -434,7 +446,7 @@ public class Tasmax extends AbstractToe{
      */
     public void readFullYear(int x, int y, int z, int[][] yearIndices){
        
-        int numYears = inputClimateModel.getDimensions()[0][2];
+        int numYears = inputClimateModel.getNumYears();
         int startYear = inputClimateModel.getStartYear();
         // loop through the entire range of years
         for(int i = 0; i < numYears; i++){

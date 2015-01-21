@@ -50,6 +50,7 @@ public class TasmaxPlace extends Place{
      * This variable is only necessary for when you do reading in from the individual Places
      */
     private ClimateModelInterface inputClimateModel = null;
+  //   private Tasmax_1 inputClimateModel = null;
   
     private int interval;      
     /**
@@ -110,8 +111,8 @@ public class TasmaxPlace extends Place{
      * @return 
      */
     public Object setInputClimateModel(Object o){
-     //   inputClimateModel = (Tasmax_1)o
-        inputClimateModel = new Tasmax_1();
+     //   inputClimateModel = o;
+   //     inputClimateModel = new Tasmax_1();
         return null;
     }   
     
