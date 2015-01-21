@@ -5,16 +5,16 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
-	@SuppressWarnings("unused")
-	private final int agentsHandle;
+	//@SuppressWarnings("unused")
+	//private final int agentsHandle;
 
-	@SuppressWarnings("unused")
-	private final int placesHandle;
+	//@SuppressWarnings("unused")
+	//private final int placesHandle;
 
 	private final int agentId;
 
-	@SuppressWarnings("unused")
-	private final int parentId;
+	//@SuppressWarnings("unused")
+	//private final int parentId;
 
 	private Place place = null;
 	private int[] index = null;
@@ -23,10 +23,10 @@ public class Agent implements Serializable {
 	private Object[] arguments = null;
 
 	public Agent ( ) {
-		agentsHandle = Agents.getAgentInitAgentsHandle();
-		placesHandle = Agents.getAgentInitPlacesHandle();
+		//agentsHandle = Agents.getAgentInitAgentsHandle();
+		//placesHandle = Agents.getAgentInitPlacesHandle();
 		agentId = Agents.getAgentInitAgentId();
-		parentId = Agents.getAgentInitParentId();
+		//parentId = Agents.getAgentInitParentId();
 	}
 
 	public Object callMethod( int functionId, Object argument ) {
