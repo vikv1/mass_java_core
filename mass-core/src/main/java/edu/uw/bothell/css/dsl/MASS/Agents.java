@@ -163,7 +163,7 @@ public class Agents extends Agents_base implements Serializable {
       for ( int dest = 0; dest <= i; dest++ ) 
       {
         arg_pos += localAgents[dest];
-        if ( printOutput == true )
+        if ( MASS.isConsoleLoggingEnabled() )
         {
           System.err.println( "Agents.callAll: calc arg_pos = " 
               + arg_pos + 
@@ -178,7 +178,7 @@ public class Agents extends Agents_base implements Serializable {
           partitioned_argument, 0, localAgents[i + 1] );
       m = new Message( Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT, 
           this.getHandle(), functionIds, partitioned_argument );
-      if ( printOutput == true )
+      if ( MASS.isConsoleLoggingEnabled() )
       {
         System.err.println( "Agents.callAll: to rank[" + (i + 1) +
             "] arg_pos = " + arg_pos );
@@ -186,7 +186,7 @@ public class Agents extends Agents_base implements Serializable {
       
       // send it
       MASS.getRemoteNodes().get(i).sendMessage( m );      
-      if ( printOutput == true ) {        
+      if ( MASS.isConsoleLoggingEnabled() ) {        
         System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
             " sent to " + i );
         System.err.println( "Bag Size is: " + 
@@ -211,7 +211,7 @@ public class Agents extends Agents_base implements Serializable {
     MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
 
     // resume threads
-    if ( printOutput == true ) {      
+    if ( MASS.isConsoleLoggingEnabled() ) {      
       MASS_base.log( "MASS_base.currentgAgents = " +
           MASS_base.getCurrentAgents() );      
       MASS_base.log( "MASS_base.getCurrentgAgents = " +
@@ -234,7 +234,7 @@ public class Agents extends Agents_base implements Serializable {
     for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
       total += localAgents[i];      
       // for debugging
-      if ( printOutput == true )
+      if ( MASS.isConsoleLoggingEnabled() )
       {
         System.err.println( "rank[" + i + 
             "]'s local agent population = " +
