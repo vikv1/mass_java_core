@@ -197,8 +197,8 @@ public class Agents extends Agents_base implements Serializable {
     }
     
     // TODO robocopy section DOESN"T WORK
-    Mthread.agentBagSize = MASS_base.getAgentsMap().
-        get( new Integer( getHandle() ) ).getAgents().size_unreduced( );
+    Mthread.setAgentBagSize(MASS_base.getAgentsMap().
+    get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
 
     // shared between agents
     // TODO What is share here? SET EACH agent's functionList
