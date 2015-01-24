@@ -20,6 +20,9 @@ public class JobManager {
     int jobId = 0;
     List<Job> jobs;
     
+    // the name of the directory where all the job information will be stored
+    private String jobsDirectory = "jobs";
+    
     /**
      * Default Constructor
      */
@@ -47,7 +50,7 @@ public class JobManager {
      * @param model  the model to use
      */
     public synchronized void submitJob(String var, String model, String[] params){
-        Job job = new Job();
+        Job job = new Job(this.getJobsDirectory());
         switch(var){
             case "tmax":       
                 job.setVariable(new Tasmax(params)); 
@@ -108,4 +111,11 @@ public class JobManager {
         // if there are no queued jobs
         return null;
     }    
+
+    /**
+     * @return the jobsDirectory
+     */
+    public String getJobsDirectory() {
+        return jobsDirectory;
+    }
 }

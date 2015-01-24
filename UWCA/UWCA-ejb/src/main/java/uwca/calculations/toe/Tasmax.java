@@ -100,17 +100,8 @@ public class Tasmax extends AbstractToe{
     public void setArgs(ClimateModelInterface inputModel, int jobNum){
 
         inputClimateModel = inputModel;
-        jobNumber =  jobNum;  
-        
-        // create job directory
-        File dir = new File("jobs/"+Integer.toString(jobNumber));
-        dir.mkdirs();
-        File tmp = new File(dir, "log.txt");
-        try {
-            tmp.createNewFile();
-        } catch (IOException ex) {
-            Logger.getLogger(Tasmax.class.getName()).log(Level.SEVERE, null, ex);
-        }    
+        jobNumber =  jobNum;         
+    
     }
     
     /**
@@ -132,11 +123,8 @@ public class Tasmax extends AbstractToe{
         
         // instanciate our places
         places = new Places(jobNumber, "uwca.calculations.toe.places.TasmaxPlace", (Object)interv, x, y, z);  
-        // set the input climate model
-  //      places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
-   //     places.callAll(TasmaxPlace.setClimateModel);
         
-        agents = new Agents(jobNumber, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y * z); 
+        agents = new Agents(jobNumber, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
     }
     
     /**
@@ -389,22 +377,19 @@ public class Tasmax extends AbstractToe{
         // init MASS
         massInit();   
         
-        // step 1 && 2 read data
+        // step 1 read data
     //    readDataIntoPlaces();
-//        places.callAll(TasmaxPlace.falsifyDaysOverThreshold);
-//        // step 3
-//        findHistoricalTolerance();
-//        // step 4
-//        findClimatology();
-//        // step 5
-//        leastSquaredRegression();
-//        // step 6
-//        climatologyManipulations();
-//        // step 7 && 8
-//        findToe();
-        
-        this.placesTest();
-        this.agentTest();
+        places.callAll(TasmaxPlace.falsifyDaysOverThreshold); // temp method for testing (speeds up performance)
+        // step 2
+        findHistoricalTolerance();
+        // step 3
+        findClimatology();
+        // step 4
+        leastSquaredRegression();
+        // step 5
+        climatologyManipulations();
+        // step 6
+        findToe();        
         
         /**
          * write the netcdf data to file
@@ -417,26 +402,7 @@ public class Tasmax extends AbstractToe{
  
     }
     
-    /**
-     * Tester method for Places
-     */
-    public void placesTest(){
-        
-        Object[] placesIndexes = (Object[])places.callAll(TasmaxPlace.findHostName, new Object[x * y * z]);
-    
-        String s = "";
-    
-    }
-    
-    /**
-     * Tester method for Agents
-     */
-    public void agentTest(){
-        
-        Object[] agentIndexes = (Object[])agents.callAll(TasmaxAgent.getPlaceIndex, new Object[x*y*z]);
-        
-        String s = "";
-    }
+
     
     /**
      * reads in an entire lat * long * 365-6 data points and distributes the array to the places
@@ -491,5 +457,29 @@ public class Tasmax extends AbstractToe{
         for(int i = 0 ; i < numYears; i++){   
             places.callAll(TasmaxPlace.readNetCdfDataFullYear, i);
         }
+    }
+    
+    /******************************************************************************************************************
+     * Test methods to get place and agent information to verify mass is working across cluster
+     *****************************************************************************************************************/
+     /**
+     * Tester method for Places
+     */
+    public void placesTest(){
+        
+        Object[] placesIndexes = (Object[])places.callAll(TasmaxPlace.findHostName, new Object[x * y * z]);
+    
+        String s = "";
+    
+    }
+    
+    /**
+     * Tester method for Agents
+     */
+    public void agentTest(){
+        
+        Object[] agentIndexes = (Object[])agents.callAll(TasmaxAgent.getPlaceIndex, new Object[x*y]);
+        
+        String s = "";
     }
 }

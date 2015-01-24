@@ -45,9 +45,19 @@ public class Job {
     /**
      * public constructor
      */
-    public Job(){
+    public Job(String jobsDir){
         Random rn = new Random();
         jobNumber =  rn.nextInt(9999);
+        
+        // create job directory for this specific job
+        File dir = new File(jobsDir+"/"+Integer.toString(jobNumber));
+        dir.mkdirs();
+        File tmp = new File(dir, "provlog.txt");
+        try {
+            tmp.createNewFile();
+        } catch (IOException ex) {
+            Logger.getLogger(Tasmax.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
