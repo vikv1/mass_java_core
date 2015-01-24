@@ -28,6 +28,8 @@ public class JobRunner {
     int numProc = 1;
     int numThr = 2;
     
+    private Boolean mass_init = false;
+    
     /**
      * Our default Constructor
      */
@@ -42,15 +44,19 @@ public class JobRunner {
     @PostConstruct
     public void initMassLibrary(){
     
-   //  String massLib = "apachemath-3.3.3.jar";  
-  //   MASS.addLibrary(massLib);
+    String massLib = "apachemath-3.3.3.jar";  
+     MASS.addLibrary(massLib);
         
  //   String filePath = "C:\\Users\\jwoodrin\\Documents\\NetBeansProjects\\MASS\\UWCA\\UWCA-ejb\\target\\classes\\nodes.xml";
  //    MASS.setNodeFilePath(filePath);  
         
+    //    
+    //   String s = System.getProperty("user.dir");
        MASS.setCommunicationPort(45454); // port # to use
-       MASS.setNumThreads(8);            // # of threads to use
+       MASS.setNumThreads(1);            // # of threads to use
        MASS.init();
+       
+       
     }
     
     /**
@@ -67,6 +73,7 @@ public class JobRunner {
     @Schedule(second="*/1", minute="*",hour="*", persistent=false)
     public void doWork(){
         try{
+
             // Location for machine file using Glassfish
             // C:\glassfish4\glassfish\domains\domain1\config
        
