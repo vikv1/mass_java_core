@@ -29,19 +29,7 @@ import uwca.climatemodels.Tasmax_1;
  * @author jwoodrin
  */
 public class Tasmax extends AbstractToe{    
-    
-    public int jobNumber;
-    
-    int x;
-    int y;
-    int z;
-    
-    Places places; // our data grid
-    Agents agents;
-    
- 
-    ClimateModelInterface inputClimateModel;
-    
+
     // step 2 vars
     double[][] minHistTolVals;
     double[][] maxHistTolVals;            
@@ -91,23 +79,9 @@ public class Tasmax extends AbstractToe{
     }
     
     /**
-     * This method possibly un-neccessary
-     * 
-     * @param args
-     * @param numProc
-     * @param numThr 
-     */
-    public void setArgs(ClimateModelInterface inputModel, int jobNum){
-
-        inputClimateModel = inputModel;
-        jobNumber =  jobNum;         
-    
-    }
-    
-    /**
      * Inits the Places and Agents for the MASS Tasmax calculation
      */
-    private void massInit(){
+    public void massInit(){
 
         int interv = 0;
 
@@ -117,9 +91,7 @@ public class Tasmax extends AbstractToe{
         z = 150;        // time    
         
         x = 2;
-        y = 2;
-        
-             
+        y = 2;   
         
         // instanciate our places
         places = new Places(jobNumber, "uwca.calculations.toe.places.TasmaxPlace", (Object)interv, x, y, z);  
@@ -361,8 +333,7 @@ public class Tasmax extends AbstractToe{
                         if(pls[i][k][j] != 0 && pls[i][k][j] >= toeThreshold)
                             toePls[i][k] = 1950 + j;
                         if(min[i][k][j] != 0 && min[i][k][j] >= toeThreshold)
-                            toeMin[i][k] = 1950 + j;
-                        
+                            toeMin[i][k] = 1950 + j;                       
                         
                     }
                 }
@@ -401,8 +372,6 @@ public class Tasmax extends AbstractToe{
 
  
     }
-    
-
     
     /**
      * reads in an entire lat * long * 365-6 data points and distributes the array to the places
