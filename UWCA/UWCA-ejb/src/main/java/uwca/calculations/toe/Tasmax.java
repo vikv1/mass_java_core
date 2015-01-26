@@ -31,31 +31,31 @@ import uwca.climatemodels.Tasmax_1;
 public class Tasmax extends AbstractToe{    
 
     // step 2 vars
-    double[][] minHistTolVals;
-    double[][] maxHistTolVals;            
+    private double[][] minHistTolVals;
+    private double[][] maxHistTolVals;            
     
     // step 4 vars
-    double[][] slopes;
-    double[][] confidenceInterval;
+    private double[][] slopes;
+    private double[][] confidenceInterval;
     
     // step 5 vars
-    double[][] climatologies;
-    double[][] slopeMinusConInt;
-    double[][] slopePlusConInt;
-    double[][] climaSlope1; // clima + reg slope
-    double[][] climaSlope2; // clima + reg slope + con int
-    double[][] climaSlope3; // clima + reg slope - con int
+    private double[][] climatologies;
+    private double[][] slopeMinusConInt;
+    private double[][] slopePlusConInt;
+    private double[][][] climaSlope1;
+    private double[][][] climaSlope2;
+    private double[][][] climaSlope3;
     
     // final vars
-    int[][] toeReg;
-    int[][] toePls;
-    int[][] toeMin;
+    private int[][] toeReg;
+    private int[][] toePls;
+    private int[][] toeMin;
     
     // params
-    float climateTempThreshold;
-    double minMaxTol;
-    int numOfYears;
-    int toeThreshold;
+    private float climateTempThreshold;
+    private double minMaxTol;
+    private int numOfYears;
+    private int toeThreshold;
     
     /**
      * Main constructor
@@ -224,7 +224,7 @@ public class Tasmax extends AbstractToe{
             agents.callAll(TasmaxAgent.gatherLsrValue);
             agents.callAll(TasmaxAgent.migrateZDimension);
             agents.manageAll();            
-        }        
+        }
 
         // calculate the lsr values
         agents.callAll(TasmaxAgent.calculateLsrValues);
@@ -233,113 +233,141 @@ public class Tasmax extends AbstractToe{
         Object[] agentSlopes = (Object[]) agents.callAll(TasmaxAgent.getSlopes, new Object[x*y]);
         // get confidence
         Object[] agentErrorTerm = (Object[]) agents.callAll(TasmaxAgent.getErrorTerm, new Object[x*y]);
-         
+        
         int cnt = 0;
         
         for(int i = 0; i < agentSlopes.length; i++){
             
             int xIndex = i % x;
             int yIndex = i / x;
-            slopes[xIndex][yIndex] = (double)agentSlopes[i];
-            
-            double confidenceInterval = 
-            
+            slopes[xIndex][yIndex] = (double)agentSlopes[i];   
             slopePlusConInt[xIndex][yIndex] = (double)agentSlopes[i] + ((double)agentErrorTerm[i] * inputClimateModel.getTvalue());    
             slopeMinusConInt[xIndex][yIndex] = (double)agentSlopes[i] - ((double)agentErrorTerm[i] * inputClimateModel.getTvalue());
         }  
     }
     
     /**
-     * STEP 5
+     * STEP 5 Find ToE
+     * Take the 3 output arrays from step 4 and expand them into 3d arrays which we will use to find our ToE in step 6
      */
     private void climatologyManipulations(){
 
-        /**
-         * 
-         * 6. Confidence / Slope arrays / add climatology
-         *      6a. 2d array of just regular slopes (output from 5a)
-         *      6b. 2d array of slope + confidence interval
-         *      6c. 2d array of slope - confidence interval
-         */
-
         slopeMinusConInt = new double[x][y];
         slopePlusConInt = new double[x][y];
-        climaSlope1 = new double[x][y]; // clima + reg slope
-        climaSlope2 = new double[x][y]; // clima + reg slope + con int
-        climaSlope3 = new double[x][y]; // clima + reg slope - con int
+        climaSlope1 = new double[x][y][z]; // z[0] = clima; z[1] = z[0] + slopes; z[2] = z[1] + slopes; ... ect
+        climaSlope2 = new double[x][y][z]; // z[0] = clima; z[1] = z[0] + slopePlusConInt; z[2] = z[1] + slopePlusConInt; ... ect
+        climaSlope3 = new double[x][y][z]; // z[0] = clima; z[1] = z[0] + slopeMinusConInt; z[2] = z[1] + slopeMinusConInt; ... ect
+        
         for(int i = 0; i < x; i++){
             for(int k = 0; k < y; k++){
-                
-                slopeMinusConInt[i][k] = slopes[i][k] - confidenceInterval[i][k];
-                slopePlusConInt[i][k] = slopes[i][k] + confidenceInterval[i][k];
-                
-                climaSlope1[i][k] = slopes[i][k] + climatologies[i][k];
-                climaSlope2[i][k] = slopePlusConInt[i][k] - confidenceInterval[i][k] + climatologies[i][k];
-                climaSlope3[i][k] = slopeMinusConInt[i][k] + confidenceInterval[i][k] + climatologies[i][k];
+                for(int j = 0; j < z; j++){
+
+                    climaSlope1[i][k][j] = slopes[i][k] + climatologies[i][k];
+                    climaSlope2[i][k][j] = slopePlusConInt[i][k] - confidenceInterval[i][k] + climatologies[i][k];
+                    climaSlope3[i][k][j] = slopeMinusConInt[i][k] + confidenceInterval[i][k] + climatologies[i][k];
+                    
+                    // FIND TOE
+                    // first array
+                    if(climaSlope1[i][k][j] >=  maxHistTolVals[i][k] ){
+                        
+                    }else if(climaSlope1[i][k][j] <=  minHistTolVals[i][k]){
+                    
+                    }
+                    // second array
+                    if(climaSlope2[i][k][j] >=  maxHistTolVals[i][k]){
+                    
+                    }else if(climaSlope2[i][k][j] <=  minHistTolVals[i][k]){
+                    
+                    }
+                    // third array
+                    if(climaSlope3[i][k][j] >=  maxHistTolVals[i][k]){
+                    
+                    }else if(climaSlope3[i][k][j] <=  minHistTolVals[i][k]){
+                    
+                    }
+                }
             }        
         }
     }
     
     /**
-     * STEPS 6
+     * Inits the ToE arrays with 0 values
      */
-    private void findToe(){
-           /**
-         * STEP 7
-         * Add slope for each year (specify # of years (PARAM 4)
-         */
-        /**
-         * STEP 8: Find ToE
-         * ToE
-         *    3 2d array output of what year temperature rises above user defined threshold (PARAM 5)
-         */
+    private void initToeArrays(){
         
-        double[][][] reg = new double[x][y][numOfYears];
-        double[][][] min = new double[x][y][numOfYears];
-        double[][][] pls = new double[x][y][numOfYears];
-                
         toeReg = new int[x][y];
         toePls = new int[x][y];
         toeMin = new int[x][y];
-        
+    
         for(int i = 0; i < x; i++){
             for(int k = 0; k < y; k++){
-                for(int j = 0; j < numOfYears; j++){
-                    if(j == 0){
-                        reg[i][k][j] = climaSlope1[i][k];
-                        pls[i][k][j] = climaSlope2[i][k];
-                        min[i][k][j] = climaSlope3[i][k];
-                        
-                        if(reg[i][k][j] >= toeThreshold)
-                            toeReg[i][k] = 1950 + j;
-                        else 
-                            toeReg[i][k] = 0;
-                        if(pls[i][k][j] >= toeThreshold)
-                            toePls[i][k] = 1950 + j;
-                        else 
-                            toePls[i][k] = 0;
-                        if(min[i][k][j] >= toeThreshold)
-                            toeMin[i][k] = 1950 + j;
-                        else 
-                            toeMin[i][k] = 0;
-                    }
-                    else{
-                        reg[i][k][j] = reg[i][k][j-1] + slopes[i][k];
-                        pls[i][k][j] = reg[i][k][j-1] + slopePlusConInt[i][k];
-                        min[i][k][j] = reg[i][k][j-1] + slopeMinusConInt[i][k];
-                        
-                        if(reg[i][k][j] != 0 && reg[i][k][j] >= toeThreshold)
-                            toeReg[i][k] = 1950 + j;
-                        if(pls[i][k][j] != 0 && pls[i][k][j] >= toeThreshold)
-                            toePls[i][k] = 1950 + j;
-                        if(min[i][k][j] != 0 && min[i][k][j] >= toeThreshold)
-                            toeMin[i][k] = 1950 + j;                       
-                        
-                    }
-                }
-            }        
+                toeReg[i][k] = 0;
+                toePls[i][k] = 0;
+                toeMin[i][k] = 0;
+            }
         }    
     }
+    
+    /**
+     * STEPS 6
+     */
+//    private void findToe(){
+//           /**
+//         * STEP 7
+//         * Add slope for each year (specify # of years (PARAM 4)
+//         */
+//        /**
+//         * STEP 8: Find ToE
+//         * ToE
+//         *    3 2d array output of what year temperature rises above user defined threshold (PARAM 5)
+//         */
+//        
+//        double[][][] reg = new double[x][y][numOfYears];
+//        double[][][] min = new double[x][y][numOfYears];
+//        double[][][] pls = new double[x][y][numOfYears];
+//                
+//        toeReg = new int[x][y];
+//        toePls = new int[x][y];
+//        toeMin = new int[x][y];
+//        
+//        for(int i = 0; i < x; i++){
+//            for(int k = 0; k < y; k++){
+//                for(int j = 0; j < numOfYears; j++){
+//                    if(j == 0){
+//                        reg[i][k][j] = climaSlope1[i][k];
+//                        pls[i][k][j] = climaSlope2[i][k];
+//                        min[i][k][j] = climaSlope3[i][k];
+//                        
+//                        if(reg[i][k][j] >= toeThreshold)
+//                            toeReg[i][k] = 1950 + j;
+//                        else 
+//                            toeReg[i][k] = 0;
+//                        if(pls[i][k][j] >= toeThreshold)
+//                            toePls[i][k] = 1950 + j;
+//                        else 
+//                            toePls[i][k] = 0;
+//                        if(min[i][k][j] >= toeThreshold)
+//                            toeMin[i][k] = 1950 + j;
+//                        else 
+//                            toeMin[i][k] = 0;
+//                    }
+//                    else{
+//                        reg[i][k][j] = reg[i][k][j-1] + slopes[i][k];
+//                        pls[i][k][j] = reg[i][k][j-1] + slopePlusConInt[i][k];
+//                        min[i][k][j] = reg[i][k][j-1] + slopeMinusConInt[i][k];
+//                        
+//                        if(reg[i][k][j] != 0 && reg[i][k][j] >= toeThreshold)
+//                            toeReg[i][k] = 1950 + j;
+//                        if(pls[i][k][j] != 0 && pls[i][k][j] >= toeThreshold)
+//                            toePls[i][k] = 1950 + j;
+//                        if(min[i][k][j] != 0 && min[i][k][j] >= toeThreshold)
+//                            toeMin[i][k] = 1950 + j;                       
+//                        
+//                    }
+//                }
+//            }        
+//        }    
+//    }
     
     /**
      * The main method which drives our calculations
@@ -347,7 +375,7 @@ public class Tasmax extends AbstractToe{
     public void executeCalculations(){
         // init MASS
         massInit();   
-        
+        initToeArrays();
         // step 1 read data
     //    readDataIntoPlaces();
         places.callAll(TasmaxPlace.falsifyDaysOverThreshold); // temp method for testing (speeds up performance)
@@ -360,7 +388,7 @@ public class Tasmax extends AbstractToe{
         // step 5
         climatologyManipulations();
         // step 6
-        findToe();        
+//        findToe();        
         
         /**
          * write the netcdf data to file
