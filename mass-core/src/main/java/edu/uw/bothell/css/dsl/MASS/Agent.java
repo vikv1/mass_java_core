@@ -1,6 +1,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.LinkedList;
 
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
@@ -21,12 +23,24 @@ public class Agent implements Serializable {
 	private boolean alive = true;
 	private int newChildren = 0;
 	private Object[] arguments = null;
+	
+	// Async
+	private LinkedList<Integer> asyncFuncList;
+	private Object asyncResult;
+	private Object asyncArgument;
+	private Agents_base parentAgents;
+	// true to signal a thread to stop processing this Agent's asyncFuncList
+	// this happens in kill & migrate case
+	private boolean stopProcessAsyncFuncList = false;
+	// backward compatibility with agentbag
+	private int myAsyncIndex;
 
 	public Agent ( ) {
 		//agentsHandle = Agents.getAgentInitAgentsHandle();
 		//placesHandle = Agents.getAgentInitPlacesHandle();
 		agentId = Agents.getAgentInitAgentId();
 		//parentId = Agents.getAgentInitParentId();
+		asyncFuncList = new LinkedList<Integer>();
 	}
 
 	public Object callMethod( int functionId, Object argument ) {
@@ -68,6 +82,21 @@ public class Agent implements Serializable {
 
 	public void kill( ) {
 		alive = false;
+	}
+	
+	public void killAsync() {
+	  kill();
+	  stopProcessAsyncFuncList = true;
+	  synchronized(Mthread.class){
+	    Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
+	  }
+	  
+    // remove the agent from this place
+	  getPlace().getAgents().remove( this );
+
+    // remove from AgentList, too!
+	  // unlike sync myAsyncIndex start from 0
+    parentAgents.getAgents().remove( myAsyncIndex );
 	}
 
 	public int map( int initPopulation, int[] size, int[] index, Place curPlace) {
@@ -113,7 +142,10 @@ public class Agent implements Serializable {
 	}
 	
 	protected boolean migrateAsync(int... index) {
-	  return false;
+	  boolean result = migrate(index);
+    stopProcessAsyncFuncList = true;
+	  parentAgents.migrateAsync(this);
+	  return result;
 	}
 
 	// TODO - modify debug data of the agent, overridden as necessary by the developer for now
@@ -132,16 +164,77 @@ public class Agent implements Serializable {
 	public void setPlace(Place place) {
 		this.place = place;
 	}
+	
+	public void setAsyncFuncList(Collection<Integer> funcIds) {
+	 asyncFuncList.clear();
+	 asyncFuncList.addAll(funcIds);
+	}
+	
+	public LinkedList<Integer> getAsyncFuncList() {
+	  return asyncFuncList;
+	}
+	
+	public void setAsyncResult(Object newResult) {
+	  asyncResult = newResult;
+	}
+	
+	public Object getAsyncResult() {
+	  return asyncResult;
+	}
+	
+	public void setAsyncArgument(Object newArg) {
+	  asyncArgument = newArg;
+	}
+	
+	public Object getAsyncArgument(){
+	  return asyncArgument;
+	}
+	
+	public void setMyAsyncIndex(int newIndex) {
+	  myAsyncIndex = newIndex;
+	}
+	
+	public int getMyAsyncIndex() {
+	  return myAsyncIndex;
+	}
+	
+	public void setParentAgents(Agents_base parent) {
+	  parentAgents = parent;
+	}
+	
+	public Agents_base getParentAgents() {
+	  return parentAgents;
+	}
+	
+	public boolean shouldStopProcessAsyncFuncList() {
+	  return stopProcessAsyncFuncList;
+	}
 
+	public void setStopProcessAsyncFuncList(boolean value) {
+    stopProcessAsyncFuncList = value;
+  }
+	
 	//Set number for spawning additional Agents
 	protected void spawn( int numAgents, Object[] arguments ) { 
 		
 		//Only want to make changes if the number to be created is above zero
 		if ( numAgents > 0 ) {
 			newChildren = numAgents;
-			this.arguments = arguments.clone( );
+			this.arguments = arguments.clone( );			
 		}
 	
+	}
+	
+	/**
+	 * Spawn new children async and supply them with the arguments and functionIds
+	 * @param numAgents
+	 * @param arguments
+	 * @param functionIds
+	 */
+	protected void spawnAsync(int numAgents, Object[] arguments, LinkedList<Integer>[] functionIds) {
+	  if(numAgents > 0) {
+	    parentAgents.spawnAsync(this, numAgents, arguments, functionIds);
+	  }
 	}
 
 }

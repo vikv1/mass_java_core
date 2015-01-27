@@ -508,7 +508,7 @@ public class MASS_base {
     
     public static void initAsyncCommunicationThreads() {
       inputThread = new AsyncInputThread(MASS_PORT + 1);
-      outputThread = new AsyncOutputThread();
+      outputThread = new AsyncOutputThread(MASS_PORT + 1);
     }
     
     /**

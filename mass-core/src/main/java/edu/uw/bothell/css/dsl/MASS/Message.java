@@ -31,7 +31,8 @@ public class Message implements Serializable {
 	    
 	    /** Async section **/
 	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,      // 17
-	    FINISH_ASYNC_SERVER                       // 18
+	    FINISH_ASYNC_SERVER,                       // 18
+	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST     // 19
     }
     
 	private static final int VOID_HANDLE = -1;

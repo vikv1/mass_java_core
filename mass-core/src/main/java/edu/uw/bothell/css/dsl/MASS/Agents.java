@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 @SuppressWarnings("serial")
@@ -184,10 +185,10 @@ public class Agents extends Agents_base implements Serializable {
             "] arg_pos = " + arg_pos );
       }
       
-      // send it
+      // send callAllAsync to other nodes
       MASS.getRemoteNodes().get(i).sendMessage( m );      
       if ( MASS.isConsoleLoggingEnabled() ) {        
-        System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
+        System.err.println( "AGENTS_CALL_ALL_ASYNC " + m.getAction( ) +
             " sent to " + i );
         System.err.println( "Bag Size is: " + 
             MASS_base.getAgentsMap().
@@ -196,18 +197,34 @@ public class Agents extends Agents_base implements Serializable {
       }
     }
     
-    // TODO robocopy section DOESN"T WORK
+    // Preparing this node for callAllAsync
     Mthread.setAgentBagSize(MASS_base.getAgentsMap().
     get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
 
+    getAsyncQueue().clear();
+    getAsyncQueue().addAll(getAgents().getAll());
+    int idx = 0;
+    for(Iterator<Agent> iter = getAsyncQueue().iterator(); iter.hasNext();)
+    {
+      Agent agent = iter.next();
+      agent.setAsyncFuncList(functionIds);
+      agent.setAsyncResult(null);
+      agent.setAsyncArgument(arguments[idx]);
+      agent.setMyAsyncIndex(idx);
+      agent.setParentAgents(this);
+      ++idx;
+    }
     // shared between agents
-    // TODO What is share here? SET EACH agent's functionList
-    /*
+    // TODO What is share here?
+    
+    // We need this so AsyncInputThread can quickly pass the migration request
     MASS_base.setCurrentAgents(this);
-    MASS_base.setCurrentFunctionId(functionId);
+    /* MASS_base.setCurrentFunctionId(functionId);
     MASS_base.setCurrentArgument(argument);
     MASS_base.setCurrentMsgType(type); */
 
+    MASS_base.getAsyncOutputThread().setAgentHandle(this.getHandle());
+    MASS_base.getAsyncOutputThread().setPlaceHandle(this.getPlacesHandle());
     MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
 
     // resume threads
@@ -218,18 +235,19 @@ public class Agents extends Agents_base implements Serializable {
           MASS_base.getCurrentAgents( ) );    
     }
 
+    // callAllAsync to all slave threads
     Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC );
 
-    super.callAllAsync( functionIds, (Object[])arguments, 
-          ( (Object[])arguments ).length, 0 );
+    // callAllAsync in my own thread
+    super.callAllAsync( 0 );
 
-    // confirm all threads are done with agents.callAll
+  /*  // confirm all threads are done with agents.callAll
     Mthread.barrierThreads( 0 );
     localAgents[0] = getLocalPopulation();
 
     // Synchronized with all slave processes by main thread.
     MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), 0, 
-        localAgents );
+        localAgents ); */
     total = 0;
     for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
       total += localAgents[i];      
@@ -241,6 +259,10 @@ public class Agents extends Agents_base implements Serializable {
             localAgents[i] );
       }    
     }
+    
+    // TODO Auto Migration somewhere?
+    // in case of killing agent, backward compatibility
+    getAgents().reduce();
     
     return MASS_base.getCurrentReturns();
 	}

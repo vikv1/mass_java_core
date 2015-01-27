@@ -1,5 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.LinkedList;
+
 public class AgentList {
 
 	private final int CAPACITY_X = 1000; // max agent population = 1 million
@@ -30,15 +32,14 @@ public class AgentList {
 		array[curr_x][next_y++] = item;
 	
 	}
-
-	public void addAll( AgentList list ) {
-		
-		list.reduce( );
-		reduce_helper( );
-		
-		for ( int i = 0; i < list.size( ); i++ )
-			add( list.get( i ) );
 	
+	/**
+	 * Use when Agents.callAllAsync()
+	 * @param item
+	 */
+	public synchronized void addForAsyncProcess(Agent item) {
+	  item.setMyAsyncIndex(size_unreduced());
+	  add(item);
 	}
 
 	public void check_internal( ) {
@@ -230,5 +231,22 @@ public class AgentList {
 
 	public int size_unreduced( ) {
 		return curr_x * capacity_y + next_y;
+	}
+	
+	public synchronized LinkedList<Agent> getAll() {
+	  reduce_helper();
+	  LinkedList<Agent> result = new LinkedList<Agent>();
+	  int x = 0, y = 0;
+	  for(int i = 0; i < size_unreduced(); i++)
+	  {
+	    result.add(array[x][y]);
+	    ++y;
+	    if(y == capacity_y)
+	    {
+	      y = 0;
+	      ++x;
+	    }
+	  }
+	  return result;
 	}
 }

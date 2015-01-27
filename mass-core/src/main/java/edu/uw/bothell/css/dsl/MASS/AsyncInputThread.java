@@ -1,11 +1,14 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Vector;
 
 /**
  * Handle async Migration req and other type of message
@@ -63,9 +66,44 @@ public class AsyncInputThread extends Thread {
      
     public void run() { 
         try {
-          // TODO process migration request to this current Node
-            socket.close();
-        } catch (IOException e) {
+          InputStream is = socket.getInputStream();
+          ObjectInputStream ois = new ObjectInputStream(is);
+          Message m = (Message)ois.readObject();
+          switch( m.getAction( ) ) {
+            case AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST:
+              // process a message
+              Vector<AgentMigrationRequest> receivedRequests 
+              = m.getMigrationReqList();
+              Places_base dstPlaces = MASS_base.getPlacesMap().
+                  get( new Integer( m.getDestHandle()));
+
+              // retrieve agents from receiveRequest
+              for(AgentMigrationRequest request : receivedRequests) {
+                int globalLinearIndex = request.destGlobalLinearIndex;
+                Agent agent = request.agent;
+                // local destination
+                int destinationLocalLinearIndex 
+                = globalLinearIndex - dstPlaces.getLowerBoundary();
+                if ( MASS.isConsoleLoggingEnabled() == true ) {
+                  MASS_base.log( " dstLocal = " + 
+                      destinationLocalLinearIndex );
+                }
+
+                Place dstPlace = 
+                    dstPlaces.getPlaces()[destinationLocalLinearIndex];
+
+                // push this agent into the place and the entire agent bag.
+                agent.setPlace(dstPlace);
+                dstPlace.getAgents().add( agent ); // auto sync
+                MASS_base.getCurrentAgents().getAgents().addForAsyncProcess(agent);          // auto sync
+                MASS_base.getCurrentAgents().getAsyncQueue().add(agent);
+              }             
+              break;
+            default:
+              break;
+          }
+          socket.close();
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.net.URLClassLoader;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -26,6 +27,9 @@ public class Agents_base implements Serializable {
     private static int agentInitAgentId;
     private static int agentInitParentId;
     
+    // Async section
+    private LinkedList<Agent> asyncQueue;
+    
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     public Agents_base( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
@@ -35,6 +39,9 @@ public class Agents_base implements Serializable {
     	this.placesHandle = placesHandle;
     	this.initPopulation = initPopulation;
     	this.agents = new AgentList( );
+    	
+    	// Async handling
+    	this.asyncQueue = new LinkedList<Agent>();
 
     	// For debugging
     	if ( MASS.isConsoleLoggingEnabled() == true ) 
@@ -305,12 +312,50 @@ public class Agents_base implements Serializable {
     }
 
 	@SuppressWarnings("unused")
-  public void callAllAsync(LinkedList<Integer> functionIds, Object[] arguments, int length, int tid ) {
+  public void callAllAsync(int tid ) {	 
+	  Agent executedAgent = null;
+	  do 
+	  {
+	    // access by multiple thread
+  	  synchronized(asyncQueue) {
+  	    if(asyncQueue.size() != 0) {
+  	      executedAgent = asyncQueue.removeFirst();
+  	    } else {
+  	      // signal no more to execute
+  	      executedAgent = null;
+  	    }
+  	  }
 	  
+  	  if(executedAgent != null) {
+        while(executedAgent.getAsyncFuncList().size() != 0) {
+          executedAgent.callMethod(
+              executedAgent.getAsyncFuncList().removeFirst(), 
+              executedAgent.getAsyncArgument());
+          
+          // only the first method has arg
+          executedAgent.setAsyncArgument(null);
+          
+          if(executedAgent.shouldStopProcessAsyncFuncList())
+          {
+            executedAgent.setStopProcessAsyncFuncList(false);
+            break;
+          }
+        }
+  	  }
+	  }
+	  while(executedAgent != null);
+    
+	  // TODO do we need process id as input?
+	  // TODO pid 0 tid 0 wait for the rest to post result, no barrier from MASS here?
+	  // TODO 'population' update local & from other nodes
 	}
 	
 	public AgentList getAgents() {
 		return agents;
+	}
+	
+	public LinkedList<Agent> getAsyncQueue() {
+	  return asyncQueue;
 	}
 
 	public String getClassName() {
@@ -728,7 +773,175 @@ public class Agents_base implements Serializable {
 	public int nLocalAgents( ) { 
     	return localPopulation; 
     }
+	
+  public synchronized void spawnAsync(Agent targetAgent, int numAgents, Object[] arguments,
+      LinkedList<Integer>[] functionIds) {
+    int argumentIndex = 0;
+    while ( numAgents > 0 ) {
+      if ( MASS.isConsoleLoggingEnabled() == true )
+        MASS_base.log( "Agent_base.spawnAsync will spawn a child of agent " + 
+            targetAgent.getAgentId() +
+            "...arguments index = " + argumentIndex);
 
+      Agent addAgent = null;
+      Object dummyArgument = new Object( );
+
+      try {
+          agentInitAgentsHandle = handle;
+          agentInitPlacesHandle = placesHandle;
+          agentInitParentId = targetAgent.getAgentId();
+          agentInitAgentId = currentAgentId++;
+          addAgent =
+              (Agent) (objectFactory.getInstance(className, dummyArgument));
+          // TODO auto migration somewhere in here?
+        addAgent.setIndex(targetAgent.getIndex());
+        addAgent.setPlace(targetAgent.getPlace());
+        addAgent.setAsyncFuncList(functionIds[argumentIndex]);
+        addAgent.setAsyncResult(null);
+        addAgent.setAsyncArgument(arguments[argumentIndex]);
+        // will be done in asyncProcess addAgent.setMyAsyncIndex(agents.size_unreduced());
+        addAgent.setParentAgents(this);
+        argumentIndex++;
+      } catch ( Exception e ) {
+        MASS_base.log( "Agents_base.manageAll: " + this.className
+            + " not instantiated " + e );
+      }
+
+      // Push the created agent into our bag for returns and 
+      // update the counter needed to keep track of our agents.
+      addAgent.getPlace().getAgents().add( addAgent ); // auto sync
+      this.agents.addForAsyncProcess( addAgent );           // auto syn
+      asyncQueue.add(addAgent);
+    }
+
+  }
+
+  public synchronized void migrateAsync(Agent targetAgent) {
+  //Iterate over all dimensions of the agent to check its location
+    //against that of its place. If they are the same, return back.
+    Places_base evaluatedPlaces = MASS_base.getPlacesMap().get( new Integer( placesHandle ) );
+    int[] destCoord = new int[targetAgent.getIndex().length];
+
+    // compute its coordinate
+    getGlobalAgentArrayIndex( targetAgent.getIndex(), 
+        evaluatedPlaces.getSize(), destCoord );
+
+    if ( MASS.isConsoleLoggingEnabled() == true ) {
+      StringBuilder targetCoordStr = new StringBuilder();
+      StringBuilder destCoordStr = new StringBuilder();
+      for(int i = 0; i < destCoord.length; i++) {
+        targetCoordStr.append("[" + targetAgent.getIndex()[i] + "]");
+        destCoordStr.append("[" + destCoord[i] + "]");
+      }
+      MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
+          " calls from " +
+          targetCoordStr.toString() +
+          " (destCoord" + destCoordStr.toString() );
+    }
+
+    if( destCoord[0] != -1 ) { 
+      
+      // destination valid
+      int globalLinearIndex = 
+          evaluatedPlaces.
+          getGlobalLinearIndexFromGlobalArrayIndex( destCoord,
+              evaluatedPlaces.
+              getSize() );
+
+      if ( MASS.isConsoleLoggingEnabled() == true )
+        MASS_base.log( " linear = " + globalLinearIndex +
+            " lower = " + evaluatedPlaces.getLowerBoundary()
+            + " upper = " + 
+            evaluatedPlaces.getUpperBoundary() + ")" );
+
+      if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
+          globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
+        
+        // local destination
+
+        // Should remove the pointer object in the place that 
+        // points to the migrating Agent
+        Place oldPlace = targetAgent.getPlace();
+        if ( oldPlace.getAgents().remove( targetAgent ) == false ) {          
+          // should not happen
+          if ( MASS.isConsoleLoggingEnabled() == true ) {
+            MASS_base.log( "evaluationAgent " + 
+                targetAgent.getAgentId() 
+                + " couldn't been found in " +
+                "the old place!" );
+          }
+          System.exit( -1 );        
+        }
+
+        if ( MASS.isConsoleLoggingEnabled() == true )
+          MASS_base.log( "evaluationAgent " + 
+              targetAgent.getAgentId() 
+              + " was removed from the oldPlace["
+              + oldPlace.getIndex()[0] + "]["
+              + oldPlace.getIndex()[1] + "]" );
+
+        // insert the migration Agent to a local destination place
+        int destinationLocalLinearIndex 
+        = globalLinearIndex - evaluatedPlaces.getLowerBoundary();
+
+        if ( MASS.isConsoleLoggingEnabled() == true ) {
+          MASS_base.log( "destinationLocalLinerIndex = " 
+              + destinationLocalLinearIndex );
+        }
+
+        targetAgent.setPlace(MASS_base.getPlacesMap().
+            get( new Integer( placesHandle ) ).
+            getPlaces()[destinationLocalLinearIndex]);
+
+        if ( MASS.isConsoleLoggingEnabled() == true )
+          MASS_base.log( "evaluationAgent.place = " 
+              + targetAgent.getPlace() );
+
+        targetAgent.getPlace().getAgents().add( targetAgent );
+
+        if ( MASS.isConsoleLoggingEnabled() == true ) 
+          MASS_base.log( "evaluationAgent " + 
+              targetAgent.getAgentId() +
+              " was inserted into the destPlace[" +
+              targetAgent.getPlace().getIndex()[0] + "][" +
+              targetAgent.getPlace().getIndex()[1] + "]" );
+        asyncQueue.add(targetAgent);
+      }      
+      else {        
+        // remote destination
+
+        // remove evaluationAgent from AgentList
+        agents.remove( targetAgent.getMyAsyncIndex() );
+
+        // find the destination node
+        int destRank 
+        = evaluatedPlaces.
+        getRankFromGlobalLinearIndex( globalLinearIndex );
+        // relinquish the old place
+        targetAgent.setPlace(null);        
+        // create a request
+        AgentMigrationRequest request 
+        = new AgentMigrationRequest( globalLinearIndex, 
+            targetAgent );
+        if ( MASS.isConsoleLoggingEnabled() == true ) {
+          MASS_base.log( "AgentMigrationRequest request = " + 
+              request );
+        }
+        
+        MASS.getAsyncOutputThread().requestMigration(destRank, request);
+        if ( MASS.isConsoleLoggingEnabled() == true ) {
+            MASS_base.log( "remoteRequest[" + destRank + 
+                "].add:" + " dst = " + 
+                globalLinearIndex );
+        }      
+      }     
+    }    
+    else {      
+      if ( MASS.isConsoleLoggingEnabled() == true ) {
+        MASS_base.log( " to destination invalid" );
+      }
+    }
+  }
 	private class ProcessAgentMigrationRequest extends Thread {
     	
     	private int destRank;

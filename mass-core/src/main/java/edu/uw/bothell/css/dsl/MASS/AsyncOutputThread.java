@@ -1,6 +1,13 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
+
+import edu.uw.bothell.css.dsl.MASS.Agents_base.SendMessageByChild;
 
 public class AsyncOutputThread extends Thread {
   private static final int NAGLE_TIMEOUT = 50; // milisec
@@ -11,12 +18,14 @@ public class AsyncOutputThread extends Thread {
   private LinkedList<AgentMigrationRequest>[] migrationRequestMap;
   private Integer lastRequestRank = 0;
   private boolean running = true;
+  private int port;
 
   // need to be set at the beginning of each execution
   private int agentHandle;
   private int placeHandle;
 
-  public AsyncOutputThread() {
+  public AsyncOutputThread(int port) {
+    this.port = port;
     migrationRequestMap = (LinkedList<AgentMigrationRequest>[]) new LinkedList[MASS_base
         .getSystemSize()];
     timeouts = new boolean[MASS_base.getSystemSize()];
@@ -26,9 +35,10 @@ public class AsyncOutputThread extends Thread {
     }
   }
   
-  public AsyncOutputThread(int agentHandle, int placeHandle) {
-    this();
+  public AsyncOutputThread(int port, int agentHandle, int placeHandle) {
+    this(port);
     setAgentHandle(agentHandle);
+    setPlaceHandle(placeHandle);
   }
   
   public void setAgentHandle(int newHandle) {
@@ -51,7 +61,16 @@ public class AsyncOutputThread extends Thread {
         }
 
         if (running) {
-          timeouts[lastRequestRank] = false;
+          synchronized (lastRequestRank) {
+            Message messageToDest = 
+              new Message( Message.ACTION_TYPE.
+                  AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,
+                  agentHandle, placeHandle, migrationRequestMap[lastRequestRank] );
+            SendMessageByChild thread_ref =
+                new SendMessageByChild( lastRequestRank, messageToDest );
+            thread_ref.start( );
+            timeouts[lastRequestRank] = false;
+          }
         }
       }
     }
@@ -96,5 +115,43 @@ public class AsyncOutputThread extends Thread {
         lastRequestRank.notifyAll();
       }
     }
+  }
+  
+  private class SendMessageByChild extends Thread {
+    int rank;
+    Message message;
+    
+    public SendMessageByChild( int rank, Message message ) {
+      this.rank = rank;
+      this.message = message;
+    }
+
+    public void run( ) {      
+      if ( MASS.isConsoleLoggingEnabled() == true )
+        MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
+            "] sendMessageByChild to " + rank + " starts" );
+      String hostName = MASS_base.getMasterNode().getHostName();
+      if(rank > 0) {
+        hostName = MASS_base.getRemoteNodes().get(rank - 1).getHostName();
+      }
+        try {
+          Socket sendSocket = new Socket(hostName, port);
+          OutputStream os = sendSocket.getOutputStream();
+          ObjectOutputStream oos = new ObjectOutputStream(os);
+          oos.writeObject(message);
+          oos.close();
+          os.close();
+          sendSocket.close();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+        }
+      
+      if ( MASS.isConsoleLoggingEnabled() == true )
+        MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
+            "] sendMessageByChild to " + rank + 
+            " finished" );
+    
+    }
+  
   }
 }
