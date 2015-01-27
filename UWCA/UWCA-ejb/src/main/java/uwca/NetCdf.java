@@ -84,10 +84,7 @@ public class NetCdf {
         } catch (IOException ioe) {
           ioe.printStackTrace();
         }
-    }
-
-    System.out.println("*** SUCCESS writing example file simple_xy.nc!");
-     
+    }     
     }
     
 }

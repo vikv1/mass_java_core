@@ -53,7 +53,7 @@ public class JobManager {
         Job job = new Job(this.getJobsDirectory());
         switch(var){
             case "tmax":       
-                job.setVariable(new Tasmax(params)); 
+                job.setVariable(new Tasmax(params, jobsDirectory)); 
                 job.setVarName(var);
                 job.setStatus("Queued");
                 break;
