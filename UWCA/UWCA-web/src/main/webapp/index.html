@@ -19,10 +19,9 @@
                      <option value='conus_c5'>conus_c5</option>
                 </select>
                 <div id="paramsDiv">
-                    Temp Threshold:<input id='tempThreshold' type='text'>
-                    Min/Max Tol: <input id='minTol' type='text'>
-                    Num Toe Years: <input id='numToeYears' type='text'>
-                    Days Over Threshold Value: <input id='daysOverThresholdVal' type='text'>
+                    Temperature Threshold:<input id='tempThreshold' type='text'>
+                    Tolerance: <input id='tolerance' type='text'>
+                    Number of Toe Years: <input id='numToeYears' type='text'>
                 </div>
                 <input id='submitBtn' type='button' value='Submit'>
                 <input id='statusBtn' type='button' value='Refresh Status'>
@@ -32,18 +31,21 @@
             <div id="statusDiv">
                 <table id="statusTable">
                     <tr>
-                        <th>Management Variable</th>
+                        <th>ToE Variable</th>
                         <th>Input Model</th>
-                        <th>ToE Calculation</th>
+                        <th>Number of Toe Years</th>
                         <th>Status</th>
-                        <th></th>
-                    </tr>                    
-                </table>    
+                        <th>Provenance File</th>
+                        <th>ToE Regular File</th>
+                        <th>ToE Max File</th>
+                        <th>ToE Min File</th>
+                    </tr>
+                </table>
                 <div id='statusTableBodyDiv'>
                     <table id='statusTableBody'>                        
                     </table>
                 </div>
             </div>
-        </div>      
+        </div>              
     </body>
 </html>

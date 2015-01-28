@@ -24,6 +24,8 @@ public abstract class AbstractToe implements ToeInterface{
     int y;
     int z;
     
+    public int numOfYears;
+    
     Places places; // our data grid
     Agents agents;   
     
@@ -42,6 +44,10 @@ public abstract class AbstractToe implements ToeInterface{
     }
     
     abstract void massInit();
+    
+    public int getNumToeYears(){
+        return numOfYears;
+    }
     
     @Override
     public abstract void executeCalculations();

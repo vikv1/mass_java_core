@@ -56,7 +56,7 @@ public class Tasmax extends AbstractToe{
     // params
     private float climateTempThreshold;
     private double minMaxTol;
-    private int numOfYears;
+   
     private int toeThreshold;
     
     private String jobsDirectory = "";
@@ -71,18 +71,23 @@ public class Tasmax extends AbstractToe{
         
         jobsDirectory = jobsDir;
         
-//        climateTempThreshold = Float.parseFloat(params[0]);
-//        minMaxTol = Double.parseDouble(params[1]);
-//        numOfYears = Integer.parseInt(params[2]);
-//        toeThreshold = Integer.parseInt(params[3]);
+        try{
+            climateTempThreshold = Float.parseFloat(params[0]);
+        }catch(Exception e){
+            climateTempThreshold = 30.0F;
+        }
         
-        climateTempThreshold = 5.0f;
-        // min max tolerance will be specified by a percentage such ad 90%... which will translate
-        // into +/- 5% from 100 (95%) and 0 (5%)
-        // for instance, to get the 10% value below 80% would have to have been specified in the GUI
-        minMaxTol = 0.10;
-        numOfYears = 200;
-        toeThreshold = 120;
+        try{
+            minMaxTol = Double.parseDouble(params[1]);
+        }catch(Exception e){
+            minMaxTol = 0.10D;
+        }
+        
+        try{
+            numOfYears = Integer.parseInt(params[2]);
+        }catch(Exception e){
+            numOfYears = 200;
+        }
     }
     
     /**
@@ -336,22 +341,34 @@ public class Tasmax extends AbstractToe{
         // step 4
         leastSquaredRegression();
         // step 5
-        findToe();
-        // step 6
-//        findToe();        
+        findToe();    
         
         /**
          * write the netcdf data to file
          */
-        NetCdf fileWriter = new NetCdf();
-        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeReg.nc", x, y, toeReg);
-        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toePls.nc", x, y, toePls);
-        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeMin.nc", x, y, toeMin);
+//        String provFile = "";
+//        String toeRegFile = jobsDirectory+"/"+jobNumber+"/toeReg.nc";
+//        String toeMinFile = jobsDirectory+"/"+jobNumber+"/toePls.nc";
+//        String toeMaxFile = jobsDirectory+"/"+jobNumber+"/toeMin.nc";
+//        
+//        NetCdf fileWriter = new NetCdf();
+//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeReg.nc", x, y, toeReg);
+//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toePls.nc", x, y, toePls);
+//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeMin.nc", x, y, toeMin);
         
         places = null;
         agents = null;
  
     }
+    
+    public void writeNetCdfFiles(String toeRegFile, String toeMinFile, String toeMaxFile){
+        NetCdf fileWriter = new NetCdf();
+        fileWriter.writeToeFile(toeRegFile, x, y, toeReg);
+        fileWriter.writeToeFile(toeMaxFile, x, y, toePls);
+        fileWriter.writeToeFile(toeMinFile, x, y, toeMin);
+    }
+    
+    
     
     /**
      * reads in an entire lat * long * 365-6 data points and distributes the array to the places

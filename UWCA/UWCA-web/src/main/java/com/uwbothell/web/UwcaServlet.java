@@ -8,15 +8,17 @@ package com.uwbothell.web;
 
 //import com.uwbothell.entities.JobManagerSingleton;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
-import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import uwca.JobManager;
-import uwca.calculations.toe.Tasmax;
 
 /**
  *
@@ -39,13 +41,41 @@ public class UwcaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String method = request.getParameter("method");
         
-        jobMgr = JobManager.getInstance();
-        String msg = jobMgr.getStatusUpdates();
+        switch (method){
         
-        response.setContentType("text/plain");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(msg);
+            case "getFile":
+                String filename = request.getParameter("fileName");
+		response.setContentType("text/plain");
+		PrintWriter out = response.getWriter();
+	//	 String filename = "File1.txt"; 
+        //        String filename = "jobs\\1627\\toeMin.nc";
+	//	  String filepath = "C:\\Program Files\\glassfish-4.1\\glassfish\\domains\\domain1\\config\\"; 
+		  response.setContentType("APPLICATION/OCTET-STREAM"); 
+		  response.setHeader("Content-Disposition","attachment; filename=\"" + filename + "\""); 
+
+	//	  java.io.FileInputStream fileInputStream = new java.io.FileInputStream(filepath + filename);
+                  java.io.FileInputStream fileInputStream = new java.io.FileInputStream(filename);
+		  
+		  int i; 
+		  while ((i=fileInputStream.read()) != -1) {
+		    out.write(i); 
+		  } 
+		  fileInputStream.close();
+		  out.close(); 
+                break;
+            case "getStatusUpdates":
+                jobMgr = JobManager.getInstance();
+                String msg = jobMgr.getStatusUpdates();
+
+                response.setContentType("text/plain");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(msg);
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -65,13 +95,12 @@ public class UwcaServlet extends HttpServlet {
         
         String[] params = null;
         
-        switch(var){
+        switch(var){ /// tempthresh: tempThresh, tol: tolerance, toeyears:
             case "tmax":
-                params = new String[5];
-                params[0] = request.getParameter("param1");
-                params[1] = request.getParameter("param2");
-                params[2] = request.getParameter("param3");
-                params[3] = request.getParameter("param4");
+                params = new String[3];
+                params[0] = request.getParameter("tempthresh");
+                params[1] = request.getParameter("tol");
+                params[2] = request.getParameter("toeyears");
                 break;
             default:
                 break;

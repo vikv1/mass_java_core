@@ -6,6 +6,7 @@
 package uwca;
 
 //import com.google.gson.Gson;
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 import uwca.calculations.toe.Tasmax;
@@ -79,20 +80,25 @@ public class JobManager {
      */
     public synchronized String getStatusUpdates(){
         // format the data for table construction on client side
-        String[][] returnData = new String[jobs.size()][5];
+        String[][] returnData = new String[jobs.size()][8];
         int i = 0;
         for(Job j : jobs){
             returnData[i][0] = j.getVarName();
             returnData[i][1] = j.getInputModelName();
-            returnData[i][2] = "";
+            returnData[i][2] = Integer.toString(j.getNumToeYears());
             returnData[i][3] = j.getStatus();
+            String[] files = j.getOutputFiles();
+            returnData[i][4] = files[0];
+            returnData[i][5] = files[1];
+            returnData[i][6] = files[2];
+            returnData[i][7] = files[3];        
+            
             i++;
         }
         // return json formatted data for the browser
-      //  Gson gson = new Gson();
-     //   String json = gson.toJson(returnData);        
-      //  return json; 
-        return "";
+        Gson gson = new Gson();
+        String json = gson.toJson(returnData);        
+        return json; 
     }
     
     /**

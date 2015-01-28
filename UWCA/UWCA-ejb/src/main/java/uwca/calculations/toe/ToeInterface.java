@@ -17,6 +17,10 @@ public interface ToeInterface {
     
     public void executeCalculations();
     
+    public int getNumToeYears();
+    
     public void setArgs(ClimateModelInterface inputModel, int jobNum);
+    
+    public void writeNetCdfFiles(String toeRegFile, String toeMinFile, String toeMaxFile);
     
 }

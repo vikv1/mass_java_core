@@ -14,6 +14,10 @@ th {
     min-width: 150px;
     color: gold;    
 }
+
+a{
+    color: cyan;
+}
 td{
     min-width: 150px;
     color: white;    

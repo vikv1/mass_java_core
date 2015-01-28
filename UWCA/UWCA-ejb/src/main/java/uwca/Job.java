@@ -39,13 +39,20 @@ public class Job {
     // our array list which collects prov information
     List<String> provCollector = new ArrayList<String>();
     
-  
-              
+    String provFile = "";
+    String toeRegFile = "";
+    String toeMinFile = "";
+    String toeMaxFile = "";
+    
+    private String[] outputFiles = new String[4];
+    
+    private String jobsDirectory = "";
     
     /**
      * public constructor
      */
     public Job(String jobsDir){
+        jobsDirectory = jobsDir;
         Random rn = new Random();
         jobNumber =  rn.nextInt(9999);
         
@@ -66,6 +73,7 @@ public class Job {
     public void executeJob(){
         variable.setArgs(inputModel, jobNumber);
         variable.executeCalculations();
+        this.writeDataToFile();
     }
 
     /**
@@ -83,14 +91,16 @@ public class Job {
         }    
     }
     
-    public void calculate(){
-        
-    }
-    
     private void writeDataToFile(){
         
-        
+        toeRegFile = jobsDirectory+"/"+jobNumber+"/toeReg.nc";
+        toeMinFile = jobsDirectory+"/"+jobNumber+"/toePls.nc";
+        toeMaxFile = jobsDirectory+"/"+jobNumber+"/toeMin.nc";
+        variable.writeNetCdfFiles(toeRegFile, toeMinFile, toeMaxFile);    
+    }
     
+    public int getNumToeYears(){
+        return variable.getNumToeYears();
     }
 
     /**
@@ -161,6 +171,31 @@ public class Job {
      */
     public void setInputModelName(String inputModelName) {
         this.inputModelName = inputModelName;
+    }
+
+    /**
+     * @return the outputFiles
+     */
+    public String[] getOutputFiles() {
+        
+        String current = "";
+                
+        try {
+            current   = new java.io.File( "." ).getCanonicalPath();
+        } catch (IOException ex) {
+            Logger.getLogger(Job.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+//        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "log.txt";
+//        outputFiles[1] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeReg.nc";
+//        outputFiles[2] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMin.nc";
+//        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMax.nc";    
+        
+        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "provLog.txt";
+        outputFiles[1] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeReg.nc";
+        outputFiles[2] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMin.nc";
+        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toePls.nc";   
+        return outputFiles;
     }
 
 
