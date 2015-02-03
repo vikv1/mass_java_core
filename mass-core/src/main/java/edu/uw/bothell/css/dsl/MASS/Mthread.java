@@ -79,7 +79,7 @@ public class Mthread extends Thread {
     public void run( ) {
     	
     	synchronized( lock ) {
-    		//threadCreated = tid;  // to inform MASS_base of my invocation
+    		threadCreated = tid;  // to inform MASS_base of my invocation
     	}
 
     	// breath message
