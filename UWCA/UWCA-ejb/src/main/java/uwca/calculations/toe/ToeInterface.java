@@ -5,8 +5,7 @@
  */
 package uwca.calculations.toe;
 
-import edu.uw.bothell.css.dsl.MASS.Agents;
-import edu.uw.bothell.css.dsl.MASS.Places;
+import uwca.ProvAdapter;
 import uwca.climatemodels.ClimateModelInterface;
 
 /**
@@ -19,7 +18,7 @@ public interface ToeInterface {
     
     public int getNumToeYears();
     
-    public void setArgs(ClimateModelInterface inputModel, int jobNum);
+    public void setArgs(ClimateModelInterface inputModel, int jobNum, ProvAdapter provLogger);
     
     public void writeNetCdfFiles(String toeRegFile, String toeMinFile, String toeMaxFile);
     

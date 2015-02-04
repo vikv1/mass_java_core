@@ -61,7 +61,7 @@ public class JobRunner {
         String massLib = "apachemath-3.3.3.jar";  
         MASS.addLibrary(massLib);
         MASS.setCommunicationPort(45454); // port # to use
-         MASS.setNumThreads(1);            // # of threads to use
+         MASS.setNumThreads(8);            // # of threads to use
         MASS.init();
     }
     

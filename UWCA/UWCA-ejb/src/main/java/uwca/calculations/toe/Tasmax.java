@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
 import uwca.NetCdf;
 import uwca.calculations.toe.agents.TasmaxAgent;
 import uwca.calculations.toe.places.TasmaxPlace;
@@ -79,8 +80,9 @@ public class Tasmax extends AbstractToe{
         
         try{
             minMaxTol = Double.parseDouble(params[1]);
+            if(minMaxTol > 1.00D || minMaxTol < 0.00D) minMaxTol = 0.90D;
         }catch(Exception e){
-            minMaxTol = 0.10D;
+            minMaxTol = 0.90D;
         }
         
         try{
@@ -100,13 +102,17 @@ public class Tasmax extends AbstractToe{
         int[][] grid = inputClimateModel.getDimensions();
         x = grid[0][0]; // longitude(east / west)
         y = grid[0][1]; // latitude (north / south)
-        z = 150;        // time    
+        z = 150;        // time      
         
-        x = 2;
-        y = 2;   
+       
+        String msg = " Init TasmaxPlace Places size  x:" + Integer.toString(x) + " y:"  + Integer.toString(y) + " z:"  + Integer.toString(z);
+        this.getProvLogger().logProvenance(msg);
         
         // instanciate our places
         places = new Places(jobNumber, "uwca.calculations.toe.places.TasmaxPlace", (Object)interv, x, y, z);  
+        
+        msg =  " Init TasmaxAgent Agents size  x:" + Integer.toString(x) + " y:"  + Integer.toString(y);
+        this.getProvLogger().logProvenance(msg);
         
         agents = new Agents(jobNumber, "uwca.calculations.toe.agents.TasmaxAgent", null, places, x * y); 
     }
@@ -121,12 +127,23 @@ public class Tasmax extends AbstractToe{
      *     - one int # kept by place class output 
      */
     private void readDataIntoPlaces(){
+        
+        String msg = "STEP 1 STARTED:  Find days over threshold ";
+        this.getProvLogger().logProvenance(msg);
   
+        msg = " Setting Climate Threshold: " + Double.toString(this.climateTempThreshold);
+        this.getProvLogger().logProvenance(msg);
         // first set the climate threshold
         places.callAll(TasmaxPlace.setClimateTempThreshold, this.climateTempThreshold);
         // set climate model
         // places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
+      
+        msg = " Finding year indexes ";
+        this.getProvLogger().logProvenance(msg);
         int[][] yearIndices =   inputClimateModel.findYearReadIndexes(); 
+        
+        msg = " Finding year indexes ended, starting incremental netcdf data read";
+        this.getProvLogger().logProvenance(msg);
         this.readFullYear(x, y, z, yearIndices);
          //      this.readLocalizedYear();
     
@@ -140,7 +157,8 @@ public class Tasmax extends AbstractToe{
      *      - this output is used in the final step for finding the ToE
      */
     private void findHistoricalTolerance(){
-
+        String msg = "STEP 2 STARTED:  Finding historical Tolerances Parm Tolerance used: " + Double.toString(minMaxTol);
+        this.getProvLogger().logProvenance(msg);
         // AGENTS
         /**
          * We need to tell the agents where to start their journey for step 3
@@ -189,6 +207,9 @@ public class Tasmax extends AbstractToe{
      * -  1 2 dim (x*y) double array output representing the average days over threshold for 1980 - 2010
      */
     private void findClimatology(){
+        
+        String msg = "STEP 3 STARTED:  Find climatology ";
+        this.getProvLogger().logProvenance(msg);
 
         agents.callAll(TasmaxAgent.setClimatologyInitPosition, 29);
         agents.manageAll();
@@ -221,6 +242,9 @@ public class Tasmax extends AbstractToe{
     *       - 2d array of Confidence interval (Error term * tvalue) - slope
     */
     private void leastSquaredRegression(){
+        
+        String msg = "STEP 4 STARTED:  LSR - Least Squared Regression ";
+        this.getProvLogger().logProvenance(msg);
 
         slopes = new double[x][y];
         slopePlusConInt = new double[x][y];
@@ -263,6 +287,8 @@ public class Tasmax extends AbstractToe{
      * Take the 3 output arrays from step 4 and expand them into 3d arrays which we will use to find our ToE in step 6
      */
     private void findToe(){
+        String msg = "STEP 5 STARTED:  Find ToE, Number of years Param used: " + Integer.toString(numOfYears);
+        this.getProvLogger().logProvenance(msg);
         
         climaSlope1 = new double[x][y][numOfYears]; // z[0] = clima; z[1] = z[0] + slopes; z[2] = z[1] + slopes; ... ect
         climaSlope2 = new double[x][y][numOfYears]; // z[0] = clima; z[1] = z[0] + slopePlusConInt; z[2] = z[1] + slopePlusConInt; ... ect
@@ -270,37 +296,64 @@ public class Tasmax extends AbstractToe{
         
         for(int i = 0; i < x; i++){
             for(int k = 0; k < y; k++){
+                // assigning extra vars here for debugging / readability purposes
+                double clima1;
+                double clima2;
+                double clima3;
+                
+                double maxHist = maxHistTolVals[i][k];
+                double minHist = minHistTolVals[i][k];
+                
                 for(int j = 0; j < numOfYears; j++){
                     
                     if(j == 0){
-                        climaSlope1[i][k][j] = climatologies[i][k];
-                        climaSlope2[i][k][j] = climatologies[i][k];
-                        climaSlope3[i][k][j] = climatologies[i][k];
+                        clima1 = climaSlope1[i][k][j] = climatologies[i][k];
+                        clima2 = climaSlope2[i][k][j] = climatologies[i][k];
+                        clima3 = climaSlope3[i][k][j] = climatologies[i][k];
                     }else{
-                        climaSlope1[i][k][j] = climaSlope1[i][k][j-1] + slopes[i][k];
-                        climaSlope2[i][k][j] = climaSlope2[i][k][j-1] + slopePlusConInt[i][k];
-                        climaSlope3[i][k][j] = climaSlope3[i][k][j-1] + slopeMinusConInt[i][k];
+                        clima1 = climaSlope1[i][k][j] = climaSlope1[i][k][j-1] + slopes[i][k];
+                        clima2 = climaSlope2[i][k][j] = climaSlope2[i][k][j-1] + slopePlusConInt[i][k];
+                        clima3 = climaSlope3[i][k][j] = climaSlope3[i][k][j-1] + slopeMinusConInt[i][k];
                     }
           
                     // FIND TOE
                     // first array
-                    if(climaSlope1[i][k][j] >=  maxHistTolVals[i][k] && toeReg[i][k] == 0){
+                    if(clima1 >  maxHist && toeReg[i][k] == 0){
                         toeReg[i][k] = TOE_START_YEAR + j;
-                    }else if(climaSlope1[i][k][j] <=  minHistTolVals[i][k] && toeReg[i][k] == 0){
+                    }else if(clima1 <  minHist && toeReg[i][k] == 0){
                         toeReg[i][k] = (TOE_START_YEAR + j) * -1;
                     }
                     // second array
-                    if(climaSlope2[i][k][j] >=  maxHistTolVals[i][k] && toePls[i][k] == 0){
+                    if(clima2 >  maxHist && toePls[i][k] == 0){
                         toePls[i][k] = TOE_START_YEAR + j;
-                    }else if(climaSlope2[i][k][j] <=  minHistTolVals[i][k] && toePls[i][k] == 0){
+                    }else if(clima2 <  minHist && toePls[i][k] == 0){
                         toePls[i][k] = (TOE_START_YEAR + j) * -1;
                     }
                     // third array
-                    if(climaSlope3[i][k][j] >=  maxHistTolVals[i][k] && toeMin[i][k] == 0){
+                    if(clima3 >  maxHist && toeMin[i][k] == 0){
                         toeMin[i][k] = TOE_START_YEAR + j;
-                    }else if(climaSlope3[i][k][j] <=  minHistTolVals[i][k] && toeMin[i][k] == 0){
+                    }else if(clima3 <  minHist && toeMin[i][k] == 0){
                         toeMin[i][k] = (TOE_START_YEAR + j) * -1;
                     }
+                    
+                    
+//                    if(climaSlope1[i][k][j] >  maxHistTolVals[i][k] && toeReg[i][k] == 0){
+//                        toeReg[i][k] = TOE_START_YEAR + j;
+//                    }else if(climaSlope1[i][k][j] <  minHistTolVals[i][k] && toeReg[i][k] == 0){
+//                        toeReg[i][k] = (TOE_START_YEAR + j) * -1;
+//                    }
+//                    // second array
+//                    if(climaSlope2[i][k][j] >  maxHistTolVals[i][k] && toePls[i][k] == 0){
+//                        toePls[i][k] = TOE_START_YEAR + j;
+//                    }else if(climaSlope2[i][k][j] <  minHistTolVals[i][k] && toePls[i][k] == 0){
+//                        toePls[i][k] = (TOE_START_YEAR + j) * -1;
+//                    }
+//                    // third array
+//                    if(climaSlope3[i][k][j] >  maxHistTolVals[i][k] && toeMin[i][k] == 0){
+//                        toeMin[i][k] = TOE_START_YEAR + j;
+//                    }else if(climaSlope3[i][k][j] <  minHistTolVals[i][k] && toeMin[i][k] == 0){
+//                        toeMin[i][k] = (TOE_START_YEAR + j) * -1;
+//                    }
                 }
             }        
         }
@@ -332,8 +385,8 @@ public class Tasmax extends AbstractToe{
         massInit();   
         initToeArrays();
         // step 1 read data
-    //    readDataIntoPlaces();
-        places.callAll(TasmaxPlace.falsifyDaysOverThreshold); // temp method for testing (speeds up performance)
+        readDataIntoPlaces();
+    //    places.callAll(TasmaxPlace.falsifyDaysOverThreshold); // temp method for testing (speeds up performance)
         // step 2
         findHistoricalTolerance();
         // step 3
@@ -342,20 +395,7 @@ public class Tasmax extends AbstractToe{
         leastSquaredRegression();
         // step 5
         findToe();    
-        
-        /**
-         * write the netcdf data to file
-         */
-//        String provFile = "";
-//        String toeRegFile = jobsDirectory+"/"+jobNumber+"/toeReg.nc";
-//        String toeMinFile = jobsDirectory+"/"+jobNumber+"/toePls.nc";
-//        String toeMaxFile = jobsDirectory+"/"+jobNumber+"/toeMin.nc";
-//        
-//        NetCdf fileWriter = new NetCdf();
-//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeReg.nc", x, y, toeReg);
-//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toePls.nc", x, y, toePls);
-//        fileWriter.writeToeFile(jobsDirectory+"/"+jobNumber+"/toeMin.nc", x, y, toeMin);
-        
+       
         places = null;
         agents = null;
  
@@ -366,6 +406,9 @@ public class Tasmax extends AbstractToe{
         fileWriter.writeToeFile(toeRegFile, x, y, toeReg);
         fileWriter.writeToeFile(toeMaxFile, x, y, toePls);
         fileWriter.writeToeFile(toeMinFile, x, y, toeMin);
+        
+        String msg =  " Writting files, toeReg, toePls, and toeMin to jobs folder " ;
+        this.getProvLogger().logProvenance(msg);
     }
     
     
@@ -377,17 +420,24 @@ public class Tasmax extends AbstractToe{
      * @param z - time dimension
      */
     public void readFullYear(int x, int y, int z, int[][] yearIndices){
+        
+        
        
         int numYears = inputClimateModel.getNumYears();
         int startYear = inputClimateModel.getStartYear();
         // loop through the entire range of years
         for(int i = 0; i < numYears; i++){
+            int year = i + startYear;
+            
+            String msg = " Reading Year: " + Integer.toString(year);
+            this.getProvLogger().logProvenance(msg);
             
             Object obj = inputClimateModel.readFullYear(x, y, i, yearIndices);
+            
   
             float[][][] tempVals = (float[][][])obj;
             float[] yearData = tempVals[0][0];
-            int year = i + startYear;
+            
             Object[] placesArgs = new Object[x*y*z]; // the args we'll be sending to the places
             for(int a = 0; a < x; a++){
                 for(int b = 0; b < y; b++){

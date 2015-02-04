@@ -5,10 +5,9 @@
  */
 package uwca;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
 
 /**
  *
@@ -31,7 +30,8 @@ public class ProvAdapter {
         try
         {         
             FileWriter fw = new FileWriter(provFile,true);  //the true will append the new data
-            fw.write(message + "\n");                       //appends the string to the file
+            DateTime dt = new DateTime();
+            fw.write(dt.toString() + ": " + message + "\n");                       //appends the string to the file
             fw.close();
         }
         catch(IOException ioe)

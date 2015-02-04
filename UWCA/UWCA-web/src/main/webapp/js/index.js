@@ -18,7 +18,7 @@ $(document).ready(function(){
             var numOfToeYears = $("#numToeYears").val();   
             submitJob(param[0], model[0], tempThresh, tolerance, numOfToeYears);
         }
-        submitJob(param[0], model[0]);
+        
         getStatusUpdates();
     });
     //*********************************

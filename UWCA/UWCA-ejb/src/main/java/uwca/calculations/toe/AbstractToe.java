@@ -2,6 +2,7 @@ package uwca.calculations.toe;
 
 import edu.uw.bothell.css.dsl.MASS.Agents;
 import edu.uw.bothell.css.dsl.MASS.Places;
+import uwca.ProvAdapter;
 import uwca.climatemodels.ClimateModelInterface;
 
 /*
@@ -31,6 +32,8 @@ public abstract class AbstractToe implements ToeInterface{
     
     ClimateModelInterface inputClimateModel;
     
+    private ProvAdapter provLogger;
+    
     /**
      * 
      * 
@@ -38,9 +41,10 @@ public abstract class AbstractToe implements ToeInterface{
      * @param numProc
      * @param numThr 
      */
-    public void setArgs(ClimateModelInterface inputModel, int jobNum){
+    public void setArgs(ClimateModelInterface inputModel, int jobNum, ProvAdapter provLog){
         inputClimateModel = inputModel;
         jobNumber =  jobNum;    
+        provLogger = provLog;
     }
     
     abstract void massInit();
@@ -55,4 +59,11 @@ public abstract class AbstractToe implements ToeInterface{
     public abstract void placesTest();
 
     public abstract void agentTest();
+
+    /**
+     * @return the provLogger
+     */
+    public ProvAdapter getProvLogger() {
+        return provLogger;
+    }
 }

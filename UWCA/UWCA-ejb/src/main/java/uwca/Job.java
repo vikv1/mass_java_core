@@ -5,8 +5,6 @@
  */
 package uwca;
 
-import edu.uw.bothell.css.dsl.MASS.Agents;
-import edu.uw.bothell.css.dsl.MASS.Places;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +12,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
 import uwca.calculations.toe.Tasmax;
 import uwca.calculations.toe.ToeInterface;
 import uwca.climatemodels.ClimateModelInterface;
@@ -71,9 +70,26 @@ public class Job {
      * Starts the main calculations for the job
      */
     public void executeJob(){
-        variable.setArgs(inputModel, jobNumber);
+        ProvAdapter provLogger = new ProvAdapter("jobs/"+jobNumber + "/provlog.txt");
+        
+        String msg =  " Job " + Integer.toString(jobNumber) + " Started " ;
+        provLogger.logProvenance(msg);
+        
+        // log files used
+        msg = "Input Model used: " + this.inputModelName + "\n";
+        
+        String[] files = inputModel.getFiles();
+        for(int i = 1; i <= files.length; i++){
+            msg = msg + "File " + i + " " + files[i-1] + "\n";
+        }
+        provLogger.logProvenance(msg);
+        
+        variable.setArgs(inputModel, jobNumber, provLogger);
         variable.executeCalculations();
+        
         this.writeDataToFile();
+        msg =  " Job " + Integer.toString(jobNumber) + " Finished " ;
+        provLogger.logProvenance(msg);
     }
 
     /**
