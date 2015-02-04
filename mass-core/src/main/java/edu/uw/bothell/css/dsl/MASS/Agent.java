@@ -26,14 +26,24 @@ public class Agent implements Serializable {
 	
 	// Async
 	private LinkedList<Integer> asyncFuncList;
-	private Object asyncResult;
+	private LinkedList<Object> asyncResults;
 	private Object asyncArgument;
 	private Agents_base parentAgents;
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
 	private boolean stopProcessAsyncFuncList = false;
-	// backward compatibility with agentbag
+	
+	/**
+	 *  backward compatibility with agentbag,
+	 *  together with myAsyncPid keep track of
+	 *  the original position of the agent
+	 */
 	private int myAsyncIndex;
+	
+	/**
+	 * Original Pid before execution
+	 */
+	private int myAsyncOriginalPid;
 
 	public Agent ( ) {
 		//agentsHandle = Agents.getAgentInitAgentsHandle();
@@ -97,6 +107,8 @@ public class Agent implements Serializable {
     // remove from AgentList, too!
 	  // unlike sync myAsyncIndex start from 0
     parentAgents.getAgents().remove( myAsyncIndex );
+    // So Agents_base put the result into completeQueue
+    asyncFuncList.clear();
 	}
 
 	public int map( int initPopulation, int[] size, int[] index, Place curPlace) {
@@ -174,12 +186,16 @@ public class Agent implements Serializable {
 	  return asyncFuncList;
 	}
 	
-	public void setAsyncResult(Object newResult) {
-	  asyncResult = newResult;
+	protected void appendAsyncResult(Object newResult) {
+	  asyncResults.add(newResult);
 	}
 	
-	public Object getAsyncResult() {
-	  return asyncResult;
+	public LinkedList<Object> getAsyncResults() {
+	  return asyncResults;
+	}
+	
+	public void resetAsyncResults() {
+	  asyncResults = new LinkedList<Object>();
 	}
 	
 	public void setAsyncArgument(Object newArg) {
@@ -196,6 +212,14 @@ public class Agent implements Serializable {
 	
 	public int getMyAsyncIndex() {
 	  return myAsyncIndex;
+	}
+	
+	public void setMyAsyncOriginalPid(int pid) {
+	  myAsyncOriginalPid = pid;
+	}
+	
+	public int getMyAsyncOriginalPid() {
+	  return myAsyncOriginalPid;
 	}
 	
 	public void setParentAgents(Agents_base parent) {

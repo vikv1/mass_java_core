@@ -5,9 +5,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedList;
-
-import edu.uw.bothell.css.dsl.MASS.Agents_base.SendMessageByChild;
 
 public class AsyncOutputThread extends Thread {
   private static final int NAGLE_TIMEOUT = 50; // milisec
@@ -95,6 +94,16 @@ public class AsyncOutputThread extends Thread {
       lastRequestRank = destRank;
       lastRequestRank.notifyAll();
     }
+  }
+  
+  public void sendAsyncResult(ArrayList<Agent> results, int localPopulation, int pid) {
+    Message messageToDest = 
+        new Message( Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
+            results, localPopulation);
+    messageToDest.setSourcePid(pid);
+      SendMessageByChild thread_ref =
+          new SendMessageByChild( 0, messageToDest );
+      thread_ref.start( );
   }
 
   private class TimeoutHandler extends Thread {

@@ -45,7 +45,7 @@ public class Colorer extends Agent {
 
   private Object initMigrate(Object o) {
     int yModifier = (Integer)o;
-    migrate(0, yModifier);
+    migrateAsync(0, yModifier);
     return o;
   }
 
@@ -69,7 +69,8 @@ public class Colorer extends Agent {
       x = xtemp;
       iteration++;
     }
-    return new Integer(iteration);
+    appendAsyncResult(iteration);
+    return o;
   }
 
   /**
@@ -84,7 +85,7 @@ public class Colorer extends Agent {
     int yModifier = this.getPlace().getIndex()[1];
     xModifier++;
 
-    migrate(xModifier, yModifier);
+    migrateAsync(xModifier, yModifier);
     return o;
   }
 

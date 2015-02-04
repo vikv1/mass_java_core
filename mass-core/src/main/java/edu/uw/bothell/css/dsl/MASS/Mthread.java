@@ -223,6 +223,12 @@ public class Mthread extends Thread {
     			agents.manageAll( tid );
 
     			break;
+    			
+    		case STATUS_AGENTSCALLALL_ASYNC:
+          agents = MASS_base.getCurrentAgents( );
+          agents.callAllAsync(tid);
+    		  
+    		  break;
     		
     		}
 

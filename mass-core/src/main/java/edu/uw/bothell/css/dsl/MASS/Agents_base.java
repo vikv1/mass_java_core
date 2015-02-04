@@ -3,6 +3,8 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Vector;
@@ -14,6 +16,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 public class Agents_base implements Serializable {
 
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
+    public static final int STARTING_CHILD_ASYNC_INDEX = 1000000;
 
     private final int handle;
     private final String className;
@@ -27,11 +30,22 @@ public class Agents_base implements Serializable {
     private static int agentInitAgentId;
     private static int agentInitParentId;
     
-    // Async section
-    private LinkedList<Agent> asyncQueue;
-    
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
+    // Async section
+    private LinkedList<Agent> asyncQueue;
+    private AgentList asyncResult;
+    private ArrayList<Agent> completeQueue;
+    // the lock for waiting async result
+    private Object asyncResultLock;
+    
+    /**
+     * to avoid unnecessary synchronization
+     * use this index to assign to spawned agents' asyncIndex
+     * during callAllAsync 
+     */
+    private int childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
+    
     public Agents_base( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
     	
     	this.handle = handle;
@@ -124,6 +138,7 @@ public class Agents_base implements Serializable {
     	
     	}
     
+    	asyncResultLock = new Object();
     }
 
     public static int getAgentInitAgentId() {
@@ -341,13 +356,37 @@ public class Agents_base implements Serializable {
             break;
           }
         }
+        
+        if(executedAgent.getAsyncFuncList().size() == 0) {
+          completeQueue.add(executedAgent);
+        }
   	  }
 	  }
 	  while(executedAgent != null);
     
-	  // TODO do we need process id as input?
-	  // TODO pid 0 tid 0 wait for the rest to post result, no barrier from MASS here?
+	  /**
+	   * How to collect results?
+	   * We need to mark each agents index before the
+	   * These agents' results will be kept in order
+	   * Spawned agents result order is not guarantee
+	   * How master thread know it's done?
+	   * when all the slave thread (KEEP TRACK of thread count somewhere?) has pass the result
+	   * (in Agents_base?) in 
+	   * master thread consolidate and
+	   * send the result to master node (in Agents)
+	   * Master thread in master node wait for all results from slave
+	   * nodes and return to caller
+	   */
+	  // TODO Keep track of slave thread pass result
+	  // TODO Keep track of slave node pass result
+	  // TODO sorting agent result
+	  
 	  // TODO 'population' update local & from other nodes
+	  
+    // Confirm all threads have finished.
+	  // Backward compatibility, so that Mthread can return to status
+	  // Ready
+    Mthread.barrierThreads( tid );
 	}
 	
 	public AgentList getAgents() {
@@ -394,6 +433,10 @@ public class Agents_base implements Serializable {
 
 	public int getLocalPopulation() {
 		return localPopulation;
+	}
+	
+	public void setLocalPopulation(int population) {
+	  localPopulation = population;
 	}
 
 	public int getPlacesHandle() {
@@ -797,9 +840,11 @@ public class Agents_base implements Serializable {
         addAgent.setIndex(targetAgent.getIndex());
         addAgent.setPlace(targetAgent.getPlace());
         addAgent.setAsyncFuncList(functionIds[argumentIndex]);
-        addAgent.setAsyncResult(null);
+        addAgent.resetAsyncResults();
         addAgent.setAsyncArgument(arguments[argumentIndex]);
-        // will be done in asyncProcess addAgent.setMyAsyncIndex(agents.size_unreduced());
+        addAgent.setMyAsyncOriginalPid(MASS_base.getMyPid());
+        addAgent.setMyAsyncIndex(childAsyncIndex);
+        childAsyncIndex++;
         addAgent.setParentAgents(this);
         argumentIndex++;
       } catch ( Exception e ) {
@@ -810,7 +855,7 @@ public class Agents_base implements Serializable {
       // Push the created agent into our bag for returns and 
       // update the counter needed to keep track of our agents.
       addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-      this.agents.addForAsyncProcess( addAgent );           // auto syn
+      this.agents.add( addAgent );           // auto syn
       asyncQueue.add(addAgent);
     }
 
@@ -934,7 +979,8 @@ public class Agents_base implements Serializable {
                 "].add:" + " dst = " + 
                 globalLinearIndex );
         }      
-      }     
+      }
+      targetAgent.setStopProcessAsyncFuncList(true);
     }    
     else {      
       if ( MASS.isConsoleLoggingEnabled() == true ) {
@@ -942,7 +988,25 @@ public class Agents_base implements Serializable {
       }
     }
   }
-	private class ProcessAgentMigrationRequest extends Thread {
+	
+  public void resetChildAsyncIndex() {
+    childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
+  }
+
+  public void resetCompleteQueue() {
+    int estFinalSize = (int)(1.2 * agents.size_unreduced());
+    completeQueue = (ArrayList<Agent>)Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
+  }
+  
+  public ArrayList<Agent> getCompleteQueue() {
+    return completeQueue;
+  }
+  
+  public Object getAsyncResultLock() {
+    return asyncResultLock;
+  }
+  
+  private class ProcessAgentMigrationRequest extends Thread {
     	
     	private int destRank;
     	private int agentHandle;

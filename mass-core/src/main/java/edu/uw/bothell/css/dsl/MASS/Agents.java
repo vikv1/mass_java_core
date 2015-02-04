@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -146,7 +147,7 @@ public class Agents extends Agents_base implements Serializable {
 	}
 
 	@SuppressWarnings("unused")
-  private Object ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+  Agent[] ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 
     // calculate the total number of agents
     total = 0;
@@ -198,9 +199,16 @@ public class Agents extends Agents_base implements Serializable {
     }
     
     // Preparing this node for callAllAsync
+    
+    // Main thread main node only
+    MASS.resetAsyncResultCount();
+    
     Mthread.setAgentBagSize(MASS_base.getAgentsMap().
     get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
-
+    
+    resetChildAsyncIndex();
+    resetCompleteQueue();
+    
     getAsyncQueue().clear();
     getAsyncQueue().addAll(getAgents().getAll());
     int idx = 0;
@@ -208,8 +216,9 @@ public class Agents extends Agents_base implements Serializable {
     {
       Agent agent = iter.next();
       agent.setAsyncFuncList(functionIds);
-      agent.setAsyncResult(null);
+      agent.resetAsyncResults();
       agent.setAsyncArgument(arguments[idx]);
+      agent.setMyAsyncOriginalPid(MASS.getMyPid());
       agent.setMyAsyncIndex(idx);
       agent.setParentAgents(this);
       ++idx;
@@ -225,7 +234,6 @@ public class Agents extends Agents_base implements Serializable {
 
     MASS_base.getAsyncOutputThread().setAgentHandle(this.getHandle());
     MASS_base.getAsyncOutputThread().setPlaceHandle(this.getPlacesHandle());
-    MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
 
     // resume threads
     if ( MASS.isConsoleLoggingEnabled() ) {      
@@ -241,13 +249,31 @@ public class Agents extends Agents_base implements Serializable {
     // callAllAsync in my own thread
     super.callAllAsync( 0 );
 
-  /*  // confirm all threads are done with agents.callAll
+    // confirm all threads are done with agents.callAllAsync
+    // backward compatibility barrier twice,
+    // once in callAllAsync in each thread, but then slave thread
+    // enter another barrier at the end of Mthread.run() while() loop
+    // so master thread has to barrier here again to get every one back onto the top
     Mthread.barrierThreads( 0 );
-    localAgents[0] = getLocalPopulation();
 
-    // Synchronized with all slave processes by main thread.
-    MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), 0, 
-        localAgents ); */
+    // TODO Auto Migration somewhere?
+    // in case of killing agent, backward compatibility
+    getAgents().reduce();
+    setLocalPopulation(getAgents().size_unreduced());
+      localAgents[0] = getLocalPopulation();
+
+    while(MASS.getAsyncResultCount() < MASS.getRemoteNodes().size()) {
+      try {
+        getAsyncResultLock().wait();
+      } catch (InterruptedException e) {
+      }
+    }
+    Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
+    Agent[] results = (Agent[])getCompleteQueue().toArray();
+    MASS_base.setCurrentReturns(results);
+    for(int i = 1; i < MASS_base.getSystemSize(); i++) {
+      localAgents[i] = MASS.getLocalAgents()[i - 1];
+    }
     total = 0;
     for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
       total += localAgents[i];      
@@ -260,11 +286,8 @@ public class Agents extends Agents_base implements Serializable {
       }    
     }
     
-    // TODO Auto Migration somewhere?
-    // in case of killing agent, backward compatibility
-    getAgents().reduce();
     
-    return MASS_base.getCurrentReturns();
+    return results;
 	}
 	
 	public void callAll( int functionId ) {
@@ -282,7 +305,7 @@ public class Agents extends Agents_base implements Serializable {
 				Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
 	}
 	
-	public Object callAllAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+	public Agent[] callAllAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 	  return ca_setupAsync(functionIds, arguments);
 	}
 

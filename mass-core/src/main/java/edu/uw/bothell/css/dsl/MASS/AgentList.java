@@ -13,6 +13,7 @@ public class AgentList {
 	private int curr_x = -1;
 	private int next_y = 0;
 	private int iterator = 0;
+	private int asyncSize = 0;
 
 	public AgentList( ) {
 		init( CAPACITY_Y );
@@ -32,14 +33,24 @@ public class AgentList {
 		array[curr_x][next_y++] = item;
 	
 	}
-	
+		
 	/**
-	 * Use when Agents.callAllAsync()
+	 * 
 	 * @param item
+	 * @param index
 	 */
-	public synchronized void addForAsyncProcess(Agent item) {
-	  item.setMyAsyncIndex(size_unreduced());
-	  add(item);
+	public void add(Agent item, int index) {
+	  int xindex = index / CAPACITY_X;
+	  int yindex = index % CAPACITY_X;
+	  if(array[xindex] == null) {
+	    array[xindex] = new Agent[CAPACITY_Y];	    
+	  }
+	  array[xindex][yindex] = item;
+	  ++asyncSize;
+	}
+	
+	public int asyncSize() {
+	  return asyncSize;
 	}
 
 	public void check_internal( ) {

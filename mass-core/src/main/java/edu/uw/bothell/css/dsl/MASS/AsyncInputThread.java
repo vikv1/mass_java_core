@@ -8,6 +8,7 @@ import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 /**
@@ -95,9 +96,13 @@ public class AsyncInputThread extends Thread {
                 // push this agent into the place and the entire agent bag.
                 agent.setPlace(dstPlace);
                 dstPlace.getAgents().add( agent ); // auto sync
-                MASS_base.getCurrentAgents().getAgents().addForAsyncProcess(agent);          // auto sync
+                MASS_base.getCurrentAgents().getAgents().add(agent);
                 MASS_base.getCurrentAgents().getAsyncQueue().add(agent);
               }             
+              break;
+            case AGENT_ASYNC_RESULT:
+              MASS_base.getCurrentAgents().getCompleteQueue().addAll((ArrayList<Agent>)m.getArgument());
+              MASS.incrementAsyncResultCount(m.getSourcePid(), m.getAgentPopulation());
               break;
             default:
               break;

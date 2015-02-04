@@ -42,6 +42,11 @@ public class MASS extends MASS_base {
 
 	// object factories are singletons, so we'll use this opportunity to initialize it
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    
+    // Async
+    // number of node that return async result
+    private static int AsyncResultCount = 0;
+    private static int LocalAgents[];
 
 	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
@@ -573,6 +578,28 @@ public class MASS extends MASS_base {
 	  MASS_base.getAsyncInputThread().finish();
 	  // finish();
 	  // TODO call slave to finishAsync();
+	}
+	
+	/**
+	 * Only on master node, master thread
+	 */
+	public static void resetAsyncResultCount() {
+	  AsyncResultCount = 0;
+	  LocalAgents = new int[getRemoteNodes().size()];
+	}
+	
+	public static synchronized void incrementAsyncResultCount(int rank, int localPopulation) {
+	    ++AsyncResultCount;
+	    LocalAgents[rank - 1] = localPopulation;
+	    getCurrentAgents().getAsyncResultLock().notifyAll();
+	}
+	
+	public static int getAsyncResultCount() {
+	  return AsyncResultCount;
+	}
+	
+	public static int[] getLocalAgents() {
+	  return LocalAgents;
 	}
 	
 	/**

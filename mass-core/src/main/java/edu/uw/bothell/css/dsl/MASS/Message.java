@@ -32,7 +32,8 @@ public class Message implements Serializable {
 	    /** Async section **/
 	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,      // 17
 	    FINISH_ASYNC_SERVER,                       // 18
-	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST     // 19
+	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,    // 19
+	    AGENT_ASYNC_RESULT                        // 20
     }
     
 	private static final int VOID_HANDLE = -1;
@@ -49,6 +50,9 @@ public class Message implements Serializable {
     private int boundary_width = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
+    // Pid of the source when sending back result in
+    // callAllAsync
+    private int sourcePid = -1;
     
     // Async vars
     private LinkedList<Integer> functionIds = null;
@@ -162,6 +166,7 @@ public class Message implements Serializable {
     }
 
     // ACK used for AGENTS_CALL_ALL_RETURN_OBJECT
+    // AGENT_ASYNC_RESULT
     public Message( ACTION_TYPE action, Object argument, int localPopulation ) {
 
     	this.action = action;
@@ -169,7 +174,12 @@ public class Message implements Serializable {
     	this.agent_population = localPopulation;
 
     }
-
+    
+    // AGENT_ASYNC_RESULT
+    public void setSourcePid(int pid) {
+      sourcePid = pid;
+    }
+    
     public ACTION_TYPE getAction( ) { 
     	return action;
     }
@@ -235,6 +245,14 @@ public class Message implements Serializable {
       this.functionIds = functionIds;
       this.argument = argument;
 
+    }
+    
+    public LinkedList<Integer> getFunctionIds() {
+      return functionIds;
+    }
+    
+    public int getSourcePid() {
+      return sourcePid;
     }
 
 }

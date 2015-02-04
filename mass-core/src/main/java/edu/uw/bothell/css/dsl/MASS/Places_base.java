@@ -1,5 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -925,8 +927,12 @@ public class Places_base {
     	} 
 
     	catch ( Exception e ) {
-    		MASS_base.log( "Places_base.init_all: " + className + 
-    				" not loaded and/or instantiated " + e );
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+    	  MASS_base.log( "Places_base.init_all: " + className + 
+    				" not loaded and/or instantiated " + e + ". Stacktrace=" +
+    	      sw.toString());
     	}
 
     	// allocate the left/right shadows

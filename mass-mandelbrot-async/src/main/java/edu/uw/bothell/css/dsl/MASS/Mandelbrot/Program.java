@@ -3,7 +3,10 @@ package edu.uw.bothell.css.dsl.MASS.Mandelbrot;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 
+import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.Agents;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.Places;
@@ -11,7 +14,7 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
-	private static final String JAR_FILE_NAME = "mass-quickstart-0.8.2-SNAPSHOT.jar";
+	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT.jar";
 	public static final int MATRIX_SIZE = 200, MAX_ITERATION = 200;
 	
 	public static void main(String[] args) {
@@ -23,7 +26,7 @@ public class Program {
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		
 		// start MASS
-		MASS.init();
+		MASS.initAsync();
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
 		
@@ -33,41 +36,27 @@ public class Program {
 		for(int i = 0; i < MATRIX_SIZE; i++){
 		  agentsCallAllObjs[i] = i;
 		}
-		Object[] calledAgentsResults = (Object[]) agents.callAll(Colorer.INIT_MIGRATE, agentsCallAllObjs);
-		agents.manageAll();
-		calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
-		for(int i = 0; i < MATRIX_SIZE; i++)
-		{
-		  colors[0][i] = (int)calledAgentsResults[i];
-		}
 		
-		// move all Agents four times to cover all dimensions in Places
-		for (int i = 1; i < MATRIX_SIZE; i ++) {
-			
-			// tell Agents to move
-			agents.callAll(Colorer.MIGRATE);
-			
-			// sync all Agent status
-			agents.manageAll();
-			
-			calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
-			for(int j = 0; j < MATRIX_SIZE; j++)
-	    {
-	      colors[i][j] = (int)calledAgentsResults[j];
-	    }
-		}
+		LinkedList<Integer> funcIds = new LinkedList<Integer>();
+		funcIds.add(Colorer.INIT_MIGRATE);
+		funcIds.add(Colorer.CALCULATE_COLOR);
+    for (int i = 1; i < MATRIX_SIZE; i ++) {
+      funcIds.add(Colorer.MIGRATE);
+      funcIds.add(Colorer.CALCULATE_COLOR);
+    }
 		
+		Agent[] results = agents.callAllAsync(funcIds, agentsCallAllObjs);
 		// orderly shutdown
-		MASS.finish();
+		MASS.finishAsync();
 		System.out.println("Result is :");
-		for(int i = 0; i < MATRIX_SIZE; i++){
-		  for(int j = 0; j < MATRIX_SIZE; j++)
-		  {
-		    System.out.print(colors[i][j] + " ");
+		for(int j = 0; j < MATRIX_SIZE; j++){
+		  Iterator<Object> resultIter = results[j].getAsyncResults().iterator();
+		  int i = 0;
+		  while(resultIter.hasNext()){
+		    colors[i][j] = (int)resultIter.next();
+		    ++i;
 		  }
-		  System.out.println();
 		}
-
 		saveToFile(colors);
 	 }
 	
