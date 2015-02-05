@@ -65,8 +65,9 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float
     */
- //   private String file1 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
-    private String file1 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+  //  private String file1 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+    private String file1 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+  //  private String file1 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
 
     /*
        float longitude(longitude=462);
@@ -103,8 +104,9 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float    
     */
-  //  private String file2 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
-    private String file2 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+ //   private String file2 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+    private String file2 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+ //   private String file2 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
     /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -141,7 +143,8 @@ public class Tasmax_1 implements ClimateModelInterface{
      :_FillValue = 1.0E20f; // float
     */
  //   private String file3 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
-    private String file3 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+    private String file3 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+ //   private String file3 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
       /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -177,8 +180,9 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float
     */
- //   private String file4 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
-    private String file4 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+   // private String file4 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+     private String file4 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+ //   private String file4 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
       /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -222,7 +226,8 @@ public class Tasmax_1 implements ClimateModelInterface{
     // long X dim
     // time Z?
  //   private String file5 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
-    private String file5 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+    private String file5 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+ //   private String file5 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
     
     // our file list
     private String[] files = new String[]{file1, file2, file3, file4, file5};

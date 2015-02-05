@@ -200,17 +200,17 @@ public class Job {
             current   = new java.io.File( "." ).getCanonicalPath();
         } catch (IOException ex) {
             Logger.getLogger(Job.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }   
         
-//        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "log.txt";
+//        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "provLog.txt";
 //        outputFiles[1] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeReg.nc";
 //        outputFiles[2] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMin.nc";
-//        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMax.nc";    
+//        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toePls.nc";   
         
-        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "provLog.txt";
-        outputFiles[1] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeReg.nc";
-        outputFiles[2] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMin.nc";
-        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toePls.nc";   
+        outputFiles[0] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "provLog.txt";
+        outputFiles[1] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toeReg.nc";
+        outputFiles[2] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toeMin.nc";
+        outputFiles[3] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toePls.nc"; 
         return outputFiles;
     }
 
