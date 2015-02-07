@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.Agents;
@@ -14,8 +15,8 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
-	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT.jar";
-	public static final int MATRIX_SIZE = 200, MAX_ITERATION = 200;
+	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
+	public static final int MATRIX_SIZE = 200, MAX_ITERATION = 1000;
 	
 	public static void main(String[] args) {
 
@@ -26,12 +27,12 @@ public class Program {
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		
 		// start MASS
-		MASS.initAsync();
+		MASS.init();
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
 		
 		// create Agents (number of Agents = y in this case), in Places
-		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Maldelbrot.Colorer", null, places, MATRIX_SIZE);
+		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, MATRIX_SIZE);
 		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
 		for(int i = 0; i < MATRIX_SIZE; i++){
 		  agentsCallAllObjs[i] = i;
@@ -45,23 +46,24 @@ public class Program {
       funcIds.add(Colorer.CALCULATE_COLOR);
     }
 		
-		Agent[] results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+		List<Agent> results = agents.callAllAsync(funcIds, agentsCallAllObjs);
 		// orderly shutdown
-		MASS.finishAsync();
+		MASS.finish();
 		System.out.println("Result is :");
-		for(int j = 0; j < MATRIX_SIZE; j++){
-		  Iterator<Object> resultIter = results[j].getAsyncResults().iterator();
+		int j = 0;
+		Iterator<Agent> resultsIter = results.iterator();
+		while(resultsIter.hasNext()) {
+		  Iterator<Object> resultIter = resultsIter.next().getAsyncResults().iterator();
 		  int i = 0;
 		  while(resultIter.hasNext()){
 		    colors[i][j] = (int)resultIter.next();
 		    ++i;
 		  }
+      ++j;
 		}
 		saveToFile(colors);
 	 }
-	
-
-  private static void saveToFile(int[][] result) {
+	private static void saveToFile(int[][] result) {
     FileWriter fw;
     BufferedWriter bw = null;
     try {
@@ -69,16 +71,15 @@ public class Program {
       bw = new BufferedWriter(fw);
       for(int i = 0; i < result.length; i++)
       {
-        int j = 0;
-        for(; j < result[i].length; j++)
+        for(int j = 0; j < result[i].length; j++)
         {
           bw.write(result[i][j] + "");
+          if(j < result[i].length - 1) {
+            bw.write(" ");
+          }
         }
-        if(j < result[i].length - 1) {
-          bw.write(" ");
-        }
+        bw.newLine();
       }
-      bw.newLine();
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

@@ -1,12 +1,10 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -35,7 +33,7 @@ public class Agents_base implements Serializable {
     // Async section
     private LinkedList<Agent> asyncQueue;
     private AgentList asyncResult;
-    private ArrayList<Agent> completeQueue;
+    private List<Agent> completeQueue;
     // the lock for waiting async result
     private Object asyncResultLock;
     
@@ -995,10 +993,10 @@ public class Agents_base implements Serializable {
 
   public void resetCompleteQueue() {
     int estFinalSize = (int)(1.2 * agents.size_unreduced());
-    completeQueue = (ArrayList<Agent>)Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
+    completeQueue = Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
   }
   
-  public ArrayList<Agent> getCompleteQueue() {
+  public List<Agent> getCompleteQueue() {
     return completeQueue;
   }
   

@@ -296,7 +296,8 @@ public class MASS_base {
 		} catch (Exception e) {
 			// TODO need to handle exceptions here better
 		}
-		
+		// Async section
+    initAsyncCommunicationThreads();
 	}
     
     /**
@@ -510,7 +511,20 @@ public class MASS_base {
       inputThread = new AsyncInputThread(MASS_PORT + 1);
       outputThread = new AsyncOutputThread(MASS_PORT + 1);
     }
-    
+
+    public static void prepareAsyncExecution(Agents_base agents) {
+      setCurrentAgents(agents);
+      Mthread.setAgentBagSize(getCurrentAgents().getAgents().size_unreduced( ));
+      
+      getCurrentAgents().resetChildAsyncIndex();
+      getCurrentAgents().resetCompleteQueue();
+      
+      getCurrentAgents().getAsyncQueue().clear();
+      getCurrentAgents().getAsyncQueue().addAll(getCurrentAgents().getAgents().getAll());
+      getAsyncOutputThread().setAgentHandle(agents.getHandle());
+      getAsyncOutputThread().setPlaceHandle(agents.getPlacesHandle());
+    }
+
     /**
      * END Async methods
      */

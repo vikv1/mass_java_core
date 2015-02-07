@@ -171,6 +171,8 @@ public class MProcess {
     			// confirm all threads are done with finish
     			Mthread.barrierThreads( 0 );
     			MASS_base.getExchange().terminateConnection( this.myPid );
+    	    MASS_base.getAsyncOutputThread().finish();
+    	    MASS_base.getAsyncInputThread().finish();
     			sendAck( );
     			alive = false;
     			//		if( printOutput )
@@ -436,57 +438,45 @@ public class MProcess {
             MASS_base.log("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT received");
     		  }
 
-          MASS_base.setCurrentAgents(MASS_base.getAgentsMap().get( new Integer( m.getHandle() ) ));
-          Mthread.setAgentBagSize(MASS_base.getCurrentAgents().getAgents().size_unreduced( ));
-          
-          MASS_base.getCurrentAgents().resetChildAsyncIndex();
-          MASS_base.getCurrentAgents().resetCompleteQueue();
-          
-          MASS_base.getCurrentAgents().getAsyncQueue().clear();
-          MASS_base.getCurrentAgents().getAsyncQueue().addAll(MASS_base.getCurrentAgents().getAgents().getAll());
+    		  MASS_base.prepareAsyncExecution(MASS_base.getAgentsMap().get( new Integer(m.getHandle())));
           Object[] arguments = (Object[])argument;
-    		      int idx = 0;
-    		      for(Iterator<Agent> iter = MASS_base.getCurrentAgents().getAsyncQueue().iterator(); iter.hasNext();)
-    		      {
-    		        Agent agent = iter.next();
-    		        agent.setAsyncFuncList(m.getFunctionIds());
-    		        agent.resetAsyncResults();
-    		        agent.setAsyncArgument(arguments[idx]);
-    		        agent.setMyAsyncOriginalPid(MASS_base.getMyPid());
-    		        agent.setMyAsyncIndex(idx);
-    		        agent.setParentAgents(MASS_base.getCurrentAgents());
-    		        ++idx;
-    		      }
+    		  int idx = 0;
+    		  for(Iterator<Agent> iter = MASS_base.getCurrentAgents().getAsyncQueue().iterator(); iter.hasNext();)
+    		  {
+    		    Agent agent = iter.next();
+    		    agent.setAsyncFuncList(m.getFunctionIds());
+    		    agent.resetAsyncResults();
+    		    agent.setAsyncArgument(arguments[idx]);
+    		    agent.setMyAsyncOriginalPid(MASS_base.getMyPid());
+    		    agent.setMyAsyncIndex(idx);
+    		    agent.setParentAgents(MASS_base.getCurrentAgents());
+    		    ++idx;
+    		  }
+    		  //MASS_base.setCurrentReturns(new Object[MASS_base.getCurrentAgents().getLocalPopulation()]); // prepare an  entire return space
+    		  // resume threads
+    		  if ( MASS.isConsoleLoggingEnabled() ) {      
+    		    MASS_base.log( "MASS_base.currentgAgents = " +
+    		        MASS_base.getCurrentAgents() );      
+    		    MASS_base.log( "MASS_base.getCurrentgAgents = " +
+            MASS_base.getCurrentAgents( ) );    
+ 		      }
+    		  // resume threads to work on call all
+          Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
 
-    		      MASS_base.getAsyncOutputThread().setAgentHandle(m.getHandle());
-    		      MASS_base.getAsyncOutputThread().setPlaceHandle(MASS_base.getCurrentAgents().getPlacesHandle());
-    		      MASS_base.setCurrentReturns(new Object[MASS_base.getCurrentAgents().getLocalPopulation()]); // prepare an  entire return space
+          MASS_base.getCurrentAgents().callAllAsync(0);
 
-    		      // resume threads
-    		      if ( MASS.isConsoleLoggingEnabled() ) {      
-    		        MASS_base.log( "MASS_base.currentgAgents = " +
-    		            MASS_base.getCurrentAgents() );      
-    		        MASS_base.log( "MASS_base.getCurrentgAgents = " +
-    		            MASS_base.getCurrentAgents( ) );    
-    		      }
-    		   // resume threads to work on call all
-              Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
+          // confirm all threads are done with agents.callAllAsync
+          Mthread.barrierThreads( 0 );
+          MASS_base.getCurrentAgents().setLocalPopulation(MASS_base.getCurrentAgents().getAgents().size_unreduced());
+          if ( MASS.isConsoleLoggingEnabled() ) {
+            MASS_base.log( "barrier done callAll_ASync" );
+          }
 
-              MASS_base.getCurrentAgents().callAllAsync(0);
-
-              // confirm all threads are done with agents.callAllAsync
-              Mthread.barrierThreads( 0 );
-              MASS_base.getCurrentAgents().setLocalPopulation(MASS_base.getCurrentAgents().getAgents().size_unreduced());
-              if ( MASS.isConsoleLoggingEnabled() ) {
-                MASS_base.log( "barrier done callAll_ASync" );
-              }
-
-              MASS_base.getAsyncOutputThread().sendAsyncResult(
-                  MASS_base.getCurrentAgents().getCompleteQueue(), 
-                  MASS_base.getCurrentAgents().getLocalPopulation(), 
-                  myPid);
+          MASS_base.getAsyncOutputThread().sendAsyncResult(
+              MASS_base.getCurrentAgents().getCompleteQueue(), 
+              MASS_base.getCurrentAgents().getLocalPopulation(), 
+              myPid);
     			break;
-
     		}
     	
     	}

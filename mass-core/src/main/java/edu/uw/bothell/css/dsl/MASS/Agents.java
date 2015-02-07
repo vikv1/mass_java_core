@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
@@ -147,7 +148,7 @@ public class Agents extends Agents_base implements Serializable {
 	}
 
 	@SuppressWarnings("unused")
-  Agent[] ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+  List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 
     // calculate the total number of agents
     total = 0;
@@ -201,16 +202,10 @@ public class Agents extends Agents_base implements Serializable {
     // Preparing this node for callAllAsync
     
     // Main thread main node only
-    MASS.resetAsyncResultCount();
+    MASS.resetAsyncResultNodeCount();
     
-    Mthread.setAgentBagSize(MASS_base.getAgentsMap().
-    get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
+    MASS_base.prepareAsyncExecution(this);
     
-    resetChildAsyncIndex();
-    resetCompleteQueue();
-    
-    getAsyncQueue().clear();
-    getAsyncQueue().addAll(getAgents().getAll());
     int idx = 0;
     for(Iterator<Agent> iter = getAsyncQueue().iterator(); iter.hasNext();)
     {
@@ -227,13 +222,9 @@ public class Agents extends Agents_base implements Serializable {
     // TODO What is share here?
     
     // We need this so AsyncInputThread can quickly pass the migration request
-    MASS_base.setCurrentAgents(this);
     /* MASS_base.setCurrentFunctionId(functionId);
     MASS_base.setCurrentArgument(argument);
     MASS_base.setCurrentMsgType(type); */
-
-    MASS_base.getAsyncOutputThread().setAgentHandle(this.getHandle());
-    MASS_base.getAsyncOutputThread().setPlaceHandle(this.getPlacesHandle());
 
     // resume threads
     if ( MASS.isConsoleLoggingEnabled() ) {      
@@ -262,15 +253,14 @@ public class Agents extends Agents_base implements Serializable {
     setLocalPopulation(getAgents().size_unreduced());
       localAgents[0] = getLocalPopulation();
 
-    while(MASS.getAsyncResultCount() < MASS.getRemoteNodes().size()) {
+    while(MASS.getAsyncResultNodeCount() < MASS.getRemoteNodes().size()) {
       try {
         getAsyncResultLock().wait();
       } catch (InterruptedException e) {
       }
     }
     Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
-    Agent[] results = (Agent[])getCompleteQueue().toArray();
-    MASS_base.setCurrentReturns(results);
+    MASS_base.setCurrentReturns(getCompleteQueue().toArray());
     for(int i = 1; i < MASS_base.getSystemSize(); i++) {
       localAgents[i] = MASS.getLocalAgents()[i - 1];
     }
@@ -287,7 +277,7 @@ public class Agents extends Agents_base implements Serializable {
     }
     
     
-    return results;
+    return getCompleteQueue();
 	}
 	
 	public void callAll( int functionId ) {
@@ -305,7 +295,7 @@ public class Agents extends Agents_base implements Serializable {
 				Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
 	}
 	
-	public Agent[] callAllAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+	public List<Agent> callAllAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 	  return ca_setupAsync(functionIds, arguments);
 	}
 

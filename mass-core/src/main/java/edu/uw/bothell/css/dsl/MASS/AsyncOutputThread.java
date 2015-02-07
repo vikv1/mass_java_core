@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class AsyncOutputThread extends Thread {
   private static final int NAGLE_TIMEOUT = 50; // milisec
@@ -96,7 +97,7 @@ public class AsyncOutputThread extends Thread {
     }
   }
   
-  public void sendAsyncResult(ArrayList<Agent> results, int localPopulation, int pid) {
+  public void sendAsyncResult(List<Agent> results, int localPopulation, int pid) {
     Message messageToDest = 
         new Message( Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
             results, localPopulation);

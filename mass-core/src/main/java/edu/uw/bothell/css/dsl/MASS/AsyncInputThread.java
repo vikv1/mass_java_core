@@ -102,7 +102,7 @@ public class AsyncInputThread extends Thread {
               break;
             case AGENT_ASYNC_RESULT:
               MASS_base.getCurrentAgents().getCompleteQueue().addAll((ArrayList<Agent>)m.getArgument());
-              MASS.incrementAsyncResultCount(m.getSourcePid(), m.getAgentPopulation());
+              MASS.incrementAsyncResultNodeCount(m.getSourcePid(), m.getAgentPopulation());
               break;
             default:
               break;

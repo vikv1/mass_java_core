@@ -45,7 +45,7 @@ public class MASS extends MASS_base {
     
     // Async
     // number of node that return async result
-    private static int AsyncResultCount = 0;
+    private static int AsyncResultNodeCount = 0;
     private static int LocalAgents[];
 
 	/**
@@ -177,6 +177,8 @@ public class MASS extends MASS_base {
 
     	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
+      MASS_base.getAsyncOutputThread().finish();
+      MASS_base.getAsyncInputThread().finish();
 
     	System.err.println( "MASS::finish: done" );
 
@@ -564,38 +566,21 @@ public class MASS extends MASS_base {
 	}
 	
 	/**
-	 * BEGIN Async methods
-	 */
-	
-	public static void initAsync() {
-	  // init();
-	  // TODO call slave to initAsync();
-	  MASS_base.initAsyncCommunicationThreads();
-	}
-	
-	public static void finishAsync() {
-	  MASS_base.getAsyncOutputThread().finish();
-	  MASS_base.getAsyncInputThread().finish();
-	  // finish();
-	  // TODO call slave to finishAsync();
-	}
-	
-	/**
 	 * Only on master node, master thread
 	 */
-	public static void resetAsyncResultCount() {
-	  AsyncResultCount = 0;
+	public static void resetAsyncResultNodeCount() {
+	  AsyncResultNodeCount = 0;
 	  LocalAgents = new int[getRemoteNodes().size()];
 	}
 	
-	public static synchronized void incrementAsyncResultCount(int rank, int localPopulation) {
-	    ++AsyncResultCount;
+	public static synchronized void incrementAsyncResultNodeCount(int rank, int localPopulation) {
+	    ++AsyncResultNodeCount;
 	    LocalAgents[rank - 1] = localPopulation;
 	    getCurrentAgents().getAsyncResultLock().notifyAll();
 	}
 	
-	public static int getAsyncResultCount() {
-	  return AsyncResultCount;
+	public static int getAsyncResultNodeCount() {
+	  return AsyncResultNodeCount;
 	}
 	
 	public static int[] getLocalAgents() {
