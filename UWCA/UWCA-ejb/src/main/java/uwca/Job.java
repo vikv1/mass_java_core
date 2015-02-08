@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.joda.time.DateTime;
 import uwca.calculations.toe.Tasmax;
 import uwca.calculations.toe.ToeInterface;
 import uwca.climatemodels.ClimateModelInterface;
@@ -56,7 +55,8 @@ public class Job {
         jobNumber =  rn.nextInt(9999);
         
         // create job directory for this specific job
-        File dir = new File(jobsDir+"/"+Integer.toString(jobNumber));
+        String jobDir = Integer.toString(jobNumber);
+        File dir = new File(jobsDir+ File.separator + jobDir);
         dir.mkdirs();
         File tmp = new File(dir, "provlog.txt");
         try {
@@ -109,9 +109,9 @@ public class Job {
     
     private void writeDataToFile(){
         
-        toeRegFile = jobsDirectory+"/"+jobNumber+"/toeReg.nc";
-        toeMinFile = jobsDirectory+"/"+jobNumber+"/toePls.nc";
-        toeMaxFile = jobsDirectory+"/"+jobNumber+"/toeMin.nc";
+        toeRegFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeReg.nc";
+        toeMinFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toePls.nc";
+        toeMaxFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeMin.nc";
         variable.writeNetCdfFiles(toeRegFile, toeMinFile, toeMaxFile);    
     }
     
@@ -201,18 +201,11 @@ public class Job {
         } catch (IOException ex) {
             Logger.getLogger(Job.class.getName()).log(Level.SEVERE, null, ex);
         }   
-        
-//        outputFiles[0] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "provLog.txt";
-//        outputFiles[1] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeReg.nc";
-//        outputFiles[2] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toeMin.nc";
-//        outputFiles[3] = current +"\\"+ jobsDirectory + "\\" + jobNumber + "\\" + "toePls.nc";   
-        
-        outputFiles[0] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "provLog.txt";
-        outputFiles[1] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toeReg.nc";
-        outputFiles[2] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toeMin.nc";
-        outputFiles[3] = current +"/"+ jobsDirectory + "/" + jobNumber + "/" + "toePls.nc"; 
+        // construct the absolute file paths
+        outputFiles[0] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "provLog.txt";
+        outputFiles[1] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeReg.nc";
+        outputFiles[2] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeMin.nc";
+        outputFiles[3] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toePls.nc"; 
         return outputFiles;
     }
-
-
 }
