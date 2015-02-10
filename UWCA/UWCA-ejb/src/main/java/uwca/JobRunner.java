@@ -58,10 +58,12 @@ public class JobRunner {
         /**
          * Init MASS for the calculations to execute
          */
-        String massLib = "apachemath-3.3.3.jar";  
-        MASS.addLibrary(massLib);
+        String apacheMathLib = "apachemath-3.3.3.jar";  
+        MASS.addLibrary(apacheMathLib);
+        String netCdfLib = "netcdf4-4.5.0.jar";
+        MASS.addLibrary(netCdfLib);
         MASS.setCommunicationPort(45454); // port # to use
-         MASS.setNumThreads(8);            // # of threads to use
+         MASS.setNumThreads(16);            // # of threads to use
         MASS.init();
     }
     
