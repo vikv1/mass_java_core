@@ -517,19 +517,19 @@ public class Tasmax_1 implements ClimateModelInterface{
         String fileToRead = "";
         
         if(yr > 2074){
-            fileToRead = file5;
+            fileToRead = files[4];
         }
         else if (yr > 2050){
-            fileToRead = file4;
+            fileToRead = files[3];
         }
          else if (yr > 2026){
-            fileToRead = file3;
+            fileToRead = files[2];
          }
          else if (yr > 2005){
-            fileToRead = file2;
+            fileToRead = files[1];
          }
          else{
-            fileToRead = file1;
+            fileToRead = files[0];
          }
             // open the file
             try{

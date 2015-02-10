@@ -144,7 +144,8 @@ public class Tasmax extends AbstractToe{
         
         msg = " Finding year indexes ended, starting incremental netcdf data read";
         this.getProvLogger().logProvenance(msg);
-        this.readFullYear(x, y, z, yearIndices);
+   //     this.readFullYear(x, y, z, yearIndices);
+        this.readLocalizedYear(yearIndices);
          //      this.readLocalizedYear();
     
     }
@@ -468,11 +469,19 @@ public class Tasmax extends AbstractToe{
      * Uses the TasmaxPlace method to read in the 365-6 day float arrays from within each Place
      * This method is set up to read in certain slices of the time dimension (z) at a time to improve performance.
      */
-    public void readLocalizedYear(){
-        int numYears = inputClimateModel.getDimensions()[0][2];
-        for(int i = 0 ; i < numYears; i++){   
-            places.callAll(TasmaxPlace.readNetCdfDataFullYear, i);
-        }
+    public void readLocalizedYear(int[][] yearIndices){
+        // the places will need the climate model for this alg, so send it
+        places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
+        
+        // set the year indexes 
+        places.callAll(TasmaxPlace.setYearIndexArray, (Object)yearIndices);
+        // do the reading        
+     //   int numYears = inputClimateModel.getNumYears();
+     //   for(int i = 0 ; i < numYears; i++){   
+    //        places.callAll(TasmaxPlace.readNetCdfDataFullYear, i);
+     //   }
+        
+        places.callAll(TasmaxPlace.readNetCdfDataFullYear, 1);
     }
     
     /******************************************************************************************************************

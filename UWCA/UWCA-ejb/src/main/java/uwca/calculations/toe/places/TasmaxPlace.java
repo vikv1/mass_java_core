@@ -36,6 +36,8 @@ public class TasmaxPlace extends Place{
     public int daysOverThreshold = 0;
     private float climateTempThreshold = 0;    
     private float[] daysTemps;  
+    // used to mark the location of year beginnings and endings in files
+    private int[][] yearIndices;
 
     
     /**
@@ -65,6 +67,7 @@ public class TasmaxPlace extends Place{
     public static final int setDaysArray = 11;
     public static final int calculateDaysOverThreshold = 12;
     public static final int setClimateTempThreshold = 21;
+    public static final int setYearIndexArray = 22;
       
     /**
      * public constructor
@@ -100,6 +103,8 @@ public class TasmaxPlace extends Place{
 
             case setClimateTempThreshold:
                 return setClimateTempThreshold(o);
+            case setYearIndexArray:
+                return setYearIndexArray(o);
             default:
                 return null;              
         }
@@ -111,6 +116,8 @@ public class TasmaxPlace extends Place{
      * @return 
      */
     public Object setInputClimateModel(Object o){
+        inputClimateModel = (ClimateModelInterface)o;
+        
      //   inputClimateModel = o;
    //     inputClimateModel = new Tasmax_1();
         return null;
@@ -187,6 +194,11 @@ public class TasmaxPlace extends Place{
         daysOverThreshold =  rn.nextInt(50);
         return null;
     }    
+    
+    private Object setYearIndexArray(Object o){
+        yearIndices = (int[][])o;
+        return null;
+    }
 
 
     /**
@@ -194,7 +206,7 @@ public class TasmaxPlace extends Place{
      * @param o
      * @return 
      */
-    public Object readNetCdfDataFullYear(Object o){
+    public Object readNetCdfDataFullYear(Object o){       
         
    //   Variable ncdfVar;               // NetCDF Variable
  //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
@@ -204,10 +216,13 @@ public class TasmaxPlace extends Place{
         String time = "time";
         String varname = "tasmax";
         // we read in one z slice at a time, if this isnt the right slice, return
-        int element = (Integer)o;
-        if(this.getIndex()[2] != element) return null;        
+    //    int element = (Integer)o;
+    //    if(this.getIndex()[2] != element) return null;        
      
         daysTemps = inputClimateModel.readLocalizedYear(this.getIndex()[0], this.getIndex()[1], this.getIndex()[2]);
+        
+        // find the days over threshold
+        calculateDaysOverThreshold(new Object());
 
         return null;
 //        int element = (Integer)o;

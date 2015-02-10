@@ -7,8 +7,11 @@ package uwca;
 
 //import com.google.gson.Gson;
 import com.google.gson.Gson;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uwca.calculations.toe.Tasmax;
 import uwca.climatemodels.Tasmax_1;
 
@@ -63,7 +66,13 @@ public class JobManager {
         }
         switch(model){
             case "conus_c5":
-                job.setInputModel(new Tasmax_1());
+            {
+                try {
+                    job.setInputModel(new Tasmax_1());
+                } catch (IOException ex) {
+                    Logger.getLogger(JobManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
                 job.setInputModelName(model);
                 break;
             default:                    
