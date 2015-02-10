@@ -202,7 +202,7 @@ public class Job {
             Logger.getLogger(Job.class.getName()).log(Level.SEVERE, null, ex);
         }   
         // construct the absolute file paths
-        outputFiles[0] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "provLog.txt";
+        outputFiles[0] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "provlog.txt";
         outputFiles[1] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeReg.nc";
         outputFiles[2] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeMin.nc";
         outputFiles[3] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toePls.nc"; 
