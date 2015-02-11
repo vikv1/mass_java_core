@@ -36,9 +36,16 @@ public class Agent implements Serializable {
 	/**
 	 *  backward compatibility with agentbag,
 	 *  together with myAsyncPid keep track of
-	 *  the original position of the agent
+	 *  the original position of the agent,
+	 *  set at the beginning of callAllAsync and not changed
+	 *  throughout execution
 	 */
-	private int myAsyncIndex;
+	private int myOriginalAsyncIndex;
+	/**
+	 * The current index of this agent in agent list
+	 * change when remote migrate, used for killing
+	 */
+	private int myCurrentIndex;
 	
 	/**
 	 * Original Pid before execution
@@ -106,9 +113,10 @@ public class Agent implements Serializable {
 
     // remove from AgentList, too!
 	  // unlike sync myAsyncIndex start from 0
-    parentAgents.getAgents().remove( myAsyncIndex );
+    parentAgents.getAgents().remove( myCurrentIndex );
     // So Agents_base put the result into completeQueue
     asyncFuncList.clear();
+    parentAgents = null;
 	}
 
 	public int map( int initPopulation, int[] size, int[] index, Place curPlace) {
@@ -206,12 +214,20 @@ public class Agent implements Serializable {
 	  return asyncArgument;
 	}
 	
-	public void setMyAsyncIndex(int newIndex) {
-	  myAsyncIndex = newIndex;
+	public void setMyOriginalAsyncIndex(int newIndex) {
+	  myOriginalAsyncIndex = newIndex;
 	}
 	
-	public int getMyAsyncIndex() {
-	  return myAsyncIndex;
+	public int getMyOriginalAsyncIndex() {
+	  return myOriginalAsyncIndex;
+	}
+	
+	public void setCurrentIndex(int newIndex) {
+	  myCurrentIndex = newIndex;
+	}
+	
+	public int getCurrentIndex() {
+	  return myCurrentIndex;
 	}
 	
 	public void setMyAsyncOriginalPid(int pid) {

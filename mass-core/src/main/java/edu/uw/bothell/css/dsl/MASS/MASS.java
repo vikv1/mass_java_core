@@ -21,7 +21,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
 
-	private static final boolean printOutput = true;
+	private static boolean printOutput = true;
 
 	private static final int JschPort = 22;
 
@@ -45,7 +45,6 @@ public class MASS extends MASS_base {
     
     // Async
     // number of node that return async result
-    private static int AsyncResultNodeCount = 0;
     private static int LocalAgents[];
 
 	/**
@@ -227,6 +226,10 @@ public class MASS extends MASS_base {
 	// TODO - replace with a logger library hopefully
 	public static boolean isConsoleLoggingEnabled() {
 		return printOutput;
+	}
+	
+	public static void setConsoleLogging(boolean value) {
+	  printOutput = value;
 	}
 
 	/**
@@ -565,27 +568,26 @@ public class MASS extends MASS_base {
 		
 	}
 	
-	/**
-	 * Only on master node, master thread
-	 */
-	public static void resetAsyncResultNodeCount() {
-	  AsyncResultNodeCount = 0;
-	  LocalAgents = new int[getRemoteNodes().size()];
-	}
-	
-	public static synchronized void incrementAsyncResultNodeCount(int rank, int localPopulation) {
-	    ++AsyncResultNodeCount;
-	    LocalAgents[rank - 1] = localPopulation;
-	    getCurrentAgents().getAsyncResultLock().notifyAll();
-	}
-	
-	public static int getAsyncResultNodeCount() {
-	  return AsyncResultNodeCount;
-	}
-	
 	public static int[] getLocalAgents() {
 	  return LocalAgents;
 	}
+	
+	public static void setLocalAgents(int[] values) {
+	  LocalAgents = values;
+	}
+	
+	/**
+	 * ONLY to call by Master node
+	 * @return
+	 */
+	public static boolean getSlaveNodeAsyncCompleteness() {
+	  return getAsyncOutputThread().requestSlaveNodeAsyncCompleteness();
+	}
+
+  public static void getRemoteAsyncResults() {
+    LocalAgents = new int[getRemoteNodes().size()];
+    getAsyncOutputThread().requestAsyncResults();
+  }
 	
 	/**
 	 * END Async methods

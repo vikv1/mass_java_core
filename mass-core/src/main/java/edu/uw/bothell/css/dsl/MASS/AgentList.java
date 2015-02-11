@@ -168,7 +168,7 @@ public class AgentList {
 				"] and [" + x_full + "][" + y_full + "] = " +
 				array[x_null][y_null] );
 			 */
-		
+			MASS.log("AgentList reduced done");
 		}
 
 		// reduce

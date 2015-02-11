@@ -10,8 +10,8 @@ public class Message implements Serializable {
 	public enum ACTION_TYPE { 
 	    
     	EMPTY,                                    // 0             
-	    FINISH,                                   // 1             
-	    ACK,                                      // 2             
+	    FINISH("FINISH"),                                   // 1             
+	    ACK("ACK"),                                      // 2             
 
 	    PLACES_INITIALIZE,                        // 3             
 	    PLACES_CALL_ALL_VOID_OBJECT,              // 4             
@@ -30,11 +30,27 @@ public class Message implements Serializable {
 	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16  
 	    
 	    /** Async section **/
-	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,      // 17
-	    FINISH_ASYNC_SERVER,                       // 18
-	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,    // 19
-	    AGENT_ASYNC_RESULT                        // 20
-    }
+	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT"),      // 17
+	    NODE_MASTER_ASYNC_COMPLETE_REQUEST("MASTER_NODE_ASYNC_COMPLETE_REQUEST"),       // 18 check if all slaves are completed
+	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST("AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST"),    // 19
+	    AGENT_ASYNC_RESULT("AGENT_ASYNC_RESULT"),                       // 20
+	    NODE_SLAVE_ASYNC_COMPLETE_NOTIFY("SLAVE_NODE_ASYNC_COMPLETE_NOTIFY");          
+    	// 21 tell master that I'm done
+    	
+    	private final String value;
+    	
+    	private ACTION_TYPE(String v) {
+    	  value = v;
+    	}
+    	
+    	private ACTION_TYPE() {
+    	  value = "UNDEFINED";
+    	}
+    	
+    	public String getValue() {
+    	  return value;
+    	}
+	}
     
 	private static final int VOID_HANDLE = -1;
     private ACTION_TYPE action;
@@ -255,4 +271,7 @@ public class Message implements Serializable {
       return sourcePid;
     }
 
+    public String getActionString() {
+      return action.getValue();
+    }
 }

@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS.Mandelbrot;
 import java.net.InetAddress;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
+import edu.uw.bothell.css.dsl.MASS.MASS;
 
 public class Colorer extends Agent {
 
@@ -44,7 +45,8 @@ public class Colorer extends Agent {
   }
 
   private Object initMigrate(Object o) {
-    int yModifier = (Integer)o;
+    int yModifier = (Integer) o;
+    MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
     migrateAsync(0, yModifier);
     return o;
   }
@@ -59,19 +61,23 @@ public class Colorer extends Agent {
   public Object calculateColor(Object o) {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
-    double x0 = -2.5 + ((double)yModifier / (double)Program.MATRIX_SIZE) * 3.5;
-    double y0 = -1.0 + ((double)xModifier / (double)Program.MATRIX_SIZE) * 2.0;
+    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier + "]");
+    double x0 = -2.5 + ((double) yModifier / (double) Program.MATRIX_SIZE)
+        * 3.5;
+    double y0 = -1.0 + ((double) xModifier / (double) Program.MATRIX_SIZE)
+        * 2.0;
     double x = 0.0, y = 0.0;
     int iteration = 0;
-    while (x*x + y*y < 4.0 && iteration < Program.MAX_ITERATION) {
-      double xtemp = x*x - y*y + x0;
+    while (x * x + y * y < 4.0 && iteration < Program.MAX_ITERATION) {
+      double xtemp = x * x - y * y + x0;
       y = 2 * x * y + y0;
       x = xtemp;
       iteration++;
     }
+    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
+        + "] = " + iteration);
     appendAsyncResult(iteration);
     return o;
-    
   }
 
   /**
@@ -81,11 +87,11 @@ public class Colorer extends Agent {
    * @return
    */
   public Object move(Object o) {
-
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     xModifier++;
-
+    MASS.log("move from [" + (xModifier - 1) + ", " + yModifier + "] to ["
+        + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
   }

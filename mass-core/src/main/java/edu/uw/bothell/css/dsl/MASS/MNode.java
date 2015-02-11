@@ -4,8 +4,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.InetAddress;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -152,13 +150,8 @@ public class MNode {
 		}
 		
 		// TODO - need better method of handling errors here rather than terminating application
-		catch( Exception e ) {
-		  
-		  StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
-					" setupMainConnection " + e + ". Stacktrace " + sw.toString());
+		catch( Exception e ) {	
+			MASS_base.logException( "ERROR: mNode: Pid: " + pid, e);
 			
 			System.exit( -1 );
 	

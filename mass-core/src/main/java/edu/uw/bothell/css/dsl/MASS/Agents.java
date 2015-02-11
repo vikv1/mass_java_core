@@ -200,10 +200,7 @@ public class Agents extends Agents_base implements Serializable {
     }
     
     // Preparing this node for callAllAsync
-    
-    // Main thread main node only
-    MASS.resetAsyncResultNodeCount();
-    
+        
     MASS_base.prepareAsyncExecution(this);
     
     int idx = 0;
@@ -214,7 +211,8 @@ public class Agents extends Agents_base implements Serializable {
       agent.resetAsyncResults();
       agent.setAsyncArgument(arguments[idx]);
       agent.setMyAsyncOriginalPid(MASS.getMyPid());
-      agent.setMyAsyncIndex(idx);
+      agent.setMyOriginalAsyncIndex(idx);
+      agent.setCurrentIndex(idx);
       agent.setParentAgents(this);
       ++idx;
     }
@@ -234,49 +232,37 @@ public class Agents extends Agents_base implements Serializable {
           MASS_base.getCurrentAgents( ) );    
     }
 
-    // callAllAsync to all slave threads
-    Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC );
+    do {
+      // callAllAsync to all slave threads
+      Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC );
 
-    // callAllAsync in my own thread
-    super.callAllAsync( 0 );
+      // callAllAsync in my own thread
+      super.callAllAsync( 0 );
 
-    // confirm all threads are done with agents.callAllAsync
-    // backward compatibility barrier twice,
-    // once in callAllAsync in each thread, but then slave thread
-    // enter another barrier at the end of Mthread.run() while() loop
-    // so master thread has to barrier here again to get every one back onto the top
-    Mthread.barrierThreads( 0 );
-
-    // TODO Auto Migration somewhere?
-    // in case of killing agent, backward compatibility
-    getAgents().reduce();
-    setLocalPopulation(getAgents().size_unreduced());
-      localAgents[0] = getLocalPopulation();
-
-    while(MASS.getAsyncResultNodeCount() < MASS.getRemoteNodes().size()) {
-      try {
-        getAsyncResultLock().wait();
-      } catch (InterruptedException e) {
+      // confirm all threads are done with agents.callAllAsync
+      // backward compatibility barrier twice,
+      // once in callAllAsync in each thread, but then slave thread
+      // enter another barrier at the end of Mthread.run() while() loop
+      // so master thread has to barrier here again to get every one back onto the top
+      Mthread.barrierThreads( 0 );
+      
+      boolean allCompleted = MASS.getSlaveNodeAsyncCompleteness();
+      MASS.log("getSlaveNodeAsyncCompleteness return " + allCompleted);
+      setAllAsyncNodeComplete(allCompleted);
+      if(allCompleted && MASS.getAsyncOutputThread().isMigrationRequestComplete()) {
+        collectAsyncResult();
+      } else {
+        synchronized(getAsyncQueue()) {
+          if(getAsyncQueue().size() == 0) {
+            try {
+              getAsyncQueue().wait();
+            } catch (InterruptedException e) {
+            }
+          }
+        }
       }
     }
-    Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
-    MASS_base.setCurrentReturns(getCompleteQueue().toArray());
-    for(int i = 1; i < MASS_base.getSystemSize(); i++) {
-      localAgents[i] = MASS.getLocalAgents()[i - 1];
-    }
-    total = 0;
-    for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
-      total += localAgents[i];      
-      // for debugging
-      if ( MASS.isConsoleLoggingEnabled() )
-      {
-        System.err.println( "rank[" + i + 
-            "]'s local agent population = " +
-            localAgents[i] );
-      }    
-    }
-    
-    
+    while(!getAllAsyncNodeComplete() || !MASS.getAsyncOutputThread().isMigrationRequestComplete());
     return getCompleteQueue();
 	}
 	
@@ -409,4 +395,30 @@ public class Agents extends Agents_base implements Serializable {
 	
 	}
 
+	private void collectAsyncResult() {
+  // TODO Auto Migration somewhere?
+	  
+  // in case of killing agent, backward compatibility
+  getAgents().reduce();
+  setLocalPopulation(getAgents().size_unreduced());
+    localAgents[0] = getLocalPopulation();
+    
+  MASS.getRemoteAsyncResults();
+  Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
+  MASS_base.setCurrentReturns(getCompleteQueue().toArray());
+  for(int i = 1; i < MASS_base.getSystemSize(); i++) {
+    localAgents[i] = MASS.getLocalAgents()[i - 1];
+  }
+  total = 0;
+  for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {      
+    total += localAgents[i];      
+    // for debugging
+    if ( MASS.isConsoleLoggingEnabled() )
+    {
+      System.err.println( "rank[" + i + 
+          "]'s local agent population = " +
+          localAgents[i] );
+    }    
+  }
+}
 }

@@ -11,24 +11,25 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
-	private static final String JAR_FILE_NAME = "mass-quickstart-0.8.2-SNAPSHOT.jar";
-	public static final int MATRIX_SIZE = 200, MAX_ITERATION = 200;
+	private static final String JAR_FILE_NAME = "mass-mandelbrot-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
+	public static final int MATRIX_SIZE = 100, MAX_ITERATION = 1000;
 	
 	public static void main(String[] args) {
 
 		// init MASS library
 		MASS.addLibrary(JAR_FILE_NAME);
 		MASS.setNodeFilePath(NODE_FILE);
+		MASS.setCommunicationPort(50951);
+		MASS.setNumThreads(2);
+    // start MASS
+    MASS.init();
 		
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
-		
-		// start MASS
-		MASS.init();
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
 		
 		// create Agents (number of Agents = y in this case), in Places
-		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Maldelbrot.Colorer", null, places, MATRIX_SIZE);
+		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, MATRIX_SIZE);
 		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
 		for(int i = 0; i < MATRIX_SIZE; i++){
 		  agentsCallAllObjs[i] = i;
@@ -59,15 +60,7 @@ public class Program {
 		
 		// orderly shutdown
 		MASS.finish();
-		System.out.println("Result is :");
-		for(int i = 0; i < MATRIX_SIZE; i++){
-		  for(int j = 0; j < MATRIX_SIZE; j++)
-		  {
-		    System.out.print(colors[i][j] + " ");
-		  }
-		  System.out.println();
-		}
-
+		
 		saveToFile(colors);
 	 }
 	
@@ -80,16 +73,15 @@ public class Program {
       bw = new BufferedWriter(fw);
       for(int i = 0; i < result.length; i++)
       {
-        int j = 0;
-        for(; j < result[i].length; j++)
+        for(int j = 0; j < result[i].length; j++)
         {
           bw.write(result[i][j] + "");
+          if(j < result[i].length - 1) {
+            bw.write(" ");
+          }
         }
-        if(j < result[i].length - 1) {
-          bw.write(" ");
-        }
+        bw.newLine();
       }
-      bw.newLine();
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

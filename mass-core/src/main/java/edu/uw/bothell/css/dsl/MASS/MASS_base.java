@@ -2,6 +2,11 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -285,10 +290,15 @@ public class MASS_base {
 		MASS_base.hostName = nodeConfig.getHostName();
 		MASS_base.myPid = nodeConfig.getPid();
 		setCommunicationPort(nodeConfig.getPort());
-		setWorkingDirectory(nodeConfig.getMassHome());
+		if(nodeConfig.getMassHome() != null) {
+		  setWorkingDirectory(nodeConfig.getMassHome());
+		}
 		
 		// Set the current working directory to default value if not set previously
-		if (MASS_base.workingDirectory == null) MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		if (MASS_base.workingDirectory == null) {
+		  MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		}
+    ensureLoggingFileExists();
 		
 		// add MASS home to the list of URLs to be used by the object factory
 		try {
@@ -298,6 +308,8 @@ public class MASS_base {
 		}
 		// Async section
     initAsyncCommunicationThreads();
+    // ensure logging folders and file exist
+    MASS.log("initMASS_base done");
 	}
     
     /**
@@ -334,43 +346,75 @@ public class MASS_base {
 	}
 
     public static void log( String msg ) {
-
-		try {
-			
-			if ( log_lock == null ) {
-				
-				log_lock = new Object( );
-				
-				if ( myPid > 0 )
+      System.err.println("log to " + workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt");
+		try {			
+			if ( log_lock == null ) {				
+				log_lock = new Object( );				
+				//if ( myPid > 0 )
 					logger = new FileOutputStream( workingDirectory + "/" + 
 							MASS_LOGS + "/PID" + 
 							myPid + "_" + hostName + 
-							"result.txt" );
-			
+							"result.txt" );			
 			}
+      String lstring = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()) 
+      + ": " + msg;
 
 			synchronized( log_lock ) {
 				
 				if ( myPid == 0 ) {
 					// The master directly prints out msg to standard error.
-					System.err.println( msg );
+					System.err.println(lstring);
 				}
-				
-				else {
-					
+				if(logger == null) {
+				  logger = new FileOutputStream( workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt" ); 
+				}
 					// All the slaves print out msge to CUR_DIR/MASS_logs/.
-					logger.write( msg.concat( "\n" ).getBytes( ) );
+					logger.write( lstring.concat("\n").getBytes( ) );
 					logger.flush( );
-				
-				}
-			
-			}
-		
-		}
-		
-		catch( Exception e ) {	}
-	
+					logger.getFD().sync();
+			}		
+		}		
+		catch( Exception e ) { 
+		  logException(null, e);
+    }	
 	}
+    
+    public static void logException(String message, Exception e) {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      log(message + "-" + sw.toString());
+    }
+  private static void ensureLoggingFileExists() {
+    System.err.println("ensureLoggingFileExists: " + workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt");
+      File logFile = new File(workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt");
+      if(!logFile.isFile()) {
+        System.err.println("ensureLoggingFileExists: !isFile");
+        if (logFile.getParentFile().exists() || logFile.getParentFile().mkdirs()){
+          System.err.println("ensureLoggingFileExists: about to create");
+          try
+          {
+              logFile.createNewFile();
+          }
+          catch(IOException e)
+          {
+            logException(null, e);
+          }
+        }
+      }
+  }
 
     /**
 	 * Reset the request counter
@@ -474,6 +518,7 @@ public class MASS_base {
 	 * @param workingDirectory The new working directory for this node
 	 */
 	public static void setWorkingDirectory(String workingDirectory) {
+	  System.err.println("setWorkingDir = " + workingDirectory);
 		MASS_base.workingDirectory = workingDirectory;
 	}
 
@@ -508,21 +553,26 @@ public class MASS_base {
     }
     
     public static void initAsyncCommunicationThreads() {
+      MASS.log("init Async Communication Threads");
       inputThread = new AsyncInputThread(MASS_PORT + 1);
       outputThread = new AsyncOutputThread(MASS_PORT + 1);
+      inputThread.start();
+      outputThread.start();
     }
 
     public static void prepareAsyncExecution(Agents_base agents) {
       setCurrentAgents(agents);
-      Mthread.setAgentBagSize(getCurrentAgents().getAgents().size_unreduced( ));
+      Mthread.setAgentBagSize(currentAgents.getAgents().size_unreduced( ));
       
-      getCurrentAgents().resetChildAsyncIndex();
-      getCurrentAgents().resetCompleteQueue();
+      currentAgents.resetChildAsyncIndex();
+      currentAgents.resetCompleteQueue();
       
-      getCurrentAgents().getAsyncQueue().clear();
-      getCurrentAgents().getAsyncQueue().addAll(getCurrentAgents().getAgents().getAll());
-      getAsyncOutputThread().setAgentHandle(agents.getHandle());
-      getAsyncOutputThread().setPlaceHandle(agents.getPlacesHandle());
+      currentAgents.getAsyncQueue().clear();
+      currentAgents.getAsyncQueue().addAll(currentAgents.getAgents().getAll());
+      outputThread.setAgentHandle(agents.getHandle());
+      outputThread.setPlaceHandle(agents.getPlacesHandle());
+      currentAgents.setAllAsyncNodeComplete(false);
+      currentAgents.setResultRequestFromMaster(false);
     }
 
     /**
@@ -550,4 +600,7 @@ public class MASS_base {
 	
 	}
 
+  public static void notifyMasterOfCompleteness() {
+    outputThread.notifyMasterOfCompleteness();
+  }
 }

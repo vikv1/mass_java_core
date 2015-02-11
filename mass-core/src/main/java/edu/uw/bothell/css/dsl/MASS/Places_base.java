@@ -927,12 +927,8 @@ public class Places_base {
     	} 
 
     	catch ( Exception e ) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-    	  MASS_base.log( "Places_base.init_all: " + className + 
-    				" not loaded and/or instantiated " + e + ". Stacktrace=" +
-    	      sw.toString());
+    	  MASS_base.logException( "Places_base.init_all: " + className + 
+    				" not loaded and/or instantiated", e);
     	}
 
     	// allocate the left/right shadows

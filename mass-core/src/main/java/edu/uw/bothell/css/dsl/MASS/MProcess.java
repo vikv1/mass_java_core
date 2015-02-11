@@ -20,8 +20,7 @@ public class MProcess {
     private ObjectOutputStream MAIN_OOS; // output to the master process
 
     public static void main( String[] args ) throws Exception {
-    
-    	String hostName = args[0];
+      String hostName = args[0];
         int myPid = Integer.parseInt(args[1]);
         int nProc = Integer.parseInt(args[2]);
         int nThreads = Integer.parseInt(args[3]);
@@ -35,14 +34,13 @@ public class MProcess {
     }
 
     public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir ) {
-
-    	//this.hostName = hostName;
+      //this.hostName = hostName;
     	this.myPid = myPid;
     	//this.nProc = nProc;
     	MASS.setNumThreads(nThr);
+      MASS_base.setWorkingDirectory(curDir); // mprocess manually changes it.
     	MASS_base.initMASS_base( hostName, myPid, nProc, port );
-    	MASS_base.setWorkingDirectory(curDir); // mprocess manually changes it.
-
+    	
     	if ( MASS.isConsoleLoggingEnabled() ) {
     		MASS_base.log( "Launching MProcess... ("
     				+ "hostname = " + hostName
@@ -55,14 +53,13 @@ public class MProcess {
     	}
 
     	MASS_base.initializeThreads( MASS.getNumThreads() );
-
     	// set up a connection with the master process
     	try {
     		MAIN_IOS = new ObjectInputStream( System.in );
     		MAIN_OOS = new ObjectOutputStream( System.out );
     	}
     	catch ( Exception e ) {
-    		MASS_base.log( "MProcess.Mprocess: detected " + e );
+    		MASS_base.logException( "MProcess.Mprocess: detected ", e);
     		System.exit( -1 );
     	}
 
@@ -448,7 +445,8 @@ public class MProcess {
     		    agent.resetAsyncResults();
     		    agent.setAsyncArgument(arguments[idx]);
     		    agent.setMyAsyncOriginalPid(MASS_base.getMyPid());
-    		    agent.setMyAsyncIndex(idx);
+    		    agent.setMyOriginalAsyncIndex(idx);
+    		    agent.setCurrentIndex(idx);
     		    agent.setParentAgents(MASS_base.getCurrentAgents());
     		    ++idx;
     		  }
@@ -460,22 +458,30 @@ public class MProcess {
     		    MASS_base.log( "MASS_base.getCurrentgAgents = " +
             MASS_base.getCurrentAgents( ) );    
  		      }
-    		  // resume threads to work on call all
-          Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
-
-          MASS_base.getCurrentAgents().callAllAsync(0);
-
-          // confirm all threads are done with agents.callAllAsync
-          Mthread.barrierThreads( 0 );
-          MASS_base.getCurrentAgents().setLocalPopulation(MASS_base.getCurrentAgents().getAgents().size_unreduced());
+    		  
+    		  do {
+      		  // resume threads to work on call all
+            Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);  
+            MASS_base.getCurrentAgents().callAllAsync(0);
+  
+            // confirm all threads are done with agents.callAllAsync
+            Mthread.barrierThreads( 0 );
+            
+            // tell master that I'm done
+            synchronized(MASS_base.getCurrentAgents().getAsyncQueue()) {
+              while(!MASS_base.getAsyncOutputThread().isMigrationRequestComplete()){
+                try {
+                  MASS_base.getCurrentAgents().getAsyncQueue().wait();
+                } catch (InterruptedException e) {
+                }
+              }
+              MASS_base.notifyMasterOfCompleteness();
+            }
+      		}
+    		  while(!MASS_base.getCurrentAgents().getResultRequestFromMaster());
           if ( MASS.isConsoleLoggingEnabled() ) {
             MASS_base.log( "barrier done callAll_ASync" );
           }
-
-          MASS_base.getAsyncOutputThread().sendAsyncResult(
-              MASS_base.getCurrentAgents().getCompleteQueue(), 
-              MASS_base.getCurrentAgents().getLocalPopulation(), 
-              myPid);
     			break;
     		}
     	

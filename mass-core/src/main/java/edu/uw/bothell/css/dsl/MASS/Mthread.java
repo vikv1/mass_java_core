@@ -31,7 +31,7 @@ public class Mthread extends Thread {
     		
     		if ( ++barrier_count < MASS_base.getThreads().length ) {
     			
-    			if( MASS.isConsoleLoggingEnabled() )
+    		//	if( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "tid[" + tid + 
     						"] waiting: barrier = " + barrier_phases );
     			
@@ -47,7 +47,7 @@ public class Mthread extends Thread {
     			
     			barrier_count = 0;
     			status = STATUS_TYPE.STATUS_READY;
-    			if( MASS.isConsoleLoggingEnabled() ) 
+    		//	if( MASS.isConsoleLoggingEnabled() ) 
     				MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
     						+ barrier_phases );
     			barrier_phases++;

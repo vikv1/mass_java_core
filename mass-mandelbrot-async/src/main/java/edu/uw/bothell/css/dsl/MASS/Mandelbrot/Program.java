@@ -16,13 +16,16 @@ public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
-	public static final int MATRIX_SIZE = 200, MAX_ITERATION = 1000;
+	public static final int MATRIX_SIZE = 8, MAX_ITERATION = 1000;
 	
 	public static void main(String[] args) {
 
 		// init MASS library
 		MASS.addLibrary(JAR_FILE_NAME);
 		MASS.setNodeFilePath(NODE_FILE);
+    MASS.setCommunicationPort(50951);
+    MASS.setNumThreads(2);
+    MASS.setConsoleLogging(true);
 		
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		
@@ -49,7 +52,7 @@ public class Program {
 		List<Agent> results = agents.callAllAsync(funcIds, agentsCallAllObjs);
 		// orderly shutdown
 		MASS.finish();
-		System.out.println("Result is :");
+		System.out.println("Collecting results");
 		int j = 0;
 		Iterator<Agent> resultsIter = results.iterator();
 		while(resultsIter.hasNext()) {
