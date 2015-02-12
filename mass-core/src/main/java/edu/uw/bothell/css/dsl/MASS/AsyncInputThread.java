@@ -32,6 +32,7 @@ public class AsyncInputThread extends Thread {
     try {
       serverSocket = new ServerSocket(portNumber);
       while (listening) {
+        MASS.log("Waiting for request...");
         new AsyncInputChildThread(serverSocket.accept()).start();
       }
     } catch (IOException e) {
@@ -61,12 +62,13 @@ public class AsyncInputThread extends Thread {
     private Socket socket = null;
 
     public AsyncInputChildThread(Socket socket) {
-      super("AsyncCommunicationServerThread");
+      MASS.log("construct AsyncInputChildThread");
       this.socket = socket;
     }
 
     public void run() {
       try {
+        MASS.log("AsyncInputChildThread processing");
         InputStream is = socket.getInputStream();
         ObjectInputStream ois = new ObjectInputStream(is);
         Message m = (Message) ois.readObject();
@@ -79,6 +81,10 @@ public class AsyncInputThread extends Thread {
           Places_base dstPlaces = MASS_base.getPlacesMap().get(
               new Integer(m.getDestHandle()));
 
+          OutputStream os = socket.getOutputStream();
+          ObjectOutputStream oos = new ObjectOutputStream(os);
+          oos.writeObject(new Integer(receivedRequests.size()));
+          oos.flush();
           // retrieve agents from receiveRequest
           for (AgentMigrationRequest request : receivedRequests) {
             int globalLinearIndex = request.destGlobalLinearIndex;
@@ -104,10 +110,6 @@ public class AsyncInputThread extends Thread {
               MASS_base.getCurrentAgents().getAsyncQueue().notifyAll();
             }
           }
-          OutputStream os = socket.getOutputStream();
-          ObjectOutputStream oos = new ObjectOutputStream(os);
-          oos.writeObject(new Integer(receivedRequests.size()));
-          oos.flush();
           oos.close();
           os.close();
           break;

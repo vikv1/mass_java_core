@@ -276,5 +276,18 @@ public class Agent implements Serializable {
 	    parentAgents.spawnAsync(this, numAgents, arguments, functionIds);
 	  }
 	}
+	
+	/**
+	 * Only FOR ASYNC
+	 */
+  protected Agent cloneForAsyncResult() {
+      Agent result = new Agent();
+      result.alive = this.alive;
+      result.asyncResults = this.asyncResults;
+      result.myAsyncOriginalPid = this.myAsyncOriginalPid;
+      result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
+      //result.asyncArgument
+      return result;
+  }
 
 }

@@ -10,17 +10,18 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncOutputThread extends Thread {
   private static final int NAGLE_TIMEOUT = 50; // milisec
   private static final int MIN_ITEM_TO_SEND = 5; // Change to 1 or less to send
                                                  // immediately
-  private boolean[] timeouts;
+  private volatile int[] timeouts; // 0 not timeout, 1 timer started, 2 timeout
 
-  private LinkedList<AgentMigrationRequest>[] migrationRequestMap;
+  private Vector<AgentMigrationRequest>[] migrationRequestMap;
   private AtomicInteger lastRequestRank = new AtomicInteger(0);
-  private AtomicInteger incompleteMigrationCount = new AtomicInteger();
+  private AtomicInteger incompleteMigrationCount = new AtomicInteger(0);
   private boolean running = true;
   private int port;
 
@@ -33,12 +34,12 @@ public class AsyncOutputThread extends Thread {
 
   public AsyncOutputThread(int port) {
     this.port = port;
-    migrationRequestMap = (LinkedList<AgentMigrationRequest>[]) new LinkedList[MASS_base
+    migrationRequestMap = (Vector<AgentMigrationRequest>[]) new Vector[MASS_base
         .getSystemSize()];
-    timeouts = new boolean[MASS_base.getSystemSize()];
+    timeouts = new int[MASS_base.getSystemSize()];
     for (int i = 0; i < timeouts.length; i++) {
-      migrationRequestMap[i] = new LinkedList<AgentMigrationRequest>();
-      timeouts[i] = false;
+      migrationRequestMap[i] = new Vector<AgentMigrationRequest>();
+      timeouts[i] = 0;
     }
   }
 
@@ -62,27 +63,35 @@ public class AsyncOutputThread extends Thread {
     while (running) {
       synchronized (lastRequestRank) {
         while (migrationRequestMap[lastRequestRank.get()].size() < MIN_ITEM_TO_SEND
-            && !timeouts[lastRequestRank.get()] && running) {
+            && timeouts[lastRequestRank.get()] != 2 && running) {
           try {
             lastRequestRank.wait();
+            MASS.log("AOT waken up state[" + lastRequestRank.get() + "] = "
+                + migrationRequestMap[lastRequestRank.get()].size() + " && "
+                + timeouts[lastRequestRank.get()] + " && " + running);
           } catch (InterruptedException e) {
           }
         }
 
         if (running) {
-          synchronized (lastRequestRank) {
+          timeouts[lastRequestRank.get()] = 0;
+          MASS.log("timeouts[" + lastRequestRank.get() + "] reset = "
+              + timeouts[lastRequestRank.get()]);
+          if (migrationRequestMap[lastRequestRank.get()].size() > 0) {
             MASS.log("AOT async migrate to " + lastRequestRank
                 + ", req size = "
                 + migrationRequestMap[lastRequestRank.get()].size());
-            Message messageToDest = new Message(
-                Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,
-                agentHandle, placeHandle,
-                migrationRequestMap[lastRequestRank.get()]);
-            SendMessageByChild thread_ref = new SendMessageByChild(
-                lastRequestRank.get(), messageToDest);
-            thread_ref.start();
-            timeouts[lastRequestRank.get()] = false;
-            migrationRequestMap[lastRequestRank.get()].clear();
+            synchronized (migrationRequestMap[lastRequestRank.get()]) {
+              Vector<AgentMigrationRequest> reqlist = new Vector<AgentMigrationRequest>(
+                  migrationRequestMap[lastRequestRank.get()]);
+              Message messageToDest = new Message(
+                  Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,
+                  agentHandle, placeHandle, reqlist);
+              SendMessageByChild thread_ref = new SendMessageByChild(
+                  lastRequestRank.get(), messageToDest);
+              migrationRequestMap[lastRequestRank.get()].clear();
+              thread_ref.start();
+            }
           }
         }
       }
@@ -99,17 +108,24 @@ public class AsyncOutputThread extends Thread {
   }
 
   public void requestMigration(int destRank, AgentMigrationRequest request) {
-    migrationRequestMap[destRank].add(request);
+    synchronized (migrationRequestMap[destRank]) {
+      migrationRequestMap[destRank].add(request);
+    }
     synchronized (lastRequestRank) {
-      if (MIN_ITEM_TO_SEND > 1) // NAGLE algorithm in effect
-      {
+      if (MIN_ITEM_TO_SEND > 1 && timeouts[lastRequestRank.get()] == 0) {
+        // NAGLE algorithm in effect
         TimeoutHandler timeoutHandler = new TimeoutHandler(destRank);
+        timeouts[lastRequestRank.get()] = 1;
         timeoutHandler.start();
       }
       lastRequestRank.getAndSet(destRank);
       lastRequestRank.notifyAll();
     }
     incompleteMigrationCount.incrementAndGet();
+    if (MASS.isConsoleLoggingEnabled()) {
+      MASS.log("requestMigration to [" + destRank
+          + "] incompleteMigrationCount = " + incompleteMigrationCount.get());
+    }
   }
 
   public void requestAsyncResults() {
@@ -144,14 +160,16 @@ public class AsyncOutputThread extends Thread {
     }
 
     public void run() {
+      MASS.log("TimoutHandler start");
       try {
         Thread.sleep(NAGLE_TIMEOUT);
       } catch (InterruptedException e) {
       }
       synchronized (lastRequestRank) {
-        lastRequestRank.getAndSet(destRank);
-        timeouts[destRank] = true;
+        lastRequestRank.set(destRank);
+        timeouts[destRank] = 2;
         lastRequestRank.notifyAll();
+        MASS.log("TimoutHandler notified " + lastRequestRank.get());
       }
     }
   }
@@ -166,14 +184,10 @@ public class AsyncOutputThread extends Thread {
     }
 
     public void run() {
+      String hostName = MASS_base.getHosts().get(rank);
       if (MASS.isConsoleLoggingEnabled()) {
-        MASS_base.log("SendMessageByChild to " + rank
+        MASS_base.log("SendMessageByChild to rank " + rank + "= " + hostName
             + " starts for message type " + message.getActionString());
-      }
-
-      String hostName = MASS_base.getMasterNode().getHostName();
-      if (rank > 0) {
-        hostName = MASS_base.getRemoteNodes().get(rank - 1).getHostName();
       }
 
       try {
@@ -181,6 +195,7 @@ public class AsyncOutputThread extends Thread {
         OutputStream os = sendSocket.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(os);
         oos.writeObject(message);
+        oos.flush();
         if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
           MASS.log("Wait from migration complete ack");
           ObjectInputStream ois = new ObjectInputStream(
@@ -194,6 +209,7 @@ public class AsyncOutputThread extends Thread {
             }
           }
           MASS.log("Migration complete ACK received " + incompleteCount);
+          ois.close();
         }
         oos.close();
         os.close();
@@ -319,6 +335,10 @@ public class AsyncOutputThread extends Thread {
   }
 
   public boolean isMigrationRequestComplete() {
+    if (MASS.isConsoleLoggingEnabled()) {
+      MASS.log("isMigrationRequestComplete incompleteMigrationCount.get() = "
+          + incompleteMigrationCount.get());
+    }
     return incompleteMigrationCount.get() == 0;
   }
 }

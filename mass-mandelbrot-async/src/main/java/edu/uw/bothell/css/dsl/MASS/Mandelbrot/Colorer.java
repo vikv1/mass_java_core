@@ -61,7 +61,6 @@ public class Colorer extends Agent {
   public Object calculateColor(Object o) {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
-    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier + "]");
     double x0 = -2.5 + ((double) yModifier / (double) Program.MATRIX_SIZE)
         * 3.5;
     double y0 = -1.0 + ((double) xModifier / (double) Program.MATRIX_SIZE)

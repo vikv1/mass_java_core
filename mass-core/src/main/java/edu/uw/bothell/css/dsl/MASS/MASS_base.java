@@ -360,7 +360,7 @@ public class MASS_base {
 							"result.txt" );			
 			}
       String lstring = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()) 
-      + ": " + msg;
+      + " , " + Thread.currentThread().getName() +" , " + msg;
 
 			synchronized( log_lock ) {
 				
@@ -469,10 +469,9 @@ public class MASS_base {
 
     	// register all hosts including myself
     	for ( int i = 0; i < host_args.size( ); i++ ) {
-
-    		if ( MASS.isConsoleLoggingEnabled() )
+    		if ( MASS.isConsoleLoggingEnabled() ) {
     			log( "MASS_base.setHosts: Adding host " + host_args.get(i) );
-
+    		}
     		hosts.add( host_args.get(i) );
 
     	}

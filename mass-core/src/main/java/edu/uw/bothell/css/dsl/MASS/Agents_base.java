@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -363,7 +364,7 @@ public class Agents_base implements Serializable {
         }
         
         if(executedAgent.getAsyncFuncList().size() == 0) {
-          completeQueue.add(executedAgent);
+          completeQueue.add(executedAgent.cloneForAsyncResult());
         }
   	  }
 	  }
@@ -975,7 +976,7 @@ public class Agents_base implements Serializable {
         }
         // relinquish the old place
         targetAgent.setPlace(null);  
-        // relinquish the parent too
+        // relinquish the parent too, for async purpose
         targetAgent.setCurrentIndex(-1);
         targetAgent.setParentAgents(null);
         // create a request
@@ -1011,7 +1012,7 @@ public class Agents_base implements Serializable {
   public List<Agent> getCompleteQueue() {
     return completeQueue;
   }
-  
+
   public boolean getAllAsyncNodeComplete() {
     return allAsyncNodeComplete;
   }
@@ -1183,5 +1184,4 @@ public class Agents_base implements Serializable {
     	}
     
     }
-
 }

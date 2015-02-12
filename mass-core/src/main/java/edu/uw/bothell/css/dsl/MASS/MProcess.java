@@ -71,7 +71,7 @@ public class MProcess {
     		return ( Message )MAIN_IOS.readObject( );
     	} 
     	catch ( Exception e ) {
-    		MASS_base.log( "MProcess.receiveMessage: detected " + e );
+    		MASS_base.logException( "MProcess.receiveMessage: detected ", e );
     		System.exit( -1 );
     	}
     	
@@ -476,6 +476,13 @@ public class MProcess {
                 }
               }
               MASS_base.notifyMasterOfCompleteness();
+              while(!MASS_base.getCurrentAgents().getResultRequestFromMaster()
+                  && MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()) {
+                try {
+                  MASS_base.getCurrentAgents().getAsyncQueue().wait();
+                } catch (InterruptedException e) {
+                }
+              }
             }
       		}
     		  while(!MASS_base.getCurrentAgents().getResultRequestFromMaster());
