@@ -144,8 +144,8 @@ public class Tasmax extends AbstractToe{
         
         msg = " Finding year indexes ended, starting incremental netcdf data read";
         this.getProvLogger().logProvenance(msg);
-   //     this.readFullYear(x, y, z, yearIndices);
-        this.readLocalizedYear(yearIndices);
+        this.readFullYear(x, y, z, yearIndices);
+  //      this.readLocalizedYear(yearIndices);
          //      this.readLocalizedYear();
     
     }
@@ -421,9 +421,7 @@ public class Tasmax extends AbstractToe{
      * @param z - time dimension
      */
     public void readFullYear(int x, int y, int z, int[][] yearIndices){
-        
-        
-       
+              
         int numYears = inputClimateModel.getNumYears();
         int startYear = inputClimateModel.getStartYear();
         // loop through the entire range of years
