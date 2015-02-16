@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>mass-m-async-fin</artifactId>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>edu.uw.bothell.css.mass</groupId>
+		<artifactId>MASS-Java</artifactId>
+		<version>0.8.2-SNAPSHOT</version>
+	</parent>
+
+	<name>MASS Java Mandelbrot Application</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.uw.bothell.css.mass</groupId>
+			<artifactId>mass-core</artifactId>
+			<version>0.8.2-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>edu.uw.bothell.css.dsl.MASS.Mandelbrot.Program</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

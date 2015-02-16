@@ -31,7 +31,7 @@ public class Mthread extends Thread {
     		
     		if ( ++barrier_count < MASS_base.getThreads().length ) {
     			
-    		//	if( MASS.isConsoleLoggingEnabled() )
+    			if( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "tid[" + tid + 
     						"] waiting: barrier = " + barrier_phases );
     			
@@ -47,7 +47,7 @@ public class Mthread extends Thread {
     			
     			barrier_count = 0;
     			status = STATUS_TYPE.STATUS_READY;
-    		//	if( MASS.isConsoleLoggingEnabled() ) 
+    			if( MASS.isConsoleLoggingEnabled() ) 
     				MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
     						+ barrier_phases );
     			barrier_phases++;
@@ -116,17 +116,21 @@ public class Mthread extends Thread {
     			}
 
     			// wake-up message
-    			if( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + "] woken up" );
+    			if(MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "Mthread[" + tid + "] woken up " + status );
     		
     		}
-
+    		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
+          agents = MASS_base.getCurrentAgents( );
+          agents.callAllAsync(tid);
+    		}
+    		else {
     		// perform each task
     		switch( status ) {
     		
     		case STATUS_READY:
     			
-    			if ( MASS.isConsoleLoggingEnabled() )
+    			if (MASS.isConsoleLoggingEnabled())
     				MASS_base.log( "Mthread reached STATUS_READY in switch" );
     			System.exit( -1 );
     			break;
@@ -223,22 +227,14 @@ public class Mthread extends Thread {
     			agents.manageAll( tid );
 
     			break;
-    			
-    		case STATUS_AGENTSCALLALL_ASYNC:
-          agents = MASS_base.getCurrentAgents( );
-          agents.callAllAsync(tid);
-    		  
-    		  break;
-    		
     		}
-
     		// barrier
     		barrierThreads( tid );
-
+    	}
     	}
 
     	// last message
-    	if ( MASS.isConsoleLoggingEnabled() )
+    	if (MASS.isConsoleLoggingEnabled())
     		MASS_base.log( "Mthread[" + tid + "] terminated" );
     
     }

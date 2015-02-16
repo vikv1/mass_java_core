@@ -3,6 +3,8 @@ package edu.uw.bothell.css.dsl.MASS.Mandelbrot;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,9 +17,9 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
-	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
-	public static final int MAX_ITERATION = 1000;
-	public static int MATRIX_SIZE = 8, NTHREADS = 2;
+	private static final String JAR_FILE_NAME = "mass-m-async-fin-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
+	public static final int MAX_ITERATION = 600000;
+	public static int MATRIX_SIZE = 2048, NTHREADS = 2;
 	
 	public static void main(String[] args) {
 	  if(args.length > 1) {
@@ -29,53 +31,74 @@ public class Program {
 		MASS.setNodeFilePath(NODE_FILE);
     MASS.setCommunicationPort(50951);
     MASS.setNumThreads(NTHREADS);
-    MASS.setConsoleLogging(true);
 		
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
-		
+
+    String startStr = "START - " + (new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()));
+    System.out.println(startStr);
+		long massStart = System.nanoTime();
 		// start MASS
 		MASS.init();
 		
-		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
+		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Cell", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
 		
 		// create Agents (number of Agents = y in this case), in Places
-		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, MATRIX_SIZE);
+		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Calculator", null, places, MATRIX_SIZE);
+		
+		long asyncStart = System.nanoTime();
 		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
 		for(int i = 0; i < MATRIX_SIZE; i++){
 		  agentsCallAllObjs[i] = i;
 		}
 		
 		LinkedList<Integer> funcIds = new LinkedList<Integer>();
-		funcIds.add(Colorer.INIT_MIGRATE);
-		funcIds.add(Colorer.CALCULATE_COLOR);
+		funcIds.add(Calculator.INIT_MIGRATE_HORIZON);
+		funcIds.add(Calculator.CALCULATE_COLOR);
     for (int i = 1; i < MATRIX_SIZE; i ++) {
-      funcIds.add(Colorer.MIGRATE);
-      funcIds.add(Colorer.CALCULATE_COLOR);
+      funcIds.add(Calculator.MIGRATE_HORIZON);
+      funcIds.add(Calculator.CALCULATE_COLOR);
     }
 		
+    System.err.println("callAllAsync start");
 		List<Agent> results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+		
+		long asyncEnd = System.nanoTime();
+		System.err.println("callAllAsync end");
+		
 		// orderly shutdown
 		MASS.finish();
+		
+		long massEnd = System.nanoTime();
+    String endStr = "END - " + (new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()));
+    System.out.println(endStr);
 		System.out.println("Collecting results");
-		int j = 0;
+		int i = 0;
 		Iterator<Agent> resultsIter = results.iterator();
 		while(resultsIter.hasNext()) {
 		  Iterator<Object> resultIter = resultsIter.next().getAsyncResults().iterator();
-		  int i = 0;
+		  int j = 0;
 		  while(resultIter.hasNext()){
 		    colors[i][j] = (int)resultIter.next();
-		    ++i;
+		    ++j;
 		  }
-      ++j;
+      ++i;
 		}
-		saveToFile(colors);
+
+    double massTime = (double)(massEnd - massStart) / 1000000000.0;
+    double asyncTime = (double)(asyncEnd - asyncStart) / 1000000000.0;
+    String durationStr = "DONE: massTime = " + massTime + " sec; async Time = " + asyncTime + " sec";
+    System.out.println(durationStr);
+		saveToFile(startStr+ " " + endStr + " " + durationStr, colors);
 	 }
-	private static void saveToFile(int[][] result) {
+	private static void saveToFile(String firstline, int[][] result) {
     FileWriter fw;
     BufferedWriter bw = null;
     try {
-      fw = new FileWriter("result.txt");
+      fw = new FileWriter("result-async.txt");
       bw = new BufferedWriter(fw);
+      bw.write(firstline);
+      bw.newLine();
+      
       for(int i = 0; i < result.length; i++)
       {
         for(int j = 0; j < result[i].length; j++)

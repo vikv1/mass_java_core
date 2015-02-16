@@ -286,7 +286,9 @@ public class Agent implements Serializable {
       result.asyncResults = this.asyncResults;
       result.myAsyncOriginalPid = this.myAsyncOriginalPid;
       result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-      //result.asyncArgument
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResults.size());
+      }
       return result;
   }
 

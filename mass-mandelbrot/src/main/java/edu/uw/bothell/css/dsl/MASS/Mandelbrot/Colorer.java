@@ -44,8 +44,8 @@ public class Colorer extends Agent {
   }
 
   private Object initMigrate(Object o) {
-    int yModifier = (Integer)o;
-    migrate(0, yModifier);
+    int xModifier = (Integer)o;
+    migrate(xModifier, 0);
     return o;
   }
 
@@ -82,7 +82,7 @@ public class Colorer extends Agent {
 
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
-    xModifier++;
+    yModifier++;
 
     migrate(xModifier, yModifier);
     return o;

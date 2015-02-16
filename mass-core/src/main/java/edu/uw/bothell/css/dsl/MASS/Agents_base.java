@@ -34,14 +34,7 @@ public class Agents_base implements Serializable {
     // Async section
     private LinkedList<Agent> asyncQueue;
     private List<Agent> completeQueue;
-
-    /**
-     *  true when master node receive 'complete'
-     *  aka empty asyncQueue,
-     *  respond from all other slave nodes
-     */
-    // 
-    private boolean allAsyncNodeComplete = false;
+    private volatile boolean isIdle = true; // whether this node is processing async queue or not
     
     /**
      * true when slave node receive request 
@@ -339,6 +332,10 @@ public class Agents_base implements Serializable {
 	  {
 	    // access by multiple thread
   	  synchronized(asyncQueue) {
+  	    if(MASS.isConsoleLoggingEnabled())
+  	      MASS_base.log("callAllAsync synchronized asyncQueue size =  " 
+  	          + asyncQueue.size());
+
   	    if(asyncQueue.size() != 0) {
   	      executedAgent = asyncQueue.removeFirst();
   	    } else {
@@ -869,7 +866,7 @@ public class Agents_base implements Serializable {
 
   }
 
-  public synchronized void migrateAsync(Agent targetAgent) {
+  public void migrateAsync(Agent targetAgent) {
   //Iterate over all dimensions of the agent to check its location
     //against that of its place. If they are the same, return back.
     Places_base evaluatedPlaces = MASS_base.getPlacesMap().get( new Integer( placesHandle ) );
@@ -879,21 +876,19 @@ public class Agents_base implements Serializable {
     getGlobalAgentArrayIndex( targetAgent.getIndex(), 
         evaluatedPlaces.getSize(), destCoord );
 
-    if ( MASS.isConsoleLoggingEnabled() == true ) {
+    if (MASS.isConsoleLoggingEnabled()) {
       StringBuilder targetCoordStr = new StringBuilder();
       StringBuilder destCoordStr = new StringBuilder();
       for(int i = 0; i < destCoord.length; i++) {
         targetCoordStr.append("[" + targetAgent.getIndex()[i] + "]");
         destCoordStr.append("[" + destCoord[i] + "]");
       }
-      MASS_base.log( "migrate async pthread_self[" + Thread.currentThread( ) +
-          " calls from " +
+      MASS_base.log( "migrate async from " +
           targetCoordStr.toString() +
           " (destCoord" + destCoordStr.toString() );
     }
 
-    if( destCoord[0] != -1 ) { 
-      
+    if( destCoord[0] != -1 ) {       
       // destination valid
       int globalLinearIndex = 
           evaluatedPlaces.
@@ -901,11 +896,12 @@ public class Agents_base implements Serializable {
               evaluatedPlaces.
               getSize() );
 
-      if ( MASS.isConsoleLoggingEnabled() == true )
+      if ( MASS.isConsoleLoggingEnabled()) {
         MASS_base.log( " linear = " + globalLinearIndex +
             " lower = " + evaluatedPlaces.getLowerBoundary()
             + " upper = " + 
             evaluatedPlaces.getUpperBoundary() + ")" );
+      }
 
       if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
           globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
@@ -917,7 +913,7 @@ public class Agents_base implements Serializable {
         Place oldPlace = targetAgent.getPlace();
         if ( oldPlace.getAgents().remove( targetAgent ) == false ) {          
           // should not happen
-          if ( MASS.isConsoleLoggingEnabled() == true ) {
+          if (MASS.isConsoleLoggingEnabled()) {
             MASS_base.log( "evaluationAgent " + 
                 targetAgent.getAgentId() 
                 + " couldn't been found in " +
@@ -937,7 +933,7 @@ public class Agents_base implements Serializable {
         int destinationLocalLinearIndex 
         = globalLinearIndex - evaluatedPlaces.getLowerBoundary();
 
-        if ( MASS.isConsoleLoggingEnabled() == true ) {
+        if (MASS.isConsoleLoggingEnabled()) {
           MASS_base.log( "destinationLocalLinerIndex = " 
               + destinationLocalLinearIndex );
         }
@@ -946,31 +942,37 @@ public class Agents_base implements Serializable {
             get( new Integer( placesHandle ) ).
             getPlaces()[destinationLocalLinearIndex]);
 
-        if ( MASS.isConsoleLoggingEnabled() == true )
+        if (MASS.isConsoleLoggingEnabled()) {
           MASS_base.log( "evaluationAgent.place = " 
               + targetAgent.getPlace() );
+        }
 
         targetAgent.getPlace().getAgents().add( targetAgent );
 
-        if ( MASS.isConsoleLoggingEnabled() == true ) 
+        if (MASS.isConsoleLoggingEnabled())  {
           MASS_base.log( "evaluationAgent " + 
               targetAgent.getAgentId() +
               " was inserted into the destPlace[" +
               targetAgent.getPlace().getIndex()[0] + "][" +
               targetAgent.getPlace().getIndex()[1] + "]" );
-        asyncQueue.add(targetAgent);
+        }
+        synchronized(asyncQueue) {
+          asyncQueue.add(targetAgent);
+        }
       }      
       else {        
         // remote destination
 
         // remove evaluationAgent from AgentList
-        agents.remove( targetAgent.getCurrentIndex() );
+        synchronized(agents) {
+          agents.remove( targetAgent.getCurrentIndex() );
+        }
 
         // find the destination node
         int destRank 
         = evaluatedPlaces.
         getRankFromGlobalLinearIndex( globalLinearIndex );
-        if ( MASS.isConsoleLoggingEnabled() == true ) {
+        if (MASS.isConsoleLoggingEnabled()) {
           MASS_base.log( "AgentMigrationRequest request from to dest rank " + 
               destRank + ", globalLinearIndex " + globalLinearIndex );
         }
@@ -985,8 +987,8 @@ public class Agents_base implements Serializable {
             targetAgent );
         
         MASS.getAsyncOutputThread().requestMigration(destRank, request);
-        if ( MASS.isConsoleLoggingEnabled() == true ) {
-            MASS_base.log( "remoteRequest[" + destRank + 
+        if (MASS.isConsoleLoggingEnabled()) {
+            MASS_base.log("remoteRequest[" + destRank + 
                 "].add:" + " globalLinearIndex = " + 
                 globalLinearIndex );
         }      
@@ -994,7 +996,7 @@ public class Agents_base implements Serializable {
       targetAgent.setStopProcessAsyncFuncList(true);
     }    
     else {      
-      if ( MASS.isConsoleLoggingEnabled() == true ) {
+      if ( MASS.isConsoleLoggingEnabled()) {
         MASS_base.log( " to destination invalid" );
       }
     }
@@ -1013,20 +1015,26 @@ public class Agents_base implements Serializable {
     return completeQueue;
   }
 
-  public boolean getAllAsyncNodeComplete() {
-    return allAsyncNodeComplete;
-  }
-  
-  public void setAllAsyncNodeComplete(boolean value) {
-    allAsyncNodeComplete = value;
-  }
-  
   public boolean getResultRequestFromMaster() {
     return resultRequestFromMaster;
   }
   
   public void setResultRequestFromMaster(boolean value) {
     resultRequestFromMaster = value;
+  }
+  
+  public boolean getIsAsyncLoopIdle() {
+    if(MASS.isConsoleLoggingEnabled()) {
+      MASS_base.log("getIsAsyncIdle return " + isIdle);
+    }
+    return isIdle;
+  }
+  
+  public void setIsAsyncLoopIdle(boolean value) {
+    if(MASS.isConsoleLoggingEnabled()) {
+      MASS_base.log("setIsAsyncIdle to " + value);
+    }
+    isIdle = value;
   }
   
   private class ProcessAgentMigrationRequest extends Thread {

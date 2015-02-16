@@ -21,7 +21,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
 
-	private static boolean printOutput = true;
+	private static boolean printOutput = false;
 
 	private static final int JschPort = 22;
 
@@ -161,7 +161,7 @@ public class MASS extends MASS_base {
     	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
     	Mthread.barrierThreads( 0 );
 
-    	if ( printOutput == true )
+    	if(MASS.isConsoleLoggingEnabled())
     		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
@@ -581,7 +581,14 @@ public class MASS extends MASS_base {
 	 * @return
 	 */
 	public static boolean getSlaveNodeAsyncCompleteness() {
-	  return getAsyncOutputThread().requestSlaveNodeAsyncCompleteness();
+	  if(MASS.isConsoleLoggingEnabled()) {
+	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
+	  }
+	  
+	  if(getEsimateSlaveNodeComplete() >= getRemoteNodes().size()) {
+	    MASS_base.setCachedSlaveNodeAsyncCompleteness(getAsyncOutputThread().requestSlaveNodeAsyncCompleteness());
+	  }
+	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
 	}
 
   public static void getRemoteAsyncResults() {

@@ -5,15 +5,15 @@ import java.net.InetAddress;
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 
-public class Colorer extends Agent {
+public class Calculator extends Agent {
 
   private Object obj;
 
   public static final int CALCULATE_COLOR = 0;
   public static final int MIGRATE = 1;
   public static final int INIT_MIGRATE = 2;
-  public static final int MIGRATE_REVERSE = 3;
-  public static final int INIT_MIGRATE_REVERSE = 4;
+  public static final int MIGRATE_HORIZON = 3;
+  public static final int INIT_MIGRATE_HORIZON = 4;
 
   /**
    * This constructor will be called upon instantiation by MASS The Object
@@ -21,7 +21,7 @@ public class Colorer extends Agent {
    * 
    * @param obj
    */
-  public Colorer(Object obj) {
+  public Calculator(Object obj) {
     this.obj = obj;
   }
 
@@ -39,10 +39,10 @@ public class Colorer extends Agent {
       return move(o);
     case INIT_MIGRATE:
       return initMigrate(o);
-    case MIGRATE_REVERSE:
-      return moveReverse(o);
-    case INIT_MIGRATE_REVERSE:
-      return initMigrateReverse(o);
+    case MIGRATE_HORIZON:
+      return moveHorizon(o);
+    case INIT_MIGRATE_HORIZON:
+      return initMigrateHorizon(o);
     default:
       return new String("Unknown Method Number: " + method);
 
@@ -57,20 +57,20 @@ public class Colorer extends Agent {
     return o;
   }
 
-  private Object initMigrateReverse(Object o) {
-    int yModifier = (Integer) o;
-    MASS.log("initMigrateReverse [" + (Program.MATRIX_SIZE - 1) + ", "
-        + yModifier + "]");
-    migrateAsync(Program.MATRIX_SIZE - 1, yModifier);
+  private Object initMigrateHorizon(Object o) {
+    int xModifier = (Integer) o;
+  //  MASS.log("initMigrateReverse [" + xModifier + ", "
+    //    + 0 + "]");
+    migrateAsync(xModifier, 0);
     return o;
   }
 
-  private Object moveReverse(Object o) {
+  private Object moveHorizon(Object o) {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
-    --xModifier;
-    MASS.log("move from [" + (xModifier + 1) + ", " + yModifier + "] to ["
-        + xModifier + ", " + yModifier + "]");
+    ++yModifier;
+  //  MASS.log("move from [" + xModifier + ", " + (yModifier - 1) + "] to ["
+    //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
   }
@@ -91,16 +91,16 @@ public class Colorer extends Agent {
         * 2.0;
     double x = 0.0, y = 0.0;
     int iteration = 0;
-    MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
-        + "].start x0 = " + x0 + ", y0 = " + y0);
+   // MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
+    //    + "].start x0 = " + x0 + ", y0 = " + y0);
     while (x * x + y * y < 4.0 && iteration < Program.MAX_ITERATION) {
       double xtemp = x * x - y * y + x0;
       y = 2 * x * y + y0;
       x = xtemp;
       iteration++;
     }
-    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
-        + "] = " + iteration);
+   // MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
+    //    + "] = " + iteration);
     appendAsyncResult(iteration);
     return o;
   }

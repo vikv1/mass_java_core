@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -63,6 +64,19 @@ public class MASS_base {
      */
     private static AsyncInputThread inputThread = null;
     private static AsyncOutputThread outputThread = null;
+    
+    /**
+     *  Estimated number of completed slave node in order to
+     *  reduce number of complete check in case master finish 
+     * too early, issue check IFF this >= # of slaves
+     */
+    private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
+    /**
+     *  cached value: true when master node receive 'complete'
+     *  aka empty asyncQueue,
+     *  respond from all other slave nodes
+     */
+    private static boolean cachedAllAsyncNodeComplete = false;
     /**
      * END Async vars section
      */
@@ -346,10 +360,6 @@ public class MASS_base {
 	}
 
     public static void log( String msg ) {
-      System.err.println("log to " + workingDirectory + "/" + 
-              MASS_LOGS + "/PID" + 
-              myPid + "_" + hostName + 
-              "result.txt");
 		try {			
 			if ( log_lock == null ) {				
 				log_lock = new Object( );				
@@ -570,9 +580,44 @@ public class MASS_base {
       currentAgents.getAsyncQueue().addAll(currentAgents.getAgents().getAll());
       outputThread.setAgentHandle(agents.getHandle());
       outputThread.setPlaceHandle(agents.getPlacesHandle());
-      currentAgents.setAllAsyncNodeComplete(false);
+      cachedAllAsyncNodeComplete = false;
       currentAgents.setResultRequestFromMaster(false);
     }
+    
+    public static void resetEstimateSlaveNodeComplete() {
+      estimateSlaveNodeComplete.set(0);
+    }
+    
+    public static int getEsimateSlaveNodeComplete() {
+      return estimateSlaveNodeComplete.get();
+    }
+    
+    public static int incrementEstimateSlaveNodeComplete() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getEsimateSlaveNodeComplete() increment");
+      }
+      return estimateSlaveNodeComplete.incrementAndGet();
+    }
+    
+    public static int decrementEstimateSlaveNodeComplete() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getEsimateSlaveNodeComplete() decrement");
+      }
+      return estimateSlaveNodeComplete.decrementAndGet();
+    }
+    
+
+    public static boolean getCachedSlaveNodeAsyncCompleteness() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getCached complete = " + cachedAllAsyncNodeComplete);
+      }
+      return cachedAllAsyncNodeComplete;
+    }
+    
+    public static void setCachedSlaveNodeAsyncCompleteness(boolean value) {
+      cachedAllAsyncNodeComplete = value;
+    }
+    
 
     /**
      * END Async methods
