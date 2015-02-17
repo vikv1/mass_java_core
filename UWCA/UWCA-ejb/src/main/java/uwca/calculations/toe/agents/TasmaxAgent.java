@@ -277,14 +277,16 @@ public class TasmaxAgent extends Agent{
     public Object calculateLsrValues(Object o){
         
         SimpleRegression regression = new SimpleRegression();        
-        int year = 1950;
-        for(int i = 0; i < lsrValues.length; i++){
+        int year = 2006;
+        for(int i = 56; i < lsrValues.length; i++){
             regression.addData(lsrValues[i], year);
             year++;
         }
         
         slope = regression.getSlope();
+        if(Double.isNaN(slope)) slope = 0;
         slopeStdError = regression.getSlopeStdErr(); 
+        if(Double.isNaN(slopeStdError)) slopeStdError = 0;
         return null;       
     }
     
@@ -295,7 +297,8 @@ public class TasmaxAgent extends Agent{
      */
     public Object gatherLsrValue(Object o){
         int index = this.getPlace().getIndex()[2];
-        lsrValues[index] = (Integer)this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);
+        Object obj = this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);
+        lsrValues[index] = (Integer)obj;
         return null;
     }
     

@@ -491,6 +491,8 @@ public class Tasmax_1 implements ClimateModelInterface{
      * @return 
      */
      public float[] readLocalizedYear(int x, int y, int z){
+         
+         
 
         NetcdfFile inputFile = null;    // target netCDF file
         int zIndex;
@@ -511,7 +513,7 @@ public class Tasmax_1 implements ClimateModelInterface{
    
         yr = 1950 + z; // 2099 is the last year, zIndex will be 0-149
   
-         readIndex = readIndexes[z][0];
+        readIndex = readIndexes[z][0];
         readAmount = readIndexes[z][1] - readIndexes[z][0];
  
         String fileToRead = "";

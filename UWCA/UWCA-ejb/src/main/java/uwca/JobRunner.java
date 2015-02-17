@@ -39,8 +39,7 @@ public class JobRunner {
      * Our default Constructor
      */
     public JobRunner(){
-        jobMgr = JobManager.getInstance();
-        
+        jobMgr = JobManager.getInstance();        
     }
     
     /**
@@ -58,12 +57,13 @@ public class JobRunner {
         /**
          * Init MASS for the calculations to execute
          */
-        String apacheMathLib = "apachemath-3.3.3.jar";  
-        MASS.addLibrary(apacheMathLib);
-        String netCdfLib = "netcdf4-4.5.0.jar";
+        String netCdfLib = "netcdf.jar";
         MASS.addLibrary(netCdfLib);
+        String apacheMathLib = "apachemath-3.3.3.jar";
+        MASS.addLibrary(apacheMathLib);
+   
         MASS.setCommunicationPort(45454); // port # to use
-         MASS.setNumThreads(16);            // # of threads to use
+        MASS.setNumThreads(16);            // # of threads to use
         MASS.init();
     }
     
@@ -75,6 +75,7 @@ public class JobRunner {
         // end mass
         MASS.finish();
     }
+    
     /**
      *  Our scheduled job runner -- runs continuously
      */
