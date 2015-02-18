@@ -90,7 +90,7 @@ private static void saveToFile(String firstline, int[][] result) {
     FileWriter fw;
     BufferedWriter bw = null;
     try {
-      fw = new FileWriter("result-async.txt");
+      fw = new FileWriter("result-sync.txt");
       bw = new BufferedWriter(fw);
       bw.write(firstline);
       bw.newLine();

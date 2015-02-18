@@ -19,18 +19,18 @@ public class AsyncOutputThread extends Thread {
                                                   // immediately
   private volatile int[] timeouts; // 0 not timeout, 1 timer started, 2 timeout
 
-  private Vector<AgentMigrationRequest>[] migrationRequestMap;
-  private LinkedList<Integer> lastRequestRank = new LinkedList<Integer>();
-  private AtomicInteger runningChildRequestCount;
+  private volatile Vector<AgentMigrationRequest>[] migrationRequestMap;
+  private volatile LinkedList<Integer> lastRequestRank = new LinkedList<Integer>();
+  private volatile AtomicInteger runningChildRequestCount;
   private boolean running = true;
   private int port;
 
-  // need to be set at the beginning of each execution
+  // need to be set at the beginning of each call all execution
   private int agentHandle;
   private int placeHandle;
 
   // use in requestSlaveNodeAsyncCompleteness() call
-  private AsyncCommunicationLock slaveCompleteLock = new AsyncCommunicationLock(),
+  private volatile AsyncCommunicationLock slaveCompleteLock = new AsyncCommunicationLock(),
       slaveResultLock = new AsyncCommunicationLock();
 
   public AsyncOutputThread(int port) {
@@ -149,6 +149,9 @@ public class AsyncOutputThread extends Thread {
     while (remoteNodeIter.hasNext()) {
       new AsyncResultRequest(remoteNodeIter.next().getHostName()).start();
     }
+    
+    List<Agent> finalAgents = null;
+    int[] finalLocalAgents = null;
     synchronized (slaveResultLock) {
       while (!slaveResultLock.isReady()) {
         try {
@@ -156,11 +159,18 @@ public class AsyncOutputThread extends Thread {
         } catch (InterruptedException e) {
         }
       }
+      finalAgents = (List<Agent>) slaveResultLock.getResult();
+      finalLocalAgents = (int[]) slaveResultLock.getSecondResult();
     }
-
-    MASS_base.getCurrentAgents().getCompleteQueue()
-        .addAll((List<Agent>) slaveResultLock.getResult());
-    MASS.setLocalAgents((int[]) slaveResultLock.getSecondResult());
+    
+    if(MASS.isConsoleLoggingEnabled())
+      MASS_base.log("All slaves return " + (finalAgents != null? finalAgents.size() : 0));
+    
+    synchronized(MASS_base.getCurrentAgents().getCompleteQueue()) {
+      MASS_base.getCurrentAgents().getCompleteQueue()
+        .addAll(finalAgents);
+      MASS.setLocalAgents(finalLocalAgents);
+    }
   }
 
   private class TimeoutHandler extends Thread {
@@ -268,11 +278,10 @@ public class AsyncOutputThread extends Thread {
             sendSocket.getInputStream());
         Message result = (Message) ois.readObject();
         synchronized (slaveResultLock) {
-          if (MASS.isConsoleLoggingEnabled()) {
+          //if(MASS.isConsoleLoggingEnabled())
             MASS.log("Agent Async result from " + result.getSourcePid()
                 + " has " + ((List<Agent>) result.getArgument()).size()
                 + " agents, local population is " + result.getAgentPopulation());
-          }
           ((List<Agent>) slaveResultLock.getResult())
               .addAll((List<Agent>) result.getArgument());
           ((int[]) slaveResultLock.getSecondResult())[result.getSourcePid() - 1] = result

@@ -91,7 +91,7 @@ public class Calculator extends Agent {
         * 2.0;
     double x = 0.0, y = 0.0;
     int iteration = 0;
-   // MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
+    //MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
     //    + "].start x0 = " + x0 + ", y0 = " + y0);
     while (x * x + y * y < 4.0 && iteration < Program.MAX_ITERATION) {
       double xtemp = x * x - y * y + x0;
@@ -99,8 +99,10 @@ public class Calculator extends Agent {
       x = xtemp;
       iteration++;
     }
-   // MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
-    //    + "] = " + iteration);
+    if(yModifier == 0) {
+    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
+        + "] = " + iteration);
+    }
     appendAsyncResult(iteration);
     return o;
   }

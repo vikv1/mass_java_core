@@ -25,13 +25,13 @@ public class Agent implements Serializable {
 	private Object[] arguments = null;
 	
 	// Async
-	private LinkedList<Integer> asyncFuncList;
-	private LinkedList<Object> asyncResults;
+	private volatile LinkedList<Integer> asyncFuncList;
+	private volatile LinkedList<Object> asyncResults;
 	private Object asyncArgument;
-	private Agents_base parentAgents;
+	private volatile Agents_base parentAgents;
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
-	private boolean stopProcessAsyncFuncList = false;
+	private volatile boolean stopProcessAsyncFuncList = false;
 	
 	/**
 	 *  backward compatibility with agentbag,
@@ -45,7 +45,7 @@ public class Agent implements Serializable {
 	 * The current index of this agent in agent list
 	 * change when remote migrate, used for killing
 	 */
-	private int myCurrentIndex;
+	private volatile int myCurrentIndex;
 	
 	/**
 	 * Original Pid before execution
@@ -163,7 +163,7 @@ public class Agent implements Serializable {
 	
 	protected boolean migrateAsync(int... index) {
 	  boolean result = migrate(index);
-    stopProcessAsyncFuncList = true;
+    //stopProcessAsyncFuncList = true;
 	  parentAgents.migrateAsync(this);
 	  return result;
 	}
@@ -286,9 +286,8 @@ public class Agent implements Serializable {
       result.asyncResults = this.asyncResults;
       result.myAsyncOriginalPid = this.myAsyncOriginalPid;
       result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-      if(MASS.isConsoleLoggingEnabled()) {
-        MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResults.size());
-      }
+      if(MASS.isConsoleLoggingEnabled())
+        MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResults.size() + " original idx " + result.myOriginalAsyncIndex);
       return result;
   }
 

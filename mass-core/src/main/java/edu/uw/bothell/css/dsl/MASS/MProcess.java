@@ -466,7 +466,10 @@ public class MProcess {
           // tell master that I'm done
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
                 while (!MASS_base.getAsyncOutputThread().isIdle()
-                    || !MASS_base.getAsyncInputThread().isIdle(false)) {
+                    || !MASS_base.getAsyncInputThread().isIdle(false)
+                    /*|| !MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
+                    || !MASS_base.getCurrentAgents().hasNoInprocessAgents() */
+                    ) {
                   if ( MASS.isConsoleLoggingEnabled()) {
                     MASS_base.log("output idle = "
                         + MASS_base.getAsyncOutputThread().isIdle()
@@ -483,12 +486,14 @@ public class MProcess {
             MASS_base.getCurrentAgents().setIsAsyncLoopIdle(true);
 
             // tell master about that
-            if (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()) {
+            if (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
+                && MASS_base.getCurrentAgents().hasNoInprocessAgents()) {
               MASS_base.notifyMasterOfCompleteness();
             }
 
             while (!MASS_base.getCurrentAgents().getResultRequestFromMaster()
-                && MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()) {
+                && MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
+                && MASS_base.getCurrentAgents().hasNoInprocessAgents()) {
               if ( MASS.isConsoleLoggingEnabled()) {
                 MASS_base.log("After notifying Master: "
                     + !MASS_base.getCurrentAgents()

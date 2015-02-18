@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -32,9 +33,10 @@ public class Agents_base implements Serializable {
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     // Async section
-    private LinkedList<Agent> asyncQueue;
-    private List<Agent> completeQueue;
+    private volatile LinkedList<Agent> asyncQueue;
+    private volatile List<Agent> completeQueue;
     private volatile boolean isIdle = true; // whether this node is processing async queue or not
+    private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0);
     
     /**
      * true when slave node receive request 
@@ -338,6 +340,7 @@ public class Agents_base implements Serializable {
 
   	    if(asyncQueue.size() != 0) {
   	      executedAgent = asyncQueue.removeFirst();
+  	      inProcessAgentCount.incrementAndGet();
   	    } else {
   	      // signal no more to execute
   	      executedAgent = null;
@@ -361,7 +364,17 @@ public class Agents_base implements Serializable {
         }
         
         if(executedAgent.getAsyncFuncList().size() == 0) {
-          completeQueue.add(executedAgent.cloneForAsyncResult());
+          synchronized(completeQueue) {
+            completeQueue.add(executedAgent.cloneForAsyncResult());
+            MASS.log(executedAgent.getMyOriginalAsyncIndex() + 
+                " completeQueue size is now " + completeQueue.size());
+          }
+        } else if(executedAgent.getAsyncFuncList().size() < 5) {
+          MASS.log("id " + executedAgent.getMyOriginalAsyncIndex() + " func list size " + executedAgent.getAsyncFuncList().size());
+        }
+        synchronized(asyncQueue) {
+          inProcessAgentCount.decrementAndGet();
+          asyncQueue.notifyAll();
         }
   	  }
 	  }
@@ -888,7 +901,8 @@ public class Agents_base implements Serializable {
           " (destCoord" + destCoordStr.toString() );
     }
 
-    if( destCoord[0] != -1 ) {       
+    if( destCoord[0] != -1 ) {
+      targetAgent.setStopProcessAsyncFuncList(true);       
       // destination valid
       int globalLinearIndex = 
           evaluatedPlaces.
@@ -913,12 +927,10 @@ public class Agents_base implements Serializable {
         Place oldPlace = targetAgent.getPlace();
         if ( oldPlace.getAgents().remove( targetAgent ) == false ) {          
           // should not happen
-          if (MASS.isConsoleLoggingEnabled()) {
             MASS_base.log( "evaluationAgent " + 
                 targetAgent.getAgentId() 
                 + " couldn't been found in " +
                 "the old place!" );
-          }
           System.exit( -1 );        
         }
 
@@ -958,9 +970,10 @@ public class Agents_base implements Serializable {
         }
         synchronized(asyncQueue) {
           asyncQueue.add(targetAgent);
+          asyncQueue.notifyAll();
         }
       }      
-      else {        
+      else {       
         // remote destination
 
         // remove evaluationAgent from AgentList
@@ -993,7 +1006,6 @@ public class Agents_base implements Serializable {
                 globalLinearIndex );
         }      
       }
-      targetAgent.setStopProcessAsyncFuncList(true);
     }    
     else {      
       if ( MASS.isConsoleLoggingEnabled()) {
@@ -1035,6 +1047,10 @@ public class Agents_base implements Serializable {
       MASS_base.log("setIsAsyncIdle to " + value);
     }
     isIdle = value;
+  }
+  
+  public boolean hasNoInprocessAgents() {
+    return inProcessAgentCount.get() == 0;
   }
   
   private class ProcessAgentMigrationRequest extends Thread {

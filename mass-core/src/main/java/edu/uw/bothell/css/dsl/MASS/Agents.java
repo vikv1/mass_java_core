@@ -219,10 +219,11 @@ public class Agents extends Agents_base implements Serializable {
           + MASS_base.getCurrentAgents());
     }
 
+    boolean asyncQueueComplete = false;
     do {
-      if (MASS.isConsoleLoggingEnabled()) {
+      if (MASS.isConsoleLoggingEnabled())
         MASS.log("Begin callAllAsync loop");
-      }
+      
       // Mark myself as busy executing my async queue
       setIsAsyncLoopIdle(false);
       // callAllAsync to all slave threads
@@ -234,24 +235,26 @@ public class Agents extends Agents_base implements Serializable {
       // Done with processing my async queue
       setIsAsyncLoopIdle(true);
       synchronized (getAsyncQueue()) {
+          asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
           while(!MASS.getSlaveNodeAsyncCompleteness() || 
               !MASS.getAsyncOutputThread().isIdle()
               || !MASS.getAsyncInputThread().isIdle(false)
-              || !getAsyncQueue().isEmpty()) {
+              || !asyncQueueComplete) {
               if (MASS.isConsoleLoggingEnabled()) {
                 MASS.log(MASS.getCachedSlaveNodeAsyncCompleteness() + " && "
                     + MASS.getAsyncOutputThread().isIdle() + " && "
                     + MASS.getAsyncInputThread().isIdle(false) + 
                     " getAsyncQueue().size() = " + getAsyncQueue().size());
               }
-              if(!getAsyncQueue().isEmpty())
+              if(!asyncQueueComplete)
               {
                 break;
               }
               try {
                 getAsyncQueue().wait();
               } catch (InterruptedException e) {
-              }
+              }              
+              asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
             }
           }
 
@@ -262,7 +265,8 @@ public class Agents extends Agents_base implements Serializable {
       // so master thread has to barrier here again to get every one back onto
       // the top
       //Mthread.barrierThreads(0);
-    } while (!getAsyncQueue().isEmpty());
+    } while (!asyncQueueComplete);
+    
     collectAsyncResult();
     return getCompleteQueue();
   }
