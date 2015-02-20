@@ -54,6 +54,17 @@ public class JobRunner {
         } catch (IOException ex) {
             Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
         }
+        // copy the class files from the build directory to the mass working directory for nodes
+        File srcDir = new File("/net/cssfs01p/opt/mfukuda-data/NetBeansProjects/MASS_Java.git/UWCA/UWCA-ejb/target/classes");
+        File destDir = new File("/net/cssfs01p/opt/mfukuda-data/UWCA/uwca_mass_home");
+        try {            
+            FileUtils.copyDirectory(srcDir, destDir);
+        } catch (IOException ex) {
+            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
         /**
          * Init MASS for the calculations to execute
          */

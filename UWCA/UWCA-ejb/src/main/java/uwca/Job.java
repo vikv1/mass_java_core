@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import uwca.calculations.toe.Tasmax;
 import uwca.calculations.toe.ToeInterface;
 import uwca.climatemodels.ClimateModelInterface;
@@ -75,6 +77,9 @@ public class Job {
         String msg =  " Job " + Integer.toString(jobNumber) + " Started " ;
         provLogger.logProvenance(msg);
         
+        // mark job start time
+        DateTime startTime = new DateTime();
+        
         // log files used
         msg = "Input Model used: " + this.inputModelName + "\n";
         
@@ -87,8 +92,14 @@ public class Job {
         variable.setArgs(inputModel, jobNumber, provLogger);
         variable.executeCalculations();
         
+        // mark end time
+        DateTime endTime = new DateTime();    
+        // get the duration and log it
+        Duration duration = new Duration(startTime, endTime);
+        
         this.writeDataToFile();
-        msg =  " Job " + Integer.toString(jobNumber) + " Finished " ;
+        msg =  " Job " + Integer.toString(jobNumber) + " Finished " + 
+                "Duration: " + duration.getStandardSeconds() + " seconds" ;
         provLogger.logProvenance(msg);
     }
 

@@ -77,14 +77,14 @@ public class Tasmax extends AbstractToe{
         try{
             climateTempThreshold = Float.parseFloat(params[0]);
         }catch(Exception e){
-            climateTempThreshold = 30.0F;
+            climateTempThreshold = 18.3F;
         }
         
         try{
             minMaxTol = Double.parseDouble(params[1]);
-            if(minMaxTol > 1.00D || minMaxTol < 0.00D) minMaxTol = 0.90D;
+            if(minMaxTol > 1.00D || minMaxTol < 0.00D) minMaxTol = 0.60D;
         }catch(Exception e){
-            minMaxTol = 0.90D;
+            minMaxTol = 0.60D;
         }
         
         try{
@@ -146,9 +146,13 @@ public class Tasmax extends AbstractToe{
         
         msg = " Finding year indexes ended, starting incremental netcdf data read";
         this.getProvLogger().logProvenance(msg);
-        this.readFullYear(x, y, z, yearIndices);
-   //     this.readLocalizedYear(yearIndices);
-        
+        this.readFullYear(x, y, z, yearIndices); // method 1 -- read from master node
+   //     this.readLocalizedYear(yearIndices);      // method 2 -- each place reads in from file 365 days (Not working
+//        places.callAll(TasmaxPlace.readNetCdfData);
+//        
+//        int size = places.getPlacesSize();
+//        
+//        String s = "";
     
     }
     
@@ -344,25 +348,6 @@ public class Tasmax extends AbstractToe{
                     }else if(clima3 <  minHist && toeMin[i][k] == TOE_NULL_VAL){
                         toeMin[i][k] = (TOE_START_YEAR + j) * -1;
                     }
-                    
-                    
-//                    if(climaSlope1[i][k][j] >  maxHistTolVals[i][k] && toeReg[i][k] == 0){
-//                        toeReg[i][k] = TOE_START_YEAR + j;
-//                    }else if(climaSlope1[i][k][j] <  minHistTolVals[i][k] && toeReg[i][k] == 0){
-//                        toeReg[i][k] = (TOE_START_YEAR + j) * -1;
-//                    }
-//                    // second array
-//                    if(climaSlope2[i][k][j] >  maxHistTolVals[i][k] && toePls[i][k] == 0){
-//                        toePls[i][k] = TOE_START_YEAR + j;
-//                    }else if(climaSlope2[i][k][j] <  minHistTolVals[i][k] && toePls[i][k] == 0){
-//                        toePls[i][k] = (TOE_START_YEAR + j) * -1;
-//                    }
-//                    // third array
-//                    if(climaSlope3[i][k][j] >  maxHistTolVals[i][k] && toeMin[i][k] == 0){
-//                        toeMin[i][k] = TOE_START_YEAR + j;
-//                    }else if(climaSlope3[i][k][j] <  minHistTolVals[i][k] && toeMin[i][k] == 0){
-//                        toeMin[i][k] = (TOE_START_YEAR + j) * -1;
-//                    }
                 }
             }        
         }
@@ -403,10 +388,14 @@ public class Tasmax extends AbstractToe{
         // step 4
         leastSquaredRegression();
         // step 5
-        findToe();    
+        findToe();  
+ 
+        //this.placesTest();
        
         places = null;
         agents = null;
+        
+        
  
     }
     
@@ -486,12 +475,12 @@ public class Tasmax extends AbstractToe{
         // set the year indexes 
         places.callAll(TasmaxPlace.setYearIndexArray, (Object)yearIndices);
         // do the reading        
-        int numYears = inputClimateModel.getNumYears();
-        for(int i = 0 ; i < numYears; i++){   
-            places.callAll(TasmaxPlace.readNetCdfDataFullYear, i);
-        }
+//        int numYears = inputClimateModel.getNumYears();
+//        for(int i = 0 ; i < numYears; i++){   
+//            places.callAll(TasmaxPlace.readNetCdfDataFullYear, i);
+//        }
         
-  //      places.callAll(TasmaxPlace.readNetCdfDataFullYear, 1);
+        places.callAll(TasmaxPlace.readNetCdfDataFullYear, 1);
     }
     
     /******************************************************************************************************************

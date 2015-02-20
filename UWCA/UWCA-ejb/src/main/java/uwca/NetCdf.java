@@ -14,6 +14,7 @@ import java.util.List;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
@@ -47,7 +48,8 @@ public class NetCdf {
       // Define a netCDF variable. The type of the variable in this case
       // is ncInt (32-bit integer).
       Variable dataVariable = dataFile.addVariable(null, "toe", DataType.INT, dims);
-
+      Attribute attr1 = new Attribute("_FillValue", 0);
+      dataVariable.addAttribute(attr1);
       // create the file
       dataFile.create();
 

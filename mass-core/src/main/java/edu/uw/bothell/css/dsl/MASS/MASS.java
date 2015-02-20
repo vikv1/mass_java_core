@@ -377,7 +377,7 @@ public class MASS extends MASS_base {
     		
     		// TODO - add configurable heap memory sizes per node
     		commandBuilder.append("-Xms1g ");
-    		commandBuilder.append("-Xmx2g ");
+    		commandBuilder.append("-Xmx4g ");
     		
     		// set location of MASS.jar
     		commandBuilder.append("-cp ");

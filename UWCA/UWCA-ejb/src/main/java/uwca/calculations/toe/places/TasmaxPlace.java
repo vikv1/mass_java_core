@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 //import java.util.Calendar;
 //import java.util.Date;
 import ucar.ma2.Array;
@@ -28,6 +29,9 @@ import java.util.Random;
  * @author jwoodrin
  */
 public class TasmaxPlace extends Place{
+    // variables for reading netcdf data into places
+    private static ArrayList<float[][][]> tempsFileChunks = null;
+    private static final Object readLock = new Object();
     
     /**
      * Step 1 && 2 variables
@@ -105,6 +109,8 @@ public class TasmaxPlace extends Place{
                 return setClimateTempThreshold(o);
             case setYearIndexArray:
                 return setYearIndexArray(o);
+            case readNetCdfData:
+                return readNetCdfData(o);
             default:
                 return null;              
         }
@@ -199,6 +205,39 @@ public class TasmaxPlace extends Place{
         yearIndices = (int[][])o;
         return null;
     }
+    
+    // the method to decide to read or not
+    public Object readNetCdfData(Object o){
+//       private static float[] daysTemps1;
+//        private static float[] daysTemps2;
+//        private static final Object readLock = new Object();
+        // only the first place in will do the reading
+        synchronized (readLock) {
+          // if daysTemps is null, then we need to read in the netcdf data
+          if(tempsFileChunks == null){
+              tempsFileChunks = new ArrayList<float[][][]>();
+              
+              // get place index
+              int x = this.getIndex()[0];
+              int y = this.getIndex()[1];
+              int z = this.getIndex()[2];
+              
+              // get place dimension
+              int nodePlacesXdim = this.getSize()[0];
+              int nodePlacesYdim = this.getSize()[1];
+              int nodePlacesZdim = this.getSize()[2];
+              
+              
+              String s = "";
+          }
+        }
+    
+        return null;
+    }
+    
+    // the method that does the reading
+    
+    
 
 
     /**
@@ -207,7 +246,7 @@ public class TasmaxPlace extends Place{
      * @return 
      */
     public Object readNetCdfDataFullYear(Object o){    
-        if(this.getIndex()[2] != (int)o) return null;
+    //    if(this.getIndex()[2] != (int)o) return null;
         try{
    //   Variable ncdfVar;               // NetCDF Variable
  //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
@@ -234,7 +273,7 @@ public class TasmaxPlace extends Place{
         int latitude;
         int longitude;
         int time;
- //       ucar.unidata.util.Format format  = new ucar.unidata.util.Format();
+        ucar.unidata.util.Format format  = new ucar.unidata.util.Format();
         Variable ncdfTasMaxVar;
         Array dataSection;
         // our climate model file set
@@ -288,37 +327,37 @@ public class TasmaxPlace extends Place{
          else{
             fileToRead = files[0];
          }
-//            // open the file
-//            try{
-//                inputFile = NetcdfFile.open(fileToRead);  
-//            }catch(Exception e){
-//                String s = e.toString();
-//                return null;
-//            }
-//            ncdfTasMaxVar = inputFile.findVariable(varname); 
-//
-//            longitude = x;
-//            latitude = y;
-//            time = readIndex;
-//            orgin = new int[]{time, latitude, longitude};
-//            shape = new int[]{readAmount, 1, 1};   
-//            float[] daysTemps = null;
-//            try{
-//                // read and set the array as a class variable
-//                dataSection = ncdfTasMaxVar.read(orgin, shape);  
-//                daysTemps = (float[])dataSection.copyTo1DJavaArray();
-//
-//            }catch(Exception e){
-//                String s = e.toString();
-//                inputFile.close();
-//                return null;
-//            }     
-//            try{
-//                inputFile.close();
-//            }catch(Exception e){}
-//        
-//        // find the days over threshold
-//        calculateDaysOverThreshold(new Object());
+            // open the file
+            try{
+                inputFile = NetcdfFile.open(fileToRead);  
+            }catch(Exception e){
+                String s = e.toString();
+                return null;
+            }
+            ncdfTasMaxVar = inputFile.findVariable(varname); 
+
+            longitude = x;
+            latitude = y;
+            time = readIndex;
+            orgin = new int[]{time, latitude, longitude};
+            shape = new int[]{readAmount, 1, 1};   
+            float[] daysTemps = null;
+            try{
+                // read and set the array as a class variable
+                dataSection = ncdfTasMaxVar.read(orgin, shape);  
+                daysTemps = (float[])dataSection.copyTo1DJavaArray();
+
+            }catch(Exception e){
+                String s = e.toString();
+                inputFile.close();
+                return null;
+            }     
+            try{
+                inputFile.close();
+            }catch(Exception e){}
+        
+        // find the days over threshold
+        calculateDaysOverThreshold(new Object());
         }catch(Exception e){
             
             String  host = "";
