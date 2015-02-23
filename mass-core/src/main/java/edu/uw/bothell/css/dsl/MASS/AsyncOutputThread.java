@@ -278,7 +278,7 @@ public class AsyncOutputThread extends Thread {
             sendSocket.getInputStream());
         Message result = (Message) ois.readObject();
         synchronized (slaveResultLock) {
-          //if(MASS.isConsoleLoggingEnabled())
+          if(MASS.isConsoleLoggingEnabled())
             MASS.log("Agent Async result from " + result.getSourcePid()
                 + " has " + ((List<Agent>) result.getArgument()).size()
                 + " agents, local population is " + result.getAgentPopulation());

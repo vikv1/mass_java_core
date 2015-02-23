@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -33,7 +34,8 @@ public class Agents_base implements Serializable {
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     // Async section
-    private volatile LinkedList<Agent> asyncQueue;
+    //private volatile LinkedList<Agent> asyncQueue;
+    private volatile ConcurrentLinkedQueue<Agent> asyncQueue;
     private volatile List<Agent> completeQueue;
     private volatile boolean isIdle = true; // whether this node is processing async queue or not
     private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0);
@@ -60,7 +62,8 @@ public class Agents_base implements Serializable {
     	this.agents = new AgentList( );
     	
     	// Async handling
-    	this.asyncQueue = new LinkedList<Agent>();
+    	//this.asyncQueue = new LinkedList<Agent>();
+    	this.asyncQueue = new ConcurrentLinkedQueue<Agent>();
 
     	// For debugging
     	if ( MASS.isConsoleLoggingEnabled() == true ) 
@@ -330,6 +333,7 @@ public class Agents_base implements Serializable {
 	@SuppressWarnings("unused")
   public void callAllAsync(int tid ) {	 
 	  Agent executedAgent = null;
+	  int inProcessCount = 0;
 	  do 
 	  {
 	    // access by multiple thread
@@ -338,17 +342,16 @@ public class Agents_base implements Serializable {
   	      MASS_base.log("callAllAsync synchronized asyncQueue size =  " 
   	          + asyncQueue.size());
 
-  	    if(asyncQueue.size() != 0) {
-  	      executedAgent = asyncQueue.removeFirst();
-  	      inProcessAgentCount.incrementAndGet();
-  	    } else {
-  	      // signal no more to execute
-  	      executedAgent = null;
-  	    }
+  	     // executedAgent = asyncQueue.removeFirst();
+  	      executedAgent = asyncQueue.poll();
+  	      if(executedAgent != null) {
+  	      inProcessCount = inProcessAgentCount.incrementAndGet();
+  	    } 
   	  }
 	  
   	  if(executedAgent != null) {
-        while(executedAgent.getAsyncFuncList().size() != 0) {
+  	    //MASS_base.log("dequeue " + executedAgent.getMyOriginalAsyncIndex() + ": " + executedAgent.getAsyncFuncList().size());
+        while(!executedAgent.getAsyncFuncList().isEmpty()) {
           executedAgent.callMethod(
               executedAgent.getAsyncFuncList().removeFirst(), 
               executedAgent.getAsyncArgument());
@@ -361,24 +364,33 @@ public class Agents_base implements Serializable {
             executedAgent.setStopProcessAsyncFuncList(false);
             break;
           }
+          if(executedAgent.shouldPutBackToAsyncQueue()) {
+            synchronized(asyncQueue) {
+              executedAgent.setPutBackToAsyncQueue(false);
+              asyncQueue.add(executedAgent);
+              asyncQueue.notifyAll(); 
+            }
+            break;
+          }
         }
         
-        if(executedAgent.getAsyncFuncList().size() == 0) {
+        if(executedAgent.getAsyncFuncList().isEmpty()) {
           synchronized(completeQueue) {
             completeQueue.add(executedAgent.cloneForAsyncResult());
+            if(MASS.isConsoleLoggingEnabled())
             MASS.log(executedAgent.getMyOriginalAsyncIndex() + 
                 " completeQueue size is now " + completeQueue.size());
           }
-        } else if(executedAgent.getAsyncFuncList().size() < 5) {
-          MASS.log("id " + executedAgent.getMyOriginalAsyncIndex() + " func list size " + executedAgent.getAsyncFuncList().size());
         }
         synchronized(asyncQueue) {
-          inProcessAgentCount.decrementAndGet();
-          asyncQueue.notifyAll();
+          if(executedAgent != null) {
+            inProcessCount = inProcessAgentCount.decrementAndGet();
+            asyncQueue.notifyAll();
+          }
         }
   	  }
 	  }
-	  while(executedAgent != null);
+	  while(executedAgent != null && inProcessCount > 0);
     
 	  /**
 	   * How to collect results?
@@ -409,7 +421,8 @@ public class Agents_base implements Serializable {
 		return agents;
 	}
 	
-	public LinkedList<Agent> getAsyncQueue() {
+	public ConcurrentLinkedQueue<Agent> getAsyncQueue() {
+	//public LinkedList<Agent> getAsyncQueue() {
 	  return asyncQueue;
 	}
 
@@ -873,7 +886,10 @@ public class Agents_base implements Serializable {
       addAgent.getPlace().getAgents().add( addAgent ); // auto sync
       addAgent.setCurrentIndex(this.agents.size_unreduced());;
       this.agents.add( addAgent );           // auto syn
-      asyncQueue.add(addAgent);
+      synchronized(asyncQueue) {
+        asyncQueue.add(addAgent);
+        asyncQueue.notifyAll();
+      }
       numAgents--;
     }
 
@@ -901,8 +917,7 @@ public class Agents_base implements Serializable {
           " (destCoord" + destCoordStr.toString() );
     }
 
-    if( destCoord[0] != -1 ) {
-      targetAgent.setStopProcessAsyncFuncList(true);       
+    if( destCoord[0] != -1 ) {      
       // destination valid
       int globalLinearIndex = 
           evaluatedPlaces.
@@ -969,12 +984,14 @@ public class Agents_base implements Serializable {
               targetAgent.getPlace().getIndex()[1] + "]" );
         }
         synchronized(asyncQueue) {
-          asyncQueue.add(targetAgent);
-          asyncQueue.notifyAll();
+          if(!asyncQueue.isEmpty()) {
+            targetAgent.setPutBackToAsyncQueue(true);
+          } 
         }
       }      
       else {       
         // remote destination
+        targetAgent.setStopProcessAsyncFuncList(true); 
 
         // remove evaluationAgent from AgentList
         synchronized(agents) {
@@ -1008,9 +1025,7 @@ public class Agents_base implements Serializable {
       }
     }    
     else {      
-      if ( MASS.isConsoleLoggingEnabled()) {
         MASS_base.log( " to destination invalid" );
-      }
     }
   }
 	

@@ -99,10 +99,10 @@ public class Calculator extends Agent {
       x = xtemp;
       iteration++;
     }
-    if(yModifier == 0) {
+    /*if(yModifier < 5) {
     MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
         + "] = " + iteration);
-    }
+    }*/
     appendAsyncResult(iteration);
     return o;
   }

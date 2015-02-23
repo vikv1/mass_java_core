@@ -13,7 +13,7 @@ public class Agent implements Serializable {
 	//@SuppressWarnings("unused")
 	//private final int placesHandle;
 
-	private final int agentId;
+	private int agentId;
 
 	//@SuppressWarnings("unused")
 	//private final int parentId;
@@ -32,6 +32,7 @@ public class Agent implements Serializable {
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
 	private volatile boolean stopProcessAsyncFuncList = false;
+	private volatile boolean putBackToAsyncQueue = false;
 	
 	/**
 	 *  backward compatibility with agentbag,
@@ -253,6 +254,14 @@ public class Agent implements Serializable {
 	public void setStopProcessAsyncFuncList(boolean value) {
     stopProcessAsyncFuncList = value;
   }
+	
+	public boolean shouldPutBackToAsyncQueue() {
+	  return putBackToAsyncQueue;
+	}
+	
+	public void setPutBackToAsyncQueue(boolean value) {
+	  putBackToAsyncQueue = value;
+	}
 	
 	//Set number for spawning additional Agents
 	protected void spawn( int numAgents, Object[] arguments ) { 

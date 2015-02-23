@@ -59,7 +59,7 @@ public class Place {
 	
 	}
 
-	public Set<Agent> getAgents() {
+	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
 

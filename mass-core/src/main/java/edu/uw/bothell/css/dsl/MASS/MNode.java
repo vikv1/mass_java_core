@@ -185,8 +185,8 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASS_base.log( "receivMessage error from rank[" + pid + "] at " +
-					hostName );
+			MASS_base.logException( "receivMessage error from rank[" + pid + "] at " +
+					hostName,  e );
 
 			System.exit( -1 );
 

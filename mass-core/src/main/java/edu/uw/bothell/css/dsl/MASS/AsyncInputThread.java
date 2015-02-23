@@ -125,6 +125,7 @@ public class AsyncInputThread extends Thread {
               int globalLinearIndex = request.destGlobalLinearIndex;
               Agent agent = request.agent;
               agent.setStopProcessAsyncFuncList(false);
+              agent.setPutBackToAsyncQueue(false);
               // local destination
               int destinationLocalLinearIndex = globalLinearIndex
                   - dstPlaces.getLowerBoundary();
@@ -166,13 +167,13 @@ public class AsyncInputThread extends Thread {
           }
           os = socket.getOutputStream();
           oos = new ObjectOutputStream(os);
-         //if(MASS.isConsoleLoggingEnabled()) {
+         if(MASS.isConsoleLoggingEnabled()) {
             MASS.log("Return to master completeQueue of size "
                 + MASS_base.getCurrentAgents().getCompleteQueue().size());
             for (Agent a : MASS_base.getCurrentAgents().getCompleteQueue()) {
               MASS.log("agent result size = " + a.getAsyncResults().size());
             }
-          //}
+          }
           Message result = new Message(Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
               MASS_base.getCurrentAgents().getCompleteQueue(), MASS_base
                   .getCurrentAgents().getLocalPopulation());
