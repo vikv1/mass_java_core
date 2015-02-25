@@ -21,8 +21,10 @@ public class TasmaxAgent extends Agent{
     double climatology = 0;
     
     // STEP 4 variables
-    double historicalTolMax = 0;
-    double historicalTolMin = 0;
+    double historicalTolMax = -9999;
+    double historicalTolMin = -9999;
+    // new step 4 method
+    int[] historicalTemps = new int[50];
 
     // STEP 5 variables
     float[] lsrValues = new float[150];    
@@ -126,16 +128,13 @@ public class TasmaxAgent extends Agent{
      * @return 
      */
     public Object gatherHistoricalTolerance(Object o){
-        int x = (Integer)this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);
-        if(historicalTolMax < x){
-            historicalTolMax = x;
-        }
-        if(historicalTolMin > x){
-            historicalTolMin = x;
-        }   
+        int x = (Integer)this.getPlace().callMethod(TasmaxPlace.getDaysOverThreshold, o);       
+
         int xModifier = this.getPlace().getIndex()[0];
         int yModifier = this.getPlace().getIndex()[1];
         int zModifier = this.getPlace().getIndex()[2];
+        historicalTemps[zModifier] = x;
+        
         zModifier++;
         
         migrate(xModifier, yModifier, zModifier);
@@ -148,14 +147,18 @@ public class TasmaxAgent extends Agent{
      * @return 
      */
     public Object calculateHistoricalTolerance(Object o){
-        double tolerance = (double)o;
-        double minMax = (1.00D - tolerance) / 2;
         
-        double temp1 = historicalTolMax - historicalTolMin;
-      //  double temp1 = historicalTolMax + abs(historicalTolMin);
-        double temp2 = temp1 * minMax;
-        historicalTolMax = historicalTolMax - temp2;        
-        historicalTolMin = historicalTolMin + temp2;
+        double tolerance = (double)o;
+        double minMax = (1.00D - tolerance) / 2;    
+        
+        int indexModifier = (int)(50 * minMax);
+        
+        int minIndex = indexModifier + 0;
+        int maxIndex = 49 - indexModifier;
+              
+        historicalTolMin = historicalTemps[minIndex];  
+        historicalTolMax = historicalTemps[maxIndex];         
+
         return null;
     }
     
@@ -279,14 +282,18 @@ public class TasmaxAgent extends Agent{
         SimpleRegression regression = new SimpleRegression();        
         int year = 2006;
         for(int i = 56; i < lsrValues.length; i++){
-            regression.addData(lsrValues[i], year);
+            regression.addData(year, lsrValues[i]);
             year++;
         }
         
         slope = regression.getSlope();
         if(Double.isNaN(slope)) slope = 0;
         slopeStdError = regression.getSlopeStdErr(); 
-        if(Double.isNaN(slopeStdError)) slopeStdError = 0;
+        if(Double.isNaN(slopeStdError)) slopeStdError = 0;  
+        
+//        slope = slope * 120;
+//        slopeStdError = slopeStdError * 120;
+
         return null;       
     }
     

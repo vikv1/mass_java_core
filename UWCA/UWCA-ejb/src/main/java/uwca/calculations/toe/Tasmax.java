@@ -179,7 +179,7 @@ public class Tasmax extends AbstractToe{
         agents.manageAll();            
         
         // get our historical min / max values
-        for(int i = 0; i < 56; i++){
+        for(int i = 0; i < 50; i++){
             agents.callAll(TasmaxAgent.gatherHistoricalTolerance);
             agents.manageAll();
         }
@@ -283,9 +283,14 @@ public class Tasmax extends AbstractToe{
             
             int xIndex = i % x;
             int yIndex = i / x;
-            slopes[xIndex][yIndex] = (double)agentSlopes[i];   
-            slopePlusConInt[xIndex][yIndex] = (double)agentSlopes[i] + ((double)agentErrorTerm[i] * inputClimateModel.getTvalue());    
-            slopeMinusConInt[xIndex][yIndex] = (double)agentSlopes[i] - ((double)agentErrorTerm[i] * inputClimateModel.getTvalue());
+//            double agentSlope = Math.abs((double)agentSlopes[i]);
+//            double agentErrTerm = Math.abs((double)agentErrorTerm[i]);
+            double agentSlope = (double)agentSlopes[i];
+            double agentErrTerm = (double)agentErrorTerm[i];
+            double tval = inputClimateModel.getTvalue();
+            slopes[xIndex][yIndex] = agentSlope;   
+            slopePlusConInt[xIndex][yIndex] = agentSlope + (agentErrTerm * tval);    
+            slopeMinusConInt[xIndex][yIndex] = agentSlope - (agentErrTerm * tval);
         }  
     }
     
@@ -334,19 +339,19 @@ public class Tasmax extends AbstractToe{
                     if(clima1 >  maxHist && toeReg[i][k] == TOE_NULL_VAL){
                         toeReg[i][k] = TOE_START_YEAR + j;
                     }else if(clima1 <  minHist && toeReg[i][k] == TOE_NULL_VAL){
-                        toeReg[i][k] = (TOE_START_YEAR + j) * -1;
+                  //      toeReg[i][k] = (TOE_START_YEAR + j) * -1;
                     }
                     // second array
                     if(clima2 >  maxHist && toePls[i][k] == TOE_NULL_VAL){
                         toePls[i][k] = TOE_START_YEAR + j;
                     }else if(clima2 <  minHist && toePls[i][k] == TOE_NULL_VAL){
-                        toePls[i][k] = (TOE_START_YEAR + j) * -1;
+                 //       toePls[i][k] = (TOE_START_YEAR + j) * -1;
                     }
                     // third array
                     if(clima3 >  maxHist && toeMin[i][k] == TOE_NULL_VAL){
                         toeMin[i][k] = TOE_START_YEAR + j;
                     }else if(clima3 <  minHist && toeMin[i][k] == TOE_NULL_VAL){
-                        toeMin[i][k] = (TOE_START_YEAR + j) * -1;
+                  //      toeMin[i][k] = (TOE_START_YEAR + j) * -1;
                     }
                 }
             }        
