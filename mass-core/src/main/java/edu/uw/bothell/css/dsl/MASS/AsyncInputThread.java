@@ -104,11 +104,11 @@ public class AsyncInputThread extends Thread {
         InputStream is = socket.getInputStream();
         ObjectInputStream ois = new ObjectInputStream(is);
         Message m = (Message) ois.readObject();
+        if (MASS.isConsoleLoggingEnabled()) {
+          MASS.log("Receive m " + m.getActionString());
+        }
         switch (m.getAction()) {
         case AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST:
-          if (MASS.isConsoleLoggingEnabled()) {
-            MASS.log("Receive Agent migration remote request");
-          }
           // process a message
           Vector<AgentMigrationRequest> receivedRequests = m
               .getMigrationReqList();
@@ -121,6 +121,9 @@ public class AsyncInputThread extends Thread {
           oos.flush();
           // retrieve agents from receiveRequest
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+            MASS_base.getInputMigrateSet().add(m.getSourcePid());
+            MASS_base.log("OutputMigrateSet remove " + m.getSourcePid());
+            MASS_base.getOutputMigrateSet().remove(m.getSourcePid());
             for (AgentMigrationRequest request : receivedRequests) {
               int globalLinearIndex = request.destGlobalLinearIndex;
               Agent agent = request.agent;
@@ -156,9 +159,6 @@ public class AsyncInputThread extends Thread {
           os.close();
           break;
         case AGENT_ASYNC_RESULT:
-          if (MASS.isConsoleLoggingEnabled()) {
-            MASS.log("Receive AGENT_ASYNC_RESULT");
-          }
           MASS_base.getCurrentAgents().setResultRequestFromMaster(true);
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
             MASS_base.getCurrentAgents().setLocalPopulation(
@@ -184,9 +184,6 @@ public class AsyncInputThread extends Thread {
           os.close();
           break;
         case NODE_MASTER_ASYNC_COMPLETE_REQUEST:
-          if (MASS.isConsoleLoggingEnabled()) {
-            MASS.log("Receive MASTER_NODE_ASYNC_COMPLETE_REQUEST");
-          }
           os = socket.getOutputStream();
           oos = new ObjectOutputStream(os);
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
@@ -204,9 +201,6 @@ public class AsyncInputThread extends Thread {
           os.close();
           break;
         case NODE_SLAVE_ASYNC_COMPLETE_NOTIFY:
-          if (MASS.isConsoleLoggingEnabled()) {
-            MASS.log("Receive SLAVE_NODE_ASYNC_COMPLETE_NOTIFY");
-          }
           MASS.incrementEstimateSlaveNodeComplete();
           /*
            * synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) { if
@@ -215,6 +209,14 @@ public class AsyncInputThread extends Thread {
            * MASS.log("Master async queue is empty, wake him up"); }
            * MASS_base.getCurrentAgents().getAsyncQueue().notifyAll(); } }
            */
+          break;
+        case NODE_SLAVE_COMPLETE_NOTIFY_SENDER:
+          synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+            MASS_base.getOutputMigrateSet().remove(m.getSourcePid());
+            /*if(MASS_base.getOutputMigrateSet().isEmpty()) {
+              MASS_base.getCurrentAgents().getAsyncQueue().notifyAll();
+            }*/
+          }
           break;
         default:
           break;

@@ -7,7 +7,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -77,6 +79,8 @@ public class MASS_base {
      *  respond from all other slave nodes
      */
     private static boolean cachedAllAsyncNodeComplete = false;
+    private static Set<Integer> inputMigrate = new HashSet<Integer>();
+    private static Set<Integer> outputMigrate = new HashSet<Integer>();
     /**
      * END Async vars section
      */
@@ -582,6 +586,8 @@ public class MASS_base {
       outputThread.setPlaceHandle(agents.getPlacesHandle());
       cachedAllAsyncNodeComplete = false;
       currentAgents.setResultRequestFromMaster(false);
+      inputMigrate.clear();
+      outputMigrate.clear();
     }
     
     public static void resetEstimateSlaveNodeComplete() {
@@ -618,6 +624,21 @@ public class MASS_base {
       cachedAllAsyncNodeComplete = value;
     }
     
+    /**
+     * Keep track of received migrate requests
+     * @return
+     */
+    public static Set<Integer> getInputMigrateSet() {
+      return inputMigrate;
+    }
+    
+    /**
+     * Keep track of sent migrate
+     * @return
+     */
+    public static Set<Integer> getOutputMigrateSet() {
+      return outputMigrate;
+    }
 
     /**
      * END Async methods

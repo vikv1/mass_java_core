@@ -441,6 +441,12 @@ public class MProcess {
           agent.setParentAgents(MASS_base.getCurrentAgents());
           ++idx;
         }
+        if(idx == 0) {
+          // has no agent
+          MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(false);
+        } else {
+          MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(true);
+        }
         // MASS_base.setCurrentReturns(new
         // Object[MASS_base.getCurrentAgents().getLocalPopulation()]); //
         // prepare an entire return space
@@ -467,6 +473,7 @@ public class MProcess {
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
                 while (!MASS_base.getAsyncOutputThread().isIdle()
                     || !MASS_base.getAsyncInputThread().isIdle(false)
+                    || !MASS_base.getOutputMigrateSet().isEmpty()
                     /*|| !MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
                     || !MASS_base.getCurrentAgents().hasNoInprocessAgents() */
                     ) {
@@ -474,7 +481,9 @@ public class MProcess {
                     MASS_base.log("output idle = "
                         + MASS_base.getAsyncOutputThread().isIdle()
                         + ", input idle = "
-                        + MASS_base.getAsyncInputThread().isIdle(false));
+                        + MASS_base.getAsyncInputThread().isIdle(false)
+                        + ", output migrate set is empty = "
+                        + MASS_base.getOutputMigrateSet().isEmpty());
                   }
                   try {
                     MASS_base.getCurrentAgents().getAsyncQueue().wait();
@@ -487,7 +496,9 @@ public class MProcess {
 
             // tell master about that
             if (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
-                && MASS_base.getCurrentAgents().hasNoInprocessAgents()) {
+                && MASS_base.getCurrentAgents().hasNoInprocessAgents()
+                && MASS_base.getOutputMigrateSet().isEmpty()) {
+              MASS_base.getAsyncOutputThread().notifyMigrateSenderOfCompleteness();
               MASS_base.notifyMasterOfCompleteness();
             }
 

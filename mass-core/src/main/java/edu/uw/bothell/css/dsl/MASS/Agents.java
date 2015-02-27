@@ -147,14 +147,18 @@ public class Agents extends Agents_base implements Serializable {
   @SuppressWarnings("unused")
   List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 
+    // reset estimate slave node complete
+    MASS.resetEstimateSlaveNodeComplete();
+
     // calculate the total number of agents
     total = 0;
     for (int i = 0; i < MASS_base.getSystemSize(); i++) {
       total += localAgents[i];
+      if(localAgents[i] == 0) {
+        // Node started with zero agent won't send completeness notification
+        MASS.incrementEstimateSlaveNodeComplete();
+      }
     }
-
-    // reset estimate slave node complete
-    MASS.resetEstimateSlaveNodeComplete();
 
     // Preparing this node for callAllAsync
     MASS_base.prepareAsyncExecution(this);
