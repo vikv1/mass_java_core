@@ -52,15 +52,15 @@ public class Colorer extends Agent {
 
   private Object initMigrate(Object o) {
     int yModifier = (Integer) o;
-    MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
+   // MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
     migrateAsync(0, yModifier);
     return o;
   }
 
   private Object initMigrateReverse(Object o) {
     int yModifier = (Integer) o;
-    MASS.log("initMigrateReverse [" + (Program.MATRIX_SIZE - 1) + ", "
-        + yModifier + "]");
+  //  MASS.log("initMigrateReverse [" + (Program.MATRIX_SIZE - 1) + ", "
+   //     + yModifier + "]");
     migrateAsync(Program.MATRIX_SIZE - 1, yModifier);
     return o;
   }
@@ -69,8 +69,8 @@ public class Colorer extends Agent {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     --xModifier;
-    MASS.log("move from [" + (xModifier + 1) + ", " + yModifier + "] to ["
-        + xModifier + ", " + yModifier + "]");
+  //  MASS.log("move from [" + (xModifier + 1) + ", " + yModifier + "] to ["
+    //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
   }
@@ -91,16 +91,16 @@ public class Colorer extends Agent {
         * 2.0;
     double x = 0.0, y = 0.0;
     int iteration = 0;
-    MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
-        + "].start x0 = " + x0 + ", y0 = " + y0);
+    //MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
+     //   + "].start x0 = " + x0 + ", y0 = " + y0);
     while (x * x + y * y < 4.0 && iteration < Program.MAX_ITERATION) {
       double xtemp = x * x - y * y + x0;
       y = 2 * x * y + y0;
       x = xtemp;
       iteration++;
     }
-    MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
-        + "] = " + iteration);
+   // MASS.log("Calculate color for place[" + xModifier + "][" + yModifier
+     //   + "] = " + iteration);
     appendAsyncResult(iteration);
     return o;
   }
@@ -115,8 +115,8 @@ public class Colorer extends Agent {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     xModifier++;
-    MASS.log("move from [" + (xModifier - 1) + ", " + yModifier + "] to ["
-        + xModifier + ", " + yModifier + "]");
+   // MASS.log("move from [" + (xModifier - 1) + ", " + yModifier + "] to ["
+    //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
   }

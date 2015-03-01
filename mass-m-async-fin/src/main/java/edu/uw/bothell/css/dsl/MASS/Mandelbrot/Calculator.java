@@ -52,7 +52,7 @@ public class Calculator extends Agent {
 
   private Object initMigrate(Object o) {
     int yModifier = (Integer) o;
-    MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
+    //MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
     migrateAsync(0, yModifier);
     return o;
   }
@@ -117,8 +117,8 @@ public class Calculator extends Agent {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     xModifier++;
-    MASS.log("move from [" + (xModifier - 1) + ", " + yModifier + "] to ["
-        + xModifier + ", " + yModifier + "]");
+   // MASS.log("move from [" + (xModifier - 1) + ", " + yModifier + "] to ["
+    //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
   }

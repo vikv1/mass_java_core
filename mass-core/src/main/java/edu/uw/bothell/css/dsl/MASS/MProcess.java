@@ -441,11 +441,13 @@ public class MProcess {
           agent.setParentAgents(MASS_base.getCurrentAgents());
           ++idx;
         }
-        if(idx == 0) {
+        if (idx == 0) {
           // has no agent
-          MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(false);
+          //MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(false);
         } else {
-          MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(true);
+          //MASS_base.getAsyncOutputThread().setSendCompleteNotifyToMaster(true);
+          MASS_base.getInputMigrateSet().add(0); // Need to notify Master
+          MASS_base.setSourceAgentPid(0);
         }
         // MASS_base.setCurrentReturns(new
         // Object[MASS_base.getCurrentAgents().getLocalPopulation()]); //
@@ -471,25 +473,25 @@ public class MProcess {
           // confirm all threads are done with agents.callAllAsync
           // tell master that I'm done
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
-                while (!MASS_base.getAsyncOutputThread().isIdle()
-                    || !MASS_base.getAsyncInputThread().isIdle(false)
-                    || !MASS_base.getOutputMigrateSet().isEmpty()
-                    /*|| !MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
-                    || !MASS_base.getCurrentAgents().hasNoInprocessAgents() */
-                    ) {
-                  if ( MASS.isConsoleLoggingEnabled()) {
-                    MASS_base.log("output idle = "
-                        + MASS_base.getAsyncOutputThread().isIdle()
-                        + ", input idle = "
-                        + MASS_base.getAsyncInputThread().isIdle(false)
-                        + ", output migrate set is empty = "
-                        + MASS_base.getOutputMigrateSet().isEmpty());
-                  }
-                  try {
-                    MASS_base.getCurrentAgents().getAsyncQueue().wait();
-                  } catch (InterruptedException e) {
-                  }
-                }
+            if (MASS.isConsoleLoggingEnabled()) {
+              MASS_base.log("output idle = "
+                  + MASS_base.getAsyncOutputThread().isIdle()
+                  + ", input idle = "
+                  + MASS_base.getAsyncInputThread().isIdle(false)
+                  + ", output migrate set is empty = "
+                  + MASS_base.getOutputMigrateSet().isEmpty());
+            }
+            while (!MASS_base.getAsyncOutputThread().isIdle()
+                || !MASS_base.getAsyncInputThread().isIdle(false)
+                || !MASS_base.getOutputMigrateSet().isEmpty()
+             && (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty() &&
+              MASS_base.getCurrentAgents().hasNoInprocessAgents())
+            ) {
+              try {
+                MASS_base.getCurrentAgents().getAsyncQueue().wait();
+              } catch (InterruptedException e) {
+              }
+            }
 
             // I'm done with my async queue and agents migration
             MASS_base.getCurrentAgents().setIsAsyncLoopIdle(true);
@@ -498,14 +500,15 @@ public class MProcess {
             if (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
                 && MASS_base.getCurrentAgents().hasNoInprocessAgents()
                 && MASS_base.getOutputMigrateSet().isEmpty()) {
-              MASS_base.getAsyncOutputThread().notifyMigrateSenderOfCompleteness();
-              MASS_base.notifyMasterOfCompleteness();
+              MASS_base.getAsyncOutputThread()
+                  .notifyMigrateSenderOfCompleteness();
+             // MASS_base.notifyMasterOfCompleteness();
             }
 
-            while (!MASS_base.getCurrentAgents().getResultRequestFromMaster()
+            while ((!MASS_base.getCurrentAgents().getResultRequestFromMaster()
                 && MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
-                && MASS_base.getCurrentAgents().hasNoInprocessAgents()) {
-              if ( MASS.isConsoleLoggingEnabled()) {
+                && MASS_base.getCurrentAgents().hasNoInprocessAgents())) {
+              if (MASS.isConsoleLoggingEnabled()) {
                 MASS_base.log("After notifying Master: "
                     + !MASS_base.getCurrentAgents()
                         .getResultRequestFromMaster() + " && "
@@ -521,10 +524,10 @@ public class MProcess {
             MASS_base.log("end of callAllAsync loop: "
                 + !MASS_base.getCurrentAgents().getResultRequestFromMaster());
           }
-          
-        //  Mthread.barrierThreads(0);
+
+          // Mthread.barrierThreads(0);
         } while (!MASS_base.getCurrentAgents().getResultRequestFromMaster());
-        
+
         if (MASS.isConsoleLoggingEnabled()) {
           MASS_base.log("barrier done callAll_ASync");
         }

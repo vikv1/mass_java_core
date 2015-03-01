@@ -148,15 +148,15 @@ public class Agents extends Agents_base implements Serializable {
   List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
 
     // reset estimate slave node complete
-    MASS.resetEstimateSlaveNodeComplete();
+    //MASS.resetEstimateSlaveNodeComplete();
 
     // calculate the total number of agents
     total = 0;
     for (int i = 0; i < MASS_base.getSystemSize(); i++) {
       total += localAgents[i];
-      if(localAgents[i] == 0) {
+      if(i!=0 && localAgents[i] != 0) {
         // Node started with zero agent won't send completeness notification
-        MASS.incrementEstimateSlaveNodeComplete();
+        MASS.getOutputMigrateSet().add(i);
       }
     }
 
@@ -240,19 +240,15 @@ public class Agents extends Agents_base implements Serializable {
       setIsAsyncLoopIdle(true);
       synchronized (getAsyncQueue()) {
           asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
-          while(!MASS.getSlaveNodeAsyncCompleteness() || 
+          while((!MASS.getOutputMigrateSet().isEmpty() || 
               !MASS.getAsyncOutputThread().isIdle()
-              || !MASS.getAsyncInputThread().isIdle(false)
-              || !asyncQueueComplete) {
+              || !MASS.getAsyncInputThread().isIdle(false))
+              && asyncQueueComplete) {
               if (MASS.isConsoleLoggingEnabled()) {
-                MASS.log(MASS.getCachedSlaveNodeAsyncCompleteness() + " && "
+                MASS.log(MASS.getOutputMigrateSet().isEmpty() + " && "
                     + MASS.getAsyncOutputThread().isIdle() + " && "
                     + MASS.getAsyncInputThread().isIdle(false) + 
                     " getAsyncQueue().size() = " + getAsyncQueue().size());
-              }
-              if(!asyncQueueComplete)
-              {
-                break;
               }
               try {
                 getAsyncQueue().wait();
@@ -261,7 +257,7 @@ public class Agents extends Agents_base implements Serializable {
               asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
             }
           }
-
+      
       // confirm all threads are done with agents.callAllAsync
       // backward compatibility barrier twice,
       // once in callAllAsync in each thread, but then slave thread

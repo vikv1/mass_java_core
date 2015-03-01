@@ -13,7 +13,7 @@ public class AgentList {
 	private int curr_x = -1;
 	private int next_y = 0;
 	private int iterator = 0;
-	private int asyncSize = 0;
+	private int estimateSize = 0;
 
 	public AgentList( ) {
 		init( CAPACITY_Y );
@@ -31,7 +31,7 @@ public class AgentList {
 		}
 		
 		array[curr_x][next_y++] = item;
-	
+		++estimateSize;
 	}
 		
 	/**
@@ -46,11 +46,11 @@ public class AgentList {
 	    array[xindex] = new Agent[CAPACITY_Y];	    
 	  }
 	  array[xindex][yindex] = item;
-	  ++asyncSize;
+	  ++estimateSize;
 	}
 	
-	public int asyncSize() {
-	  return asyncSize;
+	public int estimateSize() {
+	  return estimateSize;
 	}
 
 	public void check_internal( ) {
@@ -127,7 +127,7 @@ public class AgentList {
 				init_capacity : CAPACITY_Y;
 		
 		increaseX( ); 
-	
+		estimateSize = 0;
 	}
 
 	public synchronized Agent next( ) {
@@ -181,6 +181,7 @@ public class AgentList {
 		curr_x = x_null;
 		next_y = y_null;
 		reduceDone = true;
+		estimateSize = this.size_unreduced();
 		// System.out.println( "reduce done to " + size_unreduced( ) );
 	
 	}
@@ -197,7 +198,7 @@ public class AgentList {
 					
 					array[i][j] = null;
 					reduceDone = false;
-					
+					--estimateSize;
 					return;
 				
 				}
@@ -218,16 +219,14 @@ public class AgentList {
 			int y = linear_index % capacity_y;
 			array[x][y] = null;
 			reduceDone = false;
-			
+			--estimateSize;
 			/*
 	    	System.out.println( "AgentList.remove: " +
 				"linear_index = " + linear_index +
 				" array[" + x + "][" + y + "] = " +
 				array[x][y] );
 			 */
-		
-		}
-	
+		}	
 	}
 
 	public synchronized void setIterator( ) {

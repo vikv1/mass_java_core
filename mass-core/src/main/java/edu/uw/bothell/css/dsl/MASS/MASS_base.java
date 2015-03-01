@@ -72,7 +72,7 @@ public class MASS_base {
      *  reduce number of complete check in case master finish 
      * too early, issue check IFF this >= # of slaves
      */
-    private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
+    //private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
     /**
      *  cached value: true when master node receive 'complete'
      *  aka empty asyncQueue,
@@ -80,7 +80,10 @@ public class MASS_base {
      */
     private static boolean cachedAllAsyncNodeComplete = false;
     private static Set<Integer> inputMigrate = new HashSet<Integer>();
+    // used by master to keep track of complete agents
     private static Set<Integer> outputMigrate = new HashSet<Integer>();
+    private static volatile int sourceAgentPid = -1;
+    private static Set<Integer> childAgentPids = new HashSet<Integer>();
     /**
      * END Async vars section
      */
@@ -588,9 +591,11 @@ public class MASS_base {
       currentAgents.setResultRequestFromMaster(false);
       inputMigrate.clear();
       outputMigrate.clear();
+      sourceAgentPid = -1;
+      childAgentPids.clear();
     }
     
-    public static void resetEstimateSlaveNodeComplete() {
+    /*public static void resetEstimateSlaveNodeComplete() {
       estimateSlaveNodeComplete.set(0);
     }
     
@@ -622,7 +627,7 @@ public class MASS_base {
     
     public static void setCachedSlaveNodeAsyncCompleteness(boolean value) {
       cachedAllAsyncNodeComplete = value;
-    }
+    } */
     
     /**
      * Keep track of received migrate requests
@@ -638,6 +643,10 @@ public class MASS_base {
      */
     public static Set<Integer> getOutputMigrateSet() {
       return outputMigrate;
+    }
+    
+    public static Set<Integer> getChildAgentPids() {
+      return childAgentPids;
     }
 
     /**
@@ -664,8 +673,16 @@ public class MASS_base {
 		MASS_PORT = communicationPort;
 	
 	}
+	
+	public static int getSourceAgentPid() {
+	  return sourceAgentPid;
+	}
+	
+	public static void setSourceAgentPid(int value) {
+	  sourceAgentPid = value;
+	}
 
-  public static void notifyMasterOfCompleteness() {
+ /* public static void notifyMasterOfCompleteness() {
     outputThread.notifyMasterOfCompleteness();
-  }
+  }*/
 }

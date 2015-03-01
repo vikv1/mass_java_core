@@ -22,7 +22,7 @@ public class AsyncOutputThread extends Thread {
   private volatile Vector<AgentMigrationRequest>[] migrationRequestMap;
   private volatile LinkedList<Integer> lastRequestRank = new LinkedList<Integer>();
   private volatile AtomicInteger runningChildRequestCount;
-  private volatile boolean sendCompleteNotifyToMaster = true;
+  //private volatile boolean sendCompleteNotifyToMaster = true;
   private boolean running = true;
   private int port;
 
@@ -31,8 +31,11 @@ public class AsyncOutputThread extends Thread {
   private int placeHandle;
 
   // use in requestSlaveNodeAsyncCompleteness() call
-  private volatile AsyncCommunicationLock slaveCompleteLock = new AsyncCommunicationLock(),
-      slaveResultLock = new AsyncCommunicationLock();
+  private volatile AsyncCommunicationLock /*
+                                           * slaveCompleteLock = new
+                                           * AsyncCommunicationLock(),
+                                           */
+  slaveResultLock = new AsyncCommunicationLock();
 
   public AsyncOutputThread(int port) {
     this.port = port;
@@ -120,16 +123,6 @@ public class AsyncOutputThread extends Thread {
   }
 
   public void requestMigration(int destRank, AgentMigrationRequest request) {
-    synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
-      MASS_base.getInputMigrateSet().remove(destRank);
-      MASS_base.log("OutputMigrateSet add " + destRank);
-      if(MASS_base.getOutputMigrateSet().add(destRank))
-      {
-        if(MASS_base.getMyPid() == 0) {
-          MASS_base.decrementEstimateSlaveNodeComplete();
-        }
-      }
-    }
     synchronized (lastRequestRank) {
       synchronized (migrationRequestMap[destRank]) {
         migrationRequestMap[destRank].add(request);
@@ -226,6 +219,26 @@ public class AsyncOutputThread extends Thread {
       }
 
       try {
+        if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
+          synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+            if(MASS_base.getCurrentAgents().getAgents().estimateSize() == 0) {
+              // forget about my source Pid of agents
+              MASS_base.setSourceAgentPid(-1);
+            }
+            if(MASS_base.getInputMigrateSet().contains(rank)) {
+              if(MASS_base.getChildAgentPids().contains(rank) || rank > MASS_base.getMyPid()) {
+                MASS_base.getInputMigrateSet().remove(rank);
+                if(MASS.isConsoleLoggingEnabled())
+                  MASS_base.log("OutputMigrateSet remove then add " + rank);
+                MASS_base.getOutputMigrateSet().add(rank);                
+              }              
+            } else {
+              if(MASS.isConsoleLoggingEnabled())
+                MASS_base.log("OutputMigrateSet add " + rank);
+              MASS_base.getOutputMigrateSet().add(rank);       
+            }
+          }
+        }
         Socket sendSocket = new Socket(hostName, port);
         OutputStream os = sendSocket.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(os);
@@ -238,10 +251,13 @@ public class AsyncOutputThread extends Thread {
           }
           ObjectInputStream ois = new ObjectInputStream(
               sendSocket.getInputStream());
-          int decrease = (int) ois.readObject();
+          AgentMigrationResponse decrease = (AgentMigrationResponse) ois.readObject();
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
-            int incompleteCount = runningChildRequestCount.addAndGet(decrease
+            int incompleteCount = runningChildRequestCount.addAndGet(decrease.getNumOfAgentReceived()
                 * -1);
+            if(decrease.isChosenAsParentPid()) {
+              MASS_base.getChildAgentPids().add(rank);
+            }
             if (incompleteCount == 0) {
               MASS_base.getCurrentAgents().getAsyncQueue().notifyAll();
             }
@@ -319,103 +335,72 @@ public class AsyncOutputThread extends Thread {
     }
   }
 
-  private class SlaveNodeCompletenessRequest extends Thread {
-    private String hostname;
-
-    public SlaveNodeCompletenessRequest(String hname) {
-      // runningChildRequestCount.incrementAndGet();
-      hostname = hname;
-    }
-
-    public void run() {
-      try {
-        Socket sendSocket = new Socket(hostname, port);
-        Message message = new Message(
-            Message.ACTION_TYPE.NODE_MASTER_ASYNC_COMPLETE_REQUEST);
-        OutputStream os = sendSocket.getOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(os);
-        oos.writeObject(message);
-        ObjectInputStream ois = new ObjectInputStream(
-            sendSocket.getInputStream());
-        boolean result = (boolean) ois.readObject();
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASS_base.log("NODE_MASTER_ASYNC_COMPLETE_REQUEST from " + hostname
-              + " return " + result);
-        }
-        synchronized (slaveCompleteLock) {
-          if (!result) {
-            slaveCompleteLock.setResult(result);
-            MASS_base.decrementEstimateSlaveNodeComplete();
-          }
-          slaveCompleteLock.incrementCounter();
-          if (!result
-              || slaveCompleteLock.getCounter() == MASS_base.getRemoteNodes()
-                  .size()) {
-            slaveCompleteLock.set();
-            slaveCompleteLock.notifyAll();
-          }
-        }
-        oos.close();
-        ois.close();
-        os.close();
-        sendSocket.close();
-        /*
-         * synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) { if
-         * (runningChildRequestCount.decrementAndGet() == 0) {
-         * MASS_base.getCurrentAgents().getAsyncQueue().notifyAll(); } if (/*
-         * MASS.isConsoleLoggingEnabled() true) {
-         * MASS.log("SlaveNodeCompletenessRequest finish " +
-         * runningChildRequestCount.get()); } }
-         */
-      } catch (IOException | ClassNotFoundException e) {
-        MASS.logException(null, e);
-      }
-    }
-  }
+  /*
+   * private class SlaveNodeCompletenessRequest extends Thread { private MNode
+   * node;
+   * 
+   * public SlaveNodeCompletenessRequest(MNode n) { //
+   * runningChildRequestCount.incrementAndGet(); node = n; }
+   * 
+   * public void run() { try { Socket sendSocket = new
+   * Socket(node.getHostName(), port); Message message = new Message(
+   * Message.ACTION_TYPE.NODE_MASTER_ASYNC_COMPLETE_REQUEST); OutputStream os =
+   * sendSocket.getOutputStream(); ObjectOutputStream oos = new
+   * ObjectOutputStream(os); oos.writeObject(message); ObjectInputStream ois =
+   * new ObjectInputStream( sendSocket.getInputStream()); boolean result =
+   * (boolean) ois.readObject(); if (MASS.isConsoleLoggingEnabled()) {
+   * MASS_base.log("NODE_MASTER_ASYNC_COMPLETE_REQUEST from " +
+   * node.getHostName() + " return " + result); } synchronized
+   * (slaveCompleteLock) { if (!result) { slaveCompleteLock.setResult(result);
+   * MASS_base.getOutputMigrateSet().add(node.getPid()); }
+   * slaveCompleteLock.incrementCounter(); if (!result ||
+   * slaveCompleteLock.getCounter() == MASS_base.getRemoteNodes() .size()) {
+   * slaveCompleteLock.set(); slaveCompleteLock.notifyAll(); } } oos.close();
+   * ois.close(); os.close(); sendSocket.close(); synchronized
+   * (MASS_base.getCurrentAgents().getAsyncQueue()) { if
+   * (runningChildRequestCount.decrementAndGet() == 0) {
+   * MASS_base.getCurrentAgents().getAsyncQueue().notifyAll(); } if (/*
+   * MASS.isConsoleLoggingEnabled() true) {
+   * MASS.log("SlaveNodeCompletenessRequest finish " +
+   * runningChildRequestCount.get()); } }
+   * 
+   * } catch (IOException | ClassNotFoundException e) { MASS.logException(null,
+   * e); } } }
+   */
 
   /**
    * ONLY to be call by Master node
    * 
-   * @return
-   */
-  public boolean requestSlaveNodeAsyncCompleteness() {
-    slaveCompleteLock.reset();
-    slaveCompleteLock.setResult(true);
-    Iterator<MNode> remoteNodeIter = MASS_base.getRemoteNodes().iterator();
-    while (remoteNodeIter.hasNext()) {
-      new SlaveNodeCompletenessRequest(remoteNodeIter.next().getHostName())
-          .start();
-    }
-    synchronized (slaveCompleteLock) {
-      while (!slaveCompleteLock.isReady()) {
-        try {
-          slaveCompleteLock.wait();
-        } catch (InterruptedException e) {
-        }
-      }
-    }
-    return (boolean) slaveCompleteLock.getResult();
-  }
-
+   * @return public boolean requestSlaveNodeAsyncCompleteness() {
+   *         slaveCompleteLock.reset(); slaveCompleteLock.setResult(true);
+   *         Iterator<MNode> remoteNodeIter =
+   *         MASS_base.getRemoteNodes().iterator(); while
+   *         (remoteNodeIter.hasNext()) { new
+   *         SlaveNodeCompletenessRequest(remoteNodeIter.next()).start(); }
+   *         synchronized (slaveCompleteLock) { while
+   *         (!slaveCompleteLock.isReady()) { try { slaveCompleteLock.wait(); }
+   *         catch (InterruptedException e) { } } } return (boolean)
+   *         slaveCompleteLock.getResult(); }
+   
   public void notifyMasterOfCompleteness() {
-    if (!sendCompleteNotifyToMaster) {
-      sendCompleteNotifyToMaster = true;
-      return;
+    if (sendCompleteNotifyToMaster) {
+      // sendCompleteNotifyToMaster = true;
+      // return;
+      if (MASS.isConsoleLoggingEnabled()) {
+        MASS.log("notifyMasterOfCompleteness");
+      }
+      Message messageToDest = new Message(
+          Message.ACTION_TYPE.NODE_SLAVE_ASYNC_COMPLETE_NOTIFY);
+      messageToDest.setSourcePid(MASS_base.getMyPid());
+      SendMessageByChild thread_ref = new SendMessageByChild(0, messageToDest);
+      thread_ref.start();
     }
-    if (MASS.isConsoleLoggingEnabled()) {
-      MASS.log("notifyMasterOfCompleteness");
-    }
-    Message messageToDest = new Message(
-        Message.ACTION_TYPE.NODE_SLAVE_ASYNC_COMPLETE_NOTIFY);
-    // runningChildRequestCount.incrementAndGet();
-    SendMessageByChild thread_ref = new SendMessageByChild(0, messageToDest);
-    thread_ref.start();
-  }
+  }*/
 
   public void notifyMigrateSenderOfCompleteness() {
     for (int pid : MASS_base.getInputMigrateSet()) {
-      if (pid != 0) {
-        if(MASS.isConsoleLoggingEnabled()) {
+     // if (pid != 0) {
+        if (MASS.isConsoleLoggingEnabled()) {
           MASS_base.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + pid);
         }
         Message messageToDest = new Message(
@@ -424,7 +409,6 @@ public class AsyncOutputThread extends Thread {
         SendMessageByChild thread_ref = new SendMessageByChild(pid,
             messageToDest);
         thread_ref.start();
-      }
     }
     MASS_base.getInputMigrateSet().clear();
   }
@@ -440,8 +424,7 @@ public class AsyncOutputThread extends Thread {
     }
   }
 
-  public void setSendCompleteNotifyToMaster(boolean value) {
+  /*public void setSendCompleteNotifyToMaster(boolean value) {
     sendCompleteNotifyToMaster = value;
-  }
-
+  }*/
 }

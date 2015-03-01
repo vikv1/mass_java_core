@@ -21,7 +21,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
 
-	private static boolean printOutput = true;
+	private static boolean printOutput = false;
 
 	private static final int JschPort = 22;
 
@@ -579,7 +579,6 @@ public class MASS extends MASS_base {
 	/**
 	 * ONLY to call by Master node
 	 * @return
-	 */
 	public static boolean getSlaveNodeAsyncCompleteness() {
 	  if(MASS.isConsoleLoggingEnabled()) {
 	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
@@ -590,6 +589,7 @@ public class MASS extends MASS_base {
 	  }
 	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
 	}
+   */
 
   public static void getRemoteAsyncResults() {
     LocalAgents = new int[getRemoteNodes().size()];
