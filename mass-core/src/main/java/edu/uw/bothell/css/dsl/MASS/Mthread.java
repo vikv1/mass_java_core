@@ -39,7 +39,7 @@ public class Mthread extends Thread {
     				lock.wait( );
     			} 
     			catch( Exception e ) {
-    				// TODO - probably shouldn't be swalling this exception
+            MASS.logException(null, e);
     			}
     		
     		} 
@@ -78,6 +78,7 @@ public class Mthread extends Thread {
     }
     
     public void run( ) {
+      try {
     	 // Initialization portion
     	synchronized( lock ) {
     		threadCreated = tid;  // to inform MASS_base of my invocation
@@ -105,14 +106,7 @@ public class Mthread extends Thread {
     		synchronized( lock ) {
     			
     			if ( status == STATUS_TYPE.STATUS_READY ) {
-    				
-    				try {
     					lock.wait( );
-    				} 
-    				catch ( Exception e ) {
-    					MASS_base.logException(null, e);
-    				}
-    				
     			}
 
     			// wake-up message
@@ -121,13 +115,9 @@ public class Mthread extends Thread {
     		
     		}
     		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
-    		  try {
           agents = MASS_base.getCurrentAgents( );
           agents.callAllAsync(tid);
-    		  }catch(Throwable e) {
-    		    MASS_base.logException("Thread " + tid + " fails", e);
     		  }
-    		}
     		else {
     		// perform each task
     		switch( status ) {
@@ -236,7 +226,10 @@ public class Mthread extends Thread {
     		barrierThreads( tid );
     	}
     	}
-
+      }catch(Throwable e) {
+        MASS_base.logException("Thread " + tid + " fails", e);
+      }
+    
     	// last message
     	if (MASS.isConsoleLoggingEnabled())
     		MASS_base.log( "Mthread[" + tid + "] terminated" );

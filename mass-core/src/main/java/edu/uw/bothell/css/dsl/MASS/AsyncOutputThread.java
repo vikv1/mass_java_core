@@ -163,6 +163,7 @@ public class AsyncOutputThread extends Thread {
         try {
           slaveResultLock.wait();
         } catch (InterruptedException e) {
+          MASS.logException(null, e);
         }
       }
       finalAgents = (List<Agent>) slaveResultLock.getResult();
@@ -191,6 +192,7 @@ public class AsyncOutputThread extends Thread {
       try {
         Thread.sleep(NAGLE_TIMEOUT);
       } catch (InterruptedException e) {
+        MASS.logException(null, e);
       }
       synchronized (lastRequestRank) {
         lastRequestRank.add(destRank);

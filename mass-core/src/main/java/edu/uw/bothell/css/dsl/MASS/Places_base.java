@@ -130,7 +130,7 @@ public class Places_base {
     						thread_ref.join( );
     					} 
     					catch ( Exception e ) {
-    						// TODO - probably shouldn't be swallowing exceptions
+                MASS.logException(null, e);
     					}
     					
     					MASS_base.log( "Places_base.exchangeBoundary_helper " +
@@ -236,7 +236,7 @@ public class Places_base {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-    			// TODO - probably shouldn't be swallowing exceptions
+          MASS.logException(null, e);
     		}
 
     		// process a message
@@ -312,7 +312,7 @@ public class Places_base {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-    			// TODO - probably shouldn't be swallowing exceptions
+          MASS.logException(null, e);
     		}
 
     		// store return values to the orignal places
@@ -620,7 +620,7 @@ public class Places_base {
     				thread_ref[rank].join( );
     			} 
     			catch ( Exception e ) {
-    				// TODO - probably shouldn't be swallowing exceptions
+            MASS.logException(null, e);
     			}
     		
     		}
@@ -988,7 +988,7 @@ public class Places_base {
     	
     	} 
     	catch ( Exception e ) {
-    		// TODO - probably shouldn't be swallowing exceptions
+        MASS.logException(null, e);
     	} 
     
     }

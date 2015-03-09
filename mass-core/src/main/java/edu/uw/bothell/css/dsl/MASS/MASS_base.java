@@ -321,7 +321,7 @@ public class MASS_base {
 		try {
 			objectFactory.addUri(new File(MASS_base.getWorkingDirectory()).toURI().toString());
 		} catch (Exception e) {
-			// TODO need to handle exceptions here better
+      MASS.logException(null, e);
 		}
 		// Async section
     initAsyncCommunicationThreads();

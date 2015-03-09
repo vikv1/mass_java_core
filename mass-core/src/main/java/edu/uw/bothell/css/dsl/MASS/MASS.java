@@ -58,7 +58,7 @@ public class MASS extends MASS_base {
     		objectFactory.addLibrary(libraryName);
     	}
     	catch (Exception e) {
-    		// TODO - should handle exceptions better here
+        MASS.logException(null, e);
     	}
 
     	// remember the specified library so it can be set on remote nodes as well
