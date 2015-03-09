@@ -228,10 +228,6 @@ public class MASS extends MASS_base {
 		return printOutput;
 	}
 	
-	public static void setConsoleLogging(boolean value) {
-	  printOutput = value;
-	}
-
 	/**
 	 * Initialize the MASS library (using settings made previously via setters)
 	 */
@@ -386,8 +382,8 @@ public class MASS extends MASS_base {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xms1g ");
-    		commandBuilder.append("-Xmx2g ");
+    		commandBuilder.append("-Xms2g ");
+    		commandBuilder.append("-Xmx9g ");
     		
     		// set location of MASS.jar
     		commandBuilder.append("-cp ");
@@ -592,8 +588,10 @@ public class MASS extends MASS_base {
    */
 
   public static void getRemoteAsyncResults() {
-    LocalAgents = new int[getRemoteNodes().size()];
-    getAsyncOutputThread().requestAsyncResults();
+    if(!getRemoteNodes().isEmpty()) {
+      LocalAgents = new int[getRemoteNodes().size()];
+      getAsyncOutputThread().requestAsyncResults();
+    }
   }
 	
 	/**

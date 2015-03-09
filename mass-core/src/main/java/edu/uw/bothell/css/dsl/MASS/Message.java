@@ -36,7 +36,7 @@ public class Message implements Serializable {
 	    AGENT_ASYNC_RESULT("AGENT_ASYNC_RESULT"),                       // 20
 	   // NODE_SLAVE_ASYNC_COMPLETE_NOTIFY("NODE_SLAVE_ASYNC_COMPLETE_NOTIFY"),          
     	// 21 tell master that I'm done
-	    NODE_SLAVE_COMPLETE_NOTIFY_SENDER("NODE_SLAVE_COMPLETE_NOTIFY_SENDER");
+	    NODE_COMPLETE_NOTIFY_SOURCE("NODE_COMPLETE_NOTIFY_SOURCE");
     	// 22
     	
     	private final String value;

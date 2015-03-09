@@ -145,10 +145,10 @@ public class Agents extends Agents_base implements Serializable {
   }
 
   @SuppressWarnings("unused")
-  List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) {
+  List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) throws Exception {
 
-    // reset estimate slave node complete
-    //MASS.resetEstimateSlaveNodeComplete();
+    // Preparing this node for callAllAsync
+    MASS_base.prepareAsyncExecution(this);
 
     // calculate the total number of agents
     total = 0;
@@ -156,12 +156,13 @@ public class Agents extends Agents_base implements Serializable {
       total += localAgents[i];
       if(i!=0 && localAgents[i] != 0) {
         // Node started with zero agent won't send completeness notification
-        MASS.getOutputMigrateSet().add(i);
+        MASS.getChildAgentPids().add(i);
+        MASS.getOutAsyncAgents()[i] += localAgents[i]; // a way for master to keep track
+        if(MASS.isConsoleLoggingEnabled()) {
+          MASS.log("Node " + i + " has master as originator");
+        }
       }
     }
-
-    // Preparing this node for callAllAsync
-    MASS_base.prepareAsyncExecution(this);
 
     // send a AGENTS_CALL_ALL_ASYNC message to each slave
     Message m = null;
@@ -240,12 +241,18 @@ public class Agents extends Agents_base implements Serializable {
       setIsAsyncLoopIdle(true);
       synchronized (getAsyncQueue()) {
           asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
-          while((!MASS.getOutputMigrateSet().isEmpty() || 
+          if(MASS.isConsoleLoggingEnabled()) {
+            MASS.log("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " 
+                + getAsyncQueue().isEmpty() + " && " + hasNoInprocessAgents() +
+                "; MASS.getChildAgentPids().isEmpty() = " +
+                MASS.getChildAgentPids().isEmpty());
+          }
+          while((!MASS.getChildAgentPids().isEmpty() || 
               !MASS.getAsyncOutputThread().isIdle()
               || !MASS.getAsyncInputThread().isIdle(false))
               && asyncQueueComplete) {
               if (MASS.isConsoleLoggingEnabled()) {
-                MASS.log(MASS.getOutputMigrateSet().isEmpty() + " && "
+                MASS.log(MASS.getChildAgentPids().isEmpty() + " && "
                     + MASS.getAsyncOutputThread().isIdle() + " && "
                     + MASS.getAsyncInputThread().isIdle(false) + 
                     " getAsyncQueue().size() = " + getAsyncQueue().size());
@@ -253,6 +260,7 @@ public class Agents extends Agents_base implements Serializable {
               try {
                 getAsyncQueue().wait();
               } catch (InterruptedException e) {
+                MASS.logException(null, e);
               }              
               asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
             }
@@ -286,7 +294,7 @@ public class Agents extends Agents_base implements Serializable {
   }
 
   public List<Agent> callAllAsync(LinkedList<Integer> functionIds,
-      Object[] arguments) {
+      Object[] arguments) throws Exception {
     return ca_setupAsync(functionIds, arguments);
   }
 

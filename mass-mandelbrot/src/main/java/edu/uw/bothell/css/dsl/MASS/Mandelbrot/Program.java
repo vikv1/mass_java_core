@@ -14,8 +14,8 @@ public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-mandelbrot-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
-  public static final int MAX_ITERATION = 600000;
-  public static int MATRIX_SIZE = 3072, NTHREADS = 4;
+  public static final int MAX_ITERATION = 200000;
+  public static int MATRIX_SIZE = 5024, NTHREADS = 4;
 	
 	public static void main(String[] args) {
     if(args.length > 1) {
@@ -27,7 +27,7 @@ public class Program {
 		MASS.addLibrary(JAR_FILE_NAME);
 		MASS.setNodeFilePath(NODE_FILE);
 		MASS.setCommunicationPort(50951);
-		MASS.setNumThreads(2);
+		MASS.setNumThreads(NTHREADS);
 
     String startStr = "START - " + (new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()));
     System.out.println(startStr);
@@ -38,15 +38,16 @@ public class Program {
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
-		
+		System.err.println("Places init done");
 		// create Agents (number of Agents = y in this case), in Places
 		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, MATRIX_SIZE);
-
+		System.err.println("Agents init done");
     long syncStart = System.nanoTime();
 		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
 		for(int i = 0; i < MATRIX_SIZE; i++){
 		  agentsCallAllObjs[i] = i;
 		}
+		System.err.println("callAll sync start");
 		Object[] calledAgentsResults = (Object[]) agents.callAll(Colorer.INIT_MIGRATE, agentsCallAllObjs);
 		agents.manageAll();
 		calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);

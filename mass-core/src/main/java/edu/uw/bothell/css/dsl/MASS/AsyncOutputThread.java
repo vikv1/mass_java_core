@@ -72,6 +72,7 @@ public class AsyncOutputThread extends Thread {
           try {
             lastRequestRank.wait();
           } catch (InterruptedException e) {
+            MASS.logException(null, e);
           }
         }
 
@@ -221,22 +222,7 @@ public class AsyncOutputThread extends Thread {
       try {
         if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
           synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
-            if(MASS_base.getCurrentAgents().getAgents().estimateSize() == 0) {
-              // forget about my source Pid of agents
-              MASS_base.setSourceAgentPid(-1);
-            }
-            if(MASS_base.getInputMigrateSet().contains(rank)) {
-              if(MASS_base.getChildAgentPids().contains(rank) || rank > MASS_base.getMyPid()) {
-                MASS_base.getInputMigrateSet().remove(rank);
-                if(MASS.isConsoleLoggingEnabled())
-                  MASS_base.log("OutputMigrateSet remove then add " + rank);
-                MASS_base.getOutputMigrateSet().add(rank);                
-              }              
-            } else {
-              if(MASS.isConsoleLoggingEnabled())
-                MASS_base.log("OutputMigrateSet add " + rank);
-              MASS_base.getOutputMigrateSet().add(rank);       
-            }
+            MASS_base.getOutAsyncAgents()[rank] += message.getMigrationReqList().size();
           }
         }
         Socket sendSocket = new Socket(hostName, port);
@@ -397,20 +383,19 @@ public class AsyncOutputThread extends Thread {
     }
   }*/
 
-  public void notifyMigrateSenderOfCompleteness() {
-    for (int pid : MASS_base.getInputMigrateSet()) {
-     // if (pid != 0) {
+  public void notifySourceOfCompleteness(int numOfInAgents) {
+      if (MASS_base.getSourceAgentPid() != -1) {
         if (MASS.isConsoleLoggingEnabled()) {
-          MASS_base.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + pid);
+          MASS_base.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + MASS_base.getSourceAgentPid());
         }
         Message messageToDest = new Message(
-            Message.ACTION_TYPE.NODE_SLAVE_COMPLETE_NOTIFY_SENDER);
+            Message.ACTION_TYPE.NODE_COMPLETE_NOTIFY_SOURCE, numOfInAgents);
         messageToDest.setSourcePid(MASS_base.getMyPid());
-        SendMessageByChild thread_ref = new SendMessageByChild(pid,
+        SendMessageByChild thread_ref = new SendMessageByChild(MASS_base.getSourceAgentPid(),
             messageToDest);
         thread_ref.start();
     }
-    MASS_base.getInputMigrateSet().clear();
+    MASS_base.setSourceAgentPid(-1);
   }
 
   public boolean isIdle() {

@@ -110,7 +110,7 @@ public class Mthread extends Thread {
     					lock.wait( );
     				} 
     				catch ( Exception e ) {
-    					// TODO - probably should not swallow this exception
+    					MASS_base.logException(null, e);
     				}
     				
     			}
@@ -121,8 +121,12 @@ public class Mthread extends Thread {
     		
     		}
     		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
+    		  try {
           agents = MASS_base.getCurrentAgents( );
           agents.callAllAsync(tid);
+    		  }catch(Throwable e) {
+    		    MASS_base.logException("Thread " + tid + " fails", e);
+    		  }
     		}
     		else {
     		// perform each task

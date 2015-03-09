@@ -9,11 +9,11 @@ public class Calculator extends Agent {
 
   private Object obj;
 
-  public static final int CALCULATE_COLOR = 0;
-  public static final int MIGRATE = 1;
-  public static final int INIT_MIGRATE = 2;
-  public static final int MIGRATE_HORIZON = 3;
-  public static final int INIT_MIGRATE_HORIZON = 4;
+  public static final int CALCULATE_COLOR = 1;
+  public static final int MIGRATE = 2;
+  public static final int INIT_MIGRATE = 3;
+  public static final int MIGRATE_HORIZON = 4;
+  public static final int INIT_MIGRATE_HORIZON = 5;
 
   /**
    * This constructor will be called upon instantiation by MASS The Object
@@ -44,6 +44,7 @@ public class Calculator extends Agent {
     case INIT_MIGRATE_HORIZON:
       return initMigrateHorizon(o);
     default:
+      MASS.log("unknown method number " + method);
       return new String("Unknown Method Number: " + method);
 
     }

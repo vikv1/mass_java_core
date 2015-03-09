@@ -18,8 +18,8 @@ public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-m-async-fin-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
-	public static final int MAX_ITERATION = 600000;
-	public static int MATRIX_SIZE = 2048, NTHREADS = 2;
+	public static final int MAX_ITERATION = 300000;
+	public static int MATRIX_SIZE = 4032, NTHREADS = 4;
 	
 	public static void main(String[] args) {
 	  if(args.length > 1) {
@@ -41,10 +41,10 @@ public class Program {
 		MASS.init();
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Cell", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
-		
+		System.err.println("Places init done");
 		// create Agents (number of Agents = y in this case), in Places
 		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Calculator", null, places, MATRIX_SIZE);
-		
+    System.err.println("Agents init done");
 		long asyncStart = System.nanoTime();
 		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
 		for(int i = 0; i < MATRIX_SIZE; i++){
@@ -60,7 +60,12 @@ public class Program {
     }
 		
     System.err.println("callAllAsync start");
-		List<Agent> results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+    List<Agent> results = null;
+    try {
+      results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+    }catch(Throwable e) {
+      MASS.logException(null, e);
+    }
 		
 		long asyncEnd = System.nanoTime();
 		System.err.println("callAllAsync end");

@@ -186,25 +186,25 @@ public class Agent implements Serializable {
 		this.place = place;
 	}
 	
+	public LinkedList<Integer> getAsyncFuncList() {
+	  return asyncFuncList;
+	}
+	
 	public void setAsyncFuncList(Collection<Integer> funcIds) {
 	 asyncFuncList.clear();
 	 asyncFuncList.addAll(funcIds);
 	}
 	
-	public LinkedList<Integer> getAsyncFuncList() {
-	  return asyncFuncList;
+	public LinkedList<Object> getAsyncResults() {
+	    return asyncResults;
 	}
 	
 	protected void appendAsyncResult(Object newResult) {
 	  asyncResults.add(newResult);
 	}
 	
-	public LinkedList<Object> getAsyncResults() {
-	  return asyncResults;
-	}
-	
 	public void resetAsyncResults() {
-	  asyncResults = new LinkedList<Object>();
+      asyncResults = new LinkedList<Object>();
 	}
 	
 	public void setAsyncArgument(Object newArg) {

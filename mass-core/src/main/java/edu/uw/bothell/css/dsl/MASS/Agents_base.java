@@ -331,7 +331,7 @@ public class Agents_base implements Serializable {
     }
 
 	@SuppressWarnings("unused")
-  public void callAllAsync(int tid ) {	 
+  public void callAllAsync(int tid ) throws Exception {	 
 	  Agent executedAgent = null;
 	  int inProcessCount = 0;
 	  do 
@@ -352,8 +352,8 @@ public class Agents_base implements Serializable {
   	  if(executedAgent != null) {
   	    //MASS_base.log("dequeue " + executedAgent.getMyOriginalAsyncIndex() + ": " + executedAgent.getAsyncFuncList().size());
         while(!executedAgent.getAsyncFuncList().isEmpty()) {
-          executedAgent.callMethod(
-              executedAgent.getAsyncFuncList().removeFirst(), 
+          int methodId = executedAgent.getAsyncFuncList().removeFirst();
+          executedAgent.callMethod(methodId, 
               executedAgent.getAsyncArgument());
           
           // only the first method has arg
@@ -813,7 +813,7 @@ public class Agents_base implements Serializable {
     				thread_ref[rank].join( );
     			}
     			catch ( Exception e ) {
-    				// TODO - really should do something besides swallowing the exception here
+    				MASS.logException(null, e);
     			}
 
     			if ( MASS.isConsoleLoggingEnabled() == true )
@@ -1138,7 +1138,7 @@ public class Agents_base implements Serializable {
     			orgRequest.clear( );
     		} 
     		catch ( Exception e ) {
-    			// TODO - really should do something besides swallowing the exception here
+    			MASS.logException(null, e);
     		}
 
 

@@ -29,7 +29,6 @@ public class Program {
 		MASS.setNodeFilePath(NODE_FILE);
     MASS.setCommunicationPort(50951);
     MASS.setNumThreads(NTHREADS);
-    MASS.setConsoleLogging(true);
 		
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		

@@ -74,16 +74,12 @@ public class MASS_base {
      */
     //private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
     /**
-     *  cached value: true when master node receive 'complete'
-     *  aka empty asyncQueue,
-     *  respond from all other slave nodes
+     *  Agents async migrate out and into this node
      */
-    private static boolean cachedAllAsyncNodeComplete = false;
-    private static Set<Integer> inputMigrate = new HashSet<Integer>();
-    // used by master to keep track of complete agents
-    private static Set<Integer> outputMigrate = new HashSet<Integer>();
+    private static volatile int[] outAgents, inAgents;
     private static volatile int sourceAgentPid = -1;
-    private static Set<Integer> childAgentPids = new HashSet<Integer>();
+    private static volatile Set<Integer> childAgentPids = new HashSet<Integer>();
+    
     /**
      * END Async vars section
      */
@@ -402,7 +398,7 @@ public class MASS_base {
     }	
 	}
     
-    public static void logException(String message, Exception e) {
+    public static void logException(String message, Throwable e) {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
       e.printStackTrace(pw);
@@ -587,10 +583,13 @@ public class MASS_base {
       currentAgents.getAsyncQueue().addAll(currentAgents.getAgents().getAll());
       outputThread.setAgentHandle(agents.getHandle());
       outputThread.setPlaceHandle(agents.getPlacesHandle());
-      cachedAllAsyncNodeComplete = false;
+      outAgents = new int[getSystemSize()];
+      inAgents = new int[getSystemSize()];
+      for(int i = 0; i < outAgents.length; i++) {
+        outAgents[i] = 0;
+        inAgents[i] = 0;
+      }
       currentAgents.setResultRequestFromMaster(false);
-      inputMigrate.clear();
-      outputMigrate.clear();
       sourceAgentPid = -1;
       childAgentPids.clear();
     }
@@ -629,24 +628,24 @@ public class MASS_base {
       cachedAllAsyncNodeComplete = value;
     } */
     
-    /**
-     * Keep track of received migrate requests
-     * @return
-     */
-    public static Set<Integer> getInputMigrateSet() {
-      return inputMigrate;
-    }
-    
-    /**
-     * Keep track of sent migrate
-     * @return
-     */
-    public static Set<Integer> getOutputMigrateSet() {
-      return outputMigrate;
-    }
-    
     public static Set<Integer> getChildAgentPids() {
       return childAgentPids;
+    }
+    
+    public static int getSourceAgentPid() {
+      return sourceAgentPid;
+    }
+    
+    public static void setSourceAgentPid(int value) {
+      sourceAgentPid = value;
+    }
+    
+    public static int[] getOutAsyncAgents() {
+      return outAgents;
+    }
+    
+    public static int[] getInAsyncAgents() {
+      return inAgents;
     }
 
     /**
@@ -672,14 +671,6 @@ public class MASS_base {
 		
 		MASS_PORT = communicationPort;
 	
-	}
-	
-	public static int getSourceAgentPid() {
-	  return sourceAgentPid;
-	}
-	
-	public static void setSourceAgentPid(int value) {
-	  sourceAgentPid = value;
 	}
 
  /* public static void notifyMasterOfCompleteness() {
