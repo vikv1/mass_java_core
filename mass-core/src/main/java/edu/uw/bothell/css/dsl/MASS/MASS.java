@@ -514,7 +514,6 @@ public class MASS extends MASS_base {
     	}
 
     	catch ( Exception e ) {
-
     		System.err.println( "Error during MASS.init() optional argument" +
     				"parsing " + e.getStackTrace());
 

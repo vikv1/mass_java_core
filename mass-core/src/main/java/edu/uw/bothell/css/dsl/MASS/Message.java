@@ -73,7 +73,7 @@ public class Message implements Serializable {
     private int sourcePid = -1;
     
     // Async vars
-    private LinkedList<Integer> functionIds = null;
+    private int[] functionIds = null;
 
     // EMPTY
     public Message( ) { }
@@ -256,7 +256,7 @@ public class Message implements Serializable {
     
     // Async methods
     // AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
-    public Message( ACTION_TYPE action, int handle, LinkedList<Integer> functionIds, Object argument ) {
+    public Message( ACTION_TYPE action, int handle, int[] functionIds, Object argument ) {
 
       this.action = action;
       this.handle = handle;
@@ -265,7 +265,7 @@ public class Message implements Serializable {
 
     }
     
-    public LinkedList<Integer> getFunctionIds() {
+    public int[] getFunctionIds() {
       return functionIds;
     }
     

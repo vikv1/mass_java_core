@@ -572,15 +572,24 @@ public class MASS_base {
       outputThread.start();
     }
 
-    public static void prepareAsyncExecution(Agents_base agents) {
+    public static void prepareAsyncExecution(Agents_base agents, int[] fIds) {
       setCurrentAgents(agents);
-      Mthread.setAgentBagSize(currentAgents.getAgents().size_unreduced( ));
+      Mthread.setAgentBagSize(currentAgents.getAgents().size());
       
+      currentAgents.setAsyncFuncList(fIds);
       currentAgents.resetChildAsyncIndex();
       currentAgents.resetCompleteQueue();
       
-      currentAgents.getAsyncQueue().clear();
-      currentAgents.getAsyncQueue().addAll(currentAgents.getAgents().getAll());
+      currentAgents.asyncQueueClear();
+      for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
+        currentAgents.asyncQueueAdd(i);
+        currentAgents.getAgents().get(i).setAsyncFuncListIndex(0);
+        currentAgents.getAgents().get(i).resetAsyncResults();
+        currentAgents.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
+        currentAgents.getAgents().get(i).setMyOriginalAsyncIndex(i);
+        currentAgents.getAgents().get(i).setCurrentIndex(i);
+        currentAgents.getAgents().get(i).setParentAgents(currentAgents);
+      }
       outputThread.setAgentHandle(agents.getHandle());
       outputThread.setPlaceHandle(agents.getPlacesHandle());
       outAgents = new int[getSystemSize()];

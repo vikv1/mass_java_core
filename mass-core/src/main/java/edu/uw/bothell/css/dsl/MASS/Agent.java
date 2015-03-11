@@ -25,13 +25,13 @@ public class Agent implements Serializable {
 	private Object[] arguments = null;
 	
 	// Async
-	private volatile LinkedList<Integer> asyncFuncList;
-	private volatile LinkedList<Object> asyncResults;
+	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
+	private LinkedList<Object> asyncResults;
 	private Object asyncArgument;
 	private volatile Agents_base parentAgents;
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
-	private volatile boolean stopProcessAsyncFuncList = false;
+	private volatile boolean hasAlreadyRemoteMigrated = false;
 	private volatile boolean putBackToAsyncQueue = false;
 	
 	/**
@@ -44,7 +44,7 @@ public class Agent implements Serializable {
 	private int myOriginalAsyncIndex;
 	/**
 	 * The current index of this agent in agent list
-	 * change when remote migrate, used for killing
+	 * change when remote migrate, used for killing, async queue access
 	 */
 	private volatile int myCurrentIndex;
 	
@@ -58,7 +58,7 @@ public class Agent implements Serializable {
 		//placesHandle = Agents.getAgentInitPlacesHandle();
 		agentId = Agents.getAgentInitAgentId();
 		//parentId = Agents.getAgentInitParentId();
-		asyncFuncList = new LinkedList<Integer>();
+	//	asyncFuncList = new LinkedList<Integer>();
 	}
 
 	public Object callMethod( int functionId, Object argument ) {
@@ -104,7 +104,7 @@ public class Agent implements Serializable {
 	
 	public void killAsync() {
 	  kill();
-	  stopProcessAsyncFuncList = true;
+	  hasAlreadyRemoteMigrated = true;
 	  synchronized(Mthread.class){
 	    Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
 	  }
@@ -114,9 +114,10 @@ public class Agent implements Serializable {
 
     // remove from AgentList, too!
 	  // unlike sync myAsyncIndex start from 0
-    parentAgents.getAgents().remove( myCurrentIndex );
+    /** TO DO IN callAllAsyncLoop only
+	  parentAgents.getAgents().remove( myCurrentIndex );*/
     // So Agents_base put the result into completeQueue
-    asyncFuncList.clear();
+    asyncFuncListIndex = -1;
     parentAgents = null;
 	}
 
@@ -186,13 +187,17 @@ public class Agent implements Serializable {
 		this.place = place;
 	}
 	
-	public LinkedList<Integer> getAsyncFuncList() {
-	  return asyncFuncList;
+	public int getAsyncFuncListIndex() {
+	  return asyncFuncListIndex;
 	}
 	
-	public void setAsyncFuncList(Collection<Integer> funcIds) {
-	 asyncFuncList.clear();
-	 asyncFuncList.addAll(funcIds);
+	public int pollAsyncFuncListIndex() {
+	  ++asyncFuncListIndex;
+	  return asyncFuncListIndex - 1;
+	}
+	
+	public void setAsyncFuncListIndex(int index) {
+	  asyncFuncListIndex = index;
 	}
 	
 	public LinkedList<Object> getAsyncResults() {
@@ -247,12 +252,12 @@ public class Agent implements Serializable {
 	  return parentAgents;
 	}
 	
-	public boolean shouldStopProcessAsyncFuncList() {
-	  return stopProcessAsyncFuncList;
+	public boolean hasAlreadyRemoteMigrate() {
+	  return hasAlreadyRemoteMigrated;
 	}
 
-	public void setStopProcessAsyncFuncList(boolean value) {
-    stopProcessAsyncFuncList = value;
+	public void setHasAlreadyRemoteMigrated(boolean value) {
+    hasAlreadyRemoteMigrated = value;
   }
 	
 	public boolean shouldPutBackToAsyncQueue() {
@@ -280,9 +285,9 @@ public class Agent implements Serializable {
 	 * @param arguments
 	 * @param functionIds
 	 */
-	protected void spawnAsync(int numAgents, Object[] arguments, LinkedList<Integer>[] functionIds) {
+	protected void spawnAsync(int numAgents, Object[] arguments) {
 	  if(numAgents > 0) {
-	    parentAgents.spawnAsync(this, numAgents, arguments, functionIds);
+	    parentAgents.spawnAsync(this, numAgents, arguments);
 	  }
 	}
 	

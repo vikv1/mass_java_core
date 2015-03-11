@@ -243,7 +243,7 @@ public class AgentList {
 		return curr_x * capacity_y + next_y;
 	}
 	
-	public synchronized LinkedList<Agent> getAll() {
+	/*public synchronized LinkedList<Agent> getAll() {
 	  reduce_helper();
 	  LinkedList<Agent> result = new LinkedList<Agent>();
 	  int x = 0, y = 0;
@@ -258,5 +258,5 @@ public class AgentList {
 	    }
 	  }
 	  return result;
-	}
+	} */
 }

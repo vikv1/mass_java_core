@@ -16,7 +16,7 @@ public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-mandelbrot-async-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
-	public static final int MAX_ITERATION = 1000;
+	public static final int MAX_ITERATION = 300;
 	public static int MATRIX_SIZE = 8, NTHREADS = 2;
 	
 	public static void main(String[] args) {
@@ -44,15 +44,20 @@ public class Program {
 		  agentsCallAllObjs[i] = i;
 		}
 		
-		LinkedList<Integer> funcIds = new LinkedList<Integer>();
-		funcIds.add(Colorer.INIT_MIGRATE);
-		funcIds.add(Colorer.CALCULATE_COLOR);
+		int[] funcIds = new int[MATRIX_SIZE * 2];
+		funcIds[0] = Colorer.INIT_MIGRATE;
+		funcIds[1] = Colorer.CALCULATE_COLOR;
     for (int i = 1; i < MATRIX_SIZE; i ++) {
-      funcIds.add(Colorer.MIGRATE);
-      funcIds.add(Colorer.CALCULATE_COLOR);
+      funcIds[2 * i] = Colorer.MIGRATE;
+      funcIds[2 * i + 1] = Colorer.CALCULATE_COLOR;
     }
 		
-		List<Agent> results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+		List<Agent> results = null;
+    try {
+      results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+    } catch (Exception e) {
+      MASS.logException(null, e);
+    }
 		// orderly shutdown
 		MASS.finish();
 		System.out.println("Collecting results");

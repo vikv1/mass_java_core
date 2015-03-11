@@ -136,14 +136,14 @@ public class AsyncInputThread extends Thread {
             for (AgentMigrationRequest request : receivedRequests) {
               int globalLinearIndex = request.destGlobalLinearIndex;
               Agent agent = request.agent;
-              agent.setStopProcessAsyncFuncList(false);
+              agent.setHasAlreadyRemoteMigrated(false);
               agent.setPutBackToAsyncQueue(false);
               // local destination
               int destinationLocalLinearIndex = globalLinearIndex
                   - dstPlaces.getLowerBoundary();
               if (MASS.isConsoleLoggingEnabled())
                 MASS_base.log(" dstLocalIndex = " + destinationLocalLinearIndex
-                    + ", func size = " + agent.getAsyncFuncList().size());
+                    + ", async func index = " + agent.getAsyncFuncListIndex());
 
               Place dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
 
@@ -154,10 +154,10 @@ public class AsyncInputThread extends Thread {
                   .size_unreduced());
               agent.setParentAgents(MASS_base.getCurrentAgents());
               MASS_base.getCurrentAgents().getAgents().add(agent);
-              MASS_base.getCurrentAgents().getAsyncQueue().add(agent);
+              MASS_base.getCurrentAgents().asyncQueueAdd(agent.getCurrentIndex());
               if (MASS.isConsoleLoggingEnabled())
                 MASS_base.log("migrate agent added to async queue, new size = "
-                    + MASS_base.getCurrentAgents().getAsyncQueue().size());
+                    + MASS_base.getCurrentAgents().asyncQueueSize());
             }
             MASS_base.getInAsyncAgents()[m.getSourcePid()] += receivedRequests
                 .size();

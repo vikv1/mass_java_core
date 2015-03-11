@@ -130,8 +130,8 @@ public class AsyncOutputThread extends Thread {
       }
       int lastCount = runningChildRequestCount.incrementAndGet();
       if (MASS.isConsoleLoggingEnabled()) {
-        MASS.log("requestMigration to [" + destRank + "]. func size = "
-            + request.agent.getAsyncFuncList().size()
+        MASS.log("requestMigration to [" + destRank + "]. asyncfunc index = "
+            + request.agent.getAsyncFuncListIndex()
             + " runningChildRequestCount = " + lastCount);
       }
 

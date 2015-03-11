@@ -145,10 +145,10 @@ public class Agents extends Agents_base implements Serializable {
   }
 
   @SuppressWarnings("unused")
-  List<Agent> ca_setupAsync(LinkedList<Integer> functionIds, Object[] arguments) throws Exception {
+  List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments) throws Exception {
 
     // Preparing this node for callAllAsync
-    MASS_base.prepareAsyncExecution(this);
+    MASS_base.prepareAsyncExecution(this, functionIds);
 
     // calculate the total number of agents
     total = 0;
@@ -196,17 +196,8 @@ public class Agents extends Agents_base implements Serializable {
       }
     }
 
-    int idx = 0;
-    for (Iterator<Agent> iter = getAsyncQueue().iterator(); iter.hasNext();) {
-      Agent agent = iter.next();
-      agent.setAsyncFuncList(functionIds);
-      agent.resetAsyncResults();
-      agent.setAsyncArgument(arguments[idx]);
-      agent.setMyAsyncOriginalPid(MASS.getMyPid());
-      agent.setMyOriginalAsyncIndex(idx);
-      agent.setCurrentIndex(idx);
-      agent.setParentAgents(this);
-      ++idx;
+    for (int i = 0; i < asyncQueueSize(); i++) {
+      getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
     }
     // shared between agents
     // TODO What is share here?
@@ -240,10 +231,10 @@ public class Agents extends Agents_base implements Serializable {
       // Done with processing my async queue
       setIsAsyncLoopIdle(true);
       synchronized (getAsyncQueue()) {
-          asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
+          asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
           if(MASS.isConsoleLoggingEnabled()) {
             MASS.log("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " 
-                + getAsyncQueue().isEmpty() + " && " + hasNoInprocessAgents() +
+                + asyncQueueIsEmpty() + " && " + hasNoInprocessAgents() +
                 "; MASS.getChildAgentPids().isEmpty() = " +
                 MASS.getChildAgentPids().isEmpty());
           }
@@ -255,14 +246,14 @@ public class Agents extends Agents_base implements Serializable {
                 MASS.log(MASS.getChildAgentPids().isEmpty() + " && "
                     + MASS.getAsyncOutputThread().isIdle() + " && "
                     + MASS.getAsyncInputThread().isIdle(false) + 
-                    " getAsyncQueue().size() = " + getAsyncQueue().size());
+                    " getAsyncQueue().size() = " + asyncQueueSize());
               }
               try {
                 getAsyncQueue().wait();
               } catch (InterruptedException e) {
                 MASS.logException(null, e);
               }              
-              asyncQueueComplete = getAsyncQueue().isEmpty() && hasNoInprocessAgents();
+              asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
             }
           }
       
@@ -293,7 +284,7 @@ public class Agents extends Agents_base implements Serializable {
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
   }
 
-  public List<Agent> callAllAsync(LinkedList<Integer> functionIds,
+  public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments) throws Exception {
     return ca_setupAsync(functionIds, arguments);
   }

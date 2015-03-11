@@ -426,24 +426,17 @@ public class MProcess {
         }
 
         MASS_base.prepareAsyncExecution(MASS_base.getAgentsMap().get(
-            new Integer(m.getHandle())));
+            new Integer(m.getHandle())), m.getFunctionIds());
         Object[] arguments = (Object[]) argument;
-        int idx = 0;
-        for (Iterator<Agent> iter = MASS_base.getCurrentAgents()
-            .getAsyncQueue().iterator(); iter.hasNext();) {
-          Agent agent = iter.next();
-          agent.setAsyncFuncList(m.getFunctionIds());
-          agent.resetAsyncResults();
-          agent.setAsyncArgument(arguments[idx]);
-          agent.setMyAsyncOriginalPid(MASS_base.getMyPid());
-          agent.setMyOriginalAsyncIndex(idx);
-          agent.setCurrentIndex(idx);
-          agent.setParentAgents(MASS_base.getCurrentAgents());
-          ++idx;
+
+        for (int i = 0; i < MASS_base.getCurrentAgents().asyncQueueSize(); i++) {
+          MASS_base.getCurrentAgents().getAgents()
+            .get(MASS_base.getCurrentAgents().asyncQueueGet(i)).setAsyncArgument(arguments[i]);
         }
-        if (idx != 0) {
+
+        if (!MASS_base.getCurrentAgents().asyncQueueIsEmpty()) {
           MASS_base.setSourceAgentPid(0); // Need to notify Master
-          MASS_base.getInAsyncAgents()[0] += idx;
+          MASS_base.getInAsyncAgents()[0] += MASS_base.getCurrentAgents().asyncQueueSize();
         } else {
           MASS_base.setSourceAgentPid(-1);
         }
@@ -483,7 +476,7 @@ public class MProcess {
                   + ", output migrate set is empty = "
                   + MASS_base.getChildAgentPids().isEmpty());
             }
-            while ( (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty() && MASS_base
+            while ( (MASS_base.getCurrentAgents().asyncQueueIsEmpty() && MASS_base
                 .getCurrentAgents().hasNoInprocessAgents())
                 && (!MASS_base.getAsyncOutputThread().isIdle()
                 || !MASS_base.getAsyncInputThread().isIdle(false)
@@ -498,7 +491,7 @@ public class MProcess {
             MASS_base.getCurrentAgents().setIsAsyncLoopIdle(true);
 
             // tell master about that
-            if (MASS_base.getCurrentAgents().getAsyncQueue().isEmpty()
+            if (MASS_base.getCurrentAgents().asyncQueueIsEmpty()
                 && MASS_base.getCurrentAgents().hasNoInprocessAgents()
                 && MASS_base.getChildAgentPids().isEmpty()
                 && MASS_base.getSourceAgentPid() > -1) {
@@ -509,13 +502,13 @@ public class MProcess {
             }
 
             while ((!MASS_base.getCurrentAgents().getResultRequestFromMaster()
-                && MASS_base.getCurrentAgents().getAsyncQueue().isEmpty() && MASS_base
+                && MASS_base.getCurrentAgents().asyncQueueIsEmpty() && MASS_base
                 .getCurrentAgents().hasNoInprocessAgents())) {
               if (MASS.isConsoleLoggingEnabled()) {
                 MASS_base.log("After notifying Master: "
                     + !MASS_base.getCurrentAgents()
                         .getResultRequestFromMaster() + " && "
-                    + MASS_base.getCurrentAgents().getAsyncQueue().isEmpty());
+                    + MASS_base.getCurrentAgents().asyncQueueIsEmpty());
               }
               try {
                 MASS_base.getCurrentAgents().getAsyncQueue().wait();

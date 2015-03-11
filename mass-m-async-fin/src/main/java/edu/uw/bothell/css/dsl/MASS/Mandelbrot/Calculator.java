@@ -59,10 +59,10 @@ public class Calculator extends Agent {
   }
 
   private Object initMigrateHorizon(Object o) {
-    int xModifier = (Integer) o;
+    Point p = (Point)o;
   //  MASS.log("initMigrateReverse [" + xModifier + ", "
     //    + 0 + "]");
-    migrateAsync(xModifier, 0);
+    migrateAsync(p.x, p.y);
     return o;
   }
 
