@@ -1251,6 +1251,7 @@ public class Agents_base implements Serializable {
 
     			// push this agent into the place and the entire agent bag.
     			agent.setPlace(dstPlace);
+    			agent.setIndex(dstPlace.getIndex());
     			dstPlace.getAgents().add( agent ); // auto sync
     			agents.add( agent );          // auto sync
     		
