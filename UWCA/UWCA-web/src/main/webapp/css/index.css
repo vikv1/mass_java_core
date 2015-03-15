@@ -7,11 +7,13 @@ and open the template in the editor.
     Created on : Aug 11, 2014, 9:23:11 AM
     Author     : jwoodrin
 */
-table *{
+table{
     border-style: solid;
+    color: gold; 
 }
 th {
     min-width: 150px;
+    border-style: solid;
     color: gold;    
 }
 
@@ -20,7 +22,12 @@ a{
 }
 td{
     min-width: 150px;
+    border-style: solid;
     color: white;    
+}
+href{
+    border:none;
+    color: white;
 }
 
 #mainBody{
@@ -42,6 +49,14 @@ td{
     width: 100%;
     height: 25%;
     background-color: purple;
+}
+
+#mgtParams{    
+    width: 400px;
+}
+
+#inputParams{    
+    width: 400px;
 }
 
 .workflowSel{
@@ -69,4 +84,29 @@ td{
 /* The table which contains the data on jobs */
 #statusTableBody{
     
+}
+
+.c1{
+    width: 120px;
+}
+.c2{
+    width: 120px;
+}
+.c3{
+    width: 150px;
+}
+.c4{
+    width: 100px;
+}
+.c5{
+    width: 140px;
+}
+.c6{
+    width: 80px;
+}
+.c7{
+    width: 180px;
+}
+.c8{
+     width: 180px;
 }

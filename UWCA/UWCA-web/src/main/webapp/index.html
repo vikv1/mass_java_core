@@ -16,29 +16,31 @@
                     <option value="tmax">tmax</option>
                 </select>
                 <select multiple id="inputParams" class="workflowSel">
-                     <option value='conus_c5'>conus_c5</option>
+<!--                     <option value='conus_c5'>conus_c5</option>-->
                 </select>
                 <div id="paramsDiv">
                     Temperature Threshold:<input id='tempThreshold' type='text'>
                     Tolerance: <input id='tolerance' type='text'>
                     Number of Toe Years: <input id='numToeYears' type='text'>
                 </div>
-                <input id='submitBtn' type='button' value='Submit'>
-                <input id='statusBtn' type='button' value='Refresh Status'>
+                <div id="controlDiv">
+                    <input id='submitBtn' type='button' value='Submit'>
+                    <input id='statusBtn' type='button' value='Refresh Status'>
+                </div>
             </div>
         </div>
         <div id="histDiv">
             <div id="statusDiv">
                 <table id="statusTable">
                     <tr>
-                        <th>ToE Variable</th>
-                        <th>Input Model</th>
-                        <th>Number of Toe Years</th>
-                        <th>Status</th>
-                        <th>Provenance File</th>
-                        <th>ToE Regular File</th>
-                        <th>ToE Max File</th>
-                        <th>ToE Min File</th>
+                        <th class="c1">ToE Variable</th>
+                        <th class="c2">Input Model</th>
+                        <th class="c3">Number of Toe Years</th>
+                        <th class="c4">Status</th>
+                        <th class="c5">Provenance File</th>
+                        <th class="c6">ToE</th>
+                        <th class="c7">ToE Minus Confidence Int</th>
+                        <th class="c8">ToE Plus Confidence Int</th>
                     </tr>
                 </table>
                 <div id='statusTableBodyDiv'>

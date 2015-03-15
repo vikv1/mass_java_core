@@ -121,8 +121,8 @@ public class Job {
     private void writeDataToFile(){
         
         toeRegFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeReg.nc";
-        toeMinFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toePls.nc";
-        toeMaxFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeMin.nc";
+        toeMinFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeMin.nc";
+        toeMaxFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toePls.nc";
         variable.writeNetCdfFiles(toeRegFile, toeMinFile, toeMaxFile);    
     }
     
