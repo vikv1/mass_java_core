@@ -15,13 +15,16 @@ public class Program {
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-mandelbrot-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
   public static final int MAX_ITERATION = 200000;
-  public static int MATRIX_SIZE = 5024, NTHREADS = 4;
+  public static int MATRIX_SIZE = 4032, NTHREADS = 4, CALC_PER_AGENT, AGENT_SIZE = 4032, NODE_PER_ROW;;
 	
 	public static void main(String[] args) {
     if(args.length > 1) {
       MATRIX_SIZE = Integer.parseInt(args[0]);
       NTHREADS = Integer.parseInt(args[1]);
-    }
+      AGENT_SIZE = Integer.parseInt(args[2]);
+	  }
+	  NODE_PER_ROW = AGENT_SIZE / MATRIX_SIZE;
+    CALC_PER_AGENT = MATRIX_SIZE / NODE_PER_ROW;
 
 		// init MASS library
 		MASS.addLibrary(JAR_FILE_NAME);
@@ -29,7 +32,7 @@ public class Program {
 		MASS.setCommunicationPort(50951);
 		MASS.setNumThreads(NTHREADS);
 
-    String startStr = "START - " + (new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()));
+    String startStr = "START - " + (new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date())) + " - MAX ITER SYNC = " + MAX_ITERATION;
     System.out.println(startStr);
     long massStart = System.nanoTime();
     // start MASS
@@ -38,26 +41,29 @@ public class Program {
 		int[][] colors = new int[MATRIX_SIZE][MATRIX_SIZE];
 		
 		Places places = new Places(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Matrix", (Object) new Integer(0), MATRIX_SIZE, MATRIX_SIZE);
-		System.err.println("Places init done");
+		System.err.println((new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date())) + " Places init done");
 		// create Agents (number of Agents = y in this case), in Places
-		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, MATRIX_SIZE);
-		System.err.println("Agents init done");
+		Agents agents = new Agents(1, "edu.uw.bothell.css.dsl.MASS.Mandelbrot.Colorer", null, places, AGENT_SIZE);
+		System.err.println((new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date())) + " Agents init done");
     long syncStart = System.nanoTime();
-		Object[] agentsCallAllObjs = new Object[MATRIX_SIZE];
-		for(int i = 0; i < MATRIX_SIZE; i++){
-		  agentsCallAllObjs[i] = i;
+		Object[] agentsCallAllObjs = new Object[AGENT_SIZE];
+		for(int i = 0; i < AGENT_SIZE; i++){
+		  Point p = new Point();
+		  p.x = (i / NODE_PER_ROW);
+		  p.y = (i % NODE_PER_ROW) * CALC_PER_AGENT;
+		  agentsCallAllObjs[i] = p;
 		}
 		System.err.println("callAll sync start");
 		Object[] calledAgentsResults = (Object[]) agents.callAll(Colorer.INIT_MIGRATE, agentsCallAllObjs);
 		agents.manageAll();
 		calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
-		for(int i = 0; i < MATRIX_SIZE; i++)
+		for(int i = 0; i < AGENT_SIZE; i++)
 		{
-		  colors[i][0] = (int)calledAgentsResults[i];
+		  colors[i / NODE_PER_ROW][(i % NODE_PER_ROW) * CALC_PER_AGENT] = (int)calledAgentsResults[i];
 		}
 		
 		// move all Agents four times to cover all dimensions in Places
-		for (int i = 1; i < MATRIX_SIZE; i ++) {
+		for (int i = 1; i < CALC_PER_AGENT; i ++) {
 			
 			// tell Agents to move
 			agents.callAll(Colorer.MIGRATE);
@@ -66,9 +72,9 @@ public class Program {
 			agents.manageAll();
 			
 			calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
-			for(int j = 0; j < MATRIX_SIZE; j++)
+			for(int j = 0; j < AGENT_SIZE; j++)
 	    {
-	      colors[j][i] = (int)calledAgentsResults[j];
+	      colors[j / NODE_PER_ROW][(j % NODE_PER_ROW) * CALC_PER_AGENT + i] = (int)calledAgentsResults[j];
 	    }
 		}
 		long syncEnd = System.nanoTime();

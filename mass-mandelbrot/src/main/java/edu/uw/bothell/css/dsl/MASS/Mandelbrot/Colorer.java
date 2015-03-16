@@ -44,8 +44,8 @@ public class Colorer extends Agent {
   }
 
   private Object initMigrate(Object o) {
-    int xModifier = (Integer)o;
-    migrate(xModifier, 0);
+    Point p = (Point)o;
+    migrate(p.x, p.y);
     return o;
   }
 
