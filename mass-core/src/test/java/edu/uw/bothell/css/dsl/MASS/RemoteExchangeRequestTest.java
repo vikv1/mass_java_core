@@ -26,10 +26,10 @@ public class RemoteExchangeRequestTest extends AbstractTest {
 		
 		remoteExchangeRequest = new RemoteExchangeRequest( destIndex, orgIndex, inMsgIndex, intObj );
 		
-//		assertEquals( destIndex, remoteExchangeRequest.destGlobalLinearIndex );
-//		assertEquals( orgIndex, remoteExchangeRequest.orgGlobalLinearIndex );
-//		assertEquals( inMsgIndex, remoteExchangeRequest.inMessageIndex );
-//		assertTrue( intObj == remoteExchangeRequest.outMessage );
+		assertEquals( destIndex, remoteExchangeRequest.getDestGlobalLinearIndex() );
+		assertEquals( orgIndex, remoteExchangeRequest.getOrgGlobalLinearIndex() );
+		assertEquals( inMsgIndex, remoteExchangeRequest.getInMessageIndex() );
+		assertTrue( intObj == remoteExchangeRequest.getOutMessage() );
 		
 	}
 	
