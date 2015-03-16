@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-import MASS.*;             // Library for Multi-Agent Spatial Simulation
+import edu.uw.bothell.css.dsl.MASS.*;             // Library for Multi-Agent Spatial Simulation
 import java.util.Random;
 import java.util.Vector;   // for Vector
 
@@ -73,8 +73,8 @@ public class Nomad extends Agent {
         int newY = 0;                 // a new destination's Y-coordinate
         int min = 1;  // a new destination's # agents
 
-        int currX = place.index[0], currY = place.index[1]; // curr index
-        int sizeX = place.size[0], sizeY = place.size[1];   // land size
+        int currX = getPlace().getIndex()[0], currY = getPlace().getIndex()[1]; // curr index
+        int sizeX = getPlace().getSize()[0], sizeY = getPlace().getSize()[1];   // land size
 
         /*for ( int x = 0; x < 2; x++ )
             for ( int y = 0; y < 2; y++ ) {

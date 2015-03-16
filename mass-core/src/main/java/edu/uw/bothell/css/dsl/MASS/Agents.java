@@ -1,269 +1,424 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
 
-	private int[] localAgents; // localAgents[i] = # agents in rank[i]
-	private int total;
+  private int[] localAgents; // localAgents[i] = # agents in rank[i]
+  private int total;
 
-	public Agents( int handle, String className, Object argument, Places places, int initPopulation ) {
-		
-		super( handle, className, argument, places.getHandle( ), initPopulation );
-		localAgents = new int[MASS_base.getSystemSize()];
-		init_master( argument );
-	
-	}
+  public Agents(int handle, String className, Object argument, Places places,
+      int initPopulation) {
 
-	Object ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
+    super(handle, className, argument, places.getHandle(), initPopulation);
+    localAgents = new int[MASS_base.getSystemSize()];
+    init_master(argument);
 
-		// calculate the total number of agents
-		total = 0;
-		for ( int i = 0; i < MASS_base.getSystemSize(); i++ )
-			total += localAgents[i];
+  }
 
-		// send a AGENTS_CALL_ALL message to each slave
-		Message m = null;
-		for ( int i = 0; i < MASS.getRemoteNodes().size( ); i++ ) {
-			
-			// create a message
-			if ( type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT )
-				
-				m = new Message( type, this.getHandle(), functionId, argument );
-			
-			else {
-				
-				// calculate argument position
-				int arg_pos = 0;
-				for ( int dest = 0; dest <= i; dest++ ) {
-					arg_pos += localAgents[dest];
+  Object ca_setup(int functionId, Object argument, Message.ACTION_TYPE type) {
 
-					if ( MASS.isConsoleLoggingEnabled() == true )
-						System.err.println( "Agents.callAll: calc arg_pos = " 
-								+ arg_pos + 
-								" localAgents[" + ( dest + 1) + 
-								"] = " + localAgents[dest + 1] );
-				
-				}
+    // calculate the total number of agents
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++)
+      total += localAgents[i];
 
-				Object[] partitioned_argument = 
-						new Object[localAgents[i + 1]];
-				
-				System.arraycopy( (Object[])argument, arg_pos, 
-						partitioned_argument, 0,
-						localAgents[i + 1] );
+    // send a AGENTS_CALL_ALL message to each slave
+    Message m = null;
+    for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
 
-				m = new Message( type, this.getHandle(), functionId,
-						partitioned_argument );
+      // create a message
+      if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
 
-				if ( MASS.isConsoleLoggingEnabled() == true )
-					System.err.println( "Agents.callAll: to rank[" + (i + 1) +
-							"] arg_pos = " + arg_pos );
-			
-			}
+        m = new Message(type, this.getHandle(), functionId, argument);
 
-			// send it
-			MASS.getRemoteNodes().get(i).sendMessage( m );
-			
-			if ( MASS.isConsoleLoggingEnabled() == true ) {
-				
-				System.err.println( "AGENTS_CALL_ALL " + m.getAction( ) +
-						" sent to " + i );
+      else {
 
-				System.err.println( "Bag Size is: " + 
-						MASS_base.getAgentsMap().
-						get( new Integer(getHandle()) ).
-						getAgents().size_unreduced() );
-			
-			}
+        // calculate argument position
+        int arg_pos = 0;
+        for (int dest = 0; dest <= i; dest++) {
+          arg_pos += localAgents[dest];
 
-		}
+          if (MASS.isConsoleLoggingEnabled())
+            System.err
+                .println("Agents.callAll: calc arg_pos = " + arg_pos
+                    + " localAgents[" + (dest + 1) + "] = "
+                    + localAgents[dest + 1]);
 
-		Mthread.setAgentBagSize(MASS_base.getAgentsMap().
-				get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
+        }
 
-		//Check for correct behavior post-Agents_base implementation
-		// retrieve the corresponding agents
-		MASS_base.setCurrentAgents(this);
-		MASS_base.setCurrentFunctionId(functionId);
-		MASS_base.setCurrentArgument(argument);
-		MASS_base.setCurrentMsgType(type);
+        Object[] partitioned_argument = new Object[localAgents[i + 1]];
 
-		if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
-			MASS_base.setCurrentReturns(null);
-		} else {
-			MASS_base.setCurrentReturns(new Object[ total ]); // prepare an  entire return space
-		}
+        System.arraycopy((Object[]) argument, arg_pos, partitioned_argument, 0,
+            localAgents[i + 1]);
 
-		// resume threads
-		if ( MASS.isConsoleLoggingEnabled() == true ) {
-			
-			MASS_base.log( "MASS_base.currentgAgents = " +
-					MASS_base.getCurrentAgents() );
-			
-			MASS_base.log( "MASS_base.getCurrentgAgents = " +
-					MASS_base.getCurrentAgents( ) );
-		
-		}
+        m = new Message(type, this.getHandle(), functionId,
+            partitioned_argument);
 
-		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL );
+        if (MASS.isConsoleLoggingEnabled())
+          System.err.println("Agents.callAll: to rank[" + (i + 1)
+              + "] arg_pos = " + arg_pos);
 
-		// callall implementatioin
-		if ( type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT )
-			super.callAll( functionId, argument, 0 ); //0 = main tid
-		else
-			super.callAll( functionId, (Object[])argument, 
-					( (Object[])argument ).length, 0 );
+      }
 
-		// confirm all threads are done with agents.callAll
-		Mthread.barrierThreads( 0 );
-		localAgents[0] = getLocalPopulation();
+      // send it
+      MASS.getRemoteNodes().get(i).sendMessage(m);
 
-		// Synchronized with all slave processes by main thread.
-		MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), 0, 
-				localAgents );
+      if (MASS.isConsoleLoggingEnabled()) {
 
-		total = 0;
-		for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
-			
-			total += localAgents[i];
-			
-			// for debugging
-			if ( MASS.isConsoleLoggingEnabled() == true )
-				System.err.println( "rank[" + i + 
-						"]'s local agent population = " +
-						localAgents[i] );
-		
-		}
-		
-		return MASS_base.getCurrentReturns();
-	
-	}
+        System.err
+            .println("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
-	public void callAll( int functionId ) {
-		ca_setup( functionId, null, 
-				Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT );
-	}
+        System.err.println("Bag Size is: "
+            + MASS_base.getAgentsMap().get(new Integer(getHandle()))
+                .getAgents().size_unreduced());
 
-	public void callAll( int functionId, Object argument ) {
-		ca_setup( functionId, argument,
-				Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT );
-	}
+      }
 
-	public Object callAll( int functionId, Object[] argument ) {
-		return ca_setup( functionId, argument,
-				Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
-	}
+    }
 
-	public void init_master( Object argument ) {
-		
-		// check if MASS_base.hosts is empty (i.e., Places not yet created)
-		if ( MASS_base.getHosts().isEmpty( ) ) {
-			System.err.println( "Agents(" + getClassName() + 
-					") can't be created without Places!!" );
-			System.exit( -1 );
-		}
+    Mthread.setAgentBagSize(MASS_base.getAgentsMap()
+        .get(new Integer(getHandle())).getAgents().size_unreduced());
 
-		// create a new list for message
-		Message m = new Message( Message.ACTION_TYPE.AGENTS_INITIALIZE, 
-				getInitPopulation(), getHandle(), getPlacesHandle(), 
-				getClassName(), argument );
+    // Check for correct behavior post-Agents_base implementation
+    // retrieve the corresponding agents
 
-		// send a AGENT_INITIALIZE message to each slave
-		for (MNode node : MASS.getRemoteNodes()) {
+    // shared between agents
+    MASS_base.setCurrentAgents(this);
+    MASS_base.setCurrentFunctionId(functionId);
+    MASS_base.setCurrentArgument(argument);
+    MASS_base.setCurrentMsgType(type);
 
-			node.sendMessage( m );
-			if ( MASS.isConsoleLoggingEnabled() == true ) MASS_base.log( "AGENT_INITIALIZE sent to " + node.getPid() );
+    if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
+      MASS_base.setCurrentReturns(null);
+    } else {
+      MASS_base.setCurrentReturns(new Object[total]); // prepare an entire
+                                                      // return space
+    }
 
-		}
+    // resume threads
+    if (MASS.isConsoleLoggingEnabled()) {
 
-		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( localAgents );
-		localAgents[0] = getLocalPopulation();
+      MASS_base.log("MASS_base.currentgAgents = "
+          + MASS_base.getCurrentAgents());
 
-		total = 0;
-		for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
-			
-			total += localAgents[i];
-			// for debugging
+      MASS_base.log("MASS_base.getCurrentgAgents = "
+          + MASS_base.getCurrentAgents());
 
-			if ( MASS.isConsoleLoggingEnabled() == true )
-				System.err.println( "rank[" + i + 
-						"]'s local agent population = " +
-						localAgents[i] );
-		
-		}
+    }
 
-		// register this agents in the places hash map
-		MASS_base.getAgentsMap().put( new Integer( getHandle() ), this );
-	
-	}
+    Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
-	public void ma_setup( ) {
-		
-		// send an AGENTS_MANAGE_ALL message to each slave
-		Message m = null;
-		for (MNode node : MASS.getRemoteNodes()) {
+    // callall implementatioin
+    if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
+      super.callAll(functionId, argument, 0); // 0 = main tid
+    else
+      super.callAll(functionId, (Object[]) argument,
+          ((Object[]) argument).length, 0);
 
-			// create a message
-			m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, 
-					this.getHandle(), 0 );
+    // confirm all threads are done with agents.callAll
+    Mthread.barrierThreads(0);
+    localAgents[0] = getLocalPopulation();
 
-			//send it
-			node.sendMessage( m );
+    // Synchronized with all slave processes by main thread.
+    MASS.barrier_all_slaves(MASS_base.getCurrentReturns(), 0, localAgents);
 
-			// MThread Update
-			Mthread.setAgentBagSize(MASS_base.getAgentsMap().
-					get( new Integer( getHandle() ) ).getAgents().size_unreduced( ));
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
 
-		
-		}
+      total += localAgents[i];
 
-		// retrieve the corresponding agents
-		MASS_base.setCurrentAgents(this);
-		MASS_base.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+      // for debugging
+      if (MASS.isConsoleLoggingEnabled())
+        System.err.println("rank[" + i + "]'s local agent population = "
+            + localAgents[i]);
 
-		// resume threads
-		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_MANAGEALL );
+    }
 
-		// callall implementatioin
-		super.manageAll( 0 ); // 0 = the main thread id
+    return MASS_base.getCurrentReturns();
 
-		// confirm all threads are done with agents.callAll
-		Mthread.barrierThreads( 0 );
+  }
 
-		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( localAgents );
-		localAgents[0] = getLocalPopulation();
+  @SuppressWarnings("unused")
+  List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments) throws Exception {
 
-		total = 0;
-		for ( int i = 0; i < MASS_base.getSystemSize(); i++ ) {
-			
-			total += localAgents[i];
-			
-			// for debugging
-			if ( MASS.isConsoleLoggingEnabled() == true )
-				System.err.println( "rank[" + i + 
-						"]'s local agent population = "
-						+ localAgents[i] );
-		
-		}
-	
-	}
+    // Preparing this node for callAllAsync
+    MASS_base.prepareAsyncExecution(this, functionIds);
 
-	public void manageAll( ) {
-		ma_setup( );
-	}
+    // calculate the total number of agents
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+      total += localAgents[i];
+      if(i!=0 && localAgents[i] != 0) {
+        // Node started with zero agent won't send completeness notification
+        MASS.getChildAgentPids().add(i);
+        MASS.getOutAsyncAgents()[i] += localAgents[i]; // a way for master to keep track
+        if(MASS.isConsoleLoggingEnabled()) {
+          MASS.log("Node " + i + " has master as originator");
+        }
+      }
+    }
 
-	public int nAgents( ) {
-		
-		int nAgents = 0;
-		for ( int i = 0; i < MASS_base.getSystemSize(); i++ )
-			nAgents += localAgents[i];
-		
-		return nAgents;
-	
-	}
+    // send a AGENTS_CALL_ALL_ASYNC message to each slave
+    Message m = null;
+    for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
+      // calculate argument position
+      int arg_pos = 0;
+      for (int dest = 0; dest <= i; dest++) {
+        arg_pos += localAgents[dest];
+        if(MASS.isConsoleLoggingEnabled()) 
+          System.err.println("Agents.callAll: calc arg_pos = " + arg_pos
+              + " localAgents[" + (dest + 1) + "] = " + localAgents[dest + 1]);        
+      }
 
+      Object[] partitioned_argument = new Object[localAgents[i + 1]];
+      System.arraycopy((Object[]) arguments, arg_pos, partitioned_argument, 0,
+          localAgents[i + 1]);
+      m = new Message(Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,
+          this.getHandle(), functionIds, partitioned_argument);
+      if(MASS.isConsoleLoggingEnabled())
+        System.err.println("Agents.callAll: to rank[" + (i + 1)
+            + "] arg_pos = " + arg_pos);
+
+      // send callAllAsync to other nodes
+      MASS.getRemoteNodes().get(i).sendMessage(m);
+      if (MASS.isConsoleLoggingEnabled()) {
+        System.err.println("AGENTS_CALL_ALL_ASYNC " + m.getAction()
+            + " sent to " + i);
+        System.err.println("Bag Size is: "
+            + MASS_base.getAgentsMap().get(new Integer(getHandle()))
+                .getAgents().size_unreduced());
+      }
+    }
+
+    for (int i = 0; i < asyncQueueSize(); i++) {
+      getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+    }
+    // shared between agents
+    // TODO What is share here?
+
+    // We need this so AsyncInputThread can quickly pass the migration request
+    /*
+     * MASS_base.setCurrentFunctionId(functionId);
+     * MASS_base.setCurrentArgument(argument);
+     * MASS_base.setCurrentMsgType(type);
+     */
+
+    // resume threads
+    if (MASS.isConsoleLoggingEnabled()) {
+      MASS_base.log("MASS_base.currentgAgents = "
+          + MASS_base.getCurrentAgents());
+    }
+
+    boolean asyncQueueComplete = false;
+    do {
+      if (MASS.isConsoleLoggingEnabled())
+        MASS.log("Begin callAllAsync loop");
+      
+      // Mark myself as busy executing my async queue
+      setIsAsyncLoopIdle(false);
+      // callAllAsync to all slave threads
+      Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
+
+      // callAllAsync in my own thread
+      super.callAllAsync(0);
+
+      // Done with processing my async queue
+      setIsAsyncLoopIdle(true);
+      synchronized (getAsyncQueue()) {
+          asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+          if(MASS.isConsoleLoggingEnabled()) {
+            MASS.log("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " 
+                + asyncQueueIsEmpty() + " && " + hasNoInprocessAgents() +
+                "; MASS.getChildAgentPids().isEmpty() = " +
+                MASS.getChildAgentPids().isEmpty());
+          }
+          while((!MASS.getChildAgentPids().isEmpty() || 
+              !MASS.getAsyncOutputThread().isIdle()
+              || !MASS.getAsyncInputThread().isIdle(false))
+              && asyncQueueComplete) {
+              if (MASS.isConsoleLoggingEnabled()) {
+                MASS.log(MASS.getChildAgentPids().isEmpty() + " && "
+                    + MASS.getAsyncOutputThread().isIdle() + " && "
+                    + MASS.getAsyncInputThread().isIdle(false) + 
+                    " getAsyncQueue().size() = " + asyncQueueSize());
+              }
+              try {
+                getAsyncQueue().wait();
+              } catch (InterruptedException e) {
+                MASS.logException(null, e);
+              }              
+              asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+            }
+          }
+      
+      // confirm all threads are done with agents.callAllAsync
+      // backward compatibility barrier twice,
+      // once in callAllAsync in each thread, but then slave thread
+      // enter another barrier at the end of Mthread.run() while() loop
+      // so master thread has to barrier here again to get every one back onto
+      // the top
+      //Mthread.barrierThreads(0);
+    } while (!asyncQueueComplete);
+    
+    collectAsyncResult();
+    return getCompleteQueue();
+  }
+
+  public void callAll(int functionId) {
+    ca_setup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+  }
+
+  public void callAll(int functionId, Object argument) {
+    ca_setup(functionId, argument,
+        Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+  }
+
+  public Object callAll(int functionId, Object[] argument) {
+    return ca_setup(functionId, argument,
+        Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
+  }
+
+  public List<Agent> callAllAsync(int[] functionIds,
+      Object[] arguments) throws Exception {
+    return ca_setupAsync(functionIds, arguments);
+  }
+
+  public void init_master(Object argument) {
+
+    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+    if (MASS_base.getHosts().isEmpty()) {
+      System.err.println("Agents(" + getClassName()
+          + ") can't be created without Places!!");
+      System.exit(-1);
+    }
+
+    // create a new list for message
+    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE,
+        getInitPopulation(), getHandle(), getPlacesHandle(), getClassName(),
+        argument);
+
+    // send a AGENT_INITIALIZE message to each slave
+    for (MNode node : MASS.getRemoteNodes()) {
+
+      node.sendMessage(m);
+      if (MASS.isConsoleLoggingEnabled() == true)
+        MASS_base.log("AGENT_INITIALIZE sent to " + node.getPid());
+
+    }
+
+    // Synchronized with all slave processes
+    MASS.barrier_all_slaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+
+      total += localAgents[i];
+      // for debugging
+
+      if (MASS.isConsoleLoggingEnabled())
+        System.err.println("rank[" + i + "]'s local agent population = "
+            + localAgents[i]);
+
+    }
+
+    // register this agents in the places hash map
+    MASS_base.getAgentsMap().put(new Integer(getHandle()), this);
+
+  }
+
+  public void ma_setup() {
+
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for (MNode node : MASS.getRemoteNodes()) {
+
+      // create a message
+      m = new Message(Message.ACTION_TYPE.AGENTS_MANAGE_ALL, this.getHandle(),
+          0);
+
+      // send it
+      node.sendMessage(m);
+
+      // MThread Update
+      Mthread.setAgentBagSize(MASS_base.getAgentsMap()
+          .get(new Integer(getHandle())).getAgents().size_unreduced());
+
+    }
+
+    // retrieve the corresponding agents
+    MASS_base.setCurrentAgents(this);
+    MASS_base.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    Mthread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrier_all_slaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+
+      total += localAgents[i];
+
+      // for debugging
+      if (MASS.isConsoleLoggingEnabled() == true)
+        System.err.println("rank[" + i + "]'s local agent population = "
+            + localAgents[i]);
+
+    }
+
+  }
+
+  public void manageAll() {
+    ma_setup();
+  }
+
+  public int nAgents() {
+
+    int nAgents = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++)
+      nAgents += localAgents[i];
+
+    return nAgents;
+
+  }
+
+  private void collectAsyncResult() {
+    // TODO Auto Migration somewhere?
+
+    // in case of killing agent, backward compatibility
+    getAgents().reduce();
+    setLocalPopulation(getAgents().size_unreduced());
+    localAgents[0] = getLocalPopulation();
+
+    MASS.getRemoteAsyncResults();
+    Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
+    MASS_base.setCurrentReturns(getCompleteQueue().toArray());
+    for (int i = 1; i < MASS_base.getSystemSize(); i++) {
+      localAgents[i] = MASS.getLocalAgents()[i - 1];
+    }
+    total = 0;
+    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+      total += localAgents[i];
+      // for debugging
+      if (MASS.isConsoleLoggingEnabled()) {
+        System.err.println("rank[" + i + "]'s local agent population = "
+            + localAgents[i]);
+      }
+    }
+  }
 }

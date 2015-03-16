@@ -2,8 +2,16 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -52,6 +60,29 @@ public class MASS_base {
     
     // object factories are singletons, continue configuration within this class
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    
+    /**
+     * BEGIN ASync vars section
+     */
+    private static AsyncInputThread inputThread = null;
+    private static AsyncOutputThread outputThread = null;
+    
+    /**
+     *  Estimated number of completed slave node in order to
+     *  reduce number of complete check in case master finish 
+     * too early, issue check IFF this >= # of slaves
+     */
+    //private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
+    /**
+     *  Agents async migrate out and into this node
+     */
+    private static volatile int[] outAgents, inAgents;
+    private static volatile int sourceAgentPid = -1;
+    private static volatile Set<Integer> childAgentPids = new HashSet<Integer>();
+    
+    /**
+     * END Async vars section
+     */
 
 	/**
      * Add a new node to the cluster
@@ -276,18 +307,26 @@ public class MASS_base {
 		MASS_base.hostName = nodeConfig.getHostName();
 		MASS_base.myPid = nodeConfig.getPid();
 		setCommunicationPort(nodeConfig.getPort());
-		setWorkingDirectory(nodeConfig.getMassHome());
+		if(nodeConfig.getMassHome() != null) {
+		  setWorkingDirectory(nodeConfig.getMassHome());
+		}
 		
 		// Set the current working directory to default value if not set previously
-		if (MASS_base.workingDirectory == null) MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		if (MASS_base.workingDirectory == null) {
+		  MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		}
+    ensureLoggingFileExists();
 		
 		// add MASS home to the list of URLs to be used by the object factory
 		try {
 			objectFactory.addUri(new File(MASS_base.getWorkingDirectory()).toURI().toString());
 		} catch (Exception e) {
-			// TODO need to handle exceptions here better
+      MASS.logException(null, e);
 		}
-		
+		// Async section
+    initAsyncCommunicationThreads();
+    // ensure logging folders and file exist
+    MASS.log("initMASS_base done");
 	}
     
     /**
@@ -324,43 +363,71 @@ public class MASS_base {
 	}
 
     public static void log( String msg ) {
-
-		try {
-			
-			if ( log_lock == null ) {
-				
-				log_lock = new Object( );
-				
-				if ( myPid > 0 )
+		try {			
+			if ( log_lock == null ) {				
+				log_lock = new Object( );				
+				//if ( myPid > 0 )
 					logger = new FileOutputStream( workingDirectory + "/" + 
 							MASS_LOGS + "/PID" + 
 							myPid + "_" + hostName + 
-							"result.txt" );
-			
+							"result.txt" );			
 			}
+      String lstring = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()) 
+      + " , " + Thread.currentThread().getName() +" , " + msg;
 
 			synchronized( log_lock ) {
 				
 				if ( myPid == 0 ) {
 					// The master directly prints out msg to standard error.
-					System.err.println( msg );
+					System.err.println(lstring);
 				}
-				
-				else {
-					
+				if(logger == null) {
+				  logger = new FileOutputStream( workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt" ); 
+				}
 					// All the slaves print out msge to CUR_DIR/MASS_logs/.
-					logger.write( msg.concat( "\n" ).getBytes( ) );
+					logger.write( lstring.concat("\n").getBytes( ) );
 					logger.flush( );
-				
-				}
-			
-			}
-		
-		}
-		
-		catch( Exception e ) {	}
-	
+					logger.getFD().sync();
+			}		
+		}		
+		catch( Exception e ) { 
+		  logException(null, e);
+    }	
 	}
+    
+    public static void logException(String message, Throwable e) {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      log(message + "-" + sw.toString());
+    }
+  private static void ensureLoggingFileExists() {
+    System.err.println("ensureLoggingFileExists: " + workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt");
+      File logFile = new File(workingDirectory + "/" + 
+              MASS_LOGS + "/PID" + 
+              myPid + "_" + hostName + 
+              "result.txt");
+      if(!logFile.isFile()) {
+        System.err.println("ensureLoggingFileExists: !isFile");
+        if (logFile.getParentFile().exists() || logFile.getParentFile().mkdirs()){
+          System.err.println("ensureLoggingFileExists: about to create");
+          try
+          {
+              logFile.createNewFile();
+          }
+          catch(IOException e)
+          {
+            logException(null, e);
+          }
+        }
+      }
+  }
 
     /**
 	 * Reset the request counter
@@ -415,10 +482,9 @@ public class MASS_base {
 
     	// register all hosts including myself
     	for ( int i = 0; i < host_args.size( ); i++ ) {
-
-    		if ( MASS.isConsoleLoggingEnabled() )
+    		if ( MASS.isConsoleLoggingEnabled() ) {
     			log( "MASS_base.setHosts: Adding host " + host_args.get(i) );
-
+    		}
     		hosts.add( host_args.get(i) );
 
     	}
@@ -464,6 +530,7 @@ public class MASS_base {
 	 * @param workingDirectory The new working directory for this node
 	 */
 	public static void setWorkingDirectory(String workingDirectory) {
+	  System.err.println("setWorkingDir = " + workingDirectory);
 		MASS_base.workingDirectory = workingDirectory;
 	}
 
@@ -482,6 +549,117 @@ public class MASS_base {
     	}
     
     }
+    
+    /**
+     * BEGIN Async methods
+     */
+    
+    public static AsyncInputThread getAsyncInputThread()
+    {
+      return inputThread;
+    }
+    
+    public static AsyncOutputThread getAsyncOutputThread()
+    {
+      return outputThread;
+    }
+    
+    public static void initAsyncCommunicationThreads() {
+      MASS.log("init Async Communication Threads");
+      inputThread = new AsyncInputThread(MASS_PORT + 1);
+      outputThread = new AsyncOutputThread(MASS_PORT + 1);
+      inputThread.start();
+      outputThread.start();
+    }
+
+    public static void prepareAsyncExecution(Agents_base agents, int[] fIds) {
+      setCurrentAgents(agents);
+      Mthread.setAgentBagSize(currentAgents.getAgents().size());
+      
+      currentAgents.setAsyncFuncList(fIds);
+      currentAgents.resetChildAsyncIndex();
+      currentAgents.resetCompleteQueue();
+      
+      currentAgents.asyncQueueClear();
+      for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
+        currentAgents.asyncQueueAdd(i);
+        currentAgents.getAgents().get(i).setAsyncFuncListIndex(0);
+        currentAgents.getAgents().get(i).resetAsyncResults();
+        currentAgents.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
+        currentAgents.getAgents().get(i).setMyOriginalAsyncIndex(i);
+        currentAgents.getAgents().get(i).setCurrentIndex(i);
+        currentAgents.getAgents().get(i).setParentAgents(currentAgents);
+      }
+      outputThread.setAgentHandle(agents.getHandle());
+      outputThread.setPlaceHandle(agents.getPlacesHandle());
+      outAgents = new int[getSystemSize()];
+      inAgents = new int[getSystemSize()];
+      for(int i = 0; i < outAgents.length; i++) {
+        outAgents[i] = 0;
+        inAgents[i] = 0;
+      }
+      currentAgents.setResultRequestFromMaster(false);
+      sourceAgentPid = -1;
+      childAgentPids.clear();
+    }
+    
+    /*public static void resetEstimateSlaveNodeComplete() {
+      estimateSlaveNodeComplete.set(0);
+    }
+    
+    public static int getEsimateSlaveNodeComplete() {
+      return estimateSlaveNodeComplete.get();
+    }
+    
+    public static int incrementEstimateSlaveNodeComplete() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getEsimateSlaveNodeComplete() increment");
+      }
+      return estimateSlaveNodeComplete.incrementAndGet();
+    }
+    
+    public static int decrementEstimateSlaveNodeComplete() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getEsimateSlaveNodeComplete() decrement");
+      }
+      return estimateSlaveNodeComplete.decrementAndGet();
+    }
+    
+
+    public static boolean getCachedSlaveNodeAsyncCompleteness() {
+      if(MASS.isConsoleLoggingEnabled()) {
+        MASS.log("getCached complete = " + cachedAllAsyncNodeComplete);
+      }
+      return cachedAllAsyncNodeComplete;
+    }
+    
+    public static void setCachedSlaveNodeAsyncCompleteness(boolean value) {
+      cachedAllAsyncNodeComplete = value;
+    } */
+    
+    public static Set<Integer> getChildAgentPids() {
+      return childAgentPids;
+    }
+    
+    public static int getSourceAgentPid() {
+      return sourceAgentPid;
+    }
+    
+    public static void setSourceAgentPid(int value) {
+      sourceAgentPid = value;
+    }
+    
+    public static int[] getOutAsyncAgents() {
+      return outAgents;
+    }
+    
+    public static int[] getInAsyncAgents() {
+      return inAgents;
+    }
+
+    /**
+     * END Async methods
+     */
 
     /**
 	 * Get the port number used for inter-node communications
@@ -504,4 +682,7 @@ public class MASS_base {
 	
 	}
 
+ /* public static void notifyMasterOfCompleteness() {
+    outputThread.notifyMasterOfCompleteness();
+  }*/
 }

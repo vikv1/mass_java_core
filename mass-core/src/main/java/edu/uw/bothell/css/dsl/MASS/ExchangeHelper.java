@@ -106,7 +106,8 @@ public class ExchangeHelper {
     					Thread.currentThread( ).sleep( 1000 );
     				} 
     				
-    				catch ( Exception e2 ) { }
+    				catch ( Exception e2 ) { 
+              MASS.logException(null, e2);}
     			
     			}
     		
@@ -242,7 +243,8 @@ public class ExchangeHelper {
     			sockets[i].close( );
     		} 
     		
-    		catch ( Exception e ) { }
+    		catch ( Exception e ) {
+          MASS.logException(null, e); }
     		
     		if ( MASS.isConsoleLoggingEnabled() == true ) {
     			

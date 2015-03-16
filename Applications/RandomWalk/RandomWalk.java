@@ -1,6 +1,6 @@
 
 
-import MASS.*;             // Library for Multi-Agent Spatial Simulation
+import edu.uw.bothell.css.dsl.MASS.*;             // Library for Multi-Agent Spatial Simulation
 import java.util.Vector;   // for Vector
 
 
@@ -56,12 +56,12 @@ public class RandomWalk
 	
 	// start graphics
 	if ( interval > 0 && showGraphics )
-	  land.callSome( Land.startGraphics_, (Object)null, 0, 0 );
+	//  land.callSome( Land.startGraphics_, (Object)null, 0, 0 );
         
 	// now go into a cyclic simulation
 	for ( int time = 0; time < maxTime; time++ ) {
 	    // exchange #agents with four neighbors
-	    land.exchangeAll( 1, Land.exchange_, neighbors );
+	    land.exchangeAll( 1, Land.exchange_ );
 	    land.callAll( Land.update_ );
 
 	    // move agents to a neighbor with the least population
@@ -69,12 +69,12 @@ public class RandomWalk
 	    nomad.manageAll( );
             if ( time % interval == 0 )
             {
-                Object[] agents = land.callAll( Land.collectAgents_, (Object[])null );
-                if (showGraphics) land.callSome( Land.writeToGraphics_, ( Object )agents, 0, 0 );
+             //   Object[] agents = land.callAll( Land.collectAgents_, (Object[])null );
+             //   if (showGraphics) land.callSome( Land.writeToGraphics_, ( Object )agents, 0, 0 );
             }            
 	}
 
-        land.callSome(Land.finishGraphics_, (Object)null, 0, 0);
+    //    land.callSome(Land.finishGraphics_, (Object)null, 0, 0);
 	// finish MASS
 	MASS.finish( );
     }

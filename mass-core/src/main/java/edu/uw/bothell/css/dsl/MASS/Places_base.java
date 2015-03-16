@@ -1,5 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -128,7 +130,7 @@ public class Places_base {
     						thread_ref.join( );
     					} 
     					catch ( Exception e ) {
-    						// TODO - probably shouldn't be swallowing exceptions
+                MASS.logException(null, e);
     					}
     					
     					MASS_base.log( "Places_base.exchangeBoundary_helper " +
@@ -234,7 +236,7 @@ public class Places_base {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-    			// TODO - probably shouldn't be swallowing exceptions
+          MASS.logException(null, e);
     		}
 
     		// process a message
@@ -310,7 +312,7 @@ public class Places_base {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-    			// TODO - probably shouldn't be swallowing exceptions
+          MASS.logException(null, e);
     		}
 
     		// store return values to the orignal places
@@ -618,7 +620,7 @@ public class Places_base {
     				thread_ref[rank].join( );
     			} 
     			catch ( Exception e ) {
-    				// TODO - probably shouldn't be swallowing exceptions
+            MASS.logException(null, e);
     			}
     		
     		}
@@ -925,8 +927,8 @@ public class Places_base {
     	} 
 
     	catch ( Exception e ) {
-    		MASS_base.log( "Places_base.init_all: " + className + 
-    				" not loaded and/or instantiated " + e );
+    	  MASS_base.logException( "Places_base.init_all: " + className + 
+    				" not loaded and/or instantiated", e);
     	}
 
     	// allocate the left/right shadows
@@ -986,7 +988,7 @@ public class Places_base {
     	
     	} 
     	catch ( Exception e ) {
-    		// TODO - probably shouldn't be swallowing exceptions
+        MASS.logException(null, e);
     	} 
     
     }

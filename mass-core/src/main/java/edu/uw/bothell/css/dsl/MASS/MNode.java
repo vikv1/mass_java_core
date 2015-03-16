@@ -151,10 +151,8 @@ public class MNode {
 		}
 		
 		// TODO - need better method of handling errors here rather than terminating application
-		catch( Exception e ) {
-		
-			MASS_base.log( "ERROR: mNode: Pid: " + pid + 
-					" setupMainConnection " + e );
+		catch( Exception e ) {	
+			MASS_base.logException( "ERROR: mNode: Pid: " + pid, e);
 			
 			System.exit( -1 );
 	
@@ -188,8 +186,8 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASS_base.log( "receivMessage error from rank[" + pid + "] at " +
-					hostName );
+			MASS_base.logException( "receivMessage error from rank[" + pid + "] at " +
+					hostName,  e );
 
 			System.exit( -1 );
 

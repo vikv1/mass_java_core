@@ -4,12 +4,13 @@ package edu.uw.bothell.css.dsl.MASS;
 public class Mthread extends Thread {
 
 	public enum STATUS_TYPE { 
-		STATUS_READY,          // 0
-		STATUS_TERMINATE,      // 1
-		STATUS_CALLALL,        // 2
-		STATUS_EXCHANGEALL,    // 3
-		STATUS_AGENTSCALLALL,  // 4
-		STATUS_MANAGEALL       // 5
+		STATUS_READY,              // 0
+		STATUS_TERMINATE,          // 1
+		STATUS_CALLALL,            // 2
+		STATUS_EXCHANGEALL,        // 3
+		STATUS_AGENTSCALLALL,      // 4
+		STATUS_MANAGEALL,          // 5
+		STATUS_AGENTSCALLALL_ASYNC // 6
 	}
 
     private static Object lock;
@@ -38,7 +39,7 @@ public class Mthread extends Thread {
     				lock.wait( );
     			} 
     			catch( Exception e ) {
-    				// TODO - probably shouldn't be swalling this exception
+            MASS.logException(null, e);
     			}
     		
     		} 
@@ -77,7 +78,8 @@ public class Mthread extends Thread {
     }
     
     public void run( ) {
-    	
+      try {
+    	 // Initialization portion
     	synchronized( lock ) {
     		threadCreated = tid;  // to inform MASS_base of my invocation
     	}
@@ -96,6 +98,7 @@ public class Mthread extends Thread {
     	Message.ACTION_TYPE msgType = Message.ACTION_TYPE.EMPTY;
     	//Vector<int[]> destinations = null;
 
+    	// END Initialization
     	boolean running = true;
     	while ( running ) {
     		
@@ -103,28 +106,25 @@ public class Mthread extends Thread {
     		synchronized( lock ) {
     			
     			if ( status == STATUS_TYPE.STATUS_READY ) {
-    				
-    				try {
     					lock.wait( );
-    				} 
-    				catch ( Exception e ) {
-    					// TODO - probably should not swallow this exception
-    				}
-    				
     			}
 
     			// wake-up message
-    			if( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + "] woken up" );
+    			if(MASS.isConsoleLoggingEnabled() )
+    				MASS_base.log( "Mthread[" + tid + "] woken up " + status );
     		
     		}
-
+    		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
+          agents = MASS_base.getCurrentAgents( );
+          agents.callAllAsync(tid);
+    		  }
+    		else {
     		// perform each task
     		switch( status ) {
     		
     		case STATUS_READY:
     			
-    			if ( MASS.isConsoleLoggingEnabled() )
+    			if (MASS.isConsoleLoggingEnabled())
     				MASS_base.log( "Mthread reached STATUS_READY in switch" );
     			System.exit( -1 );
     			break;
@@ -221,16 +221,17 @@ public class Mthread extends Thread {
     			agents.manageAll( tid );
 
     			break;
-    		
     		}
-
     		// barrier
     		barrierThreads( tid );
-
     	}
-
+    	}
+      }catch(Throwable e) {
+        MASS_base.logException("Thread " + tid + " fails", e);
+      }
+    
     	// last message
-    	if ( MASS.isConsoleLoggingEnabled() )
+    	if (MASS.isConsoleLoggingEnabled())
     		MASS_base.log( "Mthread[" + tid + "] terminated" );
     
     }

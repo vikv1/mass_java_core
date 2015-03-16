@@ -1,5 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.LinkedList;
+
 public class AgentList {
 
 	private final int CAPACITY_X = 1000; // max agent population = 1 million
@@ -11,6 +13,7 @@ public class AgentList {
 	private int curr_x = -1;
 	private int next_y = 0;
 	private int iterator = 0;
+	private int estimateSize = 0;
 
 	public AgentList( ) {
 		init( CAPACITY_Y );
@@ -28,17 +31,26 @@ public class AgentList {
 		}
 		
 		array[curr_x][next_y++] = item;
-	
+		++estimateSize;
 	}
-
-	public void addAll( AgentList list ) {
 		
-		list.reduce( );
-		reduce_helper( );
-		
-		for ( int i = 0; i < list.size( ); i++ )
-			add( list.get( i ) );
+	/**
+	 * 
+	 * @param item
+	 * @param index
+	 */
+	public void add(Agent item, int index) {
+	  int xindex = index / CAPACITY_X;
+	  int yindex = index % CAPACITY_X;
+	  if(array[xindex] == null) {
+	    array[xindex] = new Agent[CAPACITY_Y];	    
+	  }
+	  array[xindex][yindex] = item;
+	  ++estimateSize;
+	}
 	
+	public int estimateSize() {
+	  return estimateSize;
 	}
 
 	public void check_internal( ) {
@@ -115,7 +127,7 @@ public class AgentList {
 				init_capacity : CAPACITY_Y;
 		
 		increaseX( ); 
-	
+		estimateSize = 0;
 	}
 
 	public synchronized Agent next( ) {
@@ -156,7 +168,7 @@ public class AgentList {
 				"] and [" + x_full + "][" + y_full + "] = " +
 				array[x_null][y_null] );
 			 */
-		
+			MASS.log("AgentList reduced done");
 		}
 
 		// reduce
@@ -169,6 +181,7 @@ public class AgentList {
 		curr_x = x_null;
 		next_y = y_null;
 		reduceDone = true;
+		estimateSize = this.size_unreduced();
 		// System.out.println( "reduce done to " + size_unreduced( ) );
 	
 	}
@@ -185,7 +198,7 @@ public class AgentList {
 					
 					array[i][j] = null;
 					reduceDone = false;
-					
+					--estimateSize;
 					return;
 				
 				}
@@ -206,16 +219,14 @@ public class AgentList {
 			int y = linear_index % capacity_y;
 			array[x][y] = null;
 			reduceDone = false;
-			
+			--estimateSize;
 			/*
 	    	System.out.println( "AgentList.remove: " +
 				"linear_index = " + linear_index +
 				" array[" + x + "][" + y + "] = " +
 				array[x][y] );
 			 */
-		
-		}
-	
+		}	
 	}
 
 	public synchronized void setIterator( ) {
@@ -231,4 +242,21 @@ public class AgentList {
 	public int size_unreduced( ) {
 		return curr_x * capacity_y + next_y;
 	}
+	
+	/*public synchronized LinkedList<Agent> getAll() {
+	  reduce_helper();
+	  LinkedList<Agent> result = new LinkedList<Agent>();
+	  int x = 0, y = 0;
+	  for(int i = 0; i < size_unreduced(); i++)
+	  {
+	    result.add(array[x][y]);
+	    ++y;
+	    if(y == capacity_y)
+	    {
+	      y = 0;
+	      ++x;
+	    }
+	  }
+	  return result;
+	} */
 }

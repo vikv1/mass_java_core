@@ -21,7 +21,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class MASS extends MASS_base {
 
-	private static final boolean printOutput = false;
+	private static boolean printOutput = false;
 
 	private static final int JschPort = 22;
 
@@ -42,6 +42,10 @@ public class MASS extends MASS_base {
 
 	// object factories are singletons, so we'll use this opportunity to initialize it
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    
+    // Async
+    // number of node that return async result
+    private static int LocalAgents[];
 
 	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
@@ -54,7 +58,7 @@ public class MASS extends MASS_base {
     		objectFactory.addLibrary(libraryName);
     	}
     	catch (Exception e) {
-    		// TODO - should handle exceptions better here
+        MASS.logException(null, e);
     	}
 
     	// remember the specified library so it can be set on remote nodes as well
@@ -157,7 +161,7 @@ public class MASS extends MASS_base {
     	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
     	Mthread.barrierThreads( 0 );
 
-    	if ( printOutput == true )
+    	if(MASS.isConsoleLoggingEnabled())
     		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
@@ -172,6 +176,8 @@ public class MASS extends MASS_base {
 
     	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
+      MASS_base.getAsyncOutputThread().finish();
+      MASS_base.getAsyncInputThread().finish();
 
     	System.err.println( "MASS::finish: done" );
 
@@ -221,7 +227,7 @@ public class MASS extends MASS_base {
 	public static boolean isConsoleLoggingEnabled() {
 		return printOutput;
 	}
-
+	
 	/**
 	 * Initialize the MASS library (using settings made previously via setters)
 	 */
@@ -376,8 +382,8 @@ public class MASS extends MASS_base {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xms1g ");
-    		commandBuilder.append("-Xmx4g ");
+    		commandBuilder.append("-Xms2g ");
+    		commandBuilder.append("-Xmx9g ");
     		
     		// set location of MASS.jar
     		commandBuilder.append("-cp ");
@@ -508,7 +514,6 @@ public class MASS extends MASS_base {
     	}
 
     	catch ( Exception e ) {
-
     		System.err.println( "Error during MASS.init() optional argument" +
     				"parsing " + e.getStackTrace());
 
@@ -557,5 +562,39 @@ public class MASS extends MASS_base {
 		MASS.numThreads = numThreads;
 		
 	}
+	
+	public static int[] getLocalAgents() {
+	  return LocalAgents;
+	}
+	
+	public static void setLocalAgents(int[] values) {
+	  LocalAgents = values;
+	}
+	
+	/**
+	 * ONLY to call by Master node
+	 * @return
+	public static boolean getSlaveNodeAsyncCompleteness() {
+	  if(MASS.isConsoleLoggingEnabled()) {
+	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
+	  }
+	  
+	  if(getEsimateSlaveNodeComplete() >= getRemoteNodes().size()) {
+	    MASS_base.setCachedSlaveNodeAsyncCompleteness(getAsyncOutputThread().requestSlaveNodeAsyncCompleteness());
+	  }
+	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
+	}
+   */
+
+  public static void getRemoteAsyncResults() {
+    if(!getRemoteNodes().isEmpty()) {
+      LocalAgents = new int[getRemoteNodes().size()];
+      getAsyncOutputThread().requestAsyncResults();
+    }
+  }
+	
+	/**
+	 * END Async methods
+	 */
 	
 }

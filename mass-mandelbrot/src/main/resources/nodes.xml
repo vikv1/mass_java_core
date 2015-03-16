@@ -1,0 +1,33 @@
+<!-- You may place comments in this type of file format. Use standard XML comment scheme. -->
+
+<!--
+	This document MUST be formatted using standard XML formatting rules. If not, this document
+	will not parse correctly and will cause the library to throw an Exception on startup.
+	
+	There is only one part of this that is order dependent - the order in which the nodes are
+	specified determines their rank. Nodes listed earlier have lower ranks than those listed
+	later.
+	
+-->	
+
+<nodes>
+<node>
+		<master>true</master>
+		<!-- Hostname is required, and may either be an FQDN or IP address -->
+		<!-- Make sure the name/address specified is reachable by all other nodes -->
+		<hostname>uw1-320-01.uwb.edu</hostname>
+		<masshome>/net/metis/home3/hungho/MASS_Java/</masshome>
+	</node>
+<node>
+		<!-- Hostname is required, and may either be an FQDN or IP address -->
+		<!-- Make sure the name/address specified is reachable by all other nodes -->
+		<hostname>uw1-320-02.uwb.edu</hostname>
+		
+		<!-- The username that is recognized by this node and have privileges to run your application -->
+		<username>dslab</username>
+		
+		<!-- Password of the specified user -->
+		<password>ds1ab-302</password>
+		<masshome>/net/metis/home3/hungho/MASS_Java/</masshome>
+	</node>
+</nodes>

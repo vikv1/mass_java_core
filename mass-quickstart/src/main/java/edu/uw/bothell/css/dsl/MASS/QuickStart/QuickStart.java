@@ -6,7 +6,7 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 
 public class QuickStart {
 
-	private static final String NODE_FILE = "src/main/resources/nodes.xml";
+	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-quickstart-0.8.2-SNAPSHOT.jar";
 	
 	public static void main(String[] args) {
