@@ -15,14 +15,10 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-//import java.util.Calendar;
-//import java.util.Date;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import java.util.Random;
-
-
 
 /**
  *
@@ -32,6 +28,7 @@ public class TasmaxPlace extends Place{
     // variables for reading netcdf data into places
     private static ArrayList<float[][][]> tempsFileChunks = null;
     private static final Object readLock = new Object();
+    private int numNodes;
     
     /**
      * Step 1 && 2 variables
@@ -42,7 +39,6 @@ public class TasmaxPlace extends Place{
     private float[] daysTemps;  
     // used to mark the location of year beginnings and endings in files
     private int[][] yearIndices;
-
     
     /**
      * Step 3 variables
@@ -72,6 +68,8 @@ public class TasmaxPlace extends Place{
     public static final int calculateDaysOverThreshold = 12;
     public static final int setClimateTempThreshold = 21;
     public static final int setYearIndexArray = 22;
+    public static final int netCdfReadTest = 25;
+    public static final int setNumberOfNodes = 26;
       
     /**
      * public constructor
@@ -111,11 +109,26 @@ public class TasmaxPlace extends Place{
                 return setYearIndexArray(o);
             case readNetCdfData:
                 return readNetCdfData(o);
+            case netCdfReadTest:
+                return netCdfReadTest(o);
+            case setNumberOfNodes:
+                return setNumberOfNodes(o);
+
             default:
                 return null;              
         }
     }
     
+    
+       public Object setNumberOfNodes(Object o){
+           numNodes = (int)o;
+//        inputClimateModel = (ClimateModelInterface)o;
+        
+     //   inputClimateModel = o;
+   //     inputClimateModel = new Tasmax_1();
+        return null;
+    }   
+       
     /**
      * Sets the climate model at the place level. 
      * @param o The climate model variable we will be using
@@ -138,17 +151,18 @@ public class TasmaxPlace extends Place{
      * @return 
      */
     public Object setDaysArray(Object o){
+        int x = this.getIndex()[0];
+        int y = this.getIndex()[1];
+        int z = this.getIndex()[2];
+        
         if(o != null){
-            daysTemps = (float[])o;
-            calculateDaysOverThreshold(new Object());
-            daysTemps = null;
-            /**
-             * Next section for de-bugging
-             */
-            String ind = Integer.toString(this.getIndex()[0]) + " " 
-                    + Integer.toString(this.getIndex()[1])+ " " 
-                    + Integer.toString(this.getIndex()[2]);
-            int i = 0;
+            try{
+                daysTemps = (float[])o;
+                calculateDaysOverThreshold(new Object());
+                daysTemps = null;
+            }catch(Exception e){
+                String s = "";
+            }     
         }        
         return null;
     }
@@ -226,6 +240,8 @@ public class TasmaxPlace extends Place{
               int nodePlacesXdim = this.getSize()[0];
               int nodePlacesYdim = this.getSize()[1];
               int nodePlacesZdim = this.getSize()[2];
+              // FOR EACH FILE, READ IN A CHUNK OF DATA
+              
               
               
               String s = "";
@@ -339,7 +355,7 @@ public class TasmaxPlace extends Place{
             longitude = x;
             latitude = y;
             time = readIndex;
-            orgin = new int[]{time, latitude, longitude};
+            orgin = new int[]{time, latitude + 100, longitude + 100};
             shape = new int[]{readAmount, 1, 1};   
             float[] daysTemps = null;
             try{
@@ -488,5 +504,129 @@ public class TasmaxPlace extends Place{
              s =  InetAddress.getLocalHost().getHostName() +" " + Integer.toString(this.getIndex()[0]) + ":" + Integer.toString(this.getIndex()[1]) + ":" + Integer.toString(this.getIndex()[2]);
         }catch(Exception e){}
         return s;
+    }
+    
+    /**
+     * Simple NetCDF read test method
+     * @param o
+     * @return 
+     */
+    public Object netCdfReadTest(Object o){
+        //    if(this.getIndex()[2] != (int)o) return null;
+        try{
+   //   Variable ncdfVar;               // NetCDF Variable
+ //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
+ //     List<Variable> inputVariables;
+//        String longitude = "longitude";
+//        String latitude = "latitude";
+//        String time = "time";
+        String varname = "tasmax";
+        // we read in one z slice at a time, if this isnt the right slice, return 
+        
+        int x = this.getIndex()[0];
+        int y = this.getIndex()[1];
+        int z = this.getIndex()[2];
+     
+//        daysTemps = inputClimateModel.readLocalizedYear(this.getIndex()[0], this.getIndex()[1], this.getIndex()[2]);
+          NetcdfFile inputFile = null;    // target netCDF file
+        int zIndex;
+        int yr;
+        int readIndex;
+        int readAmount;
+        int inputFileIndex;// the index 0-4 of which file to start with
+        int[] orgin;
+        int[] shape;
+        int latitude;
+        int longitude;
+        int time;
+        ucar.unidata.util.Format format  = new ucar.unidata.util.Format();
+        Variable ncdfTasMaxVar;
+        Array dataSection;
+        // our climate model file set
+    //    int[][] dims = this.getDimensions();
+        int[][] dims = new int[][]{{462, 222, 20820},{ 462, 222, 7670},{ 462, 222, 8766},{ 462, 222, 8766},{ 462, 222, 9131}};
+        
+        // set up files locally
+        String  host = "";
+        String[] files = new String[5];
+        try {
+            host = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ex) {
+            host = "";
+        }
+        
+        if(host.equals("desktop")){
+            files[0] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+            files[1] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+            files[2] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+            files[3] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+            files[4] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+        }else{
+            files[0] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+            files[1] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+            files[2] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+            files[3] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+            files[4] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+        }
+        
+        
+   
+        yr = 1950 + z; // 2099 is the last year, zIndex will be 0-149
+  
+        readIndex = yearIndices[z][0];
+        readAmount = yearIndices[z][1] - yearIndices[z][0];
+ 
+        String fileToRead = "";
+        
+        if(yr > 2074){
+            fileToRead = files[4];
+        }
+        else if (yr > 2050){
+            fileToRead = files[3];
+        }
+         else if (yr > 2026){
+            fileToRead = files[2];
+         }
+         else if (yr > 2005){
+            fileToRead = files[1];
+         }
+         else{
+            fileToRead = files[0];
+         }
+            // open the file
+            try{
+                inputFile = NetcdfFile.open(fileToRead);  
+            }catch(Exception e){
+                String s = e.toString();
+                return null;
+            }
+            ncdfTasMaxVar = inputFile.findVariable(varname); 
+
+            longitude = x;
+            latitude = y;
+            time = readIndex;
+            orgin = new int[]{time, latitude + 100, longitude + 100};
+            shape = new int[]{readAmount, 1, 1};   
+         //   float[] daysTemps = null;
+            try{
+                // read and set the array as a class variable
+                dataSection = ncdfTasMaxVar.read(orgin, shape);  
+                daysTemps = (float[])dataSection.copyTo1DJavaArray();
+
+            }catch(Exception e){
+                String s = e.toString();
+                inputFile.close();
+                return null;
+            }     
+            try{
+                inputFile.close();
+            }catch(Exception e){}
+        
+        // find the days over threshold
+     //   calculateDaysOverThreshold(new Object());
+        }catch(Exception e){            
+            String s = "";        
+        }
+        return daysTemps;
     }
 }

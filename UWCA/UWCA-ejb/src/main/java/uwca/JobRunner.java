@@ -55,13 +55,13 @@ public class JobRunner {
             Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
         }
         // copy the class files from the build directory to the mass working directory for nodes
-//        File srcDir = new File("/net/cssfs01p/opt/mfukuda-data/NetBeansProjects/MASS_Java.git/UWCA/UWCA-ejb/target/classes");
-//        File destDir = new File("/net/cssfs01p/opt/mfukuda-data/UWCA/uwca_mass_home");
-//        try {            
-//            FileUtils.copyDirectory(srcDir, destDir);
-//        } catch (IOException ex) {
-//            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        File srcDir = new File("/net/cssfs01p/opt/mfukuda-data/NetBeansProjects/MASS_Java.git/UWCA/UWCA-ejb/target/classes");
+        File destDir = new File("/net/cssfs01p/opt/mfukuda-data/UWCA/uwca_mass_home");
+        try {            
+            FileUtils.copyDirectory(srcDir, destDir);
+        } catch (IOException ex) {
+            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         
         
@@ -74,7 +74,7 @@ public class JobRunner {
         MASS.addLibrary(apacheMathLib);
    
         MASS.setCommunicationPort(45454); // port # to use
-        MASS.setNumThreads(16);            // # of threads to use
+        MASS.setNumThreads(10);            // # of threads to use
         MASS.init();
     }
     

@@ -1,8 +1,6 @@
 package uwca.climatemodels;
 
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Calendar;
@@ -26,7 +24,6 @@ import ucar.nc2.units.DateUnit;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 
 /**
  *

@@ -26,11 +26,7 @@ import ucar.nc2.Variable;
 public class NetCdf {
     
     public void writeToeFile(String filename, int x, int y, int[][] values){
-  // We are writing 2D data, a 6 x 12 grid.
-//    final int NX = 6;
-//    final int NY = 12;
 
-  //  String filename = "simple_xy.nc";
     NetcdfFileWriter dataFile = null;
 
     try {
