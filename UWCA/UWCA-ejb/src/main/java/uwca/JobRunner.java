@@ -6,8 +6,18 @@
 
 package uwca;
 
+import edu.uw.bothell.css.dsl.MASS.Agents;
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.Places;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -18,37 +28,83 @@ import javax.ejb.Singleton;
 public class JobRunner {
     
     // our reference to our singleton job manager class
- //   @Inject
-  //  @EJB
-  //  private JobManagerSingleton jobMgr;
-    JobManager jobMgr;
+    JobManager jobMgr;    
+    
+    int numProc = 1;
+    int numThr = 2;
+    
+    private Boolean mass_init = false;
     
     /**
      * Our default Constructor
      */
     public JobRunner(){
-        jobMgr = JobManager.getInstance();
+        jobMgr = JobManager.getInstance();        
     }
     
     /**
-     *  Our scheduled job runner
+     * Starts up MASS on deployment with required libraries for clustering
+     */
+    @PostConstruct
+    public void initMassLibrary(){    
+        // attempt to clean out the jobs directory on each startup      
+        File jobDir = new File(jobMgr.getJobsDirectory());
+        try { 
+            FileUtils.cleanDirectory(jobDir);
+        } catch (IOException ex) {
+            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        // copy the class files from the build directory to the mass working directory for nodes
+        File srcDir = new File("/net/cssfs01p/opt/mfukuda-data/NetBeansProjects/MASS_Java.git/UWCA/UWCA-ejb/target/classes");
+        File destDir = new File("/net/cssfs01p/opt/mfukuda-data/UWCA/uwca_mass_home");
+        try {            
+            FileUtils.copyDirectory(srcDir, destDir);
+        } catch (IOException ex) {
+            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
+        /**
+         * Init MASS for the calculations to execute
+         */
+        String netCdfLib = "netcdf.jar";
+        MASS.addLibrary(netCdfLib);
+        String apacheMathLib = "apachemath-3.3.3.jar";
+        MASS.addLibrary(apacheMathLib);
+   
+        MASS.setCommunicationPort(45454); // port # to use
+        MASS.setNumThreads(10);            // # of threads to use
+        MASS.init();
+    }
+    
+    /**
+     * Shut down mass on re-deploy
+     */
+    @PreDestroy
+    public void finishMassLibrary(){
+        // end mass
+        MASS.finish();
+    }
+    
+    /**
+     *  Our scheduled job runner -- runs continuously
      */
     @Schedule(second="*/1", minute="*",hour="*", persistent=false)
     public void doWork(){
         try{
-            // Location for machine file using Glassfish
-            // C:\glassfish4\glassfish\domains\domain1\config
-       
+            // get the next job to be processed from the job manager
             Job j = jobMgr.getNextJob();
          //   Thread.sleep(10000);
             if(j != null){
                 // run the calculations
                 j.executeJob();
                 // update job status
-                j.setStatus("Completed");
+                j.setStatus("Completed");  
             }
         }catch(Exception e){
             // TODO: error reporting here
+            String s = e.toString();
         }
     }
     

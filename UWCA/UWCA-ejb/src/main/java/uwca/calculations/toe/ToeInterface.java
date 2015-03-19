@@ -5,6 +5,7 @@
  */
 package uwca.calculations.toe;
 
+import uwca.ProvAdapter;
 import uwca.climatemodels.ClimateModelInterface;
 
 /**
@@ -15,6 +16,10 @@ public interface ToeInterface {
     
     public void executeCalculations();
     
-    public void setArgs(String[] args, int numProc, int numThr, ClimateModelInterface inputModel, int jobNum);
+    public int getNumToeYears();
+    
+    public void setArgs(ClimateModelInterface inputModel, int jobNum, ProvAdapter provLogger);
+    
+    public void writeNetCdfFiles(String toeRegFile, String toeMinFile, String toeMaxFile);
     
 }

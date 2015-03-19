@@ -14,6 +14,7 @@ import java.util.List;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
@@ -25,11 +26,7 @@ import ucar.nc2.Variable;
 public class NetCdf {
     
     public void writeToeFile(String filename, int x, int y, int[][] values){
-  // We are writing 2D data, a 6 x 12 grid.
-//    final int NX = 6;
-//    final int NY = 12;
 
-  //  String filename = "simple_xy.nc";
     NetcdfFileWriter dataFile = null;
 
     try {
@@ -47,7 +44,8 @@ public class NetCdf {
       // Define a netCDF variable. The type of the variable in this case
       // is ncInt (32-bit integer).
       Variable dataVariable = dataFile.addVariable(null, "toe", DataType.INT, dims);
-
+      Attribute attr1 = new Attribute("_FillValue", 0);
+      dataVariable.addAttribute(attr1);
       // create the file
       dataFile.create();
 
@@ -84,10 +82,7 @@ public class NetCdf {
         } catch (IOException ioe) {
           ioe.printStackTrace();
         }
-    }
-
-    System.out.println("*** SUCCESS writing example file simple_xy.nc!");
-     
+    }     
     }
     
 }

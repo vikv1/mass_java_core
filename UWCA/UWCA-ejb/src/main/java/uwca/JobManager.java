@@ -6,8 +6,12 @@
 package uwca;
 
 //import com.google.gson.Gson;
+import com.google.gson.Gson;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uwca.calculations.toe.Tasmax;
 import uwca.climatemodels.Tasmax_1;
 
@@ -19,6 +23,9 @@ public class JobManager {
     private static volatile JobManager instance = null;
     int jobId = 0;
     List<Job> jobs;
+    
+    // the name of the directory where all the job information will be stored
+    private String jobsDirectory = "jobs";
     
     /**
      * Default Constructor
@@ -47,10 +54,10 @@ public class JobManager {
      * @param model  the model to use
      */
     public synchronized void submitJob(String var, String model, String[] params){
-        Job job = new Job();
+        Job job = new Job(this.getJobsDirectory());
         switch(var){
             case "tmax":       
-                job.setVariable(new Tasmax(params)); 
+                job.setVariable(new Tasmax(params, jobsDirectory)); 
                 job.setVarName(var);
                 job.setStatus("Queued");
                 break;
@@ -59,7 +66,13 @@ public class JobManager {
         }
         switch(model){
             case "conus_c5":
-                job.setInputModel(new Tasmax_1());
+            {
+                try {
+                    job.setInputModel(new Tasmax_1());
+                } catch (IOException ex) {
+                    Logger.getLogger(JobManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
                 job.setInputModelName(model);
                 break;
             default:                    
@@ -76,20 +89,25 @@ public class JobManager {
      */
     public synchronized String getStatusUpdates(){
         // format the data for table construction on client side
-        String[][] returnData = new String[jobs.size()][5];
+        String[][] returnData = new String[jobs.size()][8];
         int i = 0;
         for(Job j : jobs){
             returnData[i][0] = j.getVarName();
             returnData[i][1] = j.getInputModelName();
-            returnData[i][2] = "";
+            returnData[i][2] = Integer.toString(j.getNumToeYears());
             returnData[i][3] = j.getStatus();
+            String[] files = j.getOutputFiles();
+            returnData[i][4] = files[0];
+            returnData[i][5] = files[1];
+            returnData[i][6] = files[2];
+            returnData[i][7] = files[3];        
+            
             i++;
         }
         // return json formatted data for the browser
-      //  Gson gson = new Gson();
-     //   String json = gson.toJson(returnData);        
-      //  return json; 
-        return "";
+        Gson gson = new Gson();
+        String json = gson.toJson(returnData);        
+        return json; 
     }
     
     /**
@@ -108,4 +126,11 @@ public class JobManager {
         // if there are no queued jobs
         return null;
     }    
+
+    /**
+     * @return the jobsDirectory
+     */
+    public String getJobsDirectory() {
+        return jobsDirectory;
+    }
 }

@@ -1,10 +1,12 @@
 package uwca.climatemodels;
 
-
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ucar.ma2.Array;
@@ -22,7 +24,6 @@ import ucar.nc2.units.DateUnit;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 
 /**
  *
@@ -65,8 +66,10 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float
     */
- //   private String file1 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
-    private String file1 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+  //  private String file1 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+ //   private String file1 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+ //   private String file1 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+    private String file1;
 
     /*
        float longitude(longitude=462);
@@ -103,8 +106,10 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float    
     */
-  //  private String file2 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
-    private String file2 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+ //   private String file2 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+ //   private String file2 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+ //   private String file2 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+    private String file2;
     /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -141,7 +146,9 @@ public class Tasmax_1 implements ClimateModelInterface{
      :_FillValue = 1.0E20f; // float
     */
  //   private String file3 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
-    private String file3 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+ //   private String file3 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+ //   private String file3 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+    private String file3;
       /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -177,8 +184,11 @@ public class Tasmax_1 implements ClimateModelInterface{
      :units = "C";
      :_FillValue = 1.0E20f; // float
     */
- //   private String file4 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
-    private String file4 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+   // private String file4 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+//     private String file4 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+ //   private String file4 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+    private String file4;
+    
       /*
        float longitude(longitude=462);
      :_Netcdf4Dimid = 0; // int
@@ -222,10 +232,13 @@ public class Tasmax_1 implements ClimateModelInterface{
     // long X dim
     // time Z?
  //   private String file5 = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
-    private String file5 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+ //   private String file5 = "/data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+  //  private String file5 = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+    private String file5;
     
     // our file list
-    private String[] files = new String[]{file1, file2, file3, file4, file5};
+  //  private String[] files = new String[]{file1, file2, file3, file4, file5};
+    private String[] files = new String[5];
     
     // Latitude = 222
     // Longitude = 462
@@ -240,10 +253,30 @@ public class Tasmax_1 implements ClimateModelInterface{
     String longitude = "longitude";
     String latitude = "latitude";
     String time = "time";
-    String varname = "tasmax";
-    private int startLeapYear = 1948;
+    String varname = "tasmax";   
     private int startYear = 1950;
     private int endYear = 2099;
+    private int numYears = 150;
+    
+    /**
+     * Default Constructor
+     * Reads in the file paths specific to the machine we're working on
+     */
+    public Tasmax_1() throws IOException{
+        String file = "uwca_config" + File.separator + "climate_model_files" + File.separator + "Tasmax_1.txt";
+        Scanner in = null;
+      
+        // read in the file paths from the file config directory
+        FileReader fr = new FileReader(file);
+        in = new Scanner(fr);
+        files[0] = in.nextLine();
+        files[1] = in.nextLine();
+        files[2] = in.nextLine();
+        files[3] = in.nextLine();
+        files[4] = in.nextLine();
+        in.close();
+        fr.close();  
+    }
 
     /**
      * @return the files
@@ -264,7 +297,7 @@ public class Tasmax_1 implements ClimateModelInterface{
      * @param readIndex
      * @return 
      */
-    public Object readFullYear(int z, int[][] yearIndices){
+    public Object readFullYear(int x, int y, int z, int[][] yearIndices){
         readIndexes = yearIndices;
 
         NetcdfFile inputFile = null;    // target netCDF file   
@@ -279,7 +312,7 @@ public class Tasmax_1 implements ClimateModelInterface{
         Variable ncdfTasMaxVar;
         Array dataSection;
         String varname = "tasmax";
-        yr = z + startYear;      
+        yr = z + getStartYear();      
         
         readIndex = readIndexes[z][0];
         readAmount = readIndexes[z][1] - readIndexes[z][0];
@@ -287,19 +320,19 @@ public class Tasmax_1 implements ClimateModelInterface{
         String fileToRead = "";
         
         if(yr > 2074){
-            fileToRead = file5;
+            fileToRead = files[4];
         }
         else if (yr > 2050){
-            fileToRead = file4;
+            fileToRead = files[3];
         }
          else if (yr > 2026){
-            fileToRead = file3;
+            fileToRead = files[2];
          }
          else if (yr > 2005){
-            fileToRead = file2;
+            fileToRead = files[1];
          }
          else{
-            fileToRead = file1;
+            fileToRead = files[0];
          }
 
         try {  
@@ -309,11 +342,11 @@ public class Tasmax_1 implements ClimateModelInterface{
         // get the netcdf variable
         ncdfTasMaxVar = inputFile.findVariable(varname);          
 
-        latitude = 222;
-        longitude = 462;
+        latitude = x;  // 222
+        longitude = y; // 462
         
         orgin = new int[]{readIndex, 0, 0};
-        shape = new int[]{readAmount, latitude, longitude};   
+        shape = new int[]{readAmount, longitude, latitude};   
         Object yearData = null;
         try{
             dataSection = ncdfTasMaxVar.read(orgin, shape);  
@@ -356,7 +389,7 @@ public class Tasmax_1 implements ClimateModelInterface{
         // starting index always 0
         indices[0][0] = 0;
         
-        int activeYear = startYear;
+        int activeYear = getStartYear();
         
         // loop through each of the five files
         for(String file: files){
@@ -455,6 +488,8 @@ public class Tasmax_1 implements ClimateModelInterface{
      * @return 
      */
      public float[] readLocalizedYear(int x, int y, int z){
+         
+         
 
         NetcdfFile inputFile = null;    // target netCDF file
         int zIndex;
@@ -475,25 +510,25 @@ public class Tasmax_1 implements ClimateModelInterface{
    
         yr = 1950 + z; // 2099 is the last year, zIndex will be 0-149
   
-         readIndex = readIndexes[z][0];
+        readIndex = readIndexes[z][0];
         readAmount = readIndexes[z][1] - readIndexes[z][0];
  
         String fileToRead = "";
         
         if(yr > 2074){
-            fileToRead = file5;
+            fileToRead = files[4];
         }
         else if (yr > 2050){
-            fileToRead = file4;
+            fileToRead = files[3];
         }
          else if (yr > 2026){
-            fileToRead = file3;
+            fileToRead = files[2];
          }
          else if (yr > 2005){
-            fileToRead = file2;
+            fileToRead = files[1];
          }
          else{
-            fileToRead = file1;
+            fileToRead = files[0];
          }
             // open the file
             try{
@@ -523,5 +558,26 @@ public class Tasmax_1 implements ClimateModelInterface{
                 inputFile.close();
             }catch(Exception e){}
         return daysTemps;
+    }
+
+    /**
+     * @return the startYear
+     */
+    public int getStartYear() {
+        return startYear;
+    }
+
+    /**
+     * @return the tvalue
+     */
+    public double getTvalue() {
+        return tvalue;
+    }
+
+    /**
+     * @return the numYears
+     */
+    public int getNumYears() {
+        return numYears;
     }
 }

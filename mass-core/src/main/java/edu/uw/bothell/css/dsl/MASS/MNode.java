@@ -37,6 +37,7 @@ public class MNode {
     private Channel channel;            // JSCH channel
     private ObjectInputStream mainIOS;  // from remote to master
     private ObjectOutputStream mainOOS; // from master to remote
+    private int resetCounter = 0;
     
 	/**
 	 * Terminate all communications channels to the remote Node
@@ -206,6 +207,11 @@ public class MNode {
 
 			mainOOS.writeObject( m );
 			mainOOS.flush( );
+                        resetCounter++;
+                        if(resetCounter == 5){
+                            mainOOS.reset();
+                            resetCounter = 0;
+                        }
 
 		}
 

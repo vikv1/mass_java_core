@@ -16,34 +16,38 @@
                     <option value="tmax">tmax</option>
                 </select>
                 <select multiple id="inputParams" class="workflowSel">
-                     <option value='conus_c5'>conus_c5</option>
+<!--                     <option value='conus_c5'>conus_c5</option>-->
                 </select>
                 <div id="paramsDiv">
-                    Temp Threshold:<input id='tempThreshold' type='text'>
-                    Min/Max Tol: <input id='minTol' type='text'>
-                    Num Toe Years: <input id='numToeYears' type='text'>
-                    Days Over Threshold Value: <input id='daysOverThresholdVal' type='text'>
+                    Temperature Threshold:<input id='tempThreshold' type='text'>
+                    Tolerance: <input id='tolerance' type='text'>
+                    Number of Toe Years: <input id='numToeYears' type='text'>
                 </div>
-                <input id='submitBtn' type='button' value='Submit'>
-                <input id='statusBtn' type='button' value='Refresh Status'>
+                <div id="controlDiv">
+                    <input id='submitBtn' type='button' value='Submit'>
+                    <input id='statusBtn' type='button' value='Refresh Status'>
+                </div>
             </div>
         </div>
         <div id="histDiv">
             <div id="statusDiv">
                 <table id="statusTable">
                     <tr>
-                        <th>Management Variable</th>
-                        <th>Input Model</th>
-                        <th>ToE Calculation</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>                    
-                </table>    
+                        <th class="c1">ToE Variable</th>
+                        <th class="c2">Input Model</th>
+                        <th class="c3">Number of Toe Years</th>
+                        <th class="c4">Status</th>
+                        <th class="c5">Provenance File</th>
+                        <th class="c6">ToE</th>
+                        <th class="c7">ToE Minus Confidence Int</th>
+                        <th class="c8">ToE Plus Confidence Int</th>
+                    </tr>
+                </table>
                 <div id='statusTableBodyDiv'>
                     <table id='statusTableBody'>                        
                     </table>
                 </div>
             </div>
-        </div>      
+        </div>              
     </body>
 </html>

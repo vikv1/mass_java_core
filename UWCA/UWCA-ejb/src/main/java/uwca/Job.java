@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import uwca.calculations.toe.Tasmax;
 import uwca.calculations.toe.ToeInterface;
 import uwca.climatemodels.ClimateModelInterface;
@@ -37,25 +39,68 @@ public class Job {
     // our array list which collects prov information
     List<String> provCollector = new ArrayList<String>();
     
-    String[] massArgs = new String[]{"","","nodes.xml","45454"};  
-    int numProc = 1;
-    int numThr = 2;
-              
+    String provFile = "";
+    String toeRegFile = "";
+    String toeMinFile = "";
+    String toeMaxFile = "";
+    
+    private String[] outputFiles = new String[4];
+    
+    private String jobsDirectory = "";
     
     /**
      * public constructor
      */
-    public Job(){
+    public Job(String jobsDir){
+        jobsDirectory = jobsDir;
         Random rn = new Random();
         jobNumber =  rn.nextInt(9999);
+        
+        // create job directory for this specific job
+        String jobDir = Integer.toString(jobNumber);
+        File dir = new File(jobsDir+ File.separator + jobDir);
+        dir.mkdirs();
+        File tmp = new File(dir, "provlog.txt");
+        try {
+            tmp.createNewFile();
+        } catch (IOException ex) {
+            Logger.getLogger(Tasmax.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
      * Starts the main calculations for the job
      */
     public void executeJob(){
-        variable.setArgs(massArgs, numProc, numThr, inputModel, jobNumber);
+        ProvAdapter provLogger = new ProvAdapter("jobs/"+jobNumber + "/provlog.txt");
+        
+        String msg =  " Job " + Integer.toString(jobNumber) + " Started " ;
+        provLogger.logProvenance(msg);
+        
+        // mark job start time
+        DateTime startTime = new DateTime();
+        
+        // log files used
+        msg = "Input Model used: " + this.inputModelName + "\n";
+        
+        String[] files = inputModel.getFiles();
+        for(int i = 1; i <= files.length; i++){
+            msg = msg + "File " + i + " " + files[i-1] + "\n";
+        }
+        provLogger.logProvenance(msg);
+        
+        variable.setArgs(inputModel, jobNumber, provLogger);
         variable.executeCalculations();
+        
+        // mark end time
+        DateTime endTime = new DateTime();    
+        // get the duration and log it
+        Duration duration = new Duration(startTime, endTime);
+        
+        this.writeDataToFile();
+        msg =  " Job " + Integer.toString(jobNumber) + " Finished " + 
+                "Duration: " + duration.getStandardSeconds() + " seconds" ;
+        provLogger.logProvenance(msg);
     }
 
     /**
@@ -73,14 +118,16 @@ public class Job {
         }    
     }
     
-    public void calculate(){
-        
-    }
-    
     private void writeDataToFile(){
         
-        
+        toeRegFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeReg.nc";
+        toeMinFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toeMin.nc";
+        toeMaxFile = jobsDirectory+ File.separator +jobNumber+ File.separator + "toePls.nc";
+        variable.writeNetCdfFiles(toeRegFile, toeMinFile, toeMaxFile);    
+    }
     
+    public int getNumToeYears(){
+        return variable.getNumToeYears();
     }
 
     /**
@@ -153,5 +200,23 @@ public class Job {
         this.inputModelName = inputModelName;
     }
 
-
+    /**
+     * @return the outputFiles
+     */
+    public String[] getOutputFiles() {
+        
+        String current = "";
+                
+        try {
+            current   = new java.io.File( "." ).getCanonicalPath();
+        } catch (IOException ex) {
+            Logger.getLogger(Job.class.getName()).log(Level.SEVERE, null, ex);
+        }   
+        // construct the absolute file paths
+        outputFiles[0] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "provlog.txt";
+        outputFiles[1] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeReg.nc";
+        outputFiles[2] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toeMin.nc";
+        outputFiles[3] = current + File.separator + jobsDirectory + File.separator + jobNumber + File.separator + "toePls.nc"; 
+        return outputFiles;
+    }
 }
