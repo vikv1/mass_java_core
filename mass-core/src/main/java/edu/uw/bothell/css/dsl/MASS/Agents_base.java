@@ -357,11 +357,22 @@ public class Agents_base implements Serializable {
   	      MASS_base.log("dequeue index " + executedAgentIndex);
         while(MASS_base.getCurrentAgents().getAgents()
             .get(executedAgentIndex).getAsyncFuncListIndex() < asyncFuncList.length) {
-          MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
-              asyncFuncList[MASS_base.getCurrentAgents().getAgents()
-                              .get(executedAgentIndex).pollAsyncFuncListIndex()], 
+          int asyncFuncIndex = MASS_base.getCurrentAgents().getAgents()
+              .get(executedAgentIndex).pollAsyncFuncListIndex();
+          switch(asyncFuncList[asyncFuncIndex]) {
+          case -2:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateStart();
+            break;
+          case -1:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateNext();
+            break;
+          default:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
+              asyncFuncList[asyncFuncIndex], 
                             MASS_base.getCurrentAgents().getAgents()
                               .get(executedAgentIndex).getAsyncArgument());
+            break;
+          }
           
           // only the first method has arg
           MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).setAsyncArgument(null);

@@ -54,6 +54,8 @@ public class Agent implements Serializable {
 	 */
 	private int myAsyncOriginalPid;
 
+  private int autoMigrationStartingIndex;
+
 	public Agent ( ) {
 		//agentsHandle = Agents.getAgentInitAgentsHandle();
 		//placesHandle = Agents.getAgentInitPlacesHandle();
@@ -313,6 +315,27 @@ public class Agent implements Serializable {
       if(MASS.isConsoleLoggingEnabled())
         MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
       return result;
+  }
+  
+  void autoMigrateStart() {
+    int[] size = place.getSize();
+    int[] index = size.clone();
+    for(int i = size.length - 1; i >= 0; i--) {
+      // autoMigrationStartingIndex value is altered after this
+      index[i] = this.autoMigrationStartingIndex % size[i];
+      this.autoMigrationStartingIndex = autoMigrationStartingIndex / size[i];
+    }
+    migrateAsync(index);
+  }
+  
+  void autoMigrateNext() {
+    int[] index = this.getPlace().getIndex().clone();
+    ++index[index.length - 1];
+    migrateAsync(index);
+  }
+
+  public void setAutoMigrationStartingIndex(int i) {
+    this.autoMigrationStartingIndex = i;
   }
 
 }

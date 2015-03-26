@@ -145,8 +145,21 @@ public class Agents extends Agents_base implements Serializable {
   }
 
   @SuppressWarnings("unused")
-  List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments) throws Exception {
-
+  List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
+    // FOR auto migration
+    Places places = MASS_base.getPlaces(this.getPlacesHandle());
+    
+    if(autoMigration) {
+      int[] tempFuncIds = functionIds;
+      functionIds = new int[tempFuncIds.length * 2];
+      functionIds[0] = -2;
+      functionIds[1] = tempFuncIds[0];
+      for(int i = 1; i < tempFuncIds.length; i++) {
+        functionIds[i * 2] = -1;
+        functionIds[i * 2 + 1] = tempFuncIds[1];
+      }
+    }
+    
     // Preparing this node for callAllAsync
     MASS_base.prepareAsyncExecution(this, functionIds);
 
@@ -163,9 +176,25 @@ public class Agents extends Agents_base implements Serializable {
         }
       }
     }
+    
+    if(autoMigration) {
+      int expectedAgentSize = 1;
+      // if dimension is a1 * a2 * ... an then there need to be
+      // a1*a2*..*a(n-1) agents
+      for(int i = 0; i < places.getSize().length - 1; i++) {
+        expectedAgentSize *= places.getSize()[i];
+      }
+      if(total != expectedAgentSize) {
+        MASS.log("Need " + expectedAgentSize + " for automigration. There are " + total + " agents total");
+        return null;
+      }
+    }
 
     // send a AGENTS_CALL_ALL_ASYNC message to each slave
     Message m = null;
+    // for auto migration
+    int lastDimensionLength = MASS_base.getPlaces(this.getPlacesHandle()).getSize()
+        [MASS_base.getPlaces(this.getPlacesHandle()).getSize().length - 1];
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
       // calculate argument position
       int arg_pos = 0;
@@ -181,6 +210,13 @@ public class Agents extends Agents_base implements Serializable {
           localAgents[i + 1]);
       m = new Message(Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,
           this.getHandle(), functionIds, partitioned_argument);
+      if(autoMigration) {
+        int[] startingPlaceGlobalIndex = new int[localAgents[i + 1]];
+        for(int j = 0; j < startingPlaceGlobalIndex.length; j++) {
+          startingPlaceGlobalIndex[j] = (arg_pos + j) * lastDimensionLength;
+        }
+        m.setAutoMigrationStartingIndex(startingPlaceGlobalIndex);
+      }
       if(MASS.isConsoleLoggingEnabled())
         System.err.println("Agents.callAll: to rank[" + (i + 1)
             + "] arg_pos = " + arg_pos);
@@ -198,6 +234,7 @@ public class Agents extends Agents_base implements Serializable {
 
     for (int i = 0; i < asyncQueueSize(); i++) {
       getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+      getAgents().get(asyncQueueGet(i)).setAutoMigrationStartingIndex(i * lastDimensionLength);
     }
     // shared between agents
     // TODO What is share here?
@@ -286,7 +323,12 @@ public class Agents extends Agents_base implements Serializable {
 
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments) throws Exception {
-    return ca_setupAsync(functionIds, arguments);
+    return ca_setupAsync(functionIds, arguments, false);
+  }
+  
+  public List<Agent> callAllAsync(int[] functionIds,
+      Object[] arguments, boolean autoMigration) throws Exception {
+    return ca_setupAsync(functionIds, arguments, autoMigration);
   }
 
   public void init_master(Object argument) {

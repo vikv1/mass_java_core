@@ -15,7 +15,7 @@ public class Program {
 	private static final String NODE_FILE = "nodes.xml";
 	private static final String JAR_FILE_NAME = "mass-mandelbrot-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
   public static final int MAX_ITERATION = 200000;
-  public static int MATRIX_SIZE = 4032, NTHREADS = 4, CALC_PER_AGENT, AGENT_SIZE = 4032, NODE_PER_ROW;;
+  public static int MATRIX_SIZE = 4032, NTHREADS = 4, CALC_PER_AGENT, AGENT_SIZE = 4032;
 	
 	public static void main(String[] args) {
     if(args.length > 1) {
@@ -23,8 +23,8 @@ public class Program {
       NTHREADS = Integer.parseInt(args[1]);
       AGENT_SIZE = Integer.parseInt(args[2]);
 	  }
-	  NODE_PER_ROW = AGENT_SIZE / MATRIX_SIZE;
-    CALC_PER_AGENT = MATRIX_SIZE / NODE_PER_ROW;
+    CALC_PER_AGENT = (MATRIX_SIZE * MATRIX_SIZE) / AGENT_SIZE;
+    System.out.println("CALC_PER_AGENT = " + CALC_PER_AGENT);
 
 		// init MASS library
 		MASS.addLibrary(JAR_FILE_NAME);
@@ -49,8 +49,8 @@ public class Program {
 		Object[] agentsCallAllObjs = new Object[AGENT_SIZE];
 		for(int i = 0; i < AGENT_SIZE; i++){
 		  Point p = new Point();
-		  p.x = (i / NODE_PER_ROW);
-		  p.y = (i % NODE_PER_ROW) * CALC_PER_AGENT;
+		  p.x = (i * CALC_PER_AGENT / MATRIX_SIZE);
+		  p.y = (i * CALC_PER_AGENT) % MATRIX_SIZE;
 		  agentsCallAllObjs[i] = p;
 		}
 		System.err.println("callAll sync start");
@@ -59,7 +59,7 @@ public class Program {
 		calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
 		for(int i = 0; i < AGENT_SIZE; i++)
 		{
-		  colors[i / NODE_PER_ROW][(i % NODE_PER_ROW) * CALC_PER_AGENT] = (int)calledAgentsResults[i];
+		  colors[i * CALC_PER_AGENT / MATRIX_SIZE][(i * CALC_PER_AGENT) % MATRIX_SIZE] = (int)calledAgentsResults[i];
 		}
 		
 		// move all Agents four times to cover all dimensions in Places
@@ -74,7 +74,7 @@ public class Program {
 			calledAgentsResults = (Object[]) agents.callAll(Colorer.CALCULATE_COLOR, agentsCallAllObjs);
 			for(int j = 0; j < AGENT_SIZE; j++)
 	    {
-	      colors[j / NODE_PER_ROW][(j % NODE_PER_ROW) * CALC_PER_AGENT + i] = (int)calledAgentsResults[j];
+	      colors[(j * CALC_PER_AGENT + i) / MATRIX_SIZE][(j * CALC_PER_AGENT + i) % MATRIX_SIZE] = (int)calledAgentsResults[j];
 	    }
 		}
 		long syncEnd = System.nanoTime();

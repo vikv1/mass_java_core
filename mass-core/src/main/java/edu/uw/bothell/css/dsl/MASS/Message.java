@@ -74,6 +74,7 @@ public class Message implements Serializable {
     
     // Async vars
     private int[] functionIds = null;
+    private int[] autoMigrateStartingIndex = null;
 
     // EMPTY
     public Message( ) { }
@@ -275,5 +276,13 @@ public class Message implements Serializable {
 
     public String getActionString() {
       return action.getValue();
+    }
+
+    public void setAutoMigrationStartingIndex(int[] startingPlaceGlobalIndex) {
+      this.autoMigrateStartingIndex  = startingPlaceGlobalIndex;
+    }
+    
+    public int[] getAutoMigrationStartingIndex() {
+      return this.autoMigrateStartingIndex;
     }
 }

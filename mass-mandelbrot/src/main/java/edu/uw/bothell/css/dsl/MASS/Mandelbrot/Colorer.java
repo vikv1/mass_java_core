@@ -59,8 +59,8 @@ public class Colorer extends Agent {
   public Object calculateColor(Object o) {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
-    double x0 = -2.5 + ((double)yModifier / (double)Program.MATRIX_SIZE) * 3.5;
-    double y0 = -1.0 + ((double)xModifier / (double)Program.MATRIX_SIZE) * 2.0;
+    double x0 = -2.5 + ((double)yModifier / (double) this.getPlace().getSize()[1]) * 3.5;
+    double y0 = -1.0 + ((double)xModifier / (double) this.getPlace().getSize()[0]) * 2.0;
     double x = 0.0, y = 0.0;
     int iteration = 0;
     while (x*x + y*y < 4.0 && iteration < Program.MAX_ITERATION) {
@@ -83,7 +83,10 @@ public class Colorer extends Agent {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     yModifier++;
-
+    if(yModifier >= this.getPlace().getSize()[1]) {
+      yModifier = 0;
+      ++xModifier;
+    }
     migrate(xModifier, yModifier);
     return o;
   }

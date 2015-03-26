@@ -15,7 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncOutputThread extends Thread {
   private static final int NAGLE_TIMEOUT = 30; // milisec
-  private static final int MIN_ITEM_TO_SEND = 10; // Change to 1 or less to send
+  // TODO a logic to set this wisely
+  private static final int MIN_ITEM_TO_SEND = 1000; // Change to 1 or less to send
                                                   // immediately
   private volatile int[] timeouts; // 0 not timeout, 1 timer started, 2 timeout
 
