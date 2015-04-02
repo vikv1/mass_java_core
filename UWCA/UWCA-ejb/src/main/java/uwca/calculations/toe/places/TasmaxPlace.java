@@ -29,6 +29,8 @@ public class TasmaxPlace extends Place {
     private static ArrayList<float[][][]> tempsFileChunks = null;
     private static final Object readLock = new Object();
     private int numNodes;
+    private static Boolean[] placeStripeMap = null;
+    private static int stripeStartIndex;
 
     /**
      * Step 1 && 2 variables
@@ -39,12 +41,6 @@ public class TasmaxPlace extends Place {
     private float[] daysTemps;
     // used to mark the location of year beginnings and endings in files
     private int[][] yearIndices;
-
-    /**
-     * Step 3 variables historicalThresholds[0] = min value
-     * historicalThresholds[1] = max value
-     */
-    private double[] historicalThresholds;
 
     /**
      * The input climate model This variable is only necessary for when you do
@@ -67,7 +63,9 @@ public class TasmaxPlace extends Place {
     public static final int setClimateTempThreshold = 21;
     public static final int setYearIndexArray = 22;
     public static final int netCdfReadTest = 25;
-    public static final int setNumberOfNodes = 26;
+    public static final int mapPlacesStripeOnNode = 27;
+    public static final int initMapPlacesStripeOnNode = 28;
+    public static final int individualPlaceRead = 29;
 
     /**
      * public constructor
@@ -76,7 +74,6 @@ public class TasmaxPlace extends Place {
      */
     public TasmaxPlace(Object interval) {
         this.interval = ((Integer) interval).intValue();
-
     }
 
     /**
@@ -91,17 +88,14 @@ public class TasmaxPlace extends Place {
                 return setInputClimateModel(o);
             case getDaysOverThreshold:
                 return getDaysOverThreshold(o);
-            case falsifyDaysOverThreshold:
+            case falsifyDaysOverThreshold: // test / debug related method
                 return falsifyDaysOverThreshold(o);
-            case readNetCdfDataFullYear:
-                return readNetCdfDataFullYear(o);
             case findHostName:
                 return findHostName(o);
             case setDaysArray:
                 return setDaysArray(o);
             case calculateDaysOverThreshold:
                 return calculateDaysOverThreshold(o);
-
             case setClimateTempThreshold:
                 return setClimateTempThreshold(o);
             case setYearIndexArray:
@@ -110,22 +104,57 @@ public class TasmaxPlace extends Place {
                 return readNetCdfData(o);
             case netCdfReadTest:
                 return netCdfReadTest(o);
-            case setNumberOfNodes:
-                return setNumberOfNodes(o);
-
+            case mapPlacesStripeOnNode:
+                return mapPlacesStripeOnNode(o);
+            case initMapPlacesStripeOnNode:
+                return initMapPlacesStripeOnNode(o);
+            case individualPlaceRead:
+                return individualPlaceRead(o);
             default:
                 return null;
         }
-    }
+    }    
 
-    public Object setNumberOfNodes(Object o) {
-        numNodes = (int) o;
-//        inputClimateModel = (ClimateModelInterface)o;
-
-        //   inputClimateModel = o;
-        //     inputClimateModel = new Tasmax_1();
+    /**
+     * ****************************************************************************************************************
+     * Read NetCDF data into Places
+     * ***************************************************************************************************************
+     */
+    
+    /**
+     * Maps the width of the x dimension stripe on the computing node
+     * This helps to set up for reading in all the climate data at the place level
+     * @param o
+     * @return 
+     */
+    public Object initMapPlacesStripeOnNode(Object o) {
+        synchronized (readLock) {
+            if (placeStripeMap == null) {
+                int xDimSize = this.getSize()[0];
+                placeStripeMap = new Boolean[xDimSize];
+                // init the array to false
+                for (int i = 0; i < placeStripeMap.length; i++) {
+                    placeStripeMap[i] = false;
+                }
+            }
+        }
         return null;
     }
+    
+    /**
+     * Marks the x index of the place in the stripe map with true, to signify that this node is
+     * responsible for this place.
+     * @param o
+     * @return 
+     */
+    public Object mapPlacesStripeOnNode(Object o) {
+        int xIndex = this.getIndex()[0];
+        int yIndex = this.getIndex()[1];
+        int zIndex = this.getIndex()[2];
+        if(yIndex == 0 && zIndex == 0)
+            placeStripeMap[xIndex] = true;        
+        return null;
+    }    
 
     /**
      * Sets the climate model at the place level.
@@ -138,6 +167,163 @@ public class TasmaxPlace extends Place {
 
         //   inputClimateModel = o;
         //     inputClimateModel = new Tasmax_1();
+        return null;
+    }
+    
+    /**
+     * 
+     * @param o
+     * @return 
+     */
+    private Object setYearIndexArray(Object o) {
+        yearIndices = (int[][]) o;
+        return null;
+    }
+    
+    /**
+     * First place to reach this method will lock it, and read in the complete data for the computing node. 
+     * @param o
+     * @return 
+     */
+    public Object readNetCdfData(Object o) {
+
+        synchronized (readLock) {
+            // if daysTemps is null, then we need to read in the netcdf data
+            if (tempsFileChunks == null) {
+                tempsFileChunks = new ArrayList<>();
+
+                // get place index
+                int x = this.getIndex()[0];
+                int y = this.getIndex()[1];
+                int z = this.getIndex()[2];      
+
+                int[][] dims = new int[][]{{462, 222, 20820}, {462, 222, 7670}, {462, 222, 8766}, {462, 222, 8766}, {462, 222, 9131}};
+
+                String[] files = new String[5];
+                files[0] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
+                files[1] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
+                files[2] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
+                files[3] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
+                files[4] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
+         
+                // find stripe size
+                int stripeSize = 0;
+                int startReadPosition = 0;
+                Boolean startFound = false;
+                for (int i = 0; i < placeStripeMap.length; i++) {
+                    if (placeStripeMap[i] == true) {
+                        if (!startFound) {
+                            startReadPosition = i;
+                            stripeStartIndex = startReadPosition;
+                            startFound = true;
+                        }
+                        stripeSize++;
+                    }       
+                }
+                
+                // FOR EACH FILE, READ IN A CHUNK OF DATA
+                for(int i = 0; i < files.length; i++){
+                    // have the node read in each chunk of data one at a time
+//                  private static ArrayList<float[][][]> tempsFileChunks = null;
+                    NetcdfFile inputFile = null;    // target netCDF file
+                    int zIndex;
+                    int yr;
+                    int readIndex;
+                    int readAmount;
+                    int inputFileIndex;// the index 0-4 of which file to start with
+                    int[] orgin;
+                    int[] shape;
+                    int latitude;
+                    int longitude;
+                    int time;
+                    ucar.unidata.util.Format format = new ucar.unidata.util.Format();
+                    Variable ncdfTasMaxVar;
+                    Array dataSection;
+                    String varname = "tasmax";                  
+  
+
+                    // open the file
+                    try {
+                        inputFile = NetcdfFile.open(files[i]);
+                    } catch (Exception e) {
+                        String s = e.toString();
+                        return null;
+                    }
+                    ncdfTasMaxVar = inputFile.findVariable(varname);
+
+                 
+                    int longReadAmount = stripeSize;
+
+                    longitude = startReadPosition;
+                    latitude = 0;
+
+                    int latReadAmount = 222 - 1;
+
+                    time = 0;
+                    readAmount = dims[i][2] - 1;
+                    orgin = new int[]{time, latitude, longitude};
+                    shape = new int[]{readAmount, latReadAmount, longReadAmount};
+                    daysTemps = null;
+                    try {
+                        // read and set the array as a class variable
+                        dataSection = ncdfTasMaxVar.read(orgin, shape);
+                        // add the chunk to our node array list
+                        float[][][] dataChunk = (float[][][])dataSection.copyToNDJavaArray();
+                        tempsFileChunks.add(dataChunk);
+
+                    } catch (IOException | InvalidRangeException e) {
+                        String s = e.toString();
+                        return null;
+                    }
+                    try {
+                        inputFile.close();
+                    } catch (Exception e) {
+                    }
+                }
+                String s = "";
+            }
+        }
+        return null;
+    }    
+    
+    /**
+     * 
+     * @param o
+     * @return 
+     */
+    public Object individualPlaceRead(Object o){
+    
+        int xIndex = this.getIndex()[0];
+        int yIndex = this.getIndex()[1];
+        int zIndex = this.getIndex()[2];
+        
+        // figure out the x read index
+        int xReadIndex = xIndex - stripeStartIndex;
+        
+        // figure out what file chunk we need to read from && and the z read index
+        int sum = 0;
+        int readChunkIndex = 0;
+        int[] zLengths = new int[tempsFileChunks.size()];
+        for(int i = 0; i < zLengths.length; i++){
+            zLengths[i] = tempsFileChunks.get(i)[0][0].length; // z dimension length for the file chunk
+            sum += zLengths[i];
+            if(zIndex <= sum -1){
+                readChunkIndex = i;
+                break;
+            }
+        }
+        int startYearIndice = yearIndices[zIndex][0];
+        int endYearIndice = yearIndices[zIndex][1];
+
+        // figure out the number of elements to read
+        int readAmount = 365;
+        float[][][] fileChunk = tempsFileChunks.get(readChunkIndex);
+        for (int i = 0; i < readAmount; i++) {
+            float dayTempVal = fileChunk[xReadIndex][yIndex][startYearIndice + i];
+            if (climateTempThreshold <= dayTempVal && dayTempVal != 1.0E20f) {
+                daysOverThreshold++;
+            }
+        }        
         return null;
     }
 
@@ -226,245 +412,7 @@ public class TasmaxPlace extends Place {
         daysOverThreshold = rn.nextInt(50);
         return null;
     }
-
-    private Object setYearIndexArray(Object o) {
-        yearIndices = (int[][]) o;
-        return null;
-    }
-
-    // the method to decide to read or not
-    public Object readNetCdfData(Object o) {
-//       private static float[] daysTemps1;
-//        private static float[] daysTemps2;
-//        private static final Object readLock = new Object();
-        // only the first place in will do the reading
-        synchronized (readLock) {
-            // if daysTemps is null, then we need to read in the netcdf data
-            if (tempsFileChunks == null) {
-                tempsFileChunks = new ArrayList<float[][][]>();
-
-                // get place index
-                int x = this.getIndex()[0];
-                int y = this.getIndex()[1];
-                int z = this.getIndex()[2];      
-
-                int[][] dims = new int[][]{{462, 222, 20820}, {462, 222, 7670}, {462, 222, 8766}, {462, 222, 8766}, {462, 222, 9131}};
-
-                String[] files = new String[5];
-                files[0] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
-                files[1] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
-                files[2] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
-                files[3] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
-                files[4] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
-
-                numNodes = 17;
-                int stripeSize = dims[0][0] / 17;
-                
-                // FOR EACH FILE, READ IN A CHUNK OF DATA
-                for(int i = 0; i < files.length; i++){
-                    // have the node read in each chunk of data one at a time
-//                  private static ArrayList<float[][][]> tempsFileChunks = null;
-                    NetcdfFile inputFile = null;    // target netCDF file
-                    int zIndex;
-                    int yr;
-                    int readIndex;
-                    int readAmount;
-                    int inputFileIndex;// the index 0-4 of which file to start with
-                    int[] orgin;
-                    int[] shape;
-                    int latitude;
-                    int longitude;
-                    int time;
-                    ucar.unidata.util.Format format = new ucar.unidata.util.Format();
-                    Variable ncdfTasMaxVar;
-                    Array dataSection;
-                    String varname = "tasmax";
-                    
-  
-
-                    // open the file
-                    try {
-                        inputFile = NetcdfFile.open(files[i]);
-                    } catch (Exception e) {
-                        String s = e.toString();
-                        return null;
-                    }
-                    ncdfTasMaxVar = inputFile.findVariable(varname);
-
-                    int startLongReadPos;
-                    startLongReadPos = x - stripeSize;
-                    if (startLongReadPos < 0) {
-                        startLongReadPos = 0;
-                    }
-                    int longReadAmount = startLongReadPos + stripeSize;
-
-                    longitude = startLongReadPos;
-                    latitude = 0;
-
-                    int latReadAmount = 222 - 1;
-
-                    time = 0;
-                    readAmount = dims[i][2] - 1;
-                    orgin = new int[]{time, latitude, longitude};
-                    shape = new int[]{readAmount, latReadAmount, longReadAmount};
-                    daysTemps = null;
-                    try {
-                        // read and set the array as a class variable
-                        dataSection = ncdfTasMaxVar.read(orgin, shape);
-                  //      daysTemps = (float[]) dataSection.copyTo1DJavaArray();
-                        tempsFileChunks[]
-
-                    } catch (IOException | InvalidRangeException e) {
-                        String s = e.toString();
-                        return null;
-                    }
-                    try {
-                        inputFile.close();
-                    } catch (Exception e) {
-                    }
-                }
-                String s = "";
-            }
-        }
-
-        return null;
-    }
-
-    // the method that does the reading
-    /**
-     * This method reads in the entire year chunk of data at a time specific to
-     * the place
-     *
-     * @param o
-     * @return
-     */
-    public Object readNetCdfDataFullYear(Object o) {
-        //    if(this.getIndex()[2] != (int)o) return null;
-        try {
-            //   Variable ncdfVar;               // NetCDF Variable
-            //     ArrayFloat.D3 d3Var;            // 3D NetCDF float array        
-            //     List<Variable> inputVariables;
-//        String longitude = "longitude";
-//        String latitude = "latitude";
-//        String time = "time";
-            String varname = "tasmax";
-            // we read in one z slice at a time, if this isnt the right slice, return 
-
-            int x = this.getIndex()[0];
-            int y = this.getIndex()[1];
-            int z = this.getIndex()[2];
-
-//        daysTemps = inputClimateModel.readLocalizedYear(this.getIndex()[0], this.getIndex()[1], this.getIndex()[2]);
-            NetcdfFile inputFile = null;    // target netCDF file
-            int zIndex;
-            int yr;
-            int readIndex;
-            int readAmount;
-            int inputFileIndex;// the index 0-4 of which file to start with
-            int[] orgin;
-            int[] shape;
-            int latitude;
-            int longitude;
-            int time;
-            ucar.unidata.util.Format format = new ucar.unidata.util.Format();
-            Variable ncdfTasMaxVar;
-            Array dataSection;
-            // our climate model file set
-            //    int[][] dims = this.getDimensions();
-            int[][] dims = new int[][]{{462, 222, 20820}, {462, 222, 7670}, {462, 222, 8766}, {462, 222, 8766}, {462, 222, 9131}};
-
-            // set up files locally
-            String host = "";
-            String[] files = new String[5];
-            try {
-                host = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException ex) {
-                host = "";
-            }
-
-            if (host.equals("desktop")) {
-                files[0] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
-                files[1] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
-                files[2] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
-                files[3] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
-                files[4] = "C:\\UWCA\\model1\\conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
-            } else {
-                files[0] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_hist_r1i1p1.daily.tasmax.1950-2005.nc";
-                files[1] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2006-2026.nc";
-                files[2] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2027-2050.nc";
-                files[3] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2051-2074.nc";
-                files[4] = "/net/cssfs01p/opt/mfukuda-data/UWCA/data_models/model1/conus_c5.noresm1-m_rcp45_r1i1p1.daily.tasmax.2075-2099.nc";
-            }
-
-            yr = 1950 + z; // 2099 is the last year, zIndex will be 0-149
-
-            readIndex = yearIndices[z][0];
-            readAmount = yearIndices[z][1] - yearIndices[z][0];
-
-            String fileToRead = "";
-
-            if (yr > 2074) {
-                fileToRead = files[4];
-            } else if (yr > 2050) {
-                fileToRead = files[3];
-            } else if (yr > 2026) {
-                fileToRead = files[2];
-            } else if (yr > 2005) {
-                fileToRead = files[1];
-            } else {
-                fileToRead = files[0];
-            }
-            // open the file
-            try {
-                inputFile = NetcdfFile.open(fileToRead);
-            } catch (Exception e) {
-                String s = e.toString();
-                return null;
-            }
-            ncdfTasMaxVar = inputFile.findVariable(varname);
-
-            longitude = x;
-            latitude = y;
-            time = readIndex;
-            orgin = new int[]{time, latitude + 100, longitude + 100};
-            shape = new int[]{readAmount, 1, 1};
-            float[] daysTemps = null;
-            try {
-                // read and set the array as a class variable
-                dataSection = ncdfTasMaxVar.read(orgin, shape);
-                daysTemps = (float[]) dataSection.copyTo1DJavaArray();
-
-            } catch (Exception e) {
-                String s = e.toString();
-                inputFile.close();
-                return null;
-            }
-            try {
-                inputFile.close();
-            } catch (Exception e) {
-            }
-
-            // find the days over threshold
-            calculateDaysOverThreshold(new Object());
-        } catch (Exception e) {
-
-            String host = "";
-            String[] files = new String[5];
-            try {
-                host = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException ex) {
-                host = "";
-            }
-            try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(host, true)))) {
-                out.println(e.toString() + " " + this.getIndex()[0] + " " + this.getIndex()[1] + " " + this.getIndex()[2]);
-            } catch (IOException ee) {
-                //exception handling left as an exercise for the reader
-            }
-
-        }
-        return null;
-    }
-
+    
     /**
      * Returns host name and place index
      *

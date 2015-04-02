@@ -132,7 +132,10 @@ public class Tasmax extends AbstractToe{
      *     - one int # kept by place class output 
      */
     private void readDataIntoPlaces(){
-        
+        /**
+         * Old master node read algorithm
+         */
+        /*
         String msg = "STEP 1 STARTED:  Find days over threshold ";
         this.getProvLogger().logProvenance(msg);
   
@@ -142,8 +145,6 @@ public class Tasmax extends AbstractToe{
         places.callAll(TasmaxPlace.setClimateTempThreshold, this.climateTempThreshold);
         // set climate model
         // places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
-        
-        places.callAll(TasmaxPlace.setNumberOfNodes, (Object)1);
       
         msg = " Finding year indexes ";
         this.getProvLogger().logProvenance(msg);
@@ -151,14 +152,46 @@ public class Tasmax extends AbstractToe{
         
         msg = " Finding year indexes ended, starting incremental netcdf data read";
         this.getProvLogger().logProvenance(msg);
-//        this.readFullYear(x, y, z, yearIndices); // method 1 -- read from master node
-        this.placesRead(yearIndices);      // method 2 -- each place reads in from file 365 days (Not working
-//        places.callAll(TasmaxPlace.readNetCdfData);
-//        
-//        int size = places.getPlacesSize();
-//        
-//        String s = "";
+        this.readFullYear(x, y, z, yearIndices); // method 1 -- read from master node
+        */        
+        
+        /**
+         * New method for doing place reading
+         */
+        String msg = "STEP 1 STARTED:  Find days over threshold ";
+        this.getProvLogger().logProvenance(msg);
+        // first set the climate threshold
+        msg = " Setting Climate Threshold: " + Double.toString(this.climateTempThreshold);
+        this.getProvLogger().logProvenance(msg);        
+        places.callAll(TasmaxPlace.setClimateTempThreshold, this.climateTempThreshold);
+        // find the year indices
+        msg = " Finding year indexes ";
+        this.getProvLogger().logProvenance(msg);
+        int[][] yearIndices =   inputClimateModel.findYearReadIndexes(); 
+        // perform the places read
+        msg = " Finding year indexes ended, starting incremental netcdf data read";
+        this.getProvLogger().logProvenance(msg);        
+        this.placesRead(yearIndices);
+    }
     
+    /**
+     * Uses the TasmaxPlace method to read in the 365-6 day float arrays from within each Place
+     * This method is set up to read in certain slices of the time dimension (z) at a time to improve performance.
+     */
+    public void placesRead(int[][] yearIndices){
+        // the places will need the climate model for this alg, so send it
+    //    places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
+        
+        // init the node based places map array
+        places.callAll(TasmaxPlace.initMapPlacesStripeOnNode);
+        // find the mapping of places to node
+        places.callAll(TasmaxPlace.mapPlacesStripeOnNode);        
+        // set the year indexes 
+        places.callAll(TasmaxPlace.setYearIndexArray, (Object)yearIndices);
+        // read in file chunks specific to computing node          
+        places.callAll(TasmaxPlace.readNetCdfData);
+        // read in the days values into the individual places and find days over threshold
+        places.callAll(TasmaxPlace.individualPlaceRead);
     }
     
     /**
@@ -179,15 +212,23 @@ public class Tasmax extends AbstractToe{
         dims[0] = x;
         dims[1] = y;
         agents.callAll(TasmaxAgent.setInitialHistoricalTolerancePosition, (Object)dims);
-   
+        
         // update agent statuses (need to do after each migration)
         agents.manageAll();            
-        
+       /**
+         * Old non-async agent migration code
+         */
+        /*
         // get our historical min / max values
-//        for(int i = 0; i < 50; i++){
-//            agents.callAll(TasmaxAgent.gatherHistoricalTolerance);
-//            agents.manageAll();
-//        }
+        for(int i = 0; i < 50; i++){
+            agents.callAll(TasmaxAgent.gatherHistoricalTolerance);
+            agents.manageAll();
+        }
+        */
+        
+        /**
+         * New agent async migration code
+         */
         int[] funcIds = new int[50];
         for(int i = 0; i < 50; i++){
             funcIds[i] = TasmaxAgent.gatherHistoricalTolerance;
@@ -515,24 +556,7 @@ public class Tasmax extends AbstractToe{
             tempVals = null;
             placesArgs = null;
         }
-    }
-    
-    /**
-     * Uses the TasmaxPlace method to read in the 365-6 day float arrays from within each Place
-     * This method is set up to read in certain slices of the time dimension (z) at a time to improve performance.
-     */
-    public void placesRead(int[][] yearIndices){
-        // the places will need the climate model for this alg, so send it
-    //    places.callAll(TasmaxPlace.setClimateModel, (Object)inputClimateModel);
-        
-        // set the year indexes 
-        places.callAll(TasmaxPlace.setYearIndexArray, (Object)yearIndices);
-        // do the reading        
-
-        
-      //  places.callAll(TasmaxPlace.readNetCdfDataFullYear, 1);
-    }
-    
+    }    
     /******************************************************************************************************************
      * Test methods to get place and agent information to verify mass is working across cluster
      *****************************************************************************************************************/
