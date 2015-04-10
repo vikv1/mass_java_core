@@ -16,7 +16,7 @@ import edu.uw.bothell.css.dsl.MASS.Places;
 public class Program {
 
 	private static final String NODE_FILE = "nodes.xml";
-	private static final String JAR_FILE_NAME = "mass-m-async-fin-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
+	private static final String JAR_FILE_NAME = "mass-m-auto-async-0.8.2-SNAPSHOT-jar-with-dependencies.jar";
 	public static final int MAX_ITERATION = 200000;
 	public static int MATRIX_SIZE = 4032, NTHREADS = 4, CALC_PER_AGENT, AGENT_SIZE = 4032;
 	
@@ -56,18 +56,13 @@ public class Program {
 		  agentsCallAllObjs[i] = p;
 		}
 		
-		int[] funcIds = new int[CALC_PER_AGENT * 2];
-		funcIds[0] = Calculator.INIT_MIGRATE_HORIZON;
-		funcIds[1] = Calculator.CALCULATE_COLOR;
-    for (int i = 1; i < CALC_PER_AGENT; i ++) {
-      funcIds[2 * i] = Calculator.MIGRATE_HORIZON;
-      funcIds[2 * i + 1] = Calculator.CALCULATE_COLOR;
-    }
+		int[] funcIds = new int[1];
+		funcIds[0] = Calculator.CALCULATE_COLOR;
 		
     System.err.println("callAllAsync start");
     List<Agent> results = null;
     try {
-      results = agents.callAllAsync(funcIds, agentsCallAllObjs);
+      results = agents.callAllAsync(funcIds, agentsCallAllObjs, true);
     }catch(Throwable e) {
       MASS.logException(null, e);
     }
@@ -109,7 +104,7 @@ public class Program {
     FileWriter fw;
     BufferedWriter bw = null;
     try {
-      fw = new FileWriter("result-async.txt");
+      fw = new FileWriter("result-auto.txt");
       bw = new BufferedWriter(fw);
       bw.write(firstline);
       bw.newLine();

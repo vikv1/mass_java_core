@@ -431,8 +431,10 @@ public class MProcess {
         int[] autoMigrationStartIndices = m.getAutoMigrationStartingIndex();
 
         for (int i = 0; i < MASS_base.getCurrentAgents().asyncQueueSize(); i++) {
-          MASS_base.getCurrentAgents().getAgents()
-            .get(MASS_base.getCurrentAgents().asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+          if(arguments != null) {
+            MASS_base.getCurrentAgents().getAgents()
+              .get(MASS_base.getCurrentAgents().asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+          }
           if(autoMigrationStartIndices != null) {
             MASS_base.getCurrentAgents().getAgents()
             .get(MASS_base.getCurrentAgents().asyncQueueGet(i)).setAutoMigrationStartingIndex(i);

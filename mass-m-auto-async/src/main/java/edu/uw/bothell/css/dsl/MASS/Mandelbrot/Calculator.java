@@ -10,10 +10,10 @@ public class Calculator extends Agent {
   private Object obj;
 
   public static final int CALCULATE_COLOR = 1;
-  public static final int MIGRATE = 2;
+  /*public static final int MIGRATE = 2;
   public static final int INIT_MIGRATE = 3;
   public static final int MIGRATE_HORIZON = 4;
-  public static final int INIT_MIGRATE_HORIZON = 5;
+  public static final int INIT_MIGRATE_HORIZON = 5; */
 
   /**
    * This constructor will be called upon instantiation by MASS The Object
@@ -34,15 +34,14 @@ public class Calculator extends Agent {
 
     case CALCULATE_COLOR:
       return calculateColor(o);
-
-    case MIGRATE:
+    /*case MIGRATE:
       return move(o);
     case INIT_MIGRATE:
       return initMigrate(o);
     case MIGRATE_HORIZON:
       return moveHorizon(o);
     case INIT_MIGRATE_HORIZON:
-      return initMigrateHorizon(o);
+      return initMigrateHorizon(o);*/
     default:
       MASS.log("unknown method number " + method);
       return new String("Unknown Method Number: " + method);
@@ -51,7 +50,7 @@ public class Calculator extends Agent {
 
   }
 
-  private Object initMigrate(Object o) {
+  /*private Object initMigrate(Object o) {
     int yModifier = (Integer) o;
     //MASS.log("initMigrate [" + 0 + ", " + yModifier + "]");
     migrateAsync(0, yModifier);
@@ -78,7 +77,7 @@ public class Calculator extends Agent {
     //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
     return o;
-  }
+  }*/
 
   /**
    * Calculate the color of the current place in the Matrix
