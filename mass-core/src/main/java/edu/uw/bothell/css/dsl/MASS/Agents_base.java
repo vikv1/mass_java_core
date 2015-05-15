@@ -882,7 +882,9 @@ public class Agents_base implements Serializable {
     	return localPopulation; 
     }
 	
-  public synchronized void spawnAsync(Agent targetAgent, int numAgents, Object[] arguments) {
+  public synchronized void spawnAsync(Agent targetAgent, int numAgents, 
+      Object[] initializedArguments,
+      Object[] arguments) {
     int argumentIndex = 0;
     while ( numAgents > 0 ) {
       if ( MASS.isConsoleLoggingEnabled() == true )
@@ -899,13 +901,23 @@ public class Agents_base implements Serializable {
           agentInitParentId = targetAgent.getAgentId();
           agentInitAgentId = currentAgentId++;
           addAgent =
-              (Agent) (objectFactory.getInstance(className, dummyArgument));
+              (Agent) (// validate the correspondance of arguments and
+                  // argumentcounter
+                  ( initializedArguments != null ) ?
+                      // yes: this child agent should recieve an argument.
+                      //                      ( Agent )agentConstructor.
+                      //                      newInstance( evaluationAgent.
+                      //                          getArguments()[argumentcounter++] )
+                      objectFactory.getInstance(className, initializedArguments[argumentIndex])
+                      : objectFactory.getInstance(className, dummyArgument));
           // TODO auto migration somewhere in here?
         addAgent.setIndex(targetAgent.getIndex());
         addAgent.setPlace(targetAgent.getPlace());
         addAgent.setAsyncFuncListIndex(0);
         addAgent.resetAsyncResults();
+        if(arguments != null) {
         addAgent.setAsyncArgument(arguments[argumentIndex]);
+        }
         addAgent.setMyAsyncOriginalPid(MASS_base.getMyPid());
         addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
         childAsyncIndex++;

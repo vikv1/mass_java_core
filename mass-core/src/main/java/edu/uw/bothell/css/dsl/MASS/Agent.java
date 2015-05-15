@@ -294,9 +294,9 @@ public class Agent implements Serializable {
 	 * @param arguments
 	 * @param functionIds
 	 */
-	protected void spawnAsync(int numAgents, Object[] arguments) {
+	protected void spawnAsync(int numAgents, Object[] initializedArguments, Object[] arguments) {
 	  if(numAgents > 0) {
-	    parentAgents.spawnAsync(this, numAgents, arguments);
+	    parentAgents.spawnAsync(this, numAgents, initializedArguments, arguments);
 	  }
 	}
 	
