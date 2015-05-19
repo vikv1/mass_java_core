@@ -182,7 +182,7 @@ public class AgentList {
 		next_y = y_null;
 		reduceDone = true;
 		estimateSize = this.size_unreduced();
-		// System.out.println( "reduce done to " + size_unreduced( ) );
+		MASS.log( "reduce done to " + size_unreduced( ) );
 	
 	}
 

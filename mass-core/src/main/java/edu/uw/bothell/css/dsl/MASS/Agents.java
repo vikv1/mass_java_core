@@ -240,7 +240,9 @@ public class Agents extends Agents_base implements Serializable {
     }
 
     for (int i = 0; i < asyncQueueSize(); i++) {
-      getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+      if(arguments != null) {
+        getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+      }
       getAgents().get(asyncQueueGet(i)).setAutoMigrationStartingIndex(i * lastDimensionLength);
     }
     // shared between agents
