@@ -73,7 +73,7 @@ public class Agents_base implements Serializable {
     		MASS_base.log( "handle = " + handle
     				+ ",placesHandle = " + placesHandle
     				+ ", class = " + className
-    				+ ", argument = " + (String)argument
+    				+ ", argument = " + argument
     				+ ", initPopulation = " + initPopulation );
 
     	// initialize currentAgentId and localPopulation
@@ -354,14 +354,26 @@ public class Agents_base implements Serializable {
 	  
   	  if(executedAgentIndex != -1) {
   	    if(MASS.isConsoleLoggingEnabled())
-  	      MASS_base.log("dequeue index " + executedAgentIndex);
+  	      MASS_base.log("dequeue index " + executedAgentIndex + ", null = " + (MASS_base.getCurrentAgents().getAgents()
+              .get(executedAgentIndex) == null));
         while(MASS_base.getCurrentAgents().getAgents()
             .get(executedAgentIndex).getAsyncFuncListIndex() < asyncFuncList.length) {
-          MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
-              asyncFuncList[MASS_base.getCurrentAgents().getAgents()
-                              .get(executedAgentIndex).pollAsyncFuncListIndex()], 
+          int asyncFuncIndex = MASS_base.getCurrentAgents().getAgents()
+              .get(executedAgentIndex).pollAsyncFuncListIndex();
+          switch(asyncFuncList[asyncFuncIndex]) {
+          case -2:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateStart();
+            break;
+          case -1:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateNext();
+            break;
+          default:
+            MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
+              asyncFuncList[asyncFuncIndex], 
                             MASS_base.getCurrentAgents().getAgents()
                               .get(executedAgentIndex).getAsyncArgument());
+            break;
+          }
           
           // only the first method has arg
           MASS_base.getCurrentAgents().getAgents().get(executedAgentIndex).setAsyncArgument(null);
@@ -647,9 +659,9 @@ public class Agents_base implements Serializable {
     			MASS_base.log( "pthread_self[" + Thread.currentThread( ) +
     					"tid[" + tid + "]: calls from" +
     					"[" + evaluationAgent.getIndex()[0] +
-    					"][" + evaluationAgent.getIndex()[1] + "]" +
+    					"].." +
     					" (destCoord[" + destCoord[0] +
-    					"][" + destCoord[1] + "]" );
+    					"]..)" );
 
     		if( destCoord[0] != -1 ) { 
     			
@@ -691,8 +703,7 @@ public class Agents_base implements Serializable {
     					MASS_base.log( "evaluationAgent " + 
     							evaluationAgent.getAgentId() 
     							+ " was removed from the oldPlace["
-    							+ oldPlace.getIndex()[0] + "]["
-    							+ oldPlace.getIndex()[1] + "]" );
+    							+ oldPlace.getIndex()[0] + "].." );
 
     				// insert the migration Agent to a local destination place
     				int destinationLocalLinearIndex 
@@ -716,8 +727,7 @@ public class Agents_base implements Serializable {
     					MASS_base.log( "evaluationAgent " + 
     							evaluationAgent.getAgentId() +
     							" was inserted into the destPlace[" +
-    							evaluationAgent.getPlace().getIndex()[0] + "][" +
-    							evaluationAgent.getPlace().getIndex()[1] + "]" );
+    							evaluationAgent.getPlace().getIndex()[0] + "].." );
     			
     			} 
     			
@@ -871,7 +881,9 @@ public class Agents_base implements Serializable {
     	return localPopulation; 
     }
 	
-  public synchronized void spawnAsync(Agent targetAgent, int numAgents, Object[] arguments) {
+  public synchronized void spawnAsync(Agent targetAgent, int numAgents, 
+      Object[] initializedArguments,
+      Object[] arguments) {
     int argumentIndex = 0;
     while ( numAgents > 0 ) {
       if ( MASS.isConsoleLoggingEnabled() == true )
@@ -888,29 +900,38 @@ public class Agents_base implements Serializable {
           agentInitParentId = targetAgent.getAgentId();
           agentInitAgentId = currentAgentId++;
           addAgent =
-              (Agent) (objectFactory.getInstance(className, dummyArgument));
+              (Agent) (// validate the correspondance of arguments and
+                  // argumentcounter
+                  ( initializedArguments != null ) ?
+                      // yes: this child agent should recieve an argument.
+                      //                      ( Agent )agentConstructor.
+                      //                      newInstance( evaluationAgent.
+                      //                          getArguments()[argumentcounter++] )
+                      objectFactory.getInstance(className, initializedArguments[argumentIndex])
+                      : objectFactory.getInstance(className, dummyArgument));
           // TODO auto migration somewhere in here?
         addAgent.setIndex(targetAgent.getIndex());
         addAgent.setPlace(targetAgent.getPlace());
         addAgent.setAsyncFuncListIndex(0);
+        addAgent.setParentAgents(this);
         addAgent.resetAsyncResults();
+        if(arguments != null) {
         addAgent.setAsyncArgument(arguments[argumentIndex]);
+        }
         addAgent.setMyAsyncOriginalPid(MASS_base.getMyPid());
         addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
         childAsyncIndex++;
-        addAgent.setParentAgents(this);
         argumentIndex++;
       } catch ( Exception e ) {
-        MASS_base.log( "Agents_base.manageAll: " + this.className
-            + " not instantiated " + e );
+        MASS_base.logException("spawn async", e);
       }
 
       // Push the created agent into our bag for returns and 
       // update the counter needed to keep track of our agents.
       addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-      addAgent.setCurrentIndex(this.agents.size_unreduced());;
-      this.agents.add( addAgent );           // auto syn
       synchronized(asyncQueue) {
+        addAgent.setCurrentIndex(this.agents.size_unreduced());
+        this.agents.add( addAgent );           // auto syn
         asyncQueueAdd(addAgent.getCurrentIndex());
         asyncQueue.notifyAll();
       }
@@ -977,8 +998,7 @@ public class Agents_base implements Serializable {
           MASS_base.log( "evaluationAgent " + 
               targetAgent.getAgentId() 
               + " was removed from the oldPlace["
-              + oldPlace.getIndex()[0] + "]["
-              + oldPlace.getIndex()[1] + "]" );
+              + oldPlace.getIndex()[0] + "].." );
 
         // insert the migration Agent to a local destination place
         int destinationLocalLinearIndex 
@@ -1004,8 +1024,7 @@ public class Agents_base implements Serializable {
           MASS_base.log( "evaluationAgent " + 
               targetAgent.getAgentId() +
               " was inserted into the destPlace[" +
-              targetAgent.getPlace().getIndex()[0] + "][" +
-              targetAgent.getPlace().getIndex()[1] + "]" );
+              targetAgent.getPlace().getIndex()[0] + "].." );
         }
         synchronized(asyncQueue) {
           if(!asyncQueueIsEmpty()) {

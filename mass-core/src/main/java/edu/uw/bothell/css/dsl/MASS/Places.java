@@ -81,7 +81,7 @@ public class Places extends Places_base {
 		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_CALLALL );
 		
 		// callall implementation
-		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT || type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT )
+		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT /*|| type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT */)
 		    super.callAll( functionId, argument, 0 ); // 0 = the main tid
 		else
 		    super.callAll( functionId, (Object[])argument, 

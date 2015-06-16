@@ -409,7 +409,7 @@ public class Places_base {
     		for ( int i = range[0]; i <= range[1]; i++ ) {
     			
     			if ( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "thread[" + tid + "]: places[i] = " + 
+    				MASS_base.log( "thread[" + tid + "]: places[" + i + "] = " + 
     						places[i] );
 
     			MASS_base.getCurrentReturns()[i] = 

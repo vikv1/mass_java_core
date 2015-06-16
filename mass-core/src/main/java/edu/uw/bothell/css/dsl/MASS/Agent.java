@@ -26,7 +26,8 @@ public class Agent implements Serializable {
 	
 	// Async
 	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
-	private LinkedList<Object> asyncResults;
+	private Object[] asyncResults;
+	private volatile int asyncResultsIndex = 0; // next index to be inserted
 	private Object asyncArgument;
 	private volatile Agents_base parentAgents;
 	// true to signal a thread to stop processing this Agent's asyncFuncList
@@ -52,6 +53,8 @@ public class Agent implements Serializable {
 	 * Original Pid before execution
 	 */
 	private int myAsyncOriginalPid;
+
+  private int autoMigrationStartingIndex;
 
 	public Agent ( ) {
 		//agentsHandle = Agents.getAgentInitAgentsHandle();
@@ -200,16 +203,22 @@ public class Agent implements Serializable {
 	  asyncFuncListIndex = index;
 	}
 	
-	public LinkedList<Object> getAsyncResults() {
+	public Object[] getAsyncResults() {
 	    return asyncResults;
 	}
 	
 	protected void appendAsyncResult(Object newResult) {
-	  asyncResults.add(newResult);
+	  asyncResults[asyncResultsIndex] = newResult;
+	  ++asyncResultsIndex;
 	}
 	
 	public void resetAsyncResults() {
-      asyncResults = new LinkedList<Object>();
+      asyncResults = new Object[parentAgents.getAsyncFuncList().length];
+      asyncResultsIndex = 0;
+	}
+	
+	public int asyncResultsSize() {
+	  return asyncResultsIndex;
 	}
 	
 	public void setAsyncArgument(Object newArg) {
@@ -285,9 +294,9 @@ public class Agent implements Serializable {
 	 * @param arguments
 	 * @param functionIds
 	 */
-	protected void spawnAsync(int numAgents, Object[] arguments) {
+	protected void spawnAsync(int numAgents, Object[] initializedArguments, Object[] arguments) {
 	  if(numAgents > 0) {
-	    parentAgents.spawnAsync(this, numAgents, arguments);
+	    parentAgents.spawnAsync(this, numAgents, initializedArguments, arguments);
 	  }
 	}
 	
@@ -297,12 +306,36 @@ public class Agent implements Serializable {
   protected Agent cloneForAsyncResult() {
       Agent result = new Agent();
       result.alive = this.alive;
-      result.asyncResults = this.asyncResults;
+      result.asyncResults = new Object[asyncResultsIndex];
+      for(int i = 0; i < asyncResultsIndex; i++) {
+        result.asyncResults[i] = this.asyncResults[i];
+      }
       result.myAsyncOriginalPid = this.myAsyncOriginalPid;
       result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
       if(MASS.isConsoleLoggingEnabled())
-        MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResults.size() + " original idx " + result.myOriginalAsyncIndex);
+        MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
       return result;
+  }
+  
+  void autoMigrateStart() {
+    int[] size = place.getSize();
+    int[] index = size.clone();
+    for(int i = size.length - 1; i >= 0; i--) {
+      // autoMigrationStartingIndex value is altered after this
+      index[i] = this.autoMigrationStartingIndex % size[i];
+      this.autoMigrationStartingIndex = autoMigrationStartingIndex / size[i];
+    }
+    migrateAsync(index);
+  }
+  
+  void autoMigrateNext() {
+    int[] index = this.getPlace().getIndex().clone();
+    ++index[index.length - 1];
+    migrateAsync(index);
+  }
+
+  public void setAutoMigrationStartingIndex(int i) {
+    this.autoMigrationStartingIndex = i;
   }
 
 }

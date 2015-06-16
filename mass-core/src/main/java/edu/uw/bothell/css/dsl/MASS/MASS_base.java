@@ -583,12 +583,12 @@ public class MASS_base {
       currentAgents.asyncQueueClear();
       for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
         currentAgents.asyncQueueAdd(i);
+        currentAgents.getAgents().get(i).setParentAgents(currentAgents);
         currentAgents.getAgents().get(i).setAsyncFuncListIndex(0);
         currentAgents.getAgents().get(i).resetAsyncResults();
         currentAgents.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
         currentAgents.getAgents().get(i).setMyOriginalAsyncIndex(i);
         currentAgents.getAgents().get(i).setCurrentIndex(i);
-        currentAgents.getAgents().get(i).setParentAgents(currentAgents);
       }
       outputThread.setAgentHandle(agents.getHandle());
       outputThread.setPlaceHandle(agents.getPlacesHandle());

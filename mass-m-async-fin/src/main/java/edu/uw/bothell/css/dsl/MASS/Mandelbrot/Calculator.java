@@ -70,6 +70,10 @@ public class Calculator extends Agent {
     int xModifier = this.getPlace().getIndex()[0];
     int yModifier = this.getPlace().getIndex()[1];
     ++yModifier;
+    if(yModifier >= this.getPlace().getSize()[1]) {
+      yModifier = 0;
+      ++xModifier;
+    }
   //  MASS.log("move from [" + xModifier + ", " + (yModifier - 1) + "] to ["
     //    + xModifier + ", " + yModifier + "]");
     migrateAsync(xModifier, yModifier);
@@ -85,7 +89,7 @@ public class Calculator extends Agent {
    */
   public Object calculateColor(Object o) {
     int xModifier = this.getPlace().getIndex()[0];
-    int yModifier = this.getPlace().getIndex()[1];    
+    int yModifier = this.getPlace().getIndex()[1]; 
     double x0 = -2.5 + ((double) yModifier / (double) this.getPlace().getSize()[1])
         * 3.5;
     double y0 = -1.0 + ((double) xModifier / (double) this.getPlace().getSize()[0])
@@ -95,6 +99,7 @@ public class Calculator extends Agent {
     //MASS.log("calculateColor for place[" + xModifier + "][" + yModifier
     //    + "].start x0 = " + x0 + ", y0 = " + y0);
     while (x * x + y * y < 4.0 && iteration < Program.MAX_ITERATION) {
+    //for(int i = 0; i < 64000; i++) { double temp = x * x + y * y;
       double xtemp = x * x - y * y + x0;
       y = 2 * x * y + y0;
       x = xtemp;

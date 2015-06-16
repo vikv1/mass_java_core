@@ -183,7 +183,7 @@ public class AsyncInputThread extends Thread {
             MASS.log("Return to master completeQueue of size "
                 + MASS_base.getCurrentAgents().getCompleteQueue().size());
             for (Agent a : MASS_base.getCurrentAgents().getCompleteQueue()) {
-              MASS.log("agent result size = " + a.getAsyncResults().size());
+              MASS.log("agent result size = " + a.asyncResultsSize());
             }
           }
           Message result = new Message(Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
