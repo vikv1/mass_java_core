@@ -1,34 +1,16 @@
 *.class
 
 # ignore target dirs
-UWCA/UWCA-web/target/
-UWCA/UWCA-ear/target/
-UWCA/UWCA-ejb/target/
-mass-core/target/
+/target/
 
-# ignore manifest files
-UWCA/UWCA-ear/src/main/application/META-INF/MANIFEST.MF
-UWCA/UWCA-ejb/src/main/resources/META-INF/MANIFEST.MF
 
 # ignore project files
 .project
 .settings/
-mass-core/.classpath
-UWCA/UWCA-ejb/.classpath
-UWCA/UWCA-web/.classpath
-mass-quickstart/.classpath
-
-# ignore maven-less mass-core compilation files
-mass-core.jar
-*.list
+.classpath
 
 # ignore temporary files
 *.tmp
 *.swo
 *.swp
 *~
-mass-quickstart/src/main/resources/machinefile.txt
-mass-quickstart/src/main/resources/machines.xml
-mass-quickstart/src/main/resources/nodes.xml
-UWCA/UWCA-ejb/UML Reverse Engineer/Reverse engineered UWCA-ejb 2015.02.28 19-10-05-115.cdg
-UWCA/UWCA-ejb/UML Reverse Engineer/Reverse engineered UWCA-ejb 2015.02.28 19-35-41-127.cdg
