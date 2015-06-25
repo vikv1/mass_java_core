@@ -1,5 +1,0 @@
-mnode1
-mnode4
-mnode2
-mnode3
-

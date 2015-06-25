@@ -1,7 +1,0 @@
-// compilation
-javac -cp MASS.jar:jsch-0.1.44.jar:. *.java 
-
-// execution
-java -Xmx2g -cp MASS.jar:jsch-0.1.44.jar:. RandomWalk dslab ds1ab-302 12345 500 5000 1000 10 2 1 show
-
-java -Xmx2g -cp MASS.jar:jsch-0.1.44.jar:. Wave2DMass dslab ds1ab-302 12345 500 1000 10 2 1 show
