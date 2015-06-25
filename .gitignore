@@ -14,3 +14,4 @@
 *.swo
 *.swp
 *~
+src/main/resources/rebel.xml
