@@ -23,7 +23,7 @@
 	</properties>
   
 	<organization>
-    	<name>University of Washington, Bothell, Computing and Software Systems</name>
+    		<name>University of Washington, Bothell, Computing and Software Systems</name>
   		<url>http://www.bothell.washington.edu/css</url>
   	</organization>
 
@@ -132,7 +132,7 @@
 				<configuration>
 					<source>${java.version}</source>
 					<bottom>
-						"Copyright 2010-2014 University of Washington. All rights reserved."
+						"Copyright 2010-2015 University of Washington. All rights reserved."
 					</bottom>
 					<!--author>false</author-->
 					<!--excludePackageNames>
