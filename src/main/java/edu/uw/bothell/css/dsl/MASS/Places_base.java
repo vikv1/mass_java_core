@@ -1,7 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -22,8 +20,6 @@ public class Places_base {
     private Place[] places;
     private Place[] left_shadow;
     private Place[] right_shadow;
-    private static int[] placeInitIndex = new int[0];
-    private static int[] placeInitSize = new int[0];
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	public Places_base( int handle, String className, int boundary_width, Object argument, int[] size ) {
@@ -32,7 +28,6 @@ public class Places_base {
 		this.className = className;
 		this.boundary_width = boundary_width;
 		this.size = size;
-		placeInitSize = size.clone( );
 
 		this.total = 0;
 		this.stripe = 0;
@@ -57,7 +52,7 @@ public class Places_base {
 
     	public ExchangeBoundary_helper( int[] param ) {
     	
-    		// identifiy the boundary space;
+    		// identify the boundary space;
     		direction = param[0];
     		handle = param[1];
     		places_size = param[2];
@@ -813,13 +808,6 @@ public class Places_base {
 		return lower_boundary;
 	}
 
-	public static int[] getPlaceInitIndex() {
-		return placeInitIndex;
-	}
-	public static int[] getPlaceInitSize() {
-		return placeInitSize;
-	}
-
 	public Place[] getPlaces() {
 		return places;
 	}
@@ -892,7 +880,6 @@ public class Places_base {
     		upper_boundary = (MASS_base.getMyPid() < MASS_base.getSystemSize() - 1) ?
     				lower_boundary + stripe - 1 : total - 1;
     		places_size = upper_boundary - lower_boundary + 1;
-    		placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
     		
     		//  maintaining an entire set
     		places = new Place[places_size];
@@ -900,8 +887,11 @@ public class Places_base {
     		// initialize all Places objects
     		for ( int i = 0; i < places_size; i++ ) {
     			
-    			// instanitate a new place
-    			places[i] = objectFactory.getInstance(className, argument);
+    			// instantiate and configure new place
+    			Place newPlace = objectFactory.getInstance(className, argument);
+    			newPlace.setIndex( getGlobalArrayIndex( lower_boundary + i ) );
+    			newPlace.setSize( size );
+    			places[i] = newPlace; 
     			
     		}
     	
@@ -942,24 +932,22 @@ public class Places_base {
     			// left shadow initialization
     			if ( left_shadow != null ) {
     				
-    				// instanitate a new place
-    				placeInitSize = size.clone( );
-    				placeInitIndex = 
-    						getGlobalArrayIndex( lower_boundary - shadow_size 
-    								+ i );
-    				left_shadow[i] = objectFactory.getInstance(className, argument);
-    				left_shadow[i].setOutMessage(null);
+    				// instantiate a new place
+    				Place newPlace = objectFactory.getInstance(className, argument);
+    				newPlace.setSize(size);
+    				newPlace.setIndex( getGlobalArrayIndex( lower_boundary - shadow_size + i ) );
+    				left_shadow[i] = newPlace;
     			
     			}
 
     			// right shadow initialization
     			if ( right_shadow != null ) {
-    				// instanitate a new place
-    				placeInitSize = size.clone( );
-    				placeInitIndex = 
-    						getGlobalArrayIndex( upper_boundary + i );
-    				right_shadow[i] = objectFactory.getInstance(className, argument); 
-    				right_shadow[i].setOutMessage(null);
+    				
+    				// instantiate a new place
+    				Place newPlace = objectFactory.getInstance(className, argument);
+    				newPlace.setSize(size);
+    				newPlace.setIndex( getGlobalArrayIndex( upper_boundary + i ) );
+    				right_shadow[i] = newPlace; 
     			
     			}
     		

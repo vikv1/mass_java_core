@@ -7,17 +7,12 @@ import java.util.Vector;
 
 public class Place {
 
-	private final int[] size;
-	private final int[] index;
+	private int[] size;
+	private int[] index;
 	private Object outMessage = null;
 	private Object[] inMessages = null;
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	private Vector< int[] > neighbours = null;
-
-	public Place( ) {
-		size = Places.getPlaceInitSize().clone( );
-		index = Places.getPlaceInitIndex().clone( );
-	}
 
 	public Object callMethod( int functionId, Object argument ) {
 		return null;
@@ -106,6 +101,10 @@ public class Place {
 	
 	}
 
+	public void setIndex(int[] index) {
+		this.index = index.clone();
+	}
+
 	// To be overridden by developer - for debugging
 	public void setDebugData(Object argument) {
 	}
@@ -118,4 +117,8 @@ public class Place {
 		this.outMessage = outMessage;
 	}
 
+	public void setSize(int[] size) {
+		this.size = size.clone();
+	}
+	
 }
