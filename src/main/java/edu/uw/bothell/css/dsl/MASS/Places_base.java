@@ -32,7 +32,8 @@ public class Places_base {
 		this.className = className;
 		this.boundary_width = boundary_width;
 		this.size = size;
-	
+		placeInitSize = size.clone( );
+
 		this.total = 0;
 		this.stripe = 0;
 	
@@ -435,14 +436,6 @@ public class Places_base {
     				" range[1] = " + range[1] );
 
     	// TODO: Need to find a way to replace destinations with same meaning code block
-
-    	//	if (printOutput == true) {
-    	//	    MASS_base.log( "tid[" + tid + "]: checks destinations:" );
-    	//	    for ( int i = 0; i < destinations.size( ); i++ ) {
-    	//			int[] offset = destinations.get(i);
-    	//			MASS_base.log( "[" + offset[0]+ "][" + offset[1] + "]  " );    
-    	//	    }
-    	//	}
 
     	// now scan all places within range[0] ~ range[1]
     	if ( range[0] >= 0 && range[1] >= 0 ) {
@@ -886,15 +879,7 @@ public class Places_base {
     				", argument = " + argument );
     	}
 
-    	//String convert = null;
-    	//for ( int i = 0; i < size.length; i++ )
-    	//  convert += ( "size[" + i + "] = " + size[i] + "  " );
-    	//MASS_base.log(  convert );
-
-    	// Print the current working directory
-    	// MASS_base.log( "CUR_DIR = " + MASS_base.CUR_DIR );
-
-    	// load the place construtor
+    	// load the place constructor
     	try {
 
     		// calculate lower_boundary and upper_boundary
@@ -907,10 +892,8 @@ public class Places_base {
     		upper_boundary = (MASS_base.getMyPid() < MASS_base.getSystemSize() - 1) ?
     				lower_boundary + stripe - 1 : total - 1;
     		places_size = upper_boundary - lower_boundary + 1;
-
-    		// instantiate Places objects
-    		//	    this.places_size = places_size;
-
+    		placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
+    		
     		//  maintaining an entire set
     		places = new Place[places_size];
 
@@ -918,8 +901,6 @@ public class Places_base {
     		for ( int i = 0; i < places_size; i++ ) {
     			
     			// instanitate a new place
-    			placeInitSize = size.clone( );
-    			placeInitIndex = getGlobalArrayIndex( lower_boundary + i );
     			places[i] = objectFactory.getInstance(className, argument);
     			
     		}
@@ -967,7 +948,6 @@ public class Places_base {
     						getGlobalArrayIndex( lower_boundary - shadow_size 
     								+ i );
     				left_shadow[i] = objectFactory.getInstance(className, argument);
-//    						( Place )placeConstructor.newInstance( argument );
     				left_shadow[i].setOutMessage(null);
     			
     			}
@@ -979,7 +959,6 @@ public class Places_base {
     				placeInitIndex = 
     						getGlobalArrayIndex( upper_boundary + i );
     				right_shadow[i] = objectFactory.getInstance(className, argument); 
-//    						( Place )placeConstructor.newInstance( argument );
     				right_shadow[i].setOutMessage(null);
     			
     			}
