@@ -1,7 +1,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.Vector;
 
 @SuppressWarnings("serial")

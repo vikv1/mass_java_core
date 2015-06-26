@@ -1,6 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.LinkedList;
 
 public class AgentList {
 

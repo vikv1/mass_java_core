@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -31,8 +30,6 @@ public class MASS_base {
 	private static Hashtable<Integer, Agents_base> agentsMap = new Hashtable<Integer, Agents_base>( );
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-	//@SuppressWarnings("unused")
-	//private static int requestCounter;
 	private static Places_base currentPlaces = null;
 	private static Agents_base currentAgents = null;
 	private static ExchangeHelper exchange = new ExchangeHelper( );

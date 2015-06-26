@@ -3,11 +3,8 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -333,7 +330,6 @@ public class Agents_base implements Serializable {
     
     }
 
-	@SuppressWarnings("unused")
   public void callAllAsync(int tid ) throws Exception {	 
 	  int executedAgentIndex = -1;
 	  int inProcessCount = 0;

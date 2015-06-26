@@ -2,8 +2,6 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings("serial")
@@ -144,7 +142,6 @@ public class Agents extends Agents_base implements Serializable {
 
   }
 
-  @SuppressWarnings("unused")
   List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
     // FOR auto migration
     Places places = MASS_base.getPlaces(this.getPlacesHandle());

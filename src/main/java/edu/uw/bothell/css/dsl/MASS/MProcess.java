@@ -2,19 +2,11 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Iterator;
 import java.util.Vector;
 
 public class MProcess {
 
-  // @SuppressWarnings("unused")
-  // private String hostName; // my local host name
   private int myPid; // my pid or rank
-  // @SuppressWarnings("unused")
-  // private int nProc; // # processes
-
-  // @SuppressWarnings("unused")
-  // private Vector<String> hosts; // all hosts participated in computation
   private ObjectInputStream MAIN_IOS; // input from the master process
 
   private ObjectOutputStream MAIN_OOS; // output to the master process

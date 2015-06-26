@@ -1,22 +1,11 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.LinkedList;
 
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
-	//@SuppressWarnings("unused")
-	//private final int agentsHandle;
-
-	//@SuppressWarnings("unused")
-	//private final int placesHandle;
-
 	private int agentId;
-
-	//@SuppressWarnings("unused")
-	//private final int parentId;
 
 	private Place place = null;
 	private int[] index = null;
@@ -30,6 +19,7 @@ public class Agent implements Serializable {
 	private volatile int asyncResultsIndex = 0; // next index to be inserted
 	private Object asyncArgument;
 	private volatile Agents_base parentAgents;
+
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
 	private volatile boolean hasAlreadyRemoteMigrated = false;
@@ -43,6 +33,7 @@ public class Agent implements Serializable {
 	 *  throughout execution
 	 */
 	private int myOriginalAsyncIndex;
+	
 	/**
 	 * The current index of this agent in agent list
 	 * change when remote migrate, used for killing, async queue access
@@ -54,7 +45,7 @@ public class Agent implements Serializable {
 	 */
 	private int myAsyncOriginalPid;
 
-  private int autoMigrationStartingIndex;
+	private int autoMigrationStartingIndex;
 
 	public Agent ( ) {
 		//agentsHandle = Agents.getAgentInitAgentsHandle();
@@ -106,22 +97,25 @@ public class Agent implements Serializable {
 	}
 	
 	public void killAsync() {
-	  kill();
-	  hasAlreadyRemoteMigrated = true;
-	  synchronized(Mthread.class){
-	    Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
-	  }
-	  
-    // remove the agent from this place
-	  getPlace().getAgents().remove( this );
 
-    // remove from AgentList, too!
-	  // unlike sync myAsyncIndex start from 0
-    /** TO DO IN callAllAsyncLoop only
-	  parentAgents.getAgents().remove( myCurrentIndex );*/
-    // So Agents_base put the result into completeQueue
-    asyncFuncListIndex = -1;
-    parentAgents = null;
+		kill();
+		hasAlreadyRemoteMigrated = true;
+		
+		synchronized(Mthread.class){
+			Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
+		}
+
+		// remove the agent from this place
+		getPlace().getAgents().remove( this );
+
+		// remove from AgentList, too!
+		// unlike sync myAsyncIndex start from 0
+		/** TO DO IN callAllAsyncLoop only
+	  	parentAgents.getAgents().remove( myCurrentIndex );*/
+		// So Agents_base put the result into completeQueue
+		asyncFuncListIndex = -1;
+		parentAgents = null;
+	
 	}
 
 	public int map( int initPopulation, int[] size, int[] index, Place curPlace) {

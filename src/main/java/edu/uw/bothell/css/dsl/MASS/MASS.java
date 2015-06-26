@@ -78,8 +78,7 @@ public class MASS extends MASS_base {
     	barrier_all_slaves( return_values, stripe, null ); 
     }
     
-    @SuppressWarnings("unused")
-	static void barrier_all_slaves( Object[] return_values, int stripe,
+ 	static void barrier_all_slaves( Object[] return_values, int stripe,
     		int localAgents[] ) {
 
     	// counts the agent population from each Mprocess
@@ -155,7 +154,6 @@ public class MASS extends MASS_base {
 
     }
     
-    @SuppressWarnings("unused")
 	public static void finish( ) {
 
     	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
@@ -231,7 +229,6 @@ public class MASS extends MASS_base {
 	/**
 	 * Initialize the MASS library (using settings made previously via setters)
 	 */
-	@SuppressWarnings("unused")
 	public static void init() {
 
     	// attempt to load node definitions from specified file
