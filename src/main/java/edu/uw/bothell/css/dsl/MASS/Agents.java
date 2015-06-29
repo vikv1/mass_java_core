@@ -10,6 +10,22 @@ public class Agents extends Agents_base implements Serializable {
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
   private int total;
 
+  /**
+   * Instantiates a set of agents from the "className" class, passes the
+   * "argument" object to their constructor, associates them with a given
+   * "Places" matrix, and distributes them over these places, based the
+   * map( ) method that is defined within the Agent class. If a user does not
+   * overload it by him/herself, map( ) uniformly distributes an
+   * "initPopulation" number of agents. If a user-provided map( ) method is
+   * used, it must return the number of agents spawned at each place
+   * regardless of the initPopulation parameter. Each set of agents is
+   * associated with a user-given handle that must be unique over machines.
+   * @param handle
+   * @param className
+   * @param argument
+   * @param places
+   * @param initPopulation
+   */
   public Agents(int handle, String className, Object argument, Places places,
       int initPopulation) {
 
@@ -313,15 +329,38 @@ public class Agents extends Agents_base implements Serializable {
     return getCompleteQueue();
   }
 
+  /**
+   * Calls the method specified with functionId of all agents. Done in
+   * parallel among multi-processes/threads
+   * @param functionId
+   */
   public void callAll(int functionId) {
     ca_setup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
   }
 
-  public void callAll(int functionId, Object argument) {
+  /**
+   * Calls the method specified with functionId of all agents as passing a
+   * (void) argument to the method. Done in parallel among 
+   * multi-processes/threads.
+   * @param functionId
+   * @param argument
+   */  public void callAll(int functionId, Object argument) {
     ca_setup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
   }
 
+   /**
+    * Calls the method specified with functionId of all agents as passing
+    * arguments[i] to agent[i]’s method, and receives a return value from it
+    * into (void *)[i] whose element’s size is return_value. Done in parallel
+    * among multi-processes/threads. The order of agents depends on the
+    * index of a place where they resides, starts from the place[0][0]…[0],
+    * and gets increased with the right-most index first and the left-most
+    * index last.
+    * @param functionId
+    * @param argument
+    * @return 
+    */
   public Object callAll(int functionId, Object[] argument) {
     return ca_setup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
@@ -431,10 +470,20 @@ public class Agents extends Agents_base implements Serializable {
 
   }
 
+  /**
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll. Done in parallel among multi-processes/threads 
+   */
   public void manageAll() {
     ma_setup();
   }
 
+  /**
+   * Returns the current number of agents.
+   * @return nAgents
+   */
   public int nAgents() {
 
     int nAgents = 0;
