@@ -154,7 +154,10 @@ public class MASS extends MASS_base {
 
     }
     
-	public static void finish( ) {
+ 	/**
+ 	 * Finishes computation
+ 	 */
+ 	public static void finish( ) {
 
     	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
     	Mthread.barrierThreads( 0 );
