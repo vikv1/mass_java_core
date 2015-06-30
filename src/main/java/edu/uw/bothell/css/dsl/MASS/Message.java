@@ -6,6 +6,10 @@ import java.util.Vector;
 @SuppressWarnings("serial")
 public class Message implements Serializable {
 
+	/**
+	 * ACTION_TYPE
+	 * A list of actions assigned to numbers.
+	 */
 	public enum ACTION_TYPE { 
 	    
     	EMPTY,                                    // 0             
@@ -78,15 +82,22 @@ public class Message implements Serializable {
     // EMPTY
     public Message( ) { }
 
-    // FINISH
-    // ACK
+    /**
+     * FINISH
+     * ACK
+     * @param action
+     */
     public Message( ACTION_TYPE action ) {
 
     	this.action = action;
     
     }
 
-    // ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
+    /**
+     * ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
+     * @param action
+     * @param localPopulation
+     */
     public Message( ACTION_TYPE action, int localPopulation ) {
 
     	this.action = action;
@@ -94,7 +105,12 @@ public class Message implements Serializable {
     
     }
 
-    // AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
+    /**
+     * AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
+     * @param action
+     * @param handle
+     * @param dummy
+     */
     public Message( ACTION_TYPE action, int handle, int dummy ) {
 
     	this.action = action;
@@ -103,7 +119,15 @@ public class Message implements Serializable {
     
     }	
 
-    // AGENTS_INITIALIZE
+    /**
+     * AGENTS_INITIALIZE
+     * @param action
+     * @param initPopulation
+     * @param handle
+     * @param placeHandle
+     * @param className
+     * @param argument
+     */
     public Message( ACTION_TYPE action, int initPopulation, int handle, int placeHandle, String className, Object argument ) {
 
     	this.action = action;
@@ -115,7 +139,14 @@ public class Message implements Serializable {
 
     }
 
-    // PLACES_EXCHANGE_ALL
+    /**
+     * PLACES_EXCHANGE_ALL
+     * @param action
+     * @param handle
+     * @param dest_handle
+     * @param functionId
+     * @param destinations
+     */
     public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<int[]> destinations ) {
 
     	this.action = action;
@@ -126,7 +157,15 @@ public class Message implements Serializable {
     
     }
 
-    // PLACES_EXCHANGE_ALL_REMOTE_REQUEST
+    /**
+     * PLACES_EXCHANGE_ALL_REMOTE_REQUEST
+     * @param action
+     * @param handle
+     * @param dest_handle
+     * @param functionId
+     * @param exchangeReqList
+     * @param dummy
+     */
     public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
 
     	this.action = action;
@@ -137,10 +176,16 @@ public class Message implements Serializable {
 
     }
 
-    // PLACES_CALL_ALL_VOID_OBJECT,
-    // PLACES_CALL_ALL_RETURN_OBJECT,
-    // AGENTS_CALL_ALL_VOID_OBJECT,
-    // AGENTS_CALL_ALL_RETURN_OBJECT
+    /**
+     * PLACES_CALL_ALL_VOID_OBJECT,
+     * PLACES_CALL_ALL_RETURN_OBJECT,
+     * AGENTS_CALL_ALL_VOID_OBJECT,
+     * AGENTS_CALL_ALL_RETURN_OBJECT
+     * @param action
+     * @param handle
+     * @param functionId
+     * @param argument
+     */
     public Message( ACTION_TYPE action, int handle, int functionId, Object argument ) {
 
     	this.action = action;
@@ -150,7 +195,13 @@ public class Message implements Serializable {
 
     }
 
-    // AGENTS_MIGRATION_REMOTE_REQUEST
+    /**
+     * AGENTS_MIGRATION_REMOTE_REQUEST
+     * @param action
+     * @param agentHandle
+     * @param placeHandle
+     * @param migrationReqList
+     */
     public Message( ACTION_TYPE action, int agentHandle, int placeHandle, Vector<AgentMigrationRequest> migrationReqList ) {
 
     	this.action = action;
@@ -160,7 +211,17 @@ public class Message implements Serializable {
     
     }
 
-    // PLACES_INITIALIZE
+    /**
+     * PLACES_INITIALIZE
+     * @param action
+     * @param size
+     * @param handle
+     * @param classname
+     * @param argument
+     * @param arg_size
+     * @param boundary_width
+     * @param hosts
+     */
     public Message( ACTION_TYPE action, int[] size, int handle,  String classname, Object argument, int boundary_width, Vector<String> hosts ) {
 
     	this.action = action;
@@ -173,9 +234,13 @@ public class Message implements Serializable {
     
     }
 
-    // PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
-    // PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,
-    // ACK used for PLACES_CALL_ALL_RETURN_OBJECT
+    /**
+     * PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT and 
+     * PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST
+     * ACK used for PLACES_CALL_ALL_RETURN_OBJECT
+     * @param action
+     * @param retVals
+     */
     public Message( ACTION_TYPE action, Object retVals ) {
 
     	this.action = action;
@@ -183,8 +248,12 @@ public class Message implements Serializable {
 
     }
 
-    // ACK used for AGENTS_CALL_ALL_RETURN_OBJECT
-    // AGENT_ASYNC_RESULT
+    /**
+     * ACK used for AGENTS_CALL_ALL_RETURN_OBJECT and AGENT_ASYNC_RESULT
+     * @param action
+     * @param argument
+     * @param localPopulation
+     */
     public Message( ACTION_TYPE action, Object argument, int localPopulation ) {
 
     	this.action = action;
@@ -198,30 +267,58 @@ public class Message implements Serializable {
       sourcePid = pid;
     }
     
-    public ACTION_TYPE getAction( ) { 
+    /**
+     * Get the action
+     * @return action
+     */
+   public ACTION_TYPE getAction( ) { 
     	return action;
     }
     
+   /**
+    * Get the Agent Populations
+    * @return agent_population
+    */
     public int getAgentPopulation( ) { 
     	return agent_population;
     }
     
+    /**
+     * Get the argument
+     * @return argument
+     */
     public Object getArgument( ) { 
     	return argument;
     }
     
+    /**
+     * Get the Boundary Width
+     * @return boundary_width
+     */
     public int getBoundaryWidth( ) { 
     	return boundary_width;
     }
     
+    /**
+     * Get the class name
+     * @return classname
+     */
     public String getClassname( ) { 
     	return classname;
     }
     
+    /**
+     * Get the destination handle
+     * @return dest_handle
+     */
     public int getDestHandle( ) { 
     	return dest_handle;
     }
     
+    /**
+     * Get the destinations
+     * @return destinations
+     */
     public Vector<int[]> getDestinations( ) { 
     	return destinations;
     }
@@ -230,26 +327,50 @@ public class Message implements Serializable {
     	return exchangeReqList;
     }
     
+    /**
+     * Get the functionId
+     * @return functionId
+     */
     public int getFunctionId( ) { 
     	return functionId;
     }
     
+    /**
+     * Get the handle
+     * @return handle
+     */
     public int getHandle( ) { 
     	return handle; 
     }
     
+    /**
+     * Get the hosts
+     * @return *hosts
+     */
     public Vector<String> getHosts( ) { 
     	return hosts;
     }
     
+    /**
+     * Get the Agent Migration Request List
+     * @return migrationReqList
+     */
     public Vector<AgentMigrationRequest> getMigrationReqList( ) {
     	return migrationReqList;
     }
     
+    /**
+     * Get the size
+     * @return size
+     */
     public int[] getSize( ) { 
     	return size; 
     }
     
+    /**
+     * Check if argument is valid
+     * @return (argument != NULL)
+     */
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
     }
