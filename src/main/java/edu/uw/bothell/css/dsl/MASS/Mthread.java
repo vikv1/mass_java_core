@@ -3,6 +3,10 @@ package edu.uw.bothell.css.dsl.MASS;
 
 public class Mthread extends Thread {
 
+	/**
+	  * Status Type
+	  * A list of possible statuses
+	  */
 	public enum STATUS_TYPE { 
 		STATUS_READY,              // 0
 		STATUS_TERMINATE,          // 1
