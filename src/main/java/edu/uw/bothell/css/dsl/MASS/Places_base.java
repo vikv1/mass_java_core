@@ -694,6 +694,12 @@ public class Places_base {
 		return className;
 	}
     
+    /** 
+     * Converts a given plain single index into a multidimensional index.
+     * @param singleIndex An index in a plain single dimension that will be
+     *                        converted in a multidimensional index.
+     * @return a multidimensional index			   
+     */
     protected int[] getGlobalArrayIndex( int singleIndex ) {
 
     	int[] index = new int[size.length];
@@ -762,14 +768,22 @@ public class Places_base {
 		return left_shadow;
 	}
 
-	private void getLocalRange( int[] range, int tid ) {
-    	
+    /** 
+     * Returns the first and last of the range that should be allocated
+     *        to a given thread
+     *
+     * @param tid An id of the thread that calls this function.
+     * @return An array of two integers: element 0 = the first and 
+     *           element 1 = the last
+     */
+    private void getLocalRange( int[] range, int tid ) {
+
     	int nThreads = MASS_base.getThreads().length;
     	int portion = places_size / nThreads; // per-thread allocated  range
     	int remainder = places_size % nThreads;
 
     	if ( portion == 0 ) {
-    		
+
     		// there are more threads than elements in the MASS.Places
     		if ( remainder > tid ) {
     			range[0] = tid;
@@ -779,10 +793,10 @@ public class Places_base {
     			range[0] = -1;
     			range[1] = -1;
     		}
-    	
+
     	}
     	else {
-    		
+
     		// there are more MASS.Places than threads
     		int first = tid * portion;
     		int last = ( tid + 1 ) * portion - 1;
@@ -796,12 +810,12 @@ public class Places_base {
     			first += remainder;
     			last += remainder;
     		}
-    		
+
     		range[0] = first;
     		range[1] = last;
-    	
+
     	}
-    
+
     }
 
 	public int getLowerBoundary() {
