@@ -7,13 +7,47 @@ import java.util.Vector;
 
 public class Place {
 
+	/**
+	  * Defines the size of the matrix that consists of application-specific
+	  * places. Intuitively, size[0], size[1], and size[2] correspond to the size
+	  * of x, y, and z, or that of i, j, and k.
+	  */
 	private int[] size;
+	
+	 /**  
+	  * Is an array that maintains each place’s coordinates. Intuitively,
+	  * index[0], index[1], and index[2] correspond to coordinates of x, y, and
+	  * z, or those of i, j, and k. 
+	  */
 	private int[] index;
+	
+	 /** Stores a set arguments to be passed to a set of remote-cell functions
+	  * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
+	  * nearest future. The argument size must be specified with
+	  * outMessage_size. 
+	  */
 	private Object outMessage = null;
+	
+	 /** Receives a return value in inMessages[i] from a function call made to
+	  * the i-th remote cell through exchangeAll( ) and exchangeSome( ).
+	  * Each element size must be specified with inMessage_size. 
+	  */
 	private Object[] inMessages = null;
+	
+	/** Includes all the agents residing locally on this place. */
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	
 	private Vector< int[] > neighbours = null;
 
+	/**
+	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
+	 * exchangeSome( ), and invoke the function specified with functionId as
+	 * passing arguments to this function. A user-derived Place class must
+	 * implement this method.
+	 * @param functionId
+	 * @param argument
+	 * @return 
+	 */
 	public Object callMethod( int functionId, Object argument ) {
 		return null;
 	}
@@ -87,6 +121,12 @@ public class Place {
 	
 	}
 
+	/**
+	 * Returns the size of the matrix that consists of application-specific
+	 * places. Intuitively, size[0], size[1], and size[2] correspond to the size
+	 * of x, y, and z, or that of i, j, and k.
+	 * @return 
+	 */
 	public int[] getSize() {
 		return size;
 	}
