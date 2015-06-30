@@ -4,13 +4,33 @@ import java.util.Vector;
 
 public class Places extends Places_base {
 	
-    public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
+	/**
+	 * Places constructor that creates places with a given dimension.
+	 * @param handle - A unique identifier that designates a group of places.  
+	 *                 Must be unique over all machines.
+	 * @param className - the user implemented class the places are constructed from
+	 * @param boundary_width
+	 * @param argument
+	 * @param ...
+	 */	public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
     	
 		super( handle, className, boundary_width, argument, size );
 		init_master( argument, boundary_width );
     
     }
 
+	/**
+	 * Instantiates a shared array with "size[]" from the "className" class as
+	 * passing an argument to the "className" constructor. This array is
+	 * associated with a user-given handle that must be unique over
+	 * machines.
+	 * dimensions are numerated in the "..." format.
+	 * @param handle - A unique identifier that designates a group of places.  
+	 *                 Must be unique over all machines.
+	 * @param className - the user implemented class the places are constructed from
+	 * @param argument
+	 * @param ...
+	 */
     public Places( int handle, String className, Object argument, int... size ) {
     	
 		super( handle, className, 0, argument, size );
@@ -97,10 +117,22 @@ public class Places extends Places_base {
     
     }
 
-    public void callAll( int functionId ) {
+	/**
+	 * Calls the method specified with functionId of all array elements. Done
+	 * in parallel among multi-processes/threads.
+	 * @param functionId
+	 */
+	public void callAll( int functionId ) {
 		ca_setup( functionId, null, Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
     }
     
+	/**
+	 * Calls the method specified with functionId of all array elements as
+	 * passing an argument to the method. Done in parallel among multi-
+	 * processes/threads.
+	 * @param functionId
+	 * @param argument
+	 */
 	public void callAll( int functionId, Object argument ) {
 	
 		if ( MASS.isConsoleLoggingEnabled() )
@@ -111,6 +143,17 @@ public class Places extends Places_base {
     
     }
     
+	/**
+	 * Calls the method specified with functionId of all array elements as
+	 * passing arguments[i] to element[i]’s method, and receives a return
+	 * value from it into (void *)[i] whose element’s size is return_size. Done 
+	 * in parallel among multi-processes/threads. In case of a multi-
+	 * dimensional array, "i" is considered as the index when the array is
+	 * flattened to a single dimension.
+	 * @param functionId
+	 * @param argument
+	 * @return 
+	 */
 	public Object callAll( int functionId, Object argument[] ) {
 	
 		if ( MASS.isConsoleLoggingEnabled() )
@@ -121,6 +164,19 @@ public class Places extends Places_base {
     
     }
     
+	/**
+	 * Calls from each of all cells to the method specified with functionId of
+	 * all destination cells, each indexed with a different Vector element.
+	 * Each vector element, say destination[] is an array of integers where
+	 * destination[i] includes a relative index (or a distance) on the coordinate
+	 * i from the current caller to the callee cell. The caller cell’s outMessage
+	 * is a continuous set of arguments passed to the callee’s method. The
+	 * caller’s inMessages[] stores values returned from all callees. More
+	 * specifically, inMessages[i] maintains a set of return values from the i th
+	 * callee.
+	 * @param dest_handle
+	 * @param functionId
+	 */
 	public void exchangeAll( int dest_handle, int functionId ) {
 	
 		// send a PLACES_EXCHANGE_ALL message to each slave
@@ -183,7 +239,12 @@ public class Places extends Places_base {
     
     }
     
-	public void init_master( Object argument, int boundary_width ) {
+    /**
+     * Initializes the places with the given arguments and boundary width.
+     * @param argument
+     * @param boundary_width
+     */
+    public void init_master( Object argument, int boundary_width ) {
 
 		// create a list of all host names;  
 		// the master IP name
