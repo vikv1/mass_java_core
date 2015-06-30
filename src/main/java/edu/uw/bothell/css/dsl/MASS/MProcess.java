@@ -11,6 +11,11 @@ public class MProcess {
 
   private ObjectOutputStream MAIN_OOS; // output to the master process
 
+  /**
+   * main MASS function that launches MProcess
+   * @param args
+   * @return 
+   */
   public static void main(String[] args) throws Exception {
     String hostName = args[0];
     int myPid = Integer.parseInt(args[1]);
@@ -25,6 +30,18 @@ public class MProcess {
 
   }
 
+  /**
+   * MProcesses are the MASS threads executing on various machines.  They are 
+   * responsible for maintaining some number of the total Places being used by
+   * the entire MASS program, as well as the associated Agents.  Each MProcess
+   * is referred to by its rank.
+   * @param hostName
+   * @param myPid
+   * @param nProc
+   * @param nThr
+   * @param port
+   * @param curDir
+   */
   public MProcess(String hostName, int myPid, int nProc, int nThr, int port,
       String curDir) {
     // this.hostName = hostName;
