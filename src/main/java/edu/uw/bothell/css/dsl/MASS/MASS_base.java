@@ -359,7 +359,11 @@ public class MASS_base {
 		return initialized;
 	}
 
-    public static void log( String msg ) {
+	/**
+	 * Logs a message to Mass's internal logs.
+	 * @param msg
+	 */
+	public static void log( String msg ) {
 		try {			
 			if ( log_lock == null ) {				
 				log_lock = new Object( );				
@@ -469,6 +473,10 @@ public class MASS_base {
 		MASS_base.destinationPlaces = destinationPlaces;
 	}
     
+    /**
+     * Sets the hosts that MASS is using.
+     * @param host_args
+     */
     public static void setHosts( Vector<String> host_args ) {
 
     	if ( !hosts.isEmpty( ) ) {
@@ -531,7 +539,10 @@ public class MASS_base {
 		MASS_base.workingDirectory = workingDirectory;
 	}
 
-    public static void showHosts( ) {
+	/**
+	* Logs the hosts MASS is using.
+	*/
+	public static void showHosts( ) {
     	
     	if( MASS.isConsoleLoggingEnabled() == true ) {
     		
