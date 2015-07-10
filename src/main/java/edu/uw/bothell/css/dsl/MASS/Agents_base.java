@@ -141,7 +141,7 @@ public class Agents_base implements Serializable {
     		// create as many new agents as nColonists
     		for ( int nColonists =
     				protoAgent.map( initPopulation, curPlace.getSize(), 
-    						curPlace.getIndex(), curPlace );
+    						curPlace.getIndex() );
     				nColonists > 0; nColonists--, localPopulation++ ) {
 
     			// agent instanstantiation and initialization

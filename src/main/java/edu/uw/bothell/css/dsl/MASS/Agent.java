@@ -202,7 +202,7 @@ public class Agent implements Serializable {
 	  * @param curPlace
 	  * @return 
 	  */	
-	public int map( int initPopulation, int[] size, int[] index, Place curPlace) {
+	public int map( int initPopulation, int[] size, int[] index ) {
 
 		// compute the total # places
 		int placeTotal = 1;
