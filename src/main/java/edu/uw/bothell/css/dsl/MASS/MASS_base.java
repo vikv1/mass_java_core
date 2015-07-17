@@ -641,40 +641,6 @@ public class MASS_base {
       childAgentPids.clear();
     }
     
-    /*public static void resetEstimateSlaveNodeComplete() {
-      estimateSlaveNodeComplete.set(0);
-    }
-    
-    public static int getEsimateSlaveNodeComplete() {
-      return estimateSlaveNodeComplete.get();
-    }
-    
-    public static int incrementEstimateSlaveNodeComplete() {
-      if(MASS.isConsoleLoggingEnabled()) {
-        MASS.log("getEsimateSlaveNodeComplete() increment");
-      }
-      return estimateSlaveNodeComplete.incrementAndGet();
-    }
-    
-    public static int decrementEstimateSlaveNodeComplete() {
-      if(MASS.isConsoleLoggingEnabled()) {
-        MASS.log("getEsimateSlaveNodeComplete() decrement");
-      }
-      return estimateSlaveNodeComplete.decrementAndGet();
-    }
-    
-
-    public static boolean getCachedSlaveNodeAsyncCompleteness() {
-      if(MASS.isConsoleLoggingEnabled()) {
-        MASS.log("getCached complete = " + cachedAllAsyncNodeComplete);
-      }
-      return cachedAllAsyncNodeComplete;
-    }
-    
-    public static void setCachedSlaveNodeAsyncCompleteness(boolean value) {
-      cachedAllAsyncNodeComplete = value;
-    } */
-    
     public static Set<Integer> getChildAgentPids() {
       return childAgentPids;
     }
@@ -720,7 +686,4 @@ public class MASS_base {
 	
 	}
 
- /* public static void notifyMasterOfCompleteness() {
-    outputThread.notifyMasterOfCompleteness();
-  }*/
 }
