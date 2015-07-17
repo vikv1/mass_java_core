@@ -162,8 +162,7 @@ public class Agents extends Agents_base implements Serializable {
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
       super.callAll(functionId, argument, 0); // 0 = main tid
     else
-      super.callAll(functionId, (Object[]) argument,
-          ((Object[]) argument).length, 0);
+      super.callAll(functionId, (Object[]) argument, 0);
 
     // confirm all threads are done with agents.callAll
     Mthread.barrierThreads(0);

@@ -282,7 +282,7 @@ public class Agents_base implements Serializable {
     
     }
 
-    public void callAll( int functionId, Object[] argument, int length, int tid ) {
+    public void callAll( int functionId, Object[] argument, int tid ) {
 
     	int numOfOriginalVectors = Mthread.getAgentBagSize();
 

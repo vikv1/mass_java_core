@@ -234,8 +234,7 @@ public class Mthread extends Thread {
     				//System.err.println( "Mthread[" + tid + 
     				//			"] call all agents return object" );
 
-    				agents.callAll( functionId, (Object[])argument, 
-    						( (Object[])argument ).length, tid) ;
+    				agents.callAll( functionId, (Object[])argument, tid) ;
     			
     			}
     			break;

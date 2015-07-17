@@ -420,8 +420,7 @@ public class MProcess {
         Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
         MASS_base.getCurrentAgents().callAll(MASS_base.getCurrentFunctionId(),
-            (Object[]) (MASS_base.getCurrentArgument()),
-            ((Object[]) (MASS_base.getCurrentArgument())).length, 0);
+            (Object[]) (MASS_base.getCurrentArgument()), 0);
 
         // confirm all threads are done with agnets.callAll with
         // return objects
