@@ -601,30 +601,11 @@ public class MASS extends MASS_base {
 	  LocalAgents = values;
 	}
 	
-	/**
-	 * ONLY to call by Master node
-	 * @return
-	public static boolean getSlaveNodeAsyncCompleteness() {
-	  if(MASS.isConsoleLoggingEnabled()) {
-	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
-	  }
-	  
-	  if(getEsimateSlaveNodeComplete() >= getRemoteNodes().size()) {
-	    MASS_base.setCachedSlaveNodeAsyncCompleteness(getAsyncOutputThread().requestSlaveNodeAsyncCompleteness());
-	  }
-	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
-	}
-   */
-
   public static void getRemoteAsyncResults() {
     if(!getRemoteNodes().isEmpty()) {
       LocalAgents = new int[getRemoteNodes().size()];
       getAsyncOutputThread().requestAsyncResults();
     }
   }
-	
-	/**
-	 * END Async methods
-	 */
 	
 }
