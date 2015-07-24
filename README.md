@@ -8,4 +8,6 @@ More information about MASS can be found out the University of Washington Distri
 
 # Building The Core Library #
 ## Overview ##
-The core library is structured around [Maven](https://maven.apache.org/). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer.
+The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer.
+## Installing Maven ##
+Some Java IDEs include Maven (such as [NetBeans](https://netbeans.org)), others such as [Eclipse](https://eclipse.org) require a plugin. If you decide to use an IDE plugin or native functionality, refer to IDE documentation.
