@@ -7,3 +7,5 @@ For more than the last two decades, multi-agent simulations have been highlighte
 More information about MASS can be found out the University of Washington Distributed Systems Lab [Homepage](http://depts.washington.edu/dslab/MASS)
 
 # Building The Core Library #
+## Overview ##
+The core library is structured around [Maven](https://maven.apache.org/). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer.
