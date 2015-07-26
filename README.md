@@ -9,6 +9,7 @@ More information about MASS can be found out the University of Washington Distri
 # Building The Core Library #
 ## Overview ##
 The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer. Maven is a popular tool for managing the development and maintenance lifecycle of Java applications; it is recommended that you visit the Maven home site and become familiar with its' use. In particular, check out the following topics:
+
 * [What is Maven?](https://maven.apache.org/what-is-maven.html)
 * [Build cycle overview](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
 * [IDE Integration](https://maven.apache.org/ide.html)
