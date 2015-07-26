@@ -8,8 +8,13 @@ More information about MASS can be found out the University of Washington Distri
 
 # Building The Core Library #
 ## Overview ##
-The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer.
+The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; this means that to build the project you will need to have Maven installed on your computer. Maven is a popular tool for managing the development and maintenance lifecycle of Java applications; it is recommended that you visit the Maven home site and become familiar with its' use. In particular, check out the following topics:
+* [What is Maven?](https://maven.apache.org/what-is-maven.html)
+* [Build cycle overview](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
+* [IDE Integration](https://maven.apache.org/ide.html)
+* [POM Reference](https://maven.apache.org/pom.html)
+
 ## Installing Maven ##
 Some Java IDEs include Maven (such as [NetBeans](https://netbeans.org)), others such as [Eclipse](https://eclipse.org) require a plugin. If you decide to use an IDE plugin or native functionality, refer to IDE documentation. For Linux, check to see if there is a installation package available for your distribution. For Windows (and Linux), you may use the ZIP archive available on the Maven home site.
 ## Building the Library ##
-The project is configured to build when Maven is instructed to execute the "package" build phase. If you are using an IDE plugin or built-in Maven support, refer to IDE instructions for starting the "package" phase. From the command line, "mvn package" executed at the top-level project directory will start the phase. Maven will automatically download any necessary dependencies, compile classes, and create the final JAR artifact. The JAR will be located in the "target" directory; Maven will place the final JAR in this location regardless of the invocation method (IDE, plugin, or command-line). 
+The project is configured to build when Maven is instructed to execute the "package" build phase. If you are using an IDE plugin or built-in Maven support, refer to IDE instructions for starting the "package" phase. From the command line, "mvn package" executed at the top-level project directory will start the phase. Maven will automatically download any necessary dependencies, compile classes, and create the final JAR artifact. The JAR will be located in the "target" directory; Maven will place the final JAR in this location regardless of the invocation method (IDE, plugin, or command-line).
