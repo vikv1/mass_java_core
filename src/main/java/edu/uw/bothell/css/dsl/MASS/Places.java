@@ -41,7 +41,7 @@ public class Places extends Places_base {
 	 * @param className - the user implemented class the places are constructed from
 	 * @param boundary_width
 	 * @param argument
-	 * @param ...
+	 * @param size
 	 */	public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
     	
 		super( handle, className, boundary_width, argument, size );
@@ -59,7 +59,7 @@ public class Places extends Places_base {
 	 *                 Must be unique over all machines.
 	 * @param className - the user implemented class the places are constructed from
 	 * @param argument
-	 * @param ...
+	 * @param size
 	 */
     public Places( int handle, String className, Object argument, int... size ) {
     	
@@ -245,6 +245,34 @@ public class Places extends Places_base {
 		MASS.barrier_all_slaves( );
     
     }
+
+	/**
+	 * ExchangeAll method for compatibility with older versions of MASS.
+	 * Sets provided neighbors Vector to each place object.
+	 *
+	 * @see Places#exchangeAll(int, int)
+	 * @param dest_handle
+	 * @param functionId
+	 * @param neighbors
+	 */
+	public void exchangeAll(int dest_handle, int functionId, Vector<int[]> neighbors){
+		//Add our neighbours to each place
+		this.setAllPlacesNeighbors(neighbors);
+		//Now call exchangeAll to act on those neighbours
+		this.exchangeAll(dest_handle, functionId);
+	}
+
+	/**
+	 * Sets each place object with a reference to the neighbours Vector.
+	 *
+	 * @param neighbours The vector to set
+	 */
+	private void setAllPlacesNeighbors(Vector<int[]> neighbours) {
+		for(int i = 0; i < this.getPlacesSize(); i++)
+		{
+			this.getPlaces()[i].setNeighbours(neighbours);
+		}
+	}
     
     public void exchangeBoundary( ) {
 	

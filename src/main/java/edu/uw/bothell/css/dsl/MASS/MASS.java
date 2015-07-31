@@ -77,6 +77,11 @@ public class MASS extends MASS_base {
     // number of node that return async result
     private static int LocalAgents[];
 
+	//MASS debugger variables
+	private static Places debuggerInstance;
+	public static final int DEBUGGER_HANDLE = 99;
+
+
 	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
      * @param libraryName The name of the library to load
@@ -522,6 +527,7 @@ public class MASS extends MASS_base {
     	setNodeFilePath(args[2]);
     	setCommunicationPort(Integer.parseInt( args[3] ));
     	setNumThreads(nThr);
+		//MASS.nProc = nProc;
 
     	try {
 
@@ -626,5 +632,77 @@ public class MASS extends MASS_base {
 	/**
 	 * END Async methods
 	 */
-	
+
+	/**
+	 * START MASS DEBUGGER METHODS
+	 */
+
+	/**
+	 * Overloaded MASS init method to be used in conjunction with MASS debugger application.
+	 * Port number must match port number entered in the debugging GUI.
+	 *
+	 * @param args username, password, machinefile, MASS port number
+	 * @param nProc number of processes
+	 * @param nThr number of threads
+	 * @param placeHandle place handle
+	 * @param agentHandle agent handle
+	 * @param portNumber Debugging port number
+	 */
+	public static void init(String args[], int nProc,int nThr, int placeHandle, int agentHandle, int portNumber)
+	{
+		MASS.init(args, nProc, nThr);
+		MASS.debugInit(placeHandle, agentHandle, portNumber);
+	}
+
+	/**
+	 * Alternative to the debugging init function. debugInit should be called after a call to the
+	 * non debugging init - MASS.init(String[], int, int). Thus method instantiates the MASS
+	 * debugger. Prt number must match port number entered in Debugging GUI.
+	 *
+	 * @param placeHandle Place handle
+	 * @param agentHandle Agent handle, 0 if none
+	 * @param portNumber The port used to communicate with the debugger GUI
+	 */
+	public static void debugInit(int placeHandle, int agentHandle, int portNumber)
+	{
+		int[] handles = new int[]{placeHandle, agentHandle};
+		Places debugger = new Places(DEBUGGER_HANDLE, "edu.uw.bothell.css.dsl.MASS.Debugger", handles, 1);
+		debugger.callAll(Debugger.init_);
+		MASS.debuggerInstance = debugger;
+		Debugger_base.setPort(portNumber);
+	}
+
+	/**
+	 * Syncs MASS application with GUI
+	 *
+	 * @throws InterruptedException
+	 */
+	public static void debugSync() throws InterruptedException
+	{
+		synchronized(Debugger_base.sending_lock){
+			if(Debugger_base.sending_lock[0]){
+				Debugger_base.sending_lock.wait();
+			}
+		}
+		//while user stoped computation, then wait
+		synchronized(Debugger_base.stop_lock){
+			if(Debugger_base.stop_lock[0]){
+				Debugger_base.stop_lock.wait();
+			}
+		}
+	}
+
+	/**
+	 * Updates the debugging GUI with current state of place and agents. This method should
+	 * be called at the end of the users simulation loop.
+	 */
+	public static void debugUpdate() throws InterruptedException
+	{
+		MASS.debuggerInstance.callAll(Debugger.fetchDebugData_, new Integer[2]);
+		Debugger.sendDataToGUI();
+	}
+
+	/**
+	 * END MASS DEBUGGER METHODS
+	 */
 }
