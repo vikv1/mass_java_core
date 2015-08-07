@@ -681,13 +681,16 @@ public class MASS extends MASS_base {
 	{
 		synchronized(Debugger_base.sending_lock){
 			if(Debugger_base.sending_lock[0]){
-				Debugger_base.sending_lock.wait();
+				try{
+					Debugger_base.sending_lock.wait();
+				}catch(Exception e){}
 			}
 		}
-		//while user stoped computation, then wait
 		synchronized(Debugger_base.stop_lock){
 			if(Debugger_base.stop_lock[0]){
-				Debugger_base.stop_lock.wait();
+				try{
+					Debugger_base.stop_lock.wait();
+				}catch(Exception e){}
 			}
 		}
 	}
@@ -699,7 +702,10 @@ public class MASS extends MASS_base {
 	public static void debugUpdate() throws InterruptedException
 	{
 		MASS.debuggerInstance.callAll(Debugger.fetchDebugData_, new Integer[2]);
-		Debugger.sendDataToGUI();
+		Debugger.sendDataToGUI(1);
+
+		//Debugger.sendDataToGUI(2);
+		//MASS.debuggerInstance.callAll(Debugger.fetchAgentDebugData_, new Integer[2]);
 	}
 
 	/**

@@ -58,14 +58,15 @@ public class Debugger_base extends Place {
     			//if(input.available() <= 0) return;
     			String cmd = "";
 				cmd = (String)input.readObject();//block 100ms
-    			if(cmd != null && cmd.length()>0){
+
+				if(cmd != null && cmd.length()>0){
     				processCommand(cmd);
     			}
     		
     		}
     		
     		catch (IOException e) {
-				System.out.println("shit!");
+				System.out.println("Socket can Sucket");
 				e.printStackTrace();
     		}
     		
@@ -160,11 +161,11 @@ public class Debugger_base extends Place {
     							output.writeObject("cmdPlaceData");
 
     							for(int i=0; i<MASS_base.getCurrentReturns().length; i++){
-    								
+    								//converted from Double to Number
     								Double[] d = (Double[])(MASS_base.getCurrentReturns()[i]);
 									setOutMessage("D = " + d.toString());
 									for(int j=0; j<d.length; j++){
-										output.writeDouble(d[j].doubleValue());
+										output.writeObject(d[j]);
     								}
     							
     							}
@@ -193,11 +194,14 @@ public class Debugger_base extends Place {
     					break;
     				
     				case STATUS_SEND_AGENT_DATA:
-    					
-    					//dataConnectionThreadstatus = STATUS_READY;
-    					synchronized(sending_lock){
+
+						System.out.println("should be here!!!");
+						synchronized(sending_lock){
     						
-    						if(!sending_lock[0]) break;
+    						if(!sending_lock[0]) {
+								System.out.println("sending lock is false");
+								break;
+							}
     						
     						try{
     							
@@ -235,60 +239,45 @@ public class Debugger_base extends Place {
     				case STATUS_READY:
     					break;
     				
-    				default: break;
+    				default:
+						System.out.println("oh noooo");
+						break;
     				
     				}
-    			
     			}
-    			
-    			//Debugger_base.updateDataConnectionThread(STATUS_READY);
-    		
     		}
-    	
     	}
-
     }
 
 
     protected static void updateDataConnectionThread(int status){
-    	
-    	if (status == STATUS_SEND_PLACE_DATA) {
-    		
-    		//System.out.println("STATUS_SEND_PLACE_DATA");
+		System.out.println("incoming status: " + status);
+		if (status == STATUS_SEND_PLACE_DATA) {
     		synchronized(sending_place_lock) {
     			sending_place_lock[0] = true;
     		}
-    		
-    		synchronized(sending_lock) {
+			synchronized(sending_lock) {
     			sending_lock[0] = true;
     		}
-    		
     	}
     	
     	else if (status == STATUS_SEND_AGENT_DATA) {
-    		
-    		//System.out.println("STATUS_SEND_AGENT_DATA");
     		synchronized(sending_place_lock) {
-    			
-    			if(sending_place_lock[0]){
-    				
+				if(sending_place_lock[0]){
     				System.out.println("pending to send agent data");
-    				
     				try{
     					sending_place_lock.wait();
     				}catch (Exception e){
-    					System.out.println("wait failed");
     				}
-    			
     			}
-    		
     		}
-    	
     	}
-    	
-    	synchronized(debuggerInstance){
-    		dataConnectionThreadstatus = status;
-    	}
+		System.out.println("outgoing status: " + status);
+		synchronized(debuggerInstance){
+			System.out.println("status before: " + status);
+			dataConnectionThreadstatus = status;
+			System.out.println("status after: " + dataConnectionThreadstatus);
+		}
 
     }
     private int placesHandler;
@@ -304,7 +293,7 @@ public class Debugger_base extends Place {
     private int pid;
     private int nTotalPlace;//total user places
     private int debugger_size;//total number of debugger place
-    private Object[] placeDebugData;
+    private Number[] placeDebugData;
     private Object[] agentDebugData;
     private ArrayList<AgentDebugData> tmp_agentDebugData;
     private static int dataConnectionThreadstatus;
@@ -367,58 +356,27 @@ public class Debugger_base extends Place {
     		agentDebugData[i] = new AgentDebugData(a.x, a.y, a.value);
     	
     	}
- 
-    	/*
-	int nAgents = ((Agents)agents).nAgents();
-	agentDebugData = new AgentDebugData[nAgents];
-	int i = Mthread.agentBagSize, j=0;
-	if(pid==0) System.out.println("agent bag size: "+i);
-	for(; i > 0; i--){
-	    agentDebugData[j++] = agents.agents.get(i).getDebugData();
-	    if(pid == 0){
-		System.out.println(((AgentDebugData)agentDebugData[j-1]).x+
-				   " "+((AgentDebugData)agentDebugData[j-1]).y+
-				   " "+((AgentDebugData)agentDebugData[j-1]).value);
-	    }
-	    }*/
-    	
     	return (Object)agentDebugData;
-
     }
 
-    protected Object fetchDebugData(Object argument) {
-    	
-    	// new Object[MASS_base.currentPlaces.places_size];
-    	tmp_agentDebugData.clear();
-    	
-    	for (int i = 0; i < places.getPlacesSize(); i++) {
-    		
-    		Place curPlace = places.getPlaces()[i];
-    		placeDebugData[i] = (Double)curPlace.getDebugData();
-    		//get agent debug data
-    		//	    for(int j=0; j<curPlace.agents.size(); j++){
-    		for (Agent agent : curPlace.getAgents()) {
-
-    			if(pid == 0){
-    				//System.out.println(curPlace.agents.get(j).agentId);
-    			}
-
-    			AgentDebugData tmp = (AgentDebugData)(agent.getDebugData());
-    			if(tmp != null){
-    				tmp_agentDebugData.add(tmp);
-    			}
-
-    		}
-
-    		if(pid !=0 && ((Double)placeDebugData[i]).doubleValue()!=0 && ((Double)placeDebugData[i]).doubleValue()-20.0 != 0){
-    			//MASS_base.log(String.valueOf(((Double)placeDebugData[i]).doubleValue()));
-    		}
-    	
-    	}
-
-    	return (Object)placeDebugData;	
-    
-    }
+	protected Object fetchDebugData(Object argument) {
+		//clear the ArrayList
+		tmp_agentDebugData.clear();
+		//get place data
+		for (int i = 0; i < places.getPlacesSize(); i++) {
+			Place curPlace = places.getPlaces()[i];
+			placeDebugData[i] = curPlace.getDebugData();
+			//get each agents data in each place
+			for (Agent agent : curPlace.getAgents()) {
+				Number value = agent.getDebugData();
+				if(value == null) continue;
+				int x = agent.getIndex()[0];
+				int y = agent.getIndex()[1];
+				tmp_agentDebugData.add(new AgentDebugData(x, y, value));
+			}
+		}
+		return placeDebugData;
+	}
     
     protected Object init( Object args ) {
 		sending_lock = new boolean[1];
@@ -570,9 +528,9 @@ class AgentDebugData implements Serializable {
 	private static final long serialVersionUID = 1L;
 	int x;
 	int y;
-	double value;
+	Number value;
 
-	AgentDebugData(int x, int y, double value) {
+	AgentDebugData(int x, int y, Number value) {
 		this.x = x;
 		this.y = y;
 		this.value = value;

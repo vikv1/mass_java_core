@@ -134,9 +134,8 @@ public class Agent implements Serializable {
 	 * Get debug data from the agent 
 	 * @return Debug data
 	 */
-	public Object getDebugData(){
-		Integer id = agentId;
-		return id;
+	public Number getDebugData(){
+		return null;
 	}
 
 	public int[] getIndex() {
@@ -199,7 +198,6 @@ public class Agent implements Serializable {
 	  * @param initPopulation
 	  * @param size
 	  * @param index
-	  * @param curPlace
 	  * @return 
 	  */	
 	public int map( int initPopulation, int[] size, int[] index ) {
@@ -254,11 +252,6 @@ public class Agent implements Serializable {
 		//stopProcessAsyncFuncList = true;
 		parentAgents.migrateAsync(this);
 		return result;
-	}
-
-	// TODO - modify debug data of the agent, overridden as necessary by the developer for now
-	public void setDebugData(Object argument){
-
 	}
 
 	public void setIndex(int[] index) {
