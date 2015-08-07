@@ -122,6 +122,7 @@ public class Place {
 		return agents;
 	}
 
+	//NO!
 	public Object getDebugData(){
 		return null;
 	}
@@ -136,6 +137,11 @@ public class Place {
 
 	public Vector<int[]> getNeighbours() {
 		return neighbours;
+	}
+
+	public void setNeighbours(Vector<int[]> neighbours)
+	{
+		this.neighbours = neighbours;
 	}
 
 	public Object getOutMessage() {

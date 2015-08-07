@@ -135,8 +135,8 @@ public class Agent implements Serializable {
 	 * @return Debug data
 	 */
 	public Object getDebugData(){
-		Integer id = new Integer(agentId);
-		return (Object)id;
+		Integer id = agentId;
+		return id;
 	}
 
 	public int[] getIndex() {

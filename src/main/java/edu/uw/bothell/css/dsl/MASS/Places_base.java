@@ -932,11 +932,11 @@ public class Places_base {
     		for ( int i = 0; i < places_size; i++ ) {
     			
     			// instantiate and configure new place
-    			Place newPlace = objectFactory.getInstance(className, argument);
-    			newPlace.setIndex( getGlobalArrayIndex( lower_boundary + i ) );
-    			newPlace.setSize( size );
-    			places[i] = newPlace; 
-    			
+				Place newPlace = objectFactory.getInstance(className, argument);
+				newPlace.setIndex(getGlobalArrayIndex(lower_boundary + i));
+				newPlace.setSize(size);
+				places[i] = newPlace;
+
     		}
     	
     	} 
@@ -975,24 +975,24 @@ public class Places_base {
 
     			// left shadow initialization
     			if ( left_shadow != null ) {
-    				
+
     				// instantiate a new place
-    				Place newPlace = objectFactory.getInstance(className, argument);
-    				newPlace.setSize(size);
-    				newPlace.setIndex( getGlobalArrayIndex( lower_boundary - shadow_size + i ) );
-    				left_shadow[i] = newPlace;
-    			
+					Place newPlace = objectFactory.getInstance(className, argument);
+					newPlace.setSize(size);
+					newPlace.setIndex(getGlobalArrayIndex(lower_boundary - shadow_size + i));
+					left_shadow[i] = newPlace;
+
     			}
 
     			// right shadow initialization
     			if ( right_shadow != null ) {
-    				
+
     				// instantiate a new place
-    				Place newPlace = objectFactory.getInstance(className, argument);
-    				newPlace.setSize(size);
-    				newPlace.setIndex( getGlobalArrayIndex( upper_boundary + i ) );
-    				right_shadow[i] = newPlace; 
-    			
+					Place newPlace = objectFactory.getInstance(className, argument);
+					newPlace.setSize(size);
+					newPlace.setIndex(getGlobalArrayIndex(upper_boundary + i));
+					right_shadow[i] = newPlace;
+
     			}
     		
     		}

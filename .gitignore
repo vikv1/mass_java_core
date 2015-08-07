@@ -8,6 +8,8 @@
 .project
 .settings/
 .classpath
+.idea/
+out/
 
 # ignore temporary files
 *.tmp

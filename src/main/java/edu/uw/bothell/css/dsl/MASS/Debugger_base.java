@@ -57,8 +57,7 @@ public class Debugger_base extends Place {
     			
     			//if(input.available() <= 0) return;
     			String cmd = "";
-    			cmd = (String)input.readObject();//block 100ms
-    			System.out.println("Received:"+cmd);
+				cmd = (String)input.readObject();//block 100ms
     			if(cmd != null && cmd.length()>0){
     				processCommand(cmd);
     			}
@@ -66,17 +65,18 @@ public class Debugger_base extends Place {
     		}
     		
     		catch (IOException e) {
-    			//System.out.println("no data from GUI");
+				System.out.println("shit!");
+				e.printStackTrace();
     		}
     		
     		catch (ClassNotFoundException e) {
-    			e.printStackTrace();
+				e.printStackTrace();
     		}
     		
     	}
 
     	private void processCommand(String cmd){
-    		
+    		//user has paused GUI
     		if (cmd.equals(CMD_PAUSE)) {//user stop the computation
     			
     			synchronized(stop_lock){
@@ -84,7 +84,7 @@ public class Debugger_base extends Place {
     			}
     			
     		}
-    		
+    		//user has continued GUI
     		else if (cmd.equals(CMD_RESUME)) {//user resume the computation
     			
     			synchronized(stop_lock){
@@ -93,17 +93,18 @@ public class Debugger_base extends Place {
     			}
     			
     		}
-    		
+    		//user has edited place in gui
     		else if (cmd.equals(CMD_INJECT_PLACE)) {
     			
     			try {
-    				
+    				//get new place data
     				//SinglePlaceAgentData spaData = (SinglePlaceAgentData)input.readObject();
     				int x = Integer.parseInt((String)input.readObject());
     				int y = Integer.parseInt((String)input.readObject());
     				int v = Integer.parseInt((String)input.readObject());
     				//System.out.println("x:"+x+"y:"+y+"v:"+v);
     				SinglePlaceAgentData data = new SinglePlaceAgentData(x,y,v,null);
+					//update new place data. calls inject debug data
     				debugger_places.callAll(2, data, 0);
     			
     			}
@@ -125,8 +126,7 @@ public class Debugger_base extends Place {
 
     		// send array dimension and program mode (PLACE_ONLY, PLACE_AGENT)
     		try{
-    			
-    			output.writeObject("cmdNewApplication");
+				output.writeObject("cmdNewApplication");
     			output.writeObject(places.getPlaces()[0].getClass().getName());
     			output.writeInt((psize[0]));//for simple just send the size[0], currently assume its N*N array 
     			output.writeBoolean(isPlaceAgentMode);//send the mode of user application
@@ -145,13 +145,9 @@ public class Debugger_base extends Place {
     				System.out.println("exception in sleep");
     			}
 
-    			System.out.println("status:"+dataConnectionThreadstatus);
-    			
-    			synchronized(debuggerInstance){
-    				
-    				probeGUICmd();
-    				
-    				switch (dataConnectionThreadstatus) {
+				synchronized(debuggerInstance){
+					probeGUICmd();
+					switch (dataConnectionThreadstatus) {
     				
     				case STATUS_SEND_PLACE_DATA:
     					//dataConnectionThreadstatus = STATUS_READY;
@@ -166,9 +162,9 @@ public class Debugger_base extends Place {
     							for(int i=0; i<MASS_base.getCurrentReturns().length; i++){
     								
     								Double[] d = (Double[])(MASS_base.getCurrentReturns()[i]);
-    								
-    								for(int j=0; j<d.length; j++){
-    									output.writeDouble(d[j].doubleValue());
+									setOutMessage("D = " + d.toString());
+									for(int j=0; j<d.length; j++){
+										output.writeDouble(d[j].doubleValue());
     								}
     							
     							}
@@ -252,6 +248,8 @@ public class Debugger_base extends Place {
     	}
 
     }
+
+
     protected static void updateDataConnectionThread(int status){
     	
     	if (status == STATUS_SEND_PLACE_DATA) {
@@ -314,11 +312,8 @@ public class Debugger_base extends Place {
     private boolean isPlaceAgentMode; //true: place+agent, false: place
     
     public static Debugger_base debuggerInstance; 
-    
-    /*public final static int init_ = 0;
-      public final static int fetchDebugData_ = 1;
-      public final static int injectDebugData_ = 2;*/
-    private final static int SOCKET_PORT = 40863;
+
+    private static int SOCKET_PORT;
     
     @SuppressWarnings("unused")
 	private final static String CMD_NEW_APPLICATION = "cmdNewApplication";
@@ -342,20 +337,10 @@ public class Debugger_base extends Place {
     
     private static boolean[] sending_place_lock;
 
-    /*public Object callMethod(int functionId, Object argument) {
-      switch (functionId) {
-      case init_: 
-      case fetchDebugData_: return fetchDebugData(argument);
-      case injectDebugData_: return InjectDebugData(argument);
-      default: break;
-      }
-      return null;
-      }*/
-
     public static boolean[] stop_lock;
 
 	/**
-     * @param places is the Places handler, agents is the Agents handler
+     * @param argument is the Places handler, agents is the Agents handler
      * */
     public Debugger_base(Object argument) {
 	
@@ -364,8 +349,12 @@ public class Debugger_base extends Place {
     	dataConnectionThreadstatus = STATUS_READY;
     	this.placesHandler = handler[0];
     	this.agentsHandler = handler[1];
-    
     }
+
+	public static void setPort(int port)
+	{
+		Debugger_base.SOCKET_PORT = port;
+	}
 
     protected Object fetchAgentDebugData(Object argument){
     	
@@ -432,8 +421,7 @@ public class Debugger_base extends Place {
     }
     
     protected Object init( Object args ) {
-    	
-    	sending_lock = new boolean[1];
+		sending_lock = new boolean[1];
     	sending_lock[0] = false;
     	stop_lock = new boolean[1];
     	stop_lock[0] = false;
@@ -441,16 +429,28 @@ public class Debugger_base extends Place {
     	sending_place_lock[0] = false;
 
     	debugger_size = getSize()[0];
+
+		//gets agent and places objects
     	places = MASS_base.getPlacesMap().get(placesHandler);
     	agents = MASS_base.getAgentsMap().get(agentsHandler);
+
+		//sets the mode (place or place and agent) do we need just agent?
     	isPlaceAgentMode = agents == null ? false : true;
+
+		//gets debugger places object
     	debugger_places = MASS_base.getPlacesMap().get(99);
+
+		//get my pid - what is this?
     	pid = MASS_base.getMyPid();
+
+		//gets copy of place size array -- i have no idea what this is
     	psize = places.getSize().clone();
 
+		//no idea...
     	nTotalPlace = 1;
-    	for (int i = 0; i < psize.length; i++)
-    		nTotalPlace *= psize[i];
+    	for (int i = 0; i < psize.length; i++) {
+			nTotalPlace *= psize[i];
+		}
 
     	nDimen = psize.length;
     	placeDebugData = new Double[places.getPlacesSize()];
@@ -480,7 +480,7 @@ public class Debugger_base extends Place {
 
     protected Object InjectDebugData(Object argument) {
 
-    	//debugger places are one dimension
+    	//debugger places are one dimension. unsafe cast
     	SinglePlaceAgentData spaData = (SinglePlaceAgentData)argument;
     	int x = spaData.getX();
     	int y = spaData.getY();
@@ -514,9 +514,10 @@ public class Debugger_base extends Place {
     			Socket guiClient = null;
     			
     			try{
-    				server = new ServerSocket(SOCKET_PORT);
+					server = new ServerSocket(SOCKET_PORT);
     			} catch (IOException e){
-    				e.printStackTrace();
+					System.out.println("bad port!");
+					e.printStackTrace();
     			}
     			
     			while (true) {
@@ -553,7 +554,7 @@ public class Debugger_base extends Place {
     			}
 
     			SocketGUIConnection guiConnection = new SocketGUIConnection(output, input);
-    			guiConnection.start();
+				guiConnection.start();
     		
     		}
     	
@@ -562,6 +563,7 @@ public class Debugger_base extends Place {
     }
 
 }
+
 
 class AgentDebugData implements Serializable {
 
@@ -578,6 +580,9 @@ class AgentDebugData implements Serializable {
 
 }
 
+/**
+ * No idea
+ */
 class SinglePlaceAgentData implements Serializable{
 
 	private static final long serialVersionUID = 1L;
@@ -593,7 +598,8 @@ class SinglePlaceAgentData implements Serializable{
 		this.y = y;
 		this.place_val = val;
 		this.agents = new ArrayList<Integer>();
-		
+
+		//no...
 		if (agents != null) {
 			this.agents = (ArrayList<Integer>)(agents.clone());
 		}
