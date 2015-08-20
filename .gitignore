@@ -18,3 +18,8 @@ out/
 *~
 src/main/resources/rebel.xml
 mass-core.java.list
+UWCA/UWCA-ejb/target/
+UWCA/UWCA-ear/target/
+UWCA/UWCA-web/target/
+mass-core/target/
+mass-quickstart/target/
