@@ -122,8 +122,8 @@ public class Place {
 		return agents;
 	}
 
-	//NO!
-	public Object getDebugData(){
+	public Number getDebugData()
+	{
 		return null;
 	}
 

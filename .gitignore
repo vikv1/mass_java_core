@@ -3,23 +3,17 @@
 # ignore target dirs
 /target/
 
-
 # ignore project files
 .project
 .settings/
 .classpath
 .idea/
 out/
+src/main/resources/rebel.xml
+mass-core.java.list
 
 # ignore temporary files
 *.tmp
 *.swo
 *.swp
 *~
-src/main/resources/rebel.xml
-mass-core.java.list
-mass-core/target/
-UWCA/UWCA-web/target/
-mass-quickstart/target/
-UWCA/UWCA-ejb/target/
-UWCA/UWCA-ear/target/
