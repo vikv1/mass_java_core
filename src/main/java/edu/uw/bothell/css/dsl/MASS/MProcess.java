@@ -34,6 +34,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Vector;
 
+/**
+ *	MProcess exists to facilitate message-passing between remote and master nodes. 
+ */
 public class MProcess {
 
   private int myPid; // my pid or rank

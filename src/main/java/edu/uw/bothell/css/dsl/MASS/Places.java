@@ -32,6 +32,9 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
+/**
+ * Places manages all Place elements within the simulation space.
+ */
 public class Places extends Places_base {
 	
 	/**

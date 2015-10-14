@@ -49,6 +49,9 @@ import com.jcraft.jsch.Channel;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
+/**
+ *	MASS is responsible for the construction and deconstruction of the cluster. 
+ */
 public class MASS extends MASS_base {
 
 	private static boolean printOutput = false;
