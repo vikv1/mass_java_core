@@ -190,7 +190,10 @@ public class MASS extends MASS_base {
     }
     
  	/**
- 	 * Finishes computation
+ 	 *	Finish computation, terminate remote processes, and perform cleanup and
+ 	 * 	disconnection operations.
+ 	 * 
+ 	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
 
@@ -265,7 +268,8 @@ public class MASS extends MASS_base {
 	}
 	
 	/**
-	 * Initialize the MASS library (using settings made previously via setters)
+	 * Initialize the MASS library (using settings made previously via setters).
+	 * Calling this method effectively begins computation.
 	 */
 	public static void init() {
 
@@ -514,10 +518,10 @@ public class MASS extends MASS_base {
     }
     
     /**
-     * Initialize the MASS library using arguments
+     * Initialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
-     * @param nThr The number of threads to spawn
+     * @param nThr The number of threads to spawn on each node
      */
 	public static void init( String[] args, int nProc, int nThr ) {
     	
@@ -630,14 +634,6 @@ public class MASS extends MASS_base {
   }
 	
 	/**
-	 * END Async methods
-	 */
-
-	/**
-	 * START MASS DEBUGGER METHODS
-	 */
-
-	/**
 	 * Overloaded MASS init method to be used in conjunction with MASS debugger application.
 	 * Port number must match port number entered in the debugging GUI.
 	 *
@@ -708,7 +704,4 @@ public class MASS extends MASS_base {
 		//MASS.debuggerInstance.callAll(Debugger.fetchAgentDebugData_, new Integer[2]);
 	}
 
-	/**
-	 * END MASS DEBUGGER METHODS
-	 */
 }

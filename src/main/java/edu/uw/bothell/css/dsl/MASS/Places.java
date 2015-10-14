@@ -36,9 +36,9 @@ public class Places extends Places_base {
 	
 	/**
 	 * Places constructor that creates places with a given dimension.
-	 * @param handle - A unique identifier that designates a group of places.  
-	 *                 Must be unique over all machines.
-	 * @param className - the user implemented class the places are constructed from
+	 * @param handle	A unique identifier that designates a group of places.
+	 * 					Must be unique over all machines.
+	 * @param className	The user-implemented class Places are constructed from
 	 * @param boundary_width
 	 * @param argument
 	 * @param size
@@ -54,10 +54,10 @@ public class Places extends Places_base {
 	 * passing an argument to the "className" constructor. This array is
 	 * associated with a user-given handle that must be unique over
 	 * machines.
-	 * dimensions are numerated in the "..." format.
-	 * @param handle - A unique identifier that designates a group of places.  
-	 *                 Must be unique over all machines.
-	 * @param className - the user implemented class the places are constructed from
+	 * Dimensions are numerated in the "..." format.
+	 * @param handle	A unique identifier that designates a group of places.  
+	 *                 	Must be unique over all machines.
+	 * @param className	The user-implemented class Places are constructed from
 	 * @param argument
 	 * @param size
 	 */
@@ -150,7 +150,7 @@ public class Places extends Places_base {
 	/**
 	 * Calls the method specified with functionId of all array elements. Done
 	 * in parallel among multi-processes/threads.
-	 * @param functionId
+	 * @param functionId The ID of the function to call
 	 */
 	public void callAll( int functionId ) {
 		ca_setup( functionId, null, Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
@@ -160,8 +160,8 @@ public class Places extends Places_base {
 	 * Calls the method specified with functionId of all array elements as
 	 * passing an argument to the method. Done in parallel among multi-
 	 * processes/threads.
-	 * @param functionId
-	 * @param argument
+	 * @param functionId The ID of the function to call
+	 * @param argument An argument to supply to the function being called in each Place
 	 */
 	public void callAll( int functionId, Object argument ) {
 	
@@ -180,9 +180,10 @@ public class Places extends Places_base {
 	 * in parallel among multi-processes/threads. In case of a multi-
 	 * dimensional array, "i" is considered as the index when the array is
 	 * flattened to a single dimension.
-	 * @param functionId
-	 * @param argument
-	 * @return 
+	 * @param functionId The ID of the function to call
+	 * @param argument An argument to supply to the function being called in each Place
+	 * @return An Object (actually, an Object[]) with each element set to the return value
+	 * 			supplied by each Place in the cluster
 	 */
 	public Object callAll( int functionId, Object argument[] ) {
 	
@@ -205,7 +206,7 @@ public class Places extends Places_base {
 	 * specifically, inMessages[i] maintains a set of return values from the i th
 	 * callee.
 	 * @param dest_handle
-	 * @param functionId
+	 * @param functionId The ID of the function to call
 	 */
 	public void exchangeAll( int dest_handle, int functionId ) {
 	
@@ -252,7 +253,7 @@ public class Places extends Places_base {
 	 *
 	 * @see Places#exchangeAll(int, int)
 	 * @param dest_handle
-	 * @param functionId
+	 * @param functionId The ID of the function to call
 	 * @param neighbors
 	 */
 	public void exchangeAll(int dest_handle, int functionId, Vector<int[]> neighbors){
