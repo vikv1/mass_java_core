@@ -45,6 +45,10 @@ import java.util.Vector;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
+/**
+ * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
+ * Methods are provided to allow access to remote objects.
+ */
 public class MASS_base {
 
     private static Mthread[] threads;          // including main and children

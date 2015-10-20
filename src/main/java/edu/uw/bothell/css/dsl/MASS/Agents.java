@@ -34,6 +34,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * An Agent is an execution instance that resides in a Place, perform
+ * operations on objects contained by the Place, and possibly migrate
+ * to another Place. 
+ */
 @SuppressWarnings("serial")
 public class Agents extends Agents_base implements Serializable {
 
@@ -51,10 +56,10 @@ public class Agents extends Agents_base implements Serializable {
    * regardless of the initPopulation parameter. Each set of agents is
    * associated with a user-given handle that must be unique over machines.
    * @param handle
-   * @param className
-   * @param argument
-   * @param places
-   * @param initPopulation
+   * @param className The name of the user-defined class to instantiate
+   * @param argument The argument to pass to each Agent as it is being instantiated
+   * @param places The Places instance that will contain the Agents
+   * @param initPopulation The number of Agents to create
    */
   public Agents(int handle, String className, Object argument, Places places,
       int initPopulation) {

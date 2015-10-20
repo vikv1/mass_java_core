@@ -35,6 +35,12 @@ import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
 
+/**
+ *	Place represents a single element from a collection of places distributed
+ *	among all cluster nodes. A Place may contain a collection of Agents that
+ *	perform operations on objects contained within the Place. 
+ *
+ */
 public class Place {
 
 	/**
