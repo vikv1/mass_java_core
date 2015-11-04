@@ -1,7 +1,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-public class Debugger extends Debugger_base {
+public class Debugger extends DebuggerBase {
     
 	public final static int INIT = 0;
     public final static int FETCH_DEBUG_DATA = 1;

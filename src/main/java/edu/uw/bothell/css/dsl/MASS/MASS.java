@@ -666,7 +666,7 @@ public class MASS extends MASSBase {
 		Places debugger = new Places(DEBUGGER_HANDLE, "edu.uw.bothell.css.dsl.MASS.Debugger", handles, 1);
 		debugger.callAll(Debugger.INIT);
 		MASS.debuggerInstance = debugger;
-		Debugger_base.setPort(portNumber);
+		DebuggerBase.setPort(portNumber);
 	}
 
 	/**
@@ -676,17 +676,17 @@ public class MASS extends MASSBase {
 	 */
 	public static void debugSync() throws InterruptedException
 	{
-		synchronized(Debugger_base.sending_lock){
-			if(Debugger_base.sending_lock[0]){
+		synchronized(DebuggerBase.sending_lock){
+			if(DebuggerBase.sending_lock[0]){
 				try{
-					Debugger_base.sending_lock.wait();
+					DebuggerBase.sending_lock.wait();
 				}catch(Exception e){}
 			}
 		}
-		synchronized(Debugger_base.stop_lock){
-			if(Debugger_base.stop_lock[0]){
+		synchronized(DebuggerBase.stop_lock){
+			if(DebuggerBase.stop_lock[0]){
 				try{
-					Debugger_base.stop_lock.wait();
+					DebuggerBase.stop_lock.wait();
 				}catch(Exception e){}
 			}
 		}

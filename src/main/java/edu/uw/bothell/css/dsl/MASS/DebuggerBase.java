@@ -39,7 +39,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
-public class Debugger_base extends Place {
+public class DebuggerBase extends Place {
 
     private class SocketGUIConnection extends Thread {
     	
@@ -300,7 +300,7 @@ public class Debugger_base extends Place {
     
     private boolean isPlaceAgentMode; //true: place+agent, false: place
     
-    public static Debugger_base debuggerInstance; 
+    public static DebuggerBase debuggerInstance; 
 
     private static int SOCKET_PORT;
     
@@ -331,7 +331,7 @@ public class Debugger_base extends Place {
 	/**
      * @param argument is the Places handler, agents is the Agents handler
      * */
-    public Debugger_base(Object argument) {
+    public DebuggerBase(Object argument) {
 	
     	int[] handler = (int[]) argument;
     	debuggerInstance = this;
@@ -342,7 +342,7 @@ public class Debugger_base extends Place {
 
 	public static void setPort(int port)
 	{
-		Debugger_base.SOCKET_PORT = port;
+		DebuggerBase.SOCKET_PORT = port;
 	}
 
     protected Object fetchAgentDebugData(Object argument){
