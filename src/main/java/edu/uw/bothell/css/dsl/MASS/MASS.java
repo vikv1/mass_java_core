@@ -424,7 +424,6 @@ public class MASS extends MASSBase {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		//commandBuilder.append("-Xms2g ");
     		commandBuilder.append("-Xmx9g ");
     		
     		// set location of MASS.jar
@@ -449,7 +448,7 @@ public class MASS extends MASSBase {
    			}
 
     		// MProcess and its arguments
-    		commandBuilder.append("edu.uw.bothell.css.dsl.MASS.MProcess ");	// the program
+    		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
     		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
     		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
@@ -663,7 +662,7 @@ public class MASS extends MASSBase {
 	public static void debugInit(int placeHandle, int agentHandle, int portNumber)
 	{
 		int[] handles = new int[]{placeHandle, agentHandle};
-		Places debugger = new Places(DEBUGGER_HANDLE, "edu.uw.bothell.css.dsl.MASS.Debugger", handles, 1);
+		Places debugger = new Places(DEBUGGER_HANDLE, Debugger.class.getName(), handles, 1);
 		debugger.callAll(Debugger.INIT);
 		MASS.debuggerInstance = debugger;
 		DebuggerBase.setPort(portNumber);
