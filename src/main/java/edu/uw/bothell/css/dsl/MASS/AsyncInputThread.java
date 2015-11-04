@@ -142,7 +142,7 @@ public class AsyncInputThread extends Thread {
           // process a message
           Vector<AgentMigrationRequest> receivedRequests = m
               .getMigrationReqList();
-          Places_base dstPlaces = MASSBase.getPlacesMap().get(
+          PlacesBase dstPlaces = MASSBase.getPlacesMap().get(
               new Integer(m.getDestHandle()));
           boolean chosen = false;
           synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {

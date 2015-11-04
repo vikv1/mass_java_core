@@ -35,7 +35,7 @@ import java.util.Vector;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
-public class Places_base {
+public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
     private int total;
@@ -54,7 +54,7 @@ public class Places_base {
     private Place[] rightShadow;
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-	public Places_base( int handle, String className, int boundary_width, Object argument, int[] size ) {
+	public PlacesBase( int handle, String className, int boundary_width, Object argument, int[] size ) {
 		
 		this.handle = handle;
 		this.className = className;
@@ -269,7 +269,7 @@ public class Places_base {
     		= messageFromSrc.getExchangeReqList( );
 
     		int destHandle_at_dst = messageFromSrc.getDestHandle( );
-    		Places_base dstPlaces = 
+    		PlacesBase dstPlaces = 
     				MASSBase.getPlacesMap().get( new Integer( destHandle_at_dst ) );
 
     		if ( MASS.isConsoleLoggingEnabled() ) {
@@ -351,7 +351,7 @@ public class Places_base {
     			my_lower_boundary;
 
     			// locate a local place
-    			Places_base srcPlaces 
+    			PlacesBase srcPlaces 
     			= MASSBase.getPlacesMap().get( new Integer( srcHandle ) );
     			Place srcPlace = srcPlaces.places[orgLocalLinearIndex];
 
@@ -448,7 +448,7 @@ public class Places_base {
     
     }
     
-    public void exchangeAll( Places_base dstPlaces, int functionId, int tid ) {
+    public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
 
     	int[] range = new int[2];
     	getLocalRange( range, tid );

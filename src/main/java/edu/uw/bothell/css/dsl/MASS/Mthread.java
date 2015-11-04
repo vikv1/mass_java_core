@@ -122,8 +122,8 @@ public class Mthread extends Thread {
     		MASSBase.log( "Mthread[" + tid + "] invoked" );
 
     	// the following variables are used to call callAll( )
-    	Places_base places = null;
-    	Places_base destinationPlaces = null;
+    	PlacesBase places = null;
+    	PlacesBase destinationPlaces = null;
     	AgentsBase agents = null;
 
     	int functionId = 0;

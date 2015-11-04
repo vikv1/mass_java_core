@@ -121,7 +121,7 @@ public class AgentsBase implements Serializable {
     	}
 
     	// retrieve the corresponding places
-    	Places_base curPlaces = 
+    	PlacesBase curPlaces = 
     			MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
 
     	if ( MASS.isConsoleLoggingEnabled() == true )
@@ -540,7 +540,7 @@ public class AgentsBase implements Serializable {
     	//Create the dllclass to access our agents from, out agentsDllClass 
     	// for agent instantiation, and our bag for Agent objects after they 
     	// have finished processing
-    	Places_base evaluatedPlaces	= MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+    	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
 
     	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
     	// agents  sequentially.
@@ -969,7 +969,7 @@ public class AgentsBase implements Serializable {
   public void migrateAsync(Agent targetAgent) {
   //Iterate over all dimensions of the agent to check its location
     //against that of its place. If they are the same, return back.
-    Places_base evaluatedPlaces = MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+    PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
     int[] destCoord = new int[targetAgent.getIndex().length];
 
     // compute its coordinate
@@ -1266,7 +1266,7 @@ public class AgentsBase implements Serializable {
 
     		int agentsHandle = messageFromSrc.getHandle( );
     		int placesHandle = messageFromSrc.getDestHandle( );
-    		Places_base dstPlaces = MASSBase.getPlacesMap().
+    		PlacesBase dstPlaces = MASSBase.getPlacesMap().
     				get( new Integer( placesHandle ) );
 
     		if ( MASS.isConsoleLoggingEnabled() == true )

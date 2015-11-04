@@ -60,14 +60,14 @@ public class MASSBase {
 	private static int myPid;               // my pid or rank
 	private static FileOutputStream logger; // logger
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
-	private static Hashtable<Integer, Places_base> placesMap = new Hashtable<Integer, Places_base>( );
+	private static Hashtable<Integer, PlacesBase> placesMap = new Hashtable<Integer, PlacesBase>( );
 	private static Hashtable<Integer, AgentsBase> agentsMap = new Hashtable<Integer, AgentsBase>( );
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-	private static Places_base currentPlaces = null;
+	private static PlacesBase currentPlaces = null;
 	private static AgentsBase currentAgents = null;
 	private static ExchangeHelper exchange = new ExchangeHelper( );
-	private static Places_base destinationPlaces;
+	private static PlacesBase destinationPlaces;
 	private static int currentFunctionId;
 	private static Object currentArgument;
 	private static Object[] currentReturns;
@@ -188,7 +188,7 @@ public class MASSBase {
      * Get the current Places object being worked on
      * @return The current Places object
      */
-    public static Places_base getCurrentPlaces( ) { 
+    public static PlacesBase getCurrentPlaces( ) { 
     	return currentPlaces; 
     }
 	
@@ -196,7 +196,7 @@ public class MASSBase {
 		return currentReturns;
 	}
 
-	public static Places_base getDestinationPlaces( ) { 
+	public static PlacesBase getDestinationPlaces( ) { 
     	return destinationPlaces; 
     }
 	
@@ -233,7 +233,7 @@ public class MASSBase {
 	 * Get the collection of Places located on this node
 	 * @return Places located on this node
 	 */
-	public static Hashtable<Integer, Places_base> getPlacesMap() {
+	public static Hashtable<Integer, PlacesBase> getPlacesMap() {
 		return placesMap;
 	}
 	
@@ -495,7 +495,7 @@ public class MASSBase {
 	 * Set the current Places object to be worked on
 	 * @param currentPlaces The current Places object
 	 */
-	public static void setCurrentPlaces(Places_base currentPlaces) {
+	public static void setCurrentPlaces(PlacesBase currentPlaces) {
 		MASSBase.currentPlaces = currentPlaces;
 	};
 
@@ -503,7 +503,7 @@ public class MASSBase {
 		MASSBase.currentReturns = currentReturns;
 	}
     
-    public static void setDestinationPlaces(Places_base destinationPlaces) {
+    public static void setDestinationPlaces(PlacesBase destinationPlaces) {
 		MASSBase.destinationPlaces = destinationPlaces;
 	}
     

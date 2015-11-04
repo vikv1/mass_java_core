@@ -35,7 +35,7 @@ import java.util.Vector;
 /**
  * Places manages all Place elements within the simulation space.
  */
-public class Places extends Places_base {
+public class Places extends PlacesBase {
 	
 	/**
 	 * Places constructor that creates places with a given dimension.

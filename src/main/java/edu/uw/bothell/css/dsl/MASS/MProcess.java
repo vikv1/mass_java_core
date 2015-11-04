@@ -181,7 +181,7 @@ public class MProcess {
       int[] size; // size[]
       Vector<String> hosts = new Vector<String>();
       Object argument = null;
-      Places_base places = null; // new Places
+      PlacesBase places = null; // new Places
       AgentsBase agents = null; // new Agents
 
       // retrieve an argument
@@ -220,7 +220,7 @@ public class MProcess {
         // create a new Places
         size = m.getSize();
 
-        places = new Places_base(m.getHandle(), m.getClassname(),
+        places = new PlacesBase(m.getHandle(), m.getClassname(),
             m.getBoundaryWidth(), argument, size);
 
         for (int i = 0; i < m.getHosts().size(); i++)

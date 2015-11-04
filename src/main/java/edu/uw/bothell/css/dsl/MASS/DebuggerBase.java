@@ -282,8 +282,8 @@ public class DebuggerBase extends Place {
     }
     private int placesHandler;
     private int agentsHandler;
-    private Places_base places;
-    private Places_base debugger_places;
+    private PlacesBase places;
+    private PlacesBase debugger_places;
     
     private AgentsBase agents;
     
