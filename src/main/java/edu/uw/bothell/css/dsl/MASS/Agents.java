@@ -66,11 +66,11 @@ public class Agents extends Agents_base implements Serializable {
 
     super(handle, className, argument, places.getHandle(), initPopulation);
     localAgents = new int[MASS_base.getSystemSize()];
-    init_master(argument);
+    initMaster(argument);
 
   }
 
-  Object ca_setup(int functionId, Object argument, Message.ACTION_TYPE type) {
+  Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
 
     // calculate the total number of agents
     total = 0;
@@ -89,29 +89,29 @@ public class Agents extends Agents_base implements Serializable {
       else {
 
         // calculate argument position
-        int arg_pos = 0;
+        int argumentPosition = 0;
         for (int dest = 0; dest <= i; dest++) {
-          arg_pos += localAgents[dest];
+          argumentPosition += localAgents[dest];
 
           if (MASS.isConsoleLoggingEnabled())
             System.err
-                .println("Agents.callAll: calc arg_pos = " + arg_pos
+                .println("Agents.callAll: calc arg_pos = " + argumentPosition
                     + " localAgents[" + (dest + 1) + "] = "
                     + localAgents[dest + 1]);
 
         }
 
-        Object[] partitioned_argument = new Object[localAgents[i + 1]];
+        Object[] partitionedArgument = new Object[localAgents[i + 1]];
 
-        System.arraycopy((Object[]) argument, arg_pos, partitioned_argument, 0,
+        System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0,
             localAgents[i + 1]);
 
         m = new Message(type, this.getHandle(), functionId,
-            partitioned_argument);
+            partitionedArgument);
 
         if (MASS.isConsoleLoggingEnabled())
           System.err.println("Agents.callAll: to rank[" + (i + 1)
-              + "] arg_pos = " + arg_pos);
+              + "] arg_pos = " + argumentPosition);
 
       }
 
@@ -163,7 +163,7 @@ public class Agents extends Agents_base implements Serializable {
 
     Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
-    // callall implementatioin
+    // callall implementation
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
       super.callAll(functionId, argument, 0); // 0 = main tid
     else
@@ -174,7 +174,7 @@ public class Agents extends Agents_base implements Serializable {
     localAgents[0] = getLocalPopulation();
 
     // Synchronized with all slave processes by main thread.
-    MASS.barrier_all_slaves(MASS_base.getCurrentReturns(), 0, localAgents);
+    MASS.barrierAllSlaves(MASS_base.getCurrentReturns(), 0, localAgents);
 
     total = 0;
     for (int i = 0; i < MASS_base.getSystemSize(); i++) {
@@ -192,7 +192,7 @@ public class Agents extends Agents_base implements Serializable {
 
   }
 
-  List<Agent> ca_setupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
+  List<Agent> callAllSetupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
     // FOR auto migration
     Places places = MASS_base.getPlaces(this.getPlacesHandle());
     int lastDimensionLength = places.getSize()
@@ -249,31 +249,31 @@ public class Agents extends Agents_base implements Serializable {
     Message m = null;
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
       // calculate argument position
-      int arg_pos = 0;
+      int argumentPosition = 0;
       for (int dest = 0; dest <= i; dest++) {
-        arg_pos += localAgents[dest];
+        argumentPosition += localAgents[dest];
         if(MASS.isConsoleLoggingEnabled()) 
-          System.err.println("Agents.callAll: calc arg_pos = " + arg_pos
+          System.err.println("Agents.callAll: calc arg_pos = " + argumentPosition
               + " localAgents[" + (dest + 1) + "] = " + localAgents[dest + 1]);        
       }
 
-      Object[] partitioned_argument = new Object[localAgents[i + 1]];
+      Object[] partitionedArgument = new Object[localAgents[i + 1]];
       if(arguments != null) {
-        System.arraycopy((Object[]) arguments, arg_pos, partitioned_argument, 0,
+        System.arraycopy((Object[]) arguments, argumentPosition, partitionedArgument, 0,
             localAgents[i + 1]);
       }
       m = new Message(Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,
-          this.getHandle(), functionIds, partitioned_argument);
+          this.getHandle(), functionIds, partitionedArgument);
       if(autoMigration) {
         int[] startingPlaceGlobalIndex = new int[localAgents[i + 1]];
         for(int j = 0; j < startingPlaceGlobalIndex.length; j++) {
-          startingPlaceGlobalIndex[j] = (arg_pos + j) * lastDimensionLength;
+          startingPlaceGlobalIndex[j] = (argumentPosition + j) * lastDimensionLength;
         }
         m.setAutoMigrationStartingIndex(startingPlaceGlobalIndex);
       }
       if(MASS.isConsoleLoggingEnabled())
         System.err.println("Agents.callAll: to rank[" + (i + 1)
-            + "] arg_pos = " + arg_pos);
+            + "] arg_pos = " + argumentPosition);
 
       // send callAllAsync to other nodes
       MASS.getRemoteNodes().get(i).sendMessage(m);
@@ -369,7 +369,7 @@ public class Agents extends Agents_base implements Serializable {
    * @param functionId
    */
   public void callAll(int functionId) {
-    ca_setup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+    callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
   }
 
   /**
@@ -379,7 +379,7 @@ public class Agents extends Agents_base implements Serializable {
    * @param functionId
    * @param argument
    */  public void callAll(int functionId, Object argument) {
-    ca_setup(functionId, argument,
+    callAllSetup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
   }
 
@@ -396,21 +396,21 @@ public class Agents extends Agents_base implements Serializable {
     * @return 
     */
   public Object callAll(int functionId, Object[] argument) {
-    return ca_setup(functionId, argument,
+    return callAllSetup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
   }
 
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments) throws Exception {
-    return ca_setupAsync(functionIds, arguments, false);
+    return callAllSetupAsync(functionIds, arguments, false);
   }
   
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments, boolean autoMigration) throws Exception {
-    return ca_setupAsync(functionIds, arguments, autoMigration);
+    return callAllSetupAsync(functionIds, arguments, autoMigration);
   }
 
-  public void init_master(Object argument) {
+  public void initMaster(Object argument) {
 
     // check if MASS_base.hosts is empty (i.e., Places not yet created)
     if (MASS_base.getHosts().isEmpty()) {
@@ -434,7 +434,7 @@ public class Agents extends Agents_base implements Serializable {
     }
 
     // Synchronized with all slave processes
-    MASS.barrier_all_slaves(localAgents);
+    MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
     total = 0;
@@ -454,7 +454,7 @@ public class Agents extends Agents_base implements Serializable {
 
   }
 
-  public void ma_setup() {
+  public void manageAllSetup() {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
@@ -487,7 +487,7 @@ public class Agents extends Agents_base implements Serializable {
     Mthread.barrierThreads(0);
 
     // Synchronized with all slave processes
-    MASS.barrier_all_slaves(localAgents);
+    MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
     total = 0;
@@ -511,7 +511,7 @@ public class Agents extends Agents_base implements Serializable {
    * exchangeAll. Done in parallel among multi-processes/threads 
    */
   public void manageAll() {
-    ma_setup();
+    manageAllSetup();
   }
 
   /**

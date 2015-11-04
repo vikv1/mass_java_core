@@ -72,7 +72,7 @@ public class MASS_base {
 	private static Object currentArgument;
 	private static Object[] currentReturns;
 	private static Message.ACTION_TYPE currentMsgType;
-	private static Object log_lock;
+	private static Object logLock;
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
@@ -333,7 +333,7 @@ public class MASS_base {
      * Initialize MASS_base, using an MNode object representing this node as the source for configuration
      * @param nodeConfig The MNode object representing this node
      */
-    public static void initMASS_base(MNode nodeConfig) {
+    public static void initMASSBase(MNode nodeConfig) {
 		
 		MASS_base.hostName = nodeConfig.getHostName();
 		MASS_base.myPid = nodeConfig.getPid();
@@ -381,7 +381,7 @@ public class MASS_base {
     	systemSize = nProc;
     	
 		// init from the MNode object
-		initMASS_base(thisNode);
+		initMASSBase(thisNode);
 
     }
     
@@ -399,8 +399,8 @@ public class MASS_base {
 	 */
 	public static void log( String msg ) {
 		try {			
-			if ( log_lock == null ) {				
-				log_lock = new Object( );				
+			if ( logLock == null ) {				
+				logLock = new Object( );				
 				//if ( myPid > 0 )
 					logger = new FileOutputStream( workingDirectory + "/" + 
 							MASS_LOGS + "/PID" + 
@@ -410,7 +410,7 @@ public class MASS_base {
       String lstring = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()) 
       + " , " + Thread.currentThread().getName() +" , " + msg;
 
-			synchronized( log_lock ) {
+			synchronized( logLock ) {
 				
 				if ( myPid == 0 ) {
 					// The master directly prints out msg to standard error.

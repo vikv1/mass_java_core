@@ -35,22 +35,22 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class RemoteExchangeRequest implements Serializable {
 
-    private int destGlobalLinearIndex;
-    private int orgGlobalLinearIndex;
+    private int destinationGlobalLinearIndex;
+    private int originatingGlobalLinearIndex;
     private int inMessageIndex;
     private Object outMessage;
 
-	public RemoteExchangeRequest( int destIndex, int orgIndex, int inMsgIndex, Object outMsg ) {
+	public RemoteExchangeRequest( int destinationIndex, int originatingIndex, int inMessageIndex, Object outMessage ) {
 	
-		this.destGlobalLinearIndex = destIndex;
-		this.orgGlobalLinearIndex = orgIndex;
-		this.inMessageIndex = inMsgIndex;
-		this.outMessage = outMsg;
+		this.destinationGlobalLinearIndex = destinationIndex;
+		this.originatingGlobalLinearIndex = originatingIndex;
+		this.inMessageIndex = inMessageIndex;
+		this.outMessage = outMessage;
     
 	}
 
 	public int getDestGlobalLinearIndex() {
-		return destGlobalLinearIndex;
+		return destinationGlobalLinearIndex;
 	}
 
 	public int getInMessageIndex() {
@@ -58,7 +58,7 @@ public class RemoteExchangeRequest implements Serializable {
 	}
 
 	public int getOrgGlobalLinearIndex() {
-		return orgGlobalLinearIndex;
+		return originatingGlobalLinearIndex;
 	}
 
 	public Object getOutMessage() {

@@ -43,8 +43,8 @@ public class Message implements Serializable {
 	public enum ACTION_TYPE { 
 	    
     	EMPTY,                                    // 0             
-	    FINISH("FINISH"),                                   // 1             
-	    ACK("ACK"),                                      // 2             
+	    FINISH("FINISH"),                         // 1             
+	    ACK("ACK"),                               // 2             
 
 	    PLACES_INITIALIZE,                        // 3             
 	    PLACES_CALL_ALL_VOID_OBJECT,              // 4             
@@ -91,14 +91,14 @@ public class Message implements Serializable {
     private ACTION_TYPE action;
     private int[] size = null;
     private int handle = VOID_HANDLE;
-    private int dest_handle = VOID_HANDLE;
+    private int destinationHandle = VOID_HANDLE;
     private int functionId = 0;
     private String classname = null;      // classname.class must be located in CWD.
     private Object argument = null;
     private Vector<String> hosts = null; // all hosts participated in computation
     private Vector<int[]> destinations = null; // all destinations of exchangeAll
-    private int agent_population = -1;
-    private int boundary_width = 0;
+    private int agentPopulation = -1;
+    private int boundaryWidth = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
     // Pid of the source when sending back result in
@@ -131,7 +131,7 @@ public class Message implements Serializable {
     public Message( ACTION_TYPE action, int localPopulation ) {
 
     	this.action = action;
-    	this.agent_population = localPopulation;
+    	this.agentPopulation = localPopulation;
     
     }
 
@@ -145,7 +145,7 @@ public class Message implements Serializable {
 
     	this.action = action;
     	this.handle = handle;
-    	this.dest_handle = handle;
+    	this.destinationHandle = handle;
     
     }	
 
@@ -162,10 +162,10 @@ public class Message implements Serializable {
 
     	this.action = action;
     	this.handle = handle;
-    	this.dest_handle = placeHandle;
+    	this.destinationHandle = placeHandle;
     	this.classname = className;
     	this.argument = argument;
-    	this.agent_population = initPopulation;
+    	this.agentPopulation = initPopulation;
 
     }
 
@@ -181,7 +181,7 @@ public class Message implements Serializable {
 
     	this.action = action;
     	this.handle = handle;
-    	this.dest_handle = dest_handle;
+    	this.destinationHandle = dest_handle;
     	this.functionId = functionId;
     	this.destinations = destinations;
     
@@ -191,16 +191,16 @@ public class Message implements Serializable {
      * PLACES_EXCHANGE_ALL_REMOTE_REQUEST
      * @param action
      * @param handle
-     * @param dest_handle
+     * @param destinationHandle
      * @param functionId
      * @param exchangeReqList
      * @param dummy
      */
-    public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
+    public Message( ACTION_TYPE action, int handle, int destinationHandle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
 
     	this.action = action;
     	this.handle = handle;
-    	this.dest_handle = dest_handle;
+    	this.destinationHandle = destinationHandle;
     	this.functionId = functionId;
     	this.exchangeReqList = exchangeReqList;
 
@@ -236,7 +236,7 @@ public class Message implements Serializable {
 
     	this.action = action;
     	this.handle = agentHandle;
-    	this.dest_handle = placeHandle;
+    	this.destinationHandle = placeHandle;
     	this.migrationReqList = migrationReqList;
     
     }
@@ -249,10 +249,10 @@ public class Message implements Serializable {
      * @param classname
      * @param argument
      * @param arg_size
-     * @param boundary_width
+     * @param boundaryWidth
      * @param hosts
      */
-    public Message( ACTION_TYPE action, int[] size, int handle,  String classname, Object argument, int boundary_width, Vector<String> hosts ) {
+    public Message( ACTION_TYPE action, int[] size, int handle,  String classname, Object argument, int boundaryWidth, Vector<String> hosts ) {
 
     	this.action = action;
     	this.size = size;
@@ -260,7 +260,7 @@ public class Message implements Serializable {
     	this.classname = classname;
     	this.argument = argument;
     	this.hosts = hosts;
-    	this.boundary_width= boundary_width;
+    	this.boundaryWidth= boundaryWidth;
     
     }
 
@@ -288,7 +288,7 @@ public class Message implements Serializable {
 
     	this.action = action;
     	this.argument = argument;
-    	this.agent_population = localPopulation;
+    	this.agentPopulation = localPopulation;
 
     }
     
@@ -310,7 +310,7 @@ public class Message implements Serializable {
     * @return agent_population
     */
     public int getAgentPopulation( ) { 
-    	return agent_population;
+    	return agentPopulation;
     }
     
     /**
@@ -326,7 +326,7 @@ public class Message implements Serializable {
      * @return boundary_width
      */
     public int getBoundaryWidth( ) { 
-    	return boundary_width;
+    	return boundaryWidth;
     }
     
     /**
@@ -342,7 +342,7 @@ public class Message implements Serializable {
      * @return dest_handle
      */
     public int getDestHandle( ) { 
-    	return dest_handle;
+    	return destinationHandle;
     }
     
     /**

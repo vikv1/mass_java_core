@@ -42,13 +42,13 @@ public class Places extends Places_base {
 	 * @param handle	A unique identifier that designates a group of places.
 	 * 					Must be unique over all machines.
 	 * @param className	The user-implemented class Places are constructed from
-	 * @param boundary_width
+	 * @param boundaryWidth
 	 * @param argument
 	 * @param size
-	 */	public Places( int handle, String className, int boundary_width, Object argument, int... size ) {
+	 */	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
     	
-		super( handle, className, boundary_width, argument, size );
-		init_master( argument, boundary_width );
+		super( handle, className, boundaryWidth, argument, size );
+		init_master( argument, boundaryWidth );
     
     }
 
@@ -144,7 +144,7 @@ public class Places extends Places_base {
 		Mthread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( MASS_base.getCurrentReturns(), stripe );
+		MASS.barrierAllSlaves( MASS_base.getCurrentReturns(), stripe );
 		
 		return MASS_base.getCurrentReturns();
     
@@ -208,24 +208,24 @@ public class Places extends Places_base {
 	 * caller’s inMessages[] stores values returned from all callees. More
 	 * specifically, inMessages[i] maintains a set of return values from the i th
 	 * callee.
-	 * @param dest_handle
+	 * @param destinationHandle
 	 * @param functionId The ID of the function to call
 	 */
-	public void exchangeAll( int dest_handle, int functionId ) {
+	public void exchangeAll( int destinationHandle, int functionId ) {
 	
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, 
-					  this.getHandle(), dest_handle, functionId );
+					  this.getHandle(), destinationHandle, functionId );
 		
 		if ( MASS.isConsoleLoggingEnabled() )
-		    MASS_base.log( "dest_handle = " + dest_handle );
+		    MASS_base.log( "dest_handle = " + destinationHandle );
 		
 		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		
 		// retrieve the corresponding places
 		MASS_base.setCurrentPlaces(this);
-		MASS_base.setDestinationPlaces(MASS_base.getPlacesMap().get( new Integer( dest_handle ) ));
+		MASS_base.setDestinationPlaces(MASS_base.getPlacesMap().get( new Integer( destinationHandle ) ));
 		MASS_base.setCurrentFunctionId(functionId);
 		//MASS_base.currentDestinations = destinations;
 		
@@ -246,7 +246,7 @@ public class Places extends Places_base {
 		Mthread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( );
+		MASS.barrierAllSlaves( );
     
     }
 
@@ -255,15 +255,15 @@ public class Places extends Places_base {
 	 * Sets provided neighbors Vector to each place object.
 	 *
 	 * @see Places#exchangeAll(int, int)
-	 * @param dest_handle
+	 * @param destinationHandle
 	 * @param functionId The ID of the function to call
 	 * @param neighbors
 	 */
-	public void exchangeAll(int dest_handle, int functionId, Vector<int[]> neighbors){
+	public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors){
 		//Add our neighbours to each place
 		this.setAllPlacesNeighbors(neighbors);
 		//Now call exchangeAll to act on those neighbours
-		this.exchangeAll(dest_handle, functionId);
+		this.exchangeAll(destinationHandle, functionId);
 	}
 
 	/**
@@ -297,16 +297,16 @@ public class Places extends Places_base {
 		super.exchangeBoundary( );
 		
 		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( );
+		MASS.barrierAllSlaves( );
     
     }
     
     /**
      * Initializes the places with the given arguments and boundary width.
      * @param argument
-     * @param boundary_width
+     * @param boundaryWidth
      */
-    public void init_master( Object argument, int boundary_width ) {
+    public void init_master( Object argument, int boundaryWidth ) {
 
 		// create a list of all host names;  
 		// the master IP name
@@ -327,7 +327,7 @@ public class Places extends Places_base {
 		// create a new list for message
 		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
 					 getHandle(), getClassName(),
-					 argument, boundary_width, hosts );
+					 argument, boundaryWidth, hosts );
 		
 		// send a PLACES_INITIALIZE message to each slave
 		for ( MNode node : MASS.getRemoteNodes() ) {
@@ -346,7 +346,7 @@ public class Places extends Places_base {
 		MASS_base.getPlacesMap().put( new Integer( getHandle() ), this );
 		
 		// Synchronized with all slave processes
-		MASS.barrier_all_slaves( );
+		MASS.barrierAllSlaves( );
 
     }
 

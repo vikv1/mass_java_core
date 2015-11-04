@@ -50,12 +50,13 @@ public class MProcess {
    * @return 
    */
   public static void main(String[] args) throws Exception {
-    String hostName = args[0];
-    int myPid = Integer.parseInt(args[1]);
-    int nProc = Integer.parseInt(args[2]);
-    int nThreads = Integer.parseInt(args[3]);
-    int serverPort = Integer.parseInt(args[4]);
-    String curDir = args[5];
+    
+	  String hostName = args[0];
+	  int myPid = Integer.parseInt(args[1]);
+	  int nProc = Integer.parseInt(args[2]);
+	  int nThreads = Integer.parseInt(args[3]);
+	  int serverPort = Integer.parseInt(args[4]);
+	  String curDir = args[5];
 
     MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads,
         serverPort, curDir);

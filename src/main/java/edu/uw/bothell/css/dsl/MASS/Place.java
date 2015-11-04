@@ -106,21 +106,21 @@ public class Place {
 		int destinationLocalLinearIndex
 		= globalLinearIndex - places.getLowerBoundary();
 
-		Place dstPlace = null;
-		int shadow_index;
+		Place destintationPlace = null;
+		int shadowIndex;
 		if ( destinationLocalLinearIndex >= 0 &&
 				destinationLocalLinearIndex < places.getPlacesSize() )
-			dstPlace = places.getPlaces()[ destinationLocalLinearIndex ];
+			destintationPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
-				( shadow_index = destinationLocalLinearIndex + 
+				( shadowIndex = destinationLocalLinearIndex + 
 				places.getShadowSize() ) >= 0 )
-			dstPlace = places.getLeftShadow()[ shadow_index ];
-		else if ( (shadow_index = 
+			destintationPlace = places.getLeftShadow()[ shadowIndex ];
+		else if ( (shadowIndex = 
 				destinationLocalLinearIndex - places.getPlacesSize()) >= 0
-				&& shadow_index < places.getShadowSize() )
-			dstPlace = places.getRightShadow()[ shadow_index ];
+				&& shadowIndex < places.getShadowSize() )
+			destintationPlace = places.getRightShadow()[ shadowIndex ];
 
-		return dstPlace;
+		return destintationPlace;
 	
 	}
 
@@ -154,9 +154,9 @@ public class Place {
 		return outMessage;
 	}
 
-	protected Object getOutMessage( int handle, int[] offset_index ) {
+	protected Object getOutMessage( int handle, int[] offsetIndex ) {
 
-		Place dstPlace = findDstPlace( handle, offset_index );
+		Place dstPlace = findDstPlace( handle, offsetIndex );
 
 		// return the destination outMessage
 		return ( dstPlace != null ) ? dstPlace.outMessage : null;
@@ -173,9 +173,9 @@ public class Place {
 		return size;
 	}
 
-	protected void putInMessage( int handle, int[] offset_index, int position, Object value ) {
+	protected void putInMessage( int handle, int[] offsetIndex, int position, Object value ) {
 
-		Place dstPlace = findDstPlace( handle, offset_index );
+		Place dstPlace = findDstPlace( handle, offsetIndex );
 
 		// write to the destination inMessage[position]
 		if ( dstPlace != null && position < dstPlace.inMessages.length )

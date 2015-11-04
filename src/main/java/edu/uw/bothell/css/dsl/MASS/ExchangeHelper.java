@@ -81,7 +81,7 @@ public class ExchangeHelper {
     				MASS_base.log( "connection from " + ipaddr );
     			}
 
-    			// idenfity the rank of this connection from ipaddr
+    			// identify the rank of this connection from ipaddr
     			for ( int j = rank + 1; j < size; j++ ) {
     				
     				if ( MASS.isConsoleLoggingEnabled() == true )

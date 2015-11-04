@@ -47,11 +47,11 @@ public class Mthread extends Thread {
 	}
 
     private static Object lock;
-    private static int barrier_count;
+    private static int barrierCount;
     private static STATUS_TYPE status;
     private static int threadCreated;
     private static int agentBagSize;
-    private static int barrier_phases;
+    private static int barrierPhases;
     private int tid;                  // this mthread's id
 
     public Mthread( int id ) {
@@ -62,11 +62,11 @@ public class Mthread extends Thread {
 
     	synchronized( lock ) {
     		
-    		if ( ++barrier_count < MASS_base.getThreads().length ) {
+    		if ( ++barrierCount < MASS_base.getThreads().length ) {
     			
     			if( MASS.isConsoleLoggingEnabled() )
     				MASS_base.log( "tid[" + tid + 
-    						"] waiting: barrier = " + barrier_phases );
+    						"] waiting: barrier = " + barrierPhases );
     			
     			try {
     				lock.wait( );
@@ -78,12 +78,12 @@ public class Mthread extends Thread {
     		} 
     		else {
     			
-    			barrier_count = 0;
+    			barrierCount = 0;
     			status = STATUS_TYPE.STATUS_READY;
     			if( MASS.isConsoleLoggingEnabled() ) 
     				MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
-    						+ barrier_phases );
-    			barrier_phases++;
+    						+ barrierPhases );
+    			barrierPhases++;
     			lock.notifyAll( );
     		
     		}
@@ -96,8 +96,8 @@ public class Mthread extends Thread {
 
 		lock = new Object( );
 		status = STATUS_TYPE.STATUS_READY;
-		barrier_count = 0;
-		barrier_phases = 0;
+		barrierCount = 0;
+		barrierPhases = 0;
 	
 	}
 
