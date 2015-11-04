@@ -182,7 +182,7 @@ public class MProcess {
       Vector<String> hosts = new Vector<String>();
       Object argument = null;
       Places_base places = null; // new Places
-      Agents_base agents = null; // new Agents
+      AgentsBase agents = null; // new Agents
 
       // retrieve an argument
       argument = m.getArgument();
@@ -364,7 +364,7 @@ public class MProcess {
         if (MASS.isConsoleLoggingEnabled())
           MASSBase.log("AGENTS_INITIALIZE received");
 
-        agents = new Agents_base(m.getHandle(), m.getClassname(), argument,
+        agents = new AgentsBase(m.getHandle(), m.getClassname(), argument,
             m.getDestHandle(), m.getAgentPopulation());
 
         MASSBase.getAgentsMap().put(new Integer(m.getHandle()), agents);

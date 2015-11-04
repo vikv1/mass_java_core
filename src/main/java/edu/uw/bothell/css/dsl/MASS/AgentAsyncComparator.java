@@ -38,10 +38,10 @@ public class AgentAsyncComparator implements Comparator<Agent> {
   public int compare(Agent o1, Agent o2) {
     if (o1 != null && o2 != null) {
       // original agents
-      if ((o1.getMyOriginalAsyncIndex() < Agents_base.STARTING_CHILD_ASYNC_INDEX
-          && o2.getMyOriginalAsyncIndex() < Agents_base.STARTING_CHILD_ASYNC_INDEX) ||
-          (o1.getMyOriginalAsyncIndex() >= Agents_base.STARTING_CHILD_ASYNC_INDEX
-              && o2.getMyOriginalAsyncIndex() >= Agents_base.STARTING_CHILD_ASYNC_INDEX)){
+      if ((o1.getMyOriginalAsyncIndex() < AgentsBase.STARTING_CHILD_ASYNC_INDEX
+          && o2.getMyOriginalAsyncIndex() < AgentsBase.STARTING_CHILD_ASYNC_INDEX) ||
+          (o1.getMyOriginalAsyncIndex() >= AgentsBase.STARTING_CHILD_ASYNC_INDEX
+              && o2.getMyOriginalAsyncIndex() >= AgentsBase.STARTING_CHILD_ASYNC_INDEX)){
         if (o1.getMyAsyncOriginalPid() != o2.getMyAsyncOriginalPid()) {
           return o1.getMyAsyncOriginalPid() - o2.getMyAsyncOriginalPid();
         } else {
@@ -49,7 +49,7 @@ public class AgentAsyncComparator implements Comparator<Agent> {
         }
       }
       // spawned agents always greater than original agents
-      else if (o1.getMyOriginalAsyncIndex() < Agents_base.STARTING_CHILD_ASYNC_INDEX) {
+      else if (o1.getMyOriginalAsyncIndex() < AgentsBase.STARTING_CHILD_ASYNC_INDEX) {
         // o2 is spawned agents
         return -1;
       }

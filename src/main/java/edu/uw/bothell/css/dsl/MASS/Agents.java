@@ -40,7 +40,7 @@ import java.util.List;
  * to another Place. 
  */
 @SuppressWarnings("serial")
-public class Agents extends Agents_base implements Serializable {
+public class Agents extends AgentsBase implements Serializable {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
   private int total;

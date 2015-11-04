@@ -41,7 +41,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 @SuppressWarnings("serial")
-public class Agents_base implements Serializable {
+public class AgentsBase implements Serializable {
 
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
     public static final int STARTING_CHILD_ASYNC_INDEX = 1000000;
@@ -83,7 +83,7 @@ public class Agents_base implements Serializable {
      */
     private int childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
     
-    public Agents_base( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
+    public AgentsBase( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
     	
     	this.handle = handle;
     	this.className = className;

@@ -61,11 +61,11 @@ public class MASSBase {
 	private static FileOutputStream logger; // logger
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, Places_base> placesMap = new Hashtable<Integer, Places_base>( );
-	private static Hashtable<Integer, Agents_base> agentsMap = new Hashtable<Integer, Agents_base>( );
+	private static Hashtable<Integer, AgentsBase> agentsMap = new Hashtable<Integer, AgentsBase>( );
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
 	private static Places_base currentPlaces = null;
-	private static Agents_base currentAgents = null;
+	private static AgentsBase currentAgents = null;
 	private static ExchangeHelper exchange = new ExchangeHelper( );
 	private static Places_base destinationPlaces;
 	private static int currentFunctionId;
@@ -148,7 +148,7 @@ public class MASSBase {
     	return ( Agents )agentsMap.get( new Integer( handle ) );
     }
 	
-	public static Hashtable<Integer, Agents_base> getAgentsMap() {
+	public static Hashtable<Integer, AgentsBase> getAgentsMap() {
 		return agentsMap;
 	}
 
@@ -168,7 +168,7 @@ public class MASSBase {
 		return Runtime.getRuntime().availableProcessors();
     }
 	
-	public static Agents_base getCurrentAgents( ) {
+	public static AgentsBase getCurrentAgents( ) {
     	return currentAgents; 
     }
 	
@@ -471,11 +471,11 @@ public class MASSBase {
 		//requestCounter = 0;
 	}
 	
-	public static void setAgentsMap(Hashtable<Integer, Agents_base> agentsMap) {
+	public static void setAgentsMap(Hashtable<Integer, AgentsBase> agentsMap) {
 		MASSBase.agentsMap = agentsMap;
 	}
 
-	public static void setCurrentAgents(Agents_base currentAgents) {
+	public static void setCurrentAgents(AgentsBase currentAgents) {
 		MASSBase.currentAgents = currentAgents;
 	}
 	
@@ -614,7 +614,7 @@ public class MASSBase {
       outputThread.start();
     }
 
-    public static void prepareAsyncExecution(Agents_base agents, int[] fIds) {
+    public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
       setCurrentAgents(agents);
       Mthread.setAgentBagSize(currentAgents.getAgents().size());
       

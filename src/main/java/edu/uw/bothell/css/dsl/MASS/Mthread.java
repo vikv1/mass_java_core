@@ -124,7 +124,7 @@ public class Mthread extends Thread {
     	// the following variables are used to call callAll( )
     	Places_base places = null;
     	Places_base destinationPlaces = null;
-    	Agents_base agents = null;
+    	AgentsBase agents = null;
 
     	int functionId = 0;
     	Object argument = null;

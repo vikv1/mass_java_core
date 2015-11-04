@@ -77,7 +77,7 @@ public class Agent implements Serializable {
 	private Object[] asyncResults;
 	private volatile int asyncResultsIndex = 0; // next index to be inserted
 	private Object asyncArgument;
-	private volatile Agents_base parentAgents;
+	private volatile AgentsBase parentAgents;
 
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
@@ -329,11 +329,11 @@ public class Agent implements Serializable {
 		return myAsyncOriginalPid;
 	}
 
-	public void setParentAgents(Agents_base parent) {
+	public void setParentAgents(AgentsBase parent) {
 		parentAgents = parent;
 	}
 
-	public Agents_base getParentAgents() {
+	public AgentsBase getParentAgents() {
 		return parentAgents;
 	}
 

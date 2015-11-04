@@ -285,7 +285,7 @@ public class Debugger_base extends Place {
     private Places_base places;
     private Places_base debugger_places;
     
-    private Agents_base agents;
+    private AgentsBase agents;
     
     private int[] psize;
     @SuppressWarnings("unused")
