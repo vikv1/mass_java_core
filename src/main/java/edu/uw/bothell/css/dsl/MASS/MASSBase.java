@@ -51,7 +51,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
  */
 public class MASSBase {
 
-    private static Mthread[] threads;          // including main and children
+    private static MThread[] threads;          // including main and children
     private static final String MASS_LOGS = "MASS_logs";
 	private static int MASS_PORT = 3400;    // port # of the MASS library
     private static boolean initialized;  	// check if Mthreads are initialized
@@ -267,7 +267,7 @@ public class MASSBase {
 
 	}
 	
-	public static Mthread[] getThreads() {
+	public static MThread[] getThreads() {
 		return threads;
 	}
 
@@ -293,26 +293,26 @@ public class MASSBase {
 		int cores = ( nThr <= 0 ) ? getCores( ) : nThr;
 
 		// all pthread_t structures
-		threads = new Mthread[ cores ];
+		threads = new MThread[ cores ];
 		threads[0] = null; // reserved for the main thread
 
 		// initialize Mthread's static variables
-		Mthread.init( );
+		MThread.init( );
 
 		// now launch child threads
-		synchronized( Mthread.getLock() ) {
-			Mthread.setThreadCreated(0);
+		synchronized( MThread.getLock() ) {
+			MThread.setThreadCreated(0);
 		}
 		
 		for ( int i = 1; i < cores; i++ ) {
 			
-			threads[i] = new Mthread( i );
+			threads[i] = new MThread( i );
 			threads[i].start( );
 			
 			while ( true ) {
 				
-				synchronized( Mthread.getLock() ) {
-					if ( Mthread.getThreadCreated() == i )
+				synchronized( MThread.getLock() ) {
+					if ( MThread.getThreadCreated() == i )
 						break;
 				
 				}
@@ -616,7 +616,7 @@ public class MASSBase {
 
     public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
       setCurrentAgents(agents);
-      Mthread.setAgentBagSize(currentAgents.getAgents().size());
+      MThread.setAgentBagSize(currentAgents.getAgents().size());
       
       currentAgents.setAsyncFuncList(fIds);
       currentAgents.resetChildAsyncIndex();

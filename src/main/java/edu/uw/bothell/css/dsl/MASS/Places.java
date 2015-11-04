@@ -131,7 +131,7 @@ public class Places extends PlacesBase {
 		}
 		
 		// resume threads
-		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_CALLALL );
+		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_CALLALL );
 		
 		// callall implementation
 		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT /*|| type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT */)
@@ -141,7 +141,7 @@ public class Places extends PlacesBase {
 				   ((Object[])argument).length, 0 );
 		
 		// confirm all threads are done with callAll.
-		Mthread.barrierThreads( 0 );
+		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( MASSBase.getCurrentReturns(), stripe );
@@ -236,14 +236,14 @@ public class Places extends PlacesBase {
 		MASSBase.showHosts( );
 		
 		// resume threads
-		Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_EXCHANGEALL );
+		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
 		
 		// exchangeall implementation
 		super.exchangeAll( MASSBase.getDestinationPlaces(),
 				   functionId, 0 );
 		
 		// confirm all threads are done with exchangeAll.
-		Mthread.barrierThreads( 0 );
+		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );

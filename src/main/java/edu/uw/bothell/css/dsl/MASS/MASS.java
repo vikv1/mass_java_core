@@ -199,8 +199,8 @@ public class MASS extends MASSBase {
  	 */
  	public static void finish( ) {
 
-    	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
-    	Mthread.barrierThreads( 0 );
+    	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
+    	MThread.barrierThreads( 0 );
 
     	if ( MASS.isConsoleLoggingEnabled() )
     		System.err.println( "MASS::finish: all MASS threads terminated" );

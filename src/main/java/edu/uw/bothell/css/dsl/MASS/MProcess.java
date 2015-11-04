@@ -200,9 +200,9 @@ public class MProcess {
         break;
 
       case FINISH:
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_TERMINATE);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_TERMINATE);
         // confirm all threads are done with finish
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
         MASSBase.getExchange().terminateConnection(this.myPid);
         MASSBase.getAsyncOutputThread().finish();
         MASSBase.getAsyncInputThread().finish();
@@ -247,13 +247,13 @@ public class MProcess {
         MASSBase.setCurrentMsgType(m.getAction());
 
         // resume threads to work on call all.
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_CALLALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
         // 3rd arg: 0 = the main thread id
         MASSBase.getCurrentPlaces().callAll(m.getFunctionId(), argument, 0);
 
         // confirm all threads are done with places.callAll
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
 
         sendAck();
         break;
@@ -273,7 +273,7 @@ public class MProcess {
             .getPlacesSize()]);
 
         // resume threads to work on call all.
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_CALLALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
         // 3rd arg: 0 = the main thread id
         MASSBase.getCurrentPlaces().callAll(MASSBase.getCurrentFunctionId(),
@@ -281,7 +281,7 @@ public class MProcess {
             ((Object[]) (MASSBase.getCurrentArgument())).length, 0);
 
         // confirm all threads are done with places.callAll w/ return
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
 
         // if ( printOutput )
         // MASS_base.log( "PLACES_CALL_ALL_RETURN_OBJECT " +
@@ -311,7 +311,7 @@ public class MProcess {
         MASSBase.showHosts();
 
         // resume threads to work on call all.
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_EXCHANGEALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
         // exchangeall implementation
         MASSBase.getCurrentPlaces().exchangeAll(
@@ -319,7 +319,7 @@ public class MProcess {
             0);
 
         // confirm all threads are done with places.exchangeall.
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
 
         if (MASS.isConsoleLoggingEnabled())
           MASSBase.log("barrier done");
@@ -387,16 +387,16 @@ public class MProcess {
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
 
-        Mthread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
             .size_unreduced());
 
         // resume threads to work on call all
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
         MASSBase.getCurrentAgents().callAll(m.getFunctionId(), argument, 0);
 
         // confirm all threads are done with agents.callAll
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
 
         if (MASS.isConsoleLoggingEnabled())
           MASSBase.log("barrier done");
@@ -417,18 +417,18 @@ public class MProcess {
         MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgents()
             .getLocalPopulation()]);
 
-        Mthread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
             .size_unreduced());
 
         // resume threads to work on call all with return objects
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
         MASSBase.getCurrentAgents().callAll(MASSBase.getCurrentFunctionId(),
             (Object[]) (MASSBase.getCurrentArgument()), 0);
 
         // confirm all threads are done with agnets.callAll with
         // return objects
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
         if (MASS.isConsoleLoggingEnabled())
           MASSBase.log("barrier done");
 
@@ -444,15 +444,15 @@ public class MProcess {
 
         MASSBase.setCurrentAgents(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
-        Mthread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
             .size_unreduced());
 
-        Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_MANAGEALL);
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
 
         MASSBase.getCurrentAgents().manageAll(0); // 0 = the main tid
 
         // confirm all threads are done with agents.manageAll.
-        Mthread.barrierThreads(0);
+        MThread.barrierThreads(0);
 
         if (MASS.isConsoleLoggingEnabled())
           MASSBase.log("sendAck will send localPopulation = "
@@ -507,7 +507,7 @@ public class MProcess {
             MASSBase.log("begin callAllAsync loop");
           }
           // resume threads to work on call all
-          Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
+          MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
           try {
             MASSBase.getCurrentAgents().callAllAsync(0);
           } catch(Exception e) {

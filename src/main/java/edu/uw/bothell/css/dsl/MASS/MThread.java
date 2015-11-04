@@ -30,7 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-public class Mthread extends Thread {
+public class MThread extends Thread {
 
 	/**
 	  * Status Type
@@ -54,7 +54,7 @@ public class Mthread extends Thread {
     private static int barrierPhases;
     private int tid;                  // this mthread's id
 
-    public Mthread( int id ) {
+    public MThread( int id ) {
     	this.tid = id;
     }
 
@@ -147,7 +147,7 @@ public class Mthread extends Thread {
     				MASSBase.log( "Mthread[" + tid + "] woken up " + status );
     		
     		}
-    		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
+    		if(status == MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
           agents = MASSBase.getCurrentAgents( );
           agents.callAllAsync(tid);
     		  }
@@ -273,7 +273,7 @@ public class Mthread extends Thread {
 	}
 
 	public static void setAgentBagSize(int agentBagSize) {
-		Mthread.agentBagSize = agentBagSize;
+		MThread.agentBagSize = agentBagSize;
 	}
 
 	public static Object getLock() {
@@ -281,7 +281,7 @@ public class Mthread extends Thread {
 	}
 
 	public static void setLock(Object lock) {
-		Mthread.lock = lock;
+		MThread.lock = lock;
 	}
 
 	public static int getThreadCreated() {
@@ -289,7 +289,7 @@ public class Mthread extends Thread {
 	}
 
 	public static void setThreadCreated(int threadCreated) {
-		Mthread.threadCreated = threadCreated;
+		MThread.threadCreated = threadCreated;
 	}
 
 }

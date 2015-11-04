@@ -167,8 +167,8 @@ public class Agent implements Serializable {
 		kill();
 		hasAlreadyRemoteMigrated = true;
 
-		synchronized(Mthread.class){
-			Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
+		synchronized(MThread.class){
+			MThread.setAgentBagSize(MThread.getAgentBagSize() - 1);
 		}
 
 		// remove the agent from this place

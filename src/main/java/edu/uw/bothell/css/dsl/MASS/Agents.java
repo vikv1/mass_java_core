@@ -131,7 +131,7 @@ public class Agents extends AgentsBase implements Serializable {
 
     }
 
-    Mthread.setAgentBagSize(MASSBase.getAgentsMap()
+    MThread.setAgentBagSize(MASSBase.getAgentsMap()
         .get(new Integer(getHandle())).getAgents().size_unreduced());
 
     // Check for correct behavior post-Agents_base implementation
@@ -161,7 +161,7 @@ public class Agents extends AgentsBase implements Serializable {
 
     }
 
-    Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
     // callall implementation
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
@@ -170,7 +170,7 @@ public class Agents extends AgentsBase implements Serializable {
       super.callAll(functionId, (Object[]) argument, 0);
 
     // confirm all threads are done with agents.callAll
-    Mthread.barrierThreads(0);
+    MThread.barrierThreads(0);
     localAgents[0] = getLocalPopulation();
 
     // Synchronized with all slave processes by main thread.
@@ -316,7 +316,7 @@ public class Agents extends AgentsBase implements Serializable {
       // Mark myself as busy executing my async queue
       setIsAsyncLoopIdle(false);
       // callAllAsync to all slave threads
-      Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
+      MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
 
       // callAllAsync in my own thread
       super.callAllAsync(0);
@@ -468,7 +468,7 @@ public class Agents extends AgentsBase implements Serializable {
       node.sendMessage(m);
 
       // MThread Update
-      Mthread.setAgentBagSize(MASSBase.getAgentsMap()
+      MThread.setAgentBagSize(MASSBase.getAgentsMap()
           .get(new Integer(getHandle())).getAgents().size_unreduced());
 
     }
@@ -478,13 +478,13 @@ public class Agents extends AgentsBase implements Serializable {
     MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
 
     // resume threads
-    Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_MANAGEALL);
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
 
     // callall implementatioin
     super.manageAll(0); // 0 = the main thread id
 
     // confirm all threads are done with agents.callAll
-    Mthread.barrierThreads(0);
+    MThread.barrierThreads(0);
 
     // Synchronized with all slave processes
     MASS.barrierAllSlaves(localAgents);

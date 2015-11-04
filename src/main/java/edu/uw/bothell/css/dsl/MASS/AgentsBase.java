@@ -201,7 +201,7 @@ public class AgentsBase implements Serializable {
     
     public void callAll( int functionId, Object argument, int tid ) {
 
-    	int numOfOriginalVectors = Mthread.getAgentBagSize();
+    	int numOfOriginalVectors = MThread.getAgentBagSize();
 
     	while ( true ) {
     		
@@ -215,10 +215,10 @@ public class AgentsBase implements Serializable {
     			//Thread checking
     			if ( MASS.isConsoleLoggingEnabled() == true ) 
     				MASSBase.log( "Starting index value is: " + 
-    						Mthread.getAgentBagSize() );
+    						MThread.getAgentBagSize() );
     			
-    			myIndex = Mthread.getAgentBagSize();
-    			Mthread.setAgentBagSize(myIndex - 1);
+    			myIndex = MThread.getAgentBagSize();
+    			MThread.setAgentBagSize(myIndex - 1);
 
     			//Error Checking
     			if ( MASS.isConsoleLoggingEnabled() == true )
@@ -251,7 +251,7 @@ public class AgentsBase implements Serializable {
     				MASSBase.log( "Thread [" + tid + "]: (" + myIndex +
     						") has called its method; " +
     						"Current Agent Bag Size is: " + 
-    						Mthread.getAgentBagSize() );
+    						MThread.getAgentBagSize() );
     		
     		}
     		
@@ -264,19 +264,19 @@ public class AgentsBase implements Serializable {
     	}
     	
     	//Wait for the thread count to become zero
-    	Mthread.barrierThreads( tid );
+    	MThread.barrierThreads( tid );
 
     	//Assign the new bag of finished agents to the old pointer for reuse
     	if ( tid == 0 ) {
     		
-    		Mthread.setAgentBagSize(numOfOriginalVectors);
+    		MThread.setAgentBagSize(numOfOriginalVectors);
 
     		if ( MASS.isConsoleLoggingEnabled() == true )
     			MASSBase.log( "Agents_base:callAll: agents.size = " +
     					MASSBase.getAgentsMap().get( new Integer(handle) ).
     					agents.size_unreduced( ) + "\n" +
     					"Agents_base:callAll: agentsBagSize = " +
-    					Mthread.getAgentBagSize() );
+    					MThread.getAgentBagSize() );
     	
     	}
     
@@ -284,7 +284,7 @@ public class AgentsBase implements Serializable {
 
     public void callAll( int functionId, Object[] argument, int tid ) {
 
-    	int numOfOriginalVectors = Mthread.getAgentBagSize();
+    	int numOfOriginalVectors = MThread.getAgentBagSize();
 
     	while ( true ) {
     		
@@ -298,10 +298,10 @@ public class AgentsBase implements Serializable {
     			// Thread checking
     			if ( MASS.isConsoleLoggingEnabled() == true )
     				MASSBase.log( "Starting index value is: " +
-    						Mthread.getAgentBagSize() );
+    						MThread.getAgentBagSize() );
     			
-    			myIndex = Mthread.getAgentBagSize(); // myIndex == agentId + 1
-    			Mthread.setAgentBagSize(myIndex - 1);
+    			myIndex = MThread.getAgentBagSize(); // myIndex == agentId + 1
+    			MThread.setAgentBagSize(myIndex - 1);
 
     			//Error Checking
     			if ( MASS.isConsoleLoggingEnabled() == true )
@@ -343,19 +343,19 @@ public class AgentsBase implements Serializable {
     	}
     	
     	//Confirm all threads have finished
-    	Mthread.barrierThreads( tid );
+    	MThread.barrierThreads( tid );
 
     	//Assign the new bag of finished agents to the old pointer for reuse
     	if ( tid == 0 ) {
     		
-    		Mthread.setAgentBagSize(numOfOriginalVectors);
+    		MThread.setAgentBagSize(numOfOriginalVectors);
 
     		if ( MASS.isConsoleLoggingEnabled() == true ) 
     			MASSBase.log( "Agents_base:callAll: agents.size = " + 
     					MASSBase.getAgentsMap().get( new Integer(handle) ).
     					agents.size_unreduced( ) + "\n" +
     					"Agents_base:callAll: agentsBagSize = " + 
-    					Mthread.getAgentBagSize() );
+    					MThread.getAgentBagSize() );
     	}
     
     }
@@ -469,7 +469,7 @@ public class AgentsBase implements Serializable {
     // Confirm all threads have finished.
 	  // Backward compatibility, so that Mthread can return to status
 	  // Ready
-    Mthread.barrierThreads( tid );
+    MThread.barrierThreads( tid );
 	}
 	
 	public AgentList getAgents() {
@@ -552,12 +552,12 @@ public class AgentsBase implements Serializable {
     		
     		synchronized( this ) {
     			
-    			if ( ( myIndex = Mthread.getAgentBagSize() ) == 0 )
+    			if ( ( myIndex = MThread.getAgentBagSize() ) == 0 )
     				break;
 
     			// Grab the last agent and remove it for processing. 
-    			myIndex = Mthread.getAgentBagSize();
-    			Mthread.setAgentBagSize(myIndex - 1);
+    			myIndex = MThread.getAgentBagSize();
+    			MThread.setAgentBagSize(myIndex - 1);
     			evaluationAgent = agents.get( myIndex - 1 );
 
     			if ( MASS.isConsoleLoggingEnabled() == true ) 
@@ -809,12 +809,12 @@ public class AgentsBase implements Serializable {
 
     	// When while loop finishes, all threads must barrier and tid = 0
     	// must adjust AgentList.
-    	Mthread.barrierThreads( tid );
+    	MThread.barrierThreads( tid );
 
     	if ( tid == 0 ) agents.reduce( );
 
     	// all threads must barrier synchronize here.
-    	Mthread.barrierThreads( tid );
+    	MThread.barrierThreads( tid );
     	if ( tid == 0 ) {
 
     		if ( MASS.isConsoleLoggingEnabled() == true )

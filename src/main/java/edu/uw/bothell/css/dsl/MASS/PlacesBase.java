@@ -591,7 +591,7 @@ public class PlacesBase {
     	}
 
     	// all threads must barrier synchronize here.
-    	Mthread.barrierThreads( tid );
+    	MThread.barrierThreads( tid );
     	
     	if ( tid == 0 ) {
 
