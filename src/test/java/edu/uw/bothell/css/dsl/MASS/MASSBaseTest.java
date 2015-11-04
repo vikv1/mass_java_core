@@ -39,7 +39,7 @@ public class MASSBaseTest {
 		
 		// instance of class under test
 		@SuppressWarnings("unused")
-		MASS_base mb = new MASS_base();
+		MASSBase mb = new MASSBase();
 		
 		
 		

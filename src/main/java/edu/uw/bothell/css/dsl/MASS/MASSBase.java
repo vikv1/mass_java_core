@@ -49,7 +49,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
  * Methods are provided to allow access to remote objects.
  */
-public class MASS_base {
+public class MASSBase {
 
     private static Mthread[] threads;          // including main and children
     private static final String MASS_LOGS = "MASS_logs";
@@ -284,7 +284,7 @@ public class MASS_base {
 		if ( initialized ) {
 			
 			if( MASS.isConsoleLoggingEnabled() == true )
-				MASS_base.log("Error: the MASS.init is already initializecd" );
+				MASSBase.log("Error: the MASS.init is already initializecd" );
 			
 			return false;
 		
@@ -335,22 +335,22 @@ public class MASS_base {
      */
     public static void initMASSBase(MNode nodeConfig) {
 		
-		MASS_base.hostName = nodeConfig.getHostName();
-		MASS_base.myPid = nodeConfig.getPid();
+		MASSBase.hostName = nodeConfig.getHostName();
+		MASSBase.myPid = nodeConfig.getPid();
 		setCommunicationPort(nodeConfig.getPort());
 		if(nodeConfig.getMassHome() != null) {
 		  setWorkingDirectory(nodeConfig.getMassHome());
 		}
 		
 		// Set the current working directory to default value if not set previously
-		if (MASS_base.workingDirectory == null) {
-		  MASS_base.workingDirectory = System.getProperty( "user.dir" );
+		if (MASSBase.workingDirectory == null) {
+		  MASSBase.workingDirectory = System.getProperty( "user.dir" );
 		}
     ensureLoggingFileExists();
 		
 		// add MASS home to the list of URLs to be used by the object factory
 		try {
-			objectFactory.addUri(new File(MASS_base.getWorkingDirectory()).toURI().toString());
+			objectFactory.addUri(new File(MASSBase.getWorkingDirectory()).toURI().toString());
 		} catch (Exception e) {
       MASS.logException(null, e);
 		}
@@ -472,23 +472,23 @@ public class MASS_base {
 	}
 	
 	public static void setAgentsMap(Hashtable<Integer, Agents_base> agentsMap) {
-		MASS_base.agentsMap = agentsMap;
+		MASSBase.agentsMap = agentsMap;
 	}
 
 	public static void setCurrentAgents(Agents_base currentAgents) {
-		MASS_base.currentAgents = currentAgents;
+		MASSBase.currentAgents = currentAgents;
 	}
 	
 	public static void setCurrentArgument(Object currentArgument) {
-		MASS_base.currentArgument = currentArgument;
+		MASSBase.currentArgument = currentArgument;
 	}
 
 	public static void setCurrentFunctionId(int currentFunctionId) {
-		MASS_base.currentFunctionId = currentFunctionId;
+		MASSBase.currentFunctionId = currentFunctionId;
 	}
 
     public static void setCurrentMsgType(Message.ACTION_TYPE currentMsgType) {
-		MASS_base.currentMsgType = currentMsgType;
+		MASSBase.currentMsgType = currentMsgType;
 	}
 
     /**
@@ -496,15 +496,15 @@ public class MASS_base {
 	 * @param currentPlaces The current Places object
 	 */
 	public static void setCurrentPlaces(Places_base currentPlaces) {
-		MASS_base.currentPlaces = currentPlaces;
+		MASSBase.currentPlaces = currentPlaces;
 	};
 
     public static void setCurrentReturns(Object[] currentReturns) {
-		MASS_base.currentReturns = currentReturns;
+		MASSBase.currentReturns = currentReturns;
 	}
     
     public static void setDestinationPlaces(Places_base destinationPlaces) {
-		MASS_base.destinationPlaces = destinationPlaces;
+		MASSBase.destinationPlaces = destinationPlaces;
 	}
     
     /**
@@ -551,17 +551,17 @@ public class MASS_base {
 	 * @param initialized The initialization complete status for this node
 	 */
 	public static void setInitialized(boolean initialized) {
-		MASS_base.initialized = initialized;
+		MASSBase.initialized = initialized;
 	}
     
     public static void setMigrationRequests(
 			Vector<Vector<AgentMigrationRequest>> migrationRequests) {
-		MASS_base.migrationRequests = migrationRequests;
+		MASSBase.migrationRequests = migrationRequests;
 	}
     
     public static void setRemoteRequests(
 			Vector<Vector<RemoteExchangeRequest>> remoteRequests) {
-		MASS_base.remoteRequests = remoteRequests;
+		MASSBase.remoteRequests = remoteRequests;
 	}
     
     /**
@@ -570,7 +570,7 @@ public class MASS_base {
 	 */
 	public static void setWorkingDirectory(String workingDirectory) {
 	  System.err.println("setWorkingDir = " + workingDirectory);
-		MASS_base.workingDirectory = workingDirectory;
+		MASSBase.workingDirectory = workingDirectory;
 	}
 
 	/**
@@ -586,7 +586,7 @@ public class MASS_base {
     			convert += "rank[" + i + "] = " + hosts.get(i) + "\n";
     		}
     		
-    		MASS_base.log( convert );
+    		MASSBase.log( convert );
     	
     	}
     

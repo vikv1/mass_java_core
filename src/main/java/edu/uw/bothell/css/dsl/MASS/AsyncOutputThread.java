@@ -69,9 +69,9 @@ public class AsyncOutputThread extends Thread {
 
   public AsyncOutputThread(int port) {
     this.port = port;
-    migrationRequestMap = (Vector<AgentMigrationRequest>[]) new Vector[MASS_base
+    migrationRequestMap = (Vector<AgentMigrationRequest>[]) new Vector[MASSBase
         .getSystemSize()];
-    timeouts = new int[MASS_base.getSystemSize()];
+    timeouts = new int[MASSBase.getSystemSize()];
     for (int i = 0; i < timeouts.length; i++) {
       migrationRequestMap[i] = new Vector<AgentMigrationRequest>();
       timeouts[i] = 0;
@@ -131,7 +131,7 @@ public class AsyncOutputThread extends Thread {
                 Message messageToDest = new Message(
                     Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST,
                     agentHandle, placeHandle, reqlist);
-                messageToDest.setSourcePid(MASS_base.getMyPid());
+                messageToDest.setSourcePid(MASSBase.getMyPid());
                 SendMessageByChild thread_ref = new SendMessageByChild(
                     dequeueRank, messageToDest);
                 thread_ref.start();
@@ -179,9 +179,9 @@ public class AsyncOutputThread extends Thread {
     slaveResultLock.reset();
     slaveResultLock.setResult(Collections
         .synchronizedList(new LinkedList<Agent>()));
-    slaveResultLock.setSecondResult((Object) new int[MASS_base.getRemoteNodes()
+    slaveResultLock.setSecondResult((Object) new int[MASSBase.getRemoteNodes()
         .size()]);
-    Iterator<MNode> remoteNodeIter = MASS_base.getRemoteNodes().iterator();
+    Iterator<MNode> remoteNodeIter = MASSBase.getRemoteNodes().iterator();
     while (remoteNodeIter.hasNext()) {
       new AsyncResultRequest(remoteNodeIter.next().getHostName()).start();
     }
@@ -201,11 +201,11 @@ public class AsyncOutputThread extends Thread {
     }
 
     if (MASS.isConsoleLoggingEnabled())
-      MASS_base.log("All slaves return "
+      MASSBase.log("All slaves return "
           + (finalAgents != null ? finalAgents.size() : 0));
 
-    synchronized (MASS_base.getCurrentAgents().getCompleteQueue()) {
-      MASS_base.getCurrentAgents().getCompleteQueue().addAll(finalAgents);
+    synchronized (MASSBase.getCurrentAgents().getCompleteQueue()) {
+      MASSBase.getCurrentAgents().getCompleteQueue().addAll(finalAgents);
       MASS.setLocalAgents(finalLocalAgents);
     }
   }
@@ -245,16 +245,16 @@ public class AsyncOutputThread extends Thread {
     }
 
     public void run() {
-      String hostName = MASS_base.getHosts().get(rank);
+      String hostName = MASSBase.getHosts().get(rank);
       if (MASS.isConsoleLoggingEnabled()) {
-        MASS_base.log("SendMessageByChild to rank " + rank + "= " + hostName
+        MASSBase.log("SendMessageByChild to rank " + rank + "= " + hostName
             + " starts for message type " + message.getActionString());
       }
 
       try {
         if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
-          synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
-            MASS_base.getOutAsyncAgents()[rank] += message.getMigrationReqList().size();
+          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+            MASSBase.getOutAsyncAgents()[rank] += message.getMigrationReqList().size();
           }
         }
         Socket sendSocket = new Socket(hostName, port);
@@ -270,14 +270,14 @@ public class AsyncOutputThread extends Thread {
           ObjectInputStream ois = new ObjectInputStream(
               sendSocket.getInputStream());
           AgentMigrationResponse decrease = (AgentMigrationResponse) ois.readObject();
-          synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
             int incompleteCount = runningChildRequestCount.addAndGet(decrease.getNumOfAgentReceived()
                 * -1);
             if(decrease.isChosenAsParentPid()) {
-              MASS_base.getChildAgentPids().add(rank);
+              MASSBase.getChildAgentPids().add(rank);
             }
             if (incompleteCount == 0) {
-              MASS_base.getCurrentAgents().getAsyncQueue().notifyAll();
+              MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
             }
             if (MASS.isConsoleLoggingEnabled()) {
               MASS.log("Migration complete ACK received " + incompleteCount);
@@ -300,7 +300,7 @@ public class AsyncOutputThread extends Thread {
       }
 
       if (MASS.isConsoleLoggingEnabled()) {
-        MASS_base.log("Req to " + rank + " finished");
+        MASSBase.log("Req to " + rank + " finished");
       }
     }
   }
@@ -333,7 +333,7 @@ public class AsyncOutputThread extends Thread {
           ((int[]) slaveResultLock.getSecondResult())[result.getSourcePid() - 1] = result
               .getAgentPopulation();
           slaveResultLock.incrementCounter();
-          if (slaveResultLock.getCounter() == MASS_base.getRemoteNodes().size()) {
+          if (slaveResultLock.getCounter() == MASSBase.getRemoteNodes().size()) {
             slaveResultLock.set();
             slaveResultLock.notifyAll();
           }
@@ -342,9 +342,9 @@ public class AsyncOutputThread extends Thread {
         ois.close();
         os.close();
         sendSocket.close();
-        synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+        synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
           if (runningChildRequestCount.decrementAndGet() == 0) {
-            MASS_base.getCurrentAgents().getAsyncQueue().notifyAll();
+            MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
           }
         }
       } catch (IOException | ClassNotFoundException e) {
@@ -416,24 +416,24 @@ public class AsyncOutputThread extends Thread {
   }*/
 
   public void notifySourceOfCompleteness(int numOfInAgents) {
-      if (MASS_base.getSourceAgentPid() != -1) {
+      if (MASSBase.getSourceAgentPid() != -1) {
         if (MASS.isConsoleLoggingEnabled()) {
-          MASS_base.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + MASS_base.getSourceAgentPid());
+          MASSBase.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + MASSBase.getSourceAgentPid());
         }
         Message messageToDest = new Message(
             Message.ACTION_TYPE.NODE_COMPLETE_NOTIFY_SOURCE, numOfInAgents);
-        messageToDest.setSourcePid(MASS_base.getMyPid());
-        SendMessageByChild thread_ref = new SendMessageByChild(MASS_base.getSourceAgentPid(),
+        messageToDest.setSourcePid(MASSBase.getMyPid());
+        SendMessageByChild thread_ref = new SendMessageByChild(MASSBase.getSourceAgentPid(),
             messageToDest);
         thread_ref.start();
     }
-    MASS_base.setSourceAgentPid(-1);
+    MASSBase.setSourceAgentPid(-1);
   }
 
   public boolean isIdle() {
     // read need to lock, use async queue to avoid nested lock in MProcess and
     // Agents loop
-    synchronized (MASS_base.getCurrentAgents().getAsyncQueue()) {
+    synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
       if (MASS.isConsoleLoggingEnabled()) {
         MASS.log("AsyncOutputThread isIdle = " + runningChildRequestCount.get());
       }

@@ -84,7 +84,7 @@ public class MNode {
 
 		} catch( Exception e ) {
 
-			MASS_base.log( "closeMainConnection error with rank[" + pid + 
+			MASSBase.log( "closeMainConnection error with rank[" + pid + 
 					"] at " + hostName );
 			System.exit( -1 );
 
@@ -182,7 +182,7 @@ public class MNode {
 		
 		// TODO - need better method of handling errors here rather than terminating application
 		catch( Exception e ) {	
-			MASS_base.logException( "ERROR: mNode: Pid: " + pid, e);
+			MASSBase.logException( "ERROR: mNode: Pid: " + pid, e);
 			
 			System.exit( -1 );
 	
@@ -216,7 +216,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASS_base.logException( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.logException( "receivMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 
 			System.exit( -1 );
@@ -247,7 +247,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASS_base.log( "sendMessage error to rank[" + pid + "] at " +
+			MASSBase.log( "sendMessage error to rank[" + pid + "] at " +
 					hostName );
 
 			System.exit( -1 );

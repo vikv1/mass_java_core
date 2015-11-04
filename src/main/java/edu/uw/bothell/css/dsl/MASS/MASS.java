@@ -52,7 +52,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
  */
-public class MASS extends MASS_base {
+public class MASS extends MASSBase {
 
 	private static boolean printOutput = false;
 
@@ -218,8 +218,8 @@ public class MASS extends MASS_base {
     	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
       
-    	MASS_base.getAsyncOutputThread().finish();
-    	MASS_base.getAsyncInputThread().finish();
+    	MASSBase.getAsyncOutputThread().finish();
+    	MASSBase.getAsyncInputThread().finish();
 
     	System.err.println( "MASS::finish: done" );
 

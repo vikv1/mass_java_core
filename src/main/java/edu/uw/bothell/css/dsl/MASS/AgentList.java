@@ -85,7 +85,7 @@ public class AgentList {
 	public void checkInternal( ) {
 		
 		for ( int x = 0; x < currentX * capacityY + nextY; x++ )
-			MASS_base.log( "AgentList[" + get( x ) + "]" );
+			MASSBase.log( "AgentList[" + get( x ) + "]" );
 	
 	}
 

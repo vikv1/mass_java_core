@@ -160,9 +160,9 @@ public class Debugger_base extends Place {
     							
     							output.writeObject("cmdPlaceData");
 
-    							for(int i=0; i<MASS_base.getCurrentReturns().length; i++){
+    							for(int i=0; i<MASSBase.getCurrentReturns().length; i++){
     								//converted from Double to Number
-    								Double[] d = (Double[])(MASS_base.getCurrentReturns()[i]);
+    								Double[] d = (Double[])(MASSBase.getCurrentReturns()[i]);
 									setOutMessage("D = " + d.toString());
 									for(int j=0; j<d.length; j++){
 										output.writeObject(d[j]);
@@ -207,15 +207,15 @@ public class Debugger_base extends Place {
     							
     							output.writeObject("cmdAgentData");
     							int nAgents = 0;
-    							for (int i = 0; i < MASS_base.getCurrentReturns().length; i++) {
-    								nAgents += ((AgentDebugData[])(MASS_base.getCurrentReturns()[i])).length;
+    							for (int i = 0; i < MASSBase.getCurrentReturns().length; i++) {
+    								nAgents += ((AgentDebugData[])(MASSBase.getCurrentReturns()[i])).length;
     							}
     							
     							//send the number of agents
     							output.writeObject(Integer.toString(nAgents));
-    							for (int i = 0; i < MASS_base.getCurrentReturns().length; i++ ){
+    							for (int i = 0; i < MASSBase.getCurrentReturns().length; i++ ){
     								
-    								AgentDebugData[] next_agents= (AgentDebugData[])(MASS_base.getCurrentReturns()[i]);
+    								AgentDebugData[] next_agents= (AgentDebugData[])(MASSBase.getCurrentReturns()[i]);
     								
     								for(int j=0; j<next_agents.length; j++){
     									output.writeObject(next_agents[j]);
@@ -389,17 +389,17 @@ public class Debugger_base extends Place {
     	debugger_size = getSize()[0];
 
 		//gets agent and places objects
-    	places = MASS_base.getPlacesMap().get(placesHandler);
-    	agents = MASS_base.getAgentsMap().get(agentsHandler);
+    	places = MASSBase.getPlacesMap().get(placesHandler);
+    	agents = MASSBase.getAgentsMap().get(agentsHandler);
 
 		//sets the mode (place or place and agent) do we need just agent?
     	isPlaceAgentMode = agents == null ? false : true;
 
 		//gets debugger places object
-    	debugger_places = MASS_base.getPlacesMap().get(99);
+    	debugger_places = MASSBase.getPlacesMap().get(99);
 
 		//get my pid - what is this?
-    	pid = MASS_base.getMyPid();
+    	pid = MASSBase.getMyPid();
 
 		//gets copy of place size array -- i have no idea what this is
     	psize = places.getSize().clone();

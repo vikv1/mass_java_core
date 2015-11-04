@@ -65,7 +65,7 @@ public class Agents extends Agents_base implements Serializable {
       int initPopulation) {
 
     super(handle, className, argument, places.getHandle(), initPopulation);
-    localAgents = new int[MASS_base.getSystemSize()];
+    localAgents = new int[MASSBase.getSystemSize()];
     initMaster(argument);
 
   }
@@ -74,7 +74,7 @@ public class Agents extends Agents_base implements Serializable {
 
     // calculate the total number of agents
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++)
+    for (int i = 0; i < MASSBase.getSystemSize(); i++)
       total += localAgents[i];
 
     // send a AGENTS_CALL_ALL message to each slave
@@ -124,40 +124,40 @@ public class Agents extends Agents_base implements Serializable {
             .println("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
         System.err.println("Bag Size is: "
-            + MASS_base.getAgentsMap().get(new Integer(getHandle()))
+            + MASSBase.getAgentsMap().get(new Integer(getHandle()))
                 .getAgents().size_unreduced());
 
       }
 
     }
 
-    Mthread.setAgentBagSize(MASS_base.getAgentsMap()
+    Mthread.setAgentBagSize(MASSBase.getAgentsMap()
         .get(new Integer(getHandle())).getAgents().size_unreduced());
 
     // Check for correct behavior post-Agents_base implementation
     // retrieve the corresponding agents
 
     // shared between agents
-    MASS_base.setCurrentAgents(this);
-    MASS_base.setCurrentFunctionId(functionId);
-    MASS_base.setCurrentArgument(argument);
-    MASS_base.setCurrentMsgType(type);
+    MASSBase.setCurrentAgents(this);
+    MASSBase.setCurrentFunctionId(functionId);
+    MASSBase.setCurrentArgument(argument);
+    MASSBase.setCurrentMsgType(type);
 
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
-      MASS_base.setCurrentReturns(null);
+      MASSBase.setCurrentReturns(null);
     } else {
-      MASS_base.setCurrentReturns(new Object[total]); // prepare an entire
+      MASSBase.setCurrentReturns(new Object[total]); // prepare an entire
                                                       // return space
     }
 
     // resume threads
     if (MASS.isConsoleLoggingEnabled()) {
 
-      MASS_base.log("MASS_base.currentgAgents = "
-          + MASS_base.getCurrentAgents());
+      MASSBase.log("MASS_base.currentgAgents = "
+          + MASSBase.getCurrentAgents());
 
-      MASS_base.log("MASS_base.getCurrentgAgents = "
-          + MASS_base.getCurrentAgents());
+      MASSBase.log("MASS_base.getCurrentgAgents = "
+          + MASSBase.getCurrentAgents());
 
     }
 
@@ -174,10 +174,10 @@ public class Agents extends Agents_base implements Serializable {
     localAgents[0] = getLocalPopulation();
 
     // Synchronized with all slave processes by main thread.
-    MASS.barrierAllSlaves(MASS_base.getCurrentReturns(), 0, localAgents);
+    MASS.barrierAllSlaves(MASSBase.getCurrentReturns(), 0, localAgents);
 
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 
       total += localAgents[i];
 
@@ -188,13 +188,13 @@ public class Agents extends Agents_base implements Serializable {
 
     }
 
-    return MASS_base.getCurrentReturns();
+    return MASSBase.getCurrentReturns();
 
   }
 
   List<Agent> callAllSetupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
     // FOR auto migration
-    Places places = MASS_base.getPlaces(this.getPlacesHandle());
+    Places places = MASSBase.getPlaces(this.getPlacesHandle());
     int lastDimensionLength = places.getSize()
         [places.getSize().length - 1];
     
@@ -216,11 +216,11 @@ public class Agents extends Agents_base implements Serializable {
     }
     
     // Preparing this node for callAllAsync
-    MASS_base.prepareAsyncExecution(this, functionIds);
+    MASSBase.prepareAsyncExecution(this, functionIds);
 
     // calculate the total number of agents
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
       total += localAgents[i];
       if(i!=0 && localAgents[i] != 0) {
         // Node started with zero agent won't send completeness notification
@@ -281,7 +281,7 @@ public class Agents extends Agents_base implements Serializable {
         System.err.println("AGENTS_CALL_ALL_ASYNC " + m.getAction()
             + " sent to " + i);
         System.err.println("Bag Size is: "
-            + MASS_base.getAgentsMap().get(new Integer(getHandle()))
+            + MASSBase.getAgentsMap().get(new Integer(getHandle()))
                 .getAgents().size_unreduced());
       }
     }
@@ -304,8 +304,8 @@ public class Agents extends Agents_base implements Serializable {
 
     // resume threads
     if (MASS.isConsoleLoggingEnabled()) {
-      MASS_base.log("MASS_base.currentgAgents = "
-          + MASS_base.getCurrentAgents());
+      MASSBase.log("MASS_base.currentgAgents = "
+          + MASSBase.getCurrentAgents());
     }
 
     boolean asyncQueueComplete = false;
@@ -413,7 +413,7 @@ public class Agents extends Agents_base implements Serializable {
   public void initMaster(Object argument) {
 
     // check if MASS_base.hosts is empty (i.e., Places not yet created)
-    if (MASS_base.getHosts().isEmpty()) {
+    if (MASSBase.getHosts().isEmpty()) {
       System.err.println("Agents(" + getClassName()
           + ") can't be created without Places!!");
       System.exit(-1);
@@ -429,7 +429,7 @@ public class Agents extends Agents_base implements Serializable {
 
       node.sendMessage(m);
       if (MASS.isConsoleLoggingEnabled() == true)
-        MASS_base.log("AGENT_INITIALIZE sent to " + node.getPid());
+        MASSBase.log("AGENT_INITIALIZE sent to " + node.getPid());
 
     }
 
@@ -438,7 +438,7 @@ public class Agents extends Agents_base implements Serializable {
     localAgents[0] = getLocalPopulation();
 
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 
       total += localAgents[i];
       // for debugging
@@ -450,7 +450,7 @@ public class Agents extends Agents_base implements Serializable {
     }
 
     // register this agents in the places hash map
-    MASS_base.getAgentsMap().put(new Integer(getHandle()), this);
+    MASSBase.getAgentsMap().put(new Integer(getHandle()), this);
 
   }
 
@@ -468,14 +468,14 @@ public class Agents extends Agents_base implements Serializable {
       node.sendMessage(m);
 
       // MThread Update
-      Mthread.setAgentBagSize(MASS_base.getAgentsMap()
+      Mthread.setAgentBagSize(MASSBase.getAgentsMap()
           .get(new Integer(getHandle())).getAgents().size_unreduced());
 
     }
 
     // retrieve the corresponding agents
-    MASS_base.setCurrentAgents(this);
-    MASS_base.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+    MASSBase.setCurrentAgents(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
 
     // resume threads
     Mthread.resumeThreads(Mthread.STATUS_TYPE.STATUS_MANAGEALL);
@@ -491,7 +491,7 @@ public class Agents extends Agents_base implements Serializable {
     localAgents[0] = getLocalPopulation();
 
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 
       total += localAgents[i];
 
@@ -521,7 +521,7 @@ public class Agents extends Agents_base implements Serializable {
   public int nAgents() {
 
     int nAgents = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++)
+    for (int i = 0; i < MASSBase.getSystemSize(); i++)
       nAgents += localAgents[i];
 
     return nAgents;
@@ -538,12 +538,12 @@ public class Agents extends Agents_base implements Serializable {
 
     MASS.getRemoteAsyncResults();
     Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
-    MASS_base.setCurrentReturns(getCompleteQueue().toArray());
-    for (int i = 1; i < MASS_base.getSystemSize(); i++) {
+    MASSBase.setCurrentReturns(getCompleteQueue().toArray());
+    for (int i = 1; i < MASSBase.getSystemSize(); i++) {
       localAgents[i] = MASS.getLocalAgents()[i - 1];
     }
     total = 0;
-    for (int i = 0; i < MASS_base.getSystemSize(); i++) {
+    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
       total += localAgents[i];
       // for debugging
       if (MASS.isConsoleLoggingEnabled()) {

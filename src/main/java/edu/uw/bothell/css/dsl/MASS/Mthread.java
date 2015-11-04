@@ -62,10 +62,10 @@ public class Mthread extends Thread {
 
     	synchronized( lock ) {
     		
-    		if ( ++barrierCount < MASS_base.getThreads().length ) {
+    		if ( ++barrierCount < MASSBase.getThreads().length ) {
     			
     			if( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "tid[" + tid + 
+    				MASSBase.log( "tid[" + tid + 
     						"] waiting: barrier = " + barrierPhases );
     			
     			try {
@@ -81,7 +81,7 @@ public class Mthread extends Thread {
     			barrierCount = 0;
     			status = STATUS_TYPE.STATUS_READY;
     			if( MASS.isConsoleLoggingEnabled() ) 
-    				MASS_base.log( "tid[" + tid + "] woke up all: barrier = " 
+    				MASSBase.log( "tid[" + tid + "] woke up all: barrier = " 
     						+ barrierPhases );
     			barrierPhases++;
     			lock.notifyAll( );
@@ -119,7 +119,7 @@ public class Mthread extends Thread {
 
     	// breath message
     	if ( MASS.isConsoleLoggingEnabled() )
-    		MASS_base.log( "Mthread[" + tid + "] invoked" );
+    		MASSBase.log( "Mthread[" + tid + "] invoked" );
 
     	// the following variables are used to call callAll( )
     	Places_base places = null;
@@ -144,11 +144,11 @@ public class Mthread extends Thread {
 
     			// wake-up message
     			if(MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + "] woken up " + status );
+    				MASSBase.log( "Mthread[" + tid + "] woken up " + status );
     		
     		}
     		if(status == Mthread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
-          agents = MASS_base.getCurrentAgents( );
+          agents = MASSBase.getCurrentAgents( );
           agents.callAllAsync(tid);
     		  }
     		else {
@@ -158,7 +158,7 @@ public class Mthread extends Thread {
     		case STATUS_READY:
     			
     			if (MASS.isConsoleLoggingEnabled())
-    				MASS_base.log( "Mthread reached STATUS_READY in switch" );
+    				MASSBase.log( "Mthread reached STATUS_READY in switch" );
     			System.exit( -1 );
     			break;
     		
@@ -169,13 +169,13 @@ public class Mthread extends Thread {
     		
     		case STATUS_CALLALL:
     			
-    			places = MASS_base.getCurrentPlaces( );
-    			functionId = MASS_base.getCurrentFunctionId( );
-    			argument = MASS_base.getCurrentArgument( );
-    			msgType = MASS_base.getCurrentMsgType( );
+    			places = MASSBase.getCurrentPlaces( );
+    			functionId = MASSBase.getCurrentFunctionId( );
+    			argument = MASSBase.getCurrentArgument( );
+    			msgType = MASSBase.getCurrentMsgType( );
 
     			if ( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" +tid + "] works on CALLALL:" +
+    				MASSBase.log( "Mthread[" +tid + "] works on CALLALL:" +
     						" placese = " + places +
     						" functionId = " + functionId +
     						" argument = " + argument +
@@ -193,12 +193,12 @@ public class Mthread extends Thread {
     		case STATUS_EXCHANGEALL:
     			
     			if ( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + 
+    				MASSBase.log( "Mthread[" + tid + 
     						"] works on EXCHANGEALL" );
 
-    			places = MASS_base.getCurrentPlaces( );
-    			functionId = MASS_base.getCurrentFunctionId( );
-    			destinationPlaces = MASS_base.getDestinationPlaces( );
+    			places = MASSBase.getCurrentPlaces( );
+    			functionId = MASSBase.getCurrentFunctionId( );
+    			destinationPlaces = MASSBase.getDestinationPlaces( );
     			//destinations = MASS_base.getCurrentDestinations( );
 
     			//		places.exchangeAll( destinationPlaces, functionId, 
@@ -208,13 +208,13 @@ public class Mthread extends Thread {
 
     		case STATUS_AGENTSCALLALL:
     			
-    			agents = MASS_base.getCurrentAgents( );
-    			functionId = MASS_base.getCurrentFunctionId( );
-    			argument = MASS_base.getCurrentArgument( );
-    			msgType = MASS_base.getCurrentMsgType( );
+    			agents = MASSBase.getCurrentAgents( );
+    			functionId = MASSBase.getCurrentFunctionId( );
+    			argument = MASSBase.getCurrentArgument( );
+    			msgType = MASSBase.getCurrentMsgType( );
 
     			if ( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + 
+    				MASSBase.log( "Mthread[" + tid + 
     						"] works on AGENST_CALLALL:" +
     						" agents = " + agents +
     						" functionId = " + functionId +
@@ -242,11 +242,11 @@ public class Mthread extends Thread {
     		case STATUS_MANAGEALL:
     			
     			//Get agents to be called with Manageall
-    			agents = MASS_base.getCurrentAgents( );
+    			agents = MASSBase.getCurrentAgents( );
 
     			//Send logging message
     			if ( MASS.isConsoleLoggingEnabled() )
-    				MASS_base.log( "Mthread[" + tid + "] works on MANAGEALL:" +
+    				MASSBase.log( "Mthread[" + tid + "] works on MANAGEALL:" +
     						" agents = " + agents );
 
     			//Sent message for manageall
@@ -259,12 +259,12 @@ public class Mthread extends Thread {
     	}
     	}
       }catch(Throwable e) {
-        MASS_base.logException("Thread " + tid + " fails", e);
+        MASSBase.logException("Thread " + tid + " fails", e);
       }
     
     	// last message
     	if (MASS.isConsoleLoggingEnabled())
-    		MASS_base.log( "Mthread[" + tid + "] terminated" );
+    		MASSBase.log( "Mthread[" + tid + "] terminated" );
     
     }
 

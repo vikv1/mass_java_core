@@ -91,7 +91,7 @@ public class Place {
 	private Place findDstPlace( int handle, int offset[] ) {
 
 		// compute the global linear index from offset[]
-		Places_base places = MASS_base.getPlacesMap().get( new Integer( handle ) );
+		Places_base places = MASSBase.getPlacesMap().get( new Integer( handle ) );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
 				neighborCoord );
