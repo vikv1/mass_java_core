@@ -37,31 +37,30 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 public class Places_base {
 
+	// the total number of Places, determined by multiplying the values in the "size" array
     private int total;
-    private int stripe;
+    
+    private int stripeSize;
     private final int handle;
     private final String className;
-    private int lower_boundary;
-    private int upper_boundary;
-    private int places_size;
+    private int lowerBoundary;
+    private int upperBoundary;
+    private int placesSize;
     private int[] size;
-    private int shadow_size;
-    private int boundary_width;
+    private int shadowSize;
+    private int boundaryWidth;
     private Place[] places;
-    private Place[] left_shadow;
-    private Place[] right_shadow;
+    private Place[] leftShadow;
+    private Place[] rightShadow;
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	public Places_base( int handle, String className, int boundary_width, Object argument, int[] size ) {
 		
 		this.handle = handle;
 		this.className = className;
-		this.boundary_width = boundary_width;
+		this.boundaryWidth = boundary_width;
 		this.size = size;
 
-		this.total = 0;
-		this.stripe = 0;
-	
 		if ( MASS.isConsoleLoggingEnabled() )
 			MASS_base.log( "Places_base handle = " + handle
 					+ ", class = " + className
@@ -171,7 +170,7 @@ public class Places_base {
     				// extract the message received and copy it to the corresponding 
     				// shadow.
     				Place[] shadow = ( direction == 'L' ) ? 
-    						left_shadow : right_shadow;
+    						leftShadow : rightShadow;
     				buffer = (Object[])( messageFromDest.getArgument( ) );
 
     				// copy the buffer contents into the corresponding shadow
@@ -293,19 +292,19 @@ public class Places_base {
     						getDestGlobalLinearIndex() + " at " +
     						receivedRequest.get(i).getInMessageIndex() + 
     						" dstPlaces.lower = " + 
-    						dstPlaces.lower_boundary +
+    						dstPlaces.lowerBoundary +
     						" dstPlaces.upper = " + 
-    						dstPlaces.upper_boundary );
+    						dstPlaces.upperBoundary );
 
     			int globalLinearIndex = 
     					receivedRequest.get(i).getDestGlobalLinearIndex();
     			Object outMessage = receivedRequest.get(i).getOutMessage();
 
-    			if ( globalLinearIndex >= dstPlaces.lower_boundary &&
-    					globalLinearIndex <= dstPlaces.upper_boundary ) {
+    			if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
+    					globalLinearIndex <= dstPlaces.upperBoundary ) {
     				// local destination
     				int destinationLocalLinearIndex 
-    				= globalLinearIndex - dstPlaces.lower_boundary;
+    				= globalLinearIndex - dstPlaces.lowerBoundary;
 
     				if ( MASS.isConsoleLoggingEnabled() )
     					MASS_base.log( " dstLocal = " + 
@@ -505,15 +504,15 @@ public class Places_base {
     					if ( MASS.isConsoleLoggingEnabled() ) 
     						MASS_base.log( " linear = " + globalLinearIndex
     								+ " lower = " 
-    								+ dstPlaces.lower_boundary
+    								+ dstPlaces.lowerBoundary
     								+ " upper = " 
-    								+ dstPlaces.upper_boundary + ")" );
+    								+ dstPlaces.upperBoundary + ")" );
 
-    					if ( globalLinearIndex >= dstPlaces.lower_boundary &&
-    							globalLinearIndex <= dstPlaces.upper_boundary ) {
+    					if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
+    							globalLinearIndex <= dstPlaces.upperBoundary ) {
     						// local destination
     						int destinationLocalLinearIndex 
-    						= globalLinearIndex - dstPlaces.lower_boundary;
+    						= globalLinearIndex - dstPlaces.lowerBoundary;
     						Place dstPlace = 
     								dstPlaces.places[destinationLocalLinearIndex];
 
@@ -619,7 +618,7 @@ public class Places_base {
     			comThrArgs[rank][1] = handle;
     			comThrArgs[rank][2] = dstPlaces.handle;
     			comThrArgs[rank][3] = functionId;
-    			comThrArgs[rank][4] = lower_boundary;
+    			comThrArgs[rank][4] = lowerBoundary;
 
     			// start a communication thread
     			thread_ref[rank] = 
@@ -657,7 +656,7 @@ public class Places_base {
 
     public void exchangeBoundary( ) {
     	
-    	if ( shadow_size == 0 ) { // no boundary, no exchange
+    	if ( shadowSize == 0 ) { // no boundary, no exchange
     		MASS_base.log( "places (handle = " + handle +
     				") has NO boundary, " + 
     				"and thus invokes NO exchange boundary" );
@@ -676,12 +675,12 @@ public class Places_base {
     		// create a child in charge of handling the right shadow.
     		param[0][0] = 'R';
     		param[0][1] = handle;
-    		param[0][2] = places_size;
-    		param[0][3] = shadow_size;
+    		param[0][2] = placesSize;
+    		param[0][3] = shadowSize;
     		if ( MASS.isConsoleLoggingEnabled() ) 
     			MASS_base.log( "exchangeBoundary: " +
     					"pthreacd_create( helper, R ) places_size=" +
-    					places_size );
+    					placesSize );
 
     		thread_ref = new ExchangeBoundary_helper( param[0] );
     		thread_ref.start( );
@@ -693,12 +692,12 @@ public class Places_base {
     		// the main takes charge of handling the left shadow.
     		param[1][0] = 'L';
     		param[1][1] = handle;    
-    		param[1][2] = places_size;
-    		param[1][3] = shadow_size;
+    		param[1][2] = placesSize;
+    		param[1][3] = shadowSize;
     		if ( MASS.isConsoleLoggingEnabled() ) 
     			MASS_base.log( "exchangeBoundary: " +
     					"main thread( helper, L ) places_size=" + 
-    					places_size );
+    					placesSize );
 
     		( new ExchangeBoundary_helper( param[1] ) ).run( );
     	
@@ -795,7 +794,7 @@ public class Places_base {
     }
 
     public Place[] getLeftShadow() {
-		return left_shadow;
+		return leftShadow;
 	}
 
     /** 
@@ -809,8 +808,8 @@ public class Places_base {
     private void getLocalRange( int[] range, int tid ) {
 
     	int nThreads = MASS_base.getThreads().length;
-    	int portion = places_size / nThreads; // per-thread allocated  range
-    	int remainder = places_size % nThreads;
+    	int portion = placesSize / nThreads; // per-thread allocated  range
+    	int remainder = placesSize % nThreads;
 
     	if ( portion == 0 ) {
 
@@ -849,7 +848,7 @@ public class Places_base {
     }
 
 	public int getLowerBoundary() {
-		return lower_boundary;
+		return lowerBoundary;
 	}
 
 	public Place[] getPlaces() {
@@ -857,7 +856,7 @@ public class Places_base {
 	}
 
 	public int getPlacesSize( ) {
-    	return places_size;
+    	return placesSize;
     }
 
 	protected int getRankFromGlobalLinearIndex( int globalLinearIndex ) {
@@ -869,13 +868,13 @@ public class Places_base {
     		for ( int i = 0; i < size.length; i++ )
     			total *= size[i];
     		
-    		stripe = total / MASS_base.getSystemSize();
+    		stripeSize = total / MASS_base.getSystemSize();
     	
     	}
 
     	int rank, scope;
-    	for ( rank = 0, scope = stripe ; rank < MASS_base.getSystemSize(); 
-    			rank++, scope += stripe ) {
+    	for ( rank = 0, scope = stripeSize ; rank < MASS_base.getSystemSize(); 
+    			rank++, scope += stripeSize ) {
     		
     		if ( globalLinearIndex < scope )
     			break;
@@ -887,11 +886,11 @@ public class Places_base {
     }
 
 	public Place[] getRightShadow() {
-		return right_shadow;
+		return rightShadow;
 	}
 
 	public int getShadowSize() {
-		return shadow_size;
+		return shadowSize;
 	}
 
 	public int[] getSize() {
@@ -899,7 +898,7 @@ public class Places_base {
 	}
 
 	public int getUpperBoundary() {
-		return upper_boundary;
+		return upperBoundary;
 	}
 
     public void init_all( Object argument ) {
@@ -914,26 +913,34 @@ public class Places_base {
     	// load the place constructor
     	try {
 
-    		// calculate lower_boundary and upper_boundary
+    		// calculate "total", which is equal to the number of dimensions in "size" 
     		total = 1;
-    		for ( int i = 0; i < size.length; i++ )
-    			total *= size[i];
-    		stripe = total / MASS_base.getSystemSize();
+    		for (int i : size) {
+    			total *= i;
+    		}
 
-    		lower_boundary = stripe * MASS_base.getMyPid();
-    		upper_boundary = (MASS_base.getMyPid() < MASS_base.getSystemSize() - 1) ?
-    				lower_boundary + stripe - 1 : total - 1;
-    		places_size = upper_boundary - lower_boundary + 1;
+    		// stripe size is total number of places divided by the number of nodes
+    		stripeSize = total / MASS_base.getSystemSize();
+
+    		// lower_boundary is the first place managed by this node
+    		lowerBoundary = stripeSize * MASS_base.getMyPid();
+    		
+    		// upperBoundary is the last place managed by this node
+    		upperBoundary = (MASS_base.getMyPid() < MASS_base.getSystemSize() - 1) ?
+    				lowerBoundary + stripeSize - 1 : total - 1;
+    		
+    		// placesSize is the total number of places managed by this node
+    		placesSize = upperBoundary - lowerBoundary + 1;
     		
     		//  maintaining an entire set
-    		places = new Place[places_size];
+    		places = new Place[placesSize];
 
     		// initialize all Places objects
-    		for ( int i = 0; i < places_size; i++ ) {
+    		for ( int i = 0; i < placesSize; i++ ) {
     			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
-				newPlace.setIndex(getGlobalArrayIndex(lower_boundary + i));
+				newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
 				newPlace.setSize(size);
 				places[i] = newPlace;
 
@@ -948,50 +955,50 @@ public class Places_base {
 
     	// allocate the left/right shadows
 
-    	if ( boundary_width <= 0 ) {
+    	if ( boundaryWidth <= 0 ) {
     		// no shadow space.
-    		shadow_size = 0;
-    		left_shadow = null;
-    		right_shadow = null;
+    		shadowSize = 0;
+    		leftShadow = null;
+    		rightShadow = null;
     		return;
     	}
 
-    	shadow_size = ( size.length == 1 ) 
-    			? boundary_width : total / size[0] * boundary_width;
+    	shadowSize = ( size.length == 1 ) 
+    			? boundaryWidth : total / size[0] * boundaryWidth;
     	
     	if ( MASS.isConsoleLoggingEnabled() )
-    		MASS_base.log( "Places_base.shadow_size = " + shadow_size );
+    		MASS_base.log( "Places_base.shadow_size = " + shadowSize );
 
-    	left_shadow = ( MASS_base.getMyPid() == 0 ) ?
-    			null : new Place[ shadow_size ];
-    	right_shadow = 
+    	leftShadow = ( MASS_base.getMyPid() == 0 ) ?
+    			null : new Place[ shadowSize ];
+    	rightShadow = 
     			( MASS_base.getMyPid() == MASS_base.getSystemSize() - 1 ) ?
-    					null : new Place[ shadow_size ];
+    					null : new Place[ shadowSize ];
 
     	// initialize the left/right shadows
     	try {
     		
-    		for ( int i = 0; i < shadow_size; i++ ) {
+    		for ( int i = 0; i < shadowSize; i++ ) {
 
     			// left shadow initialization
-    			if ( left_shadow != null ) {
+    			if ( leftShadow != null ) {
 
     				// instantiate a new place
 					Place newPlace = objectFactory.getInstance(className, argument);
 					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(lower_boundary - shadow_size + i));
-					left_shadow[i] = newPlace;
+					newPlace.setIndex(getGlobalArrayIndex(lowerBoundary - shadowSize + i));
+					leftShadow[i] = newPlace;
 
     			}
 
     			// right shadow initialization
-    			if ( right_shadow != null ) {
+    			if ( rightShadow != null ) {
 
     				// instantiate a new place
 					Place newPlace = objectFactory.getInstance(className, argument);
 					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(upper_boundary + i));
-					right_shadow[i] = newPlace;
+					newPlace.setIndex(getGlobalArrayIndex(upperBoundary + i));
+					rightShadow[i] = newPlace;
 
     			}
     		
