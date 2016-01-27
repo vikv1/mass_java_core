@@ -34,7 +34,11 @@ import java.util.Collections; // for synchronized set
 import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
+import java.util.Enumeration;
+import java.util.Hashtable;   // for file hashing
+import ucar.nc2.NetcdfFile;	// for accessing Netcdf files
 
+import ucar.ma2.*;
 /**
  *	Place represents a single element from a collection of places distributed
  *	among all cluster nodes. A Place may contain a collection of Agents that
@@ -74,6 +78,10 @@ public class Place {
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
 	private Vector< int[] > neighbours = null;
+	
+    /** Stores all files in the place
+	 */
+	protected static Hashtable<String, Object> fTable;
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
@@ -86,6 +94,42 @@ public class Place {
 	 */
 	public Object callMethod( int functionId, Object argument ) {
 		return null;
+	}
+	
+	/**
+	 * Make synchronized
+	 */
+	protected synchronized Object open(String fileName) {
+	    Object descriptor = fTable.get(fileName);
+	    if (descriptor != null) {
+		   return descriptor;
+	    } else {
+		   if (fileName.contains(".nc")) {
+			  fTable.put(fileName, (descriptor = NetcdfFile.open(fileName, null)));
+			  return descriptor;
+		   }
+		   // add other file types
+		   return null;
+	    }
+	}
+	
+	// must make synchronized 
+	protected synchronized boolean close(Object descriptor) {
+	    Enumeration<String> enumer = fTable.keys();
+	    while(enumer.hasMoreElements()) {
+		  String key =(enumer.nextElement());
+		  Object obj = fTable.get(key);
+		  if (obj == descriptor) {
+			 if (key.contains(".nc"))
+			 {
+				// close the netcdf obj
+				fTable.remove(key);
+				return true;
+			 }
+			 // add more file types
+		  }
+	    }
+	    return false;
 	}
 
 	private Place findDstPlace( int handle, int offset[] ) {
