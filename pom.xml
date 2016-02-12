@@ -108,12 +108,15 @@
 			<version>2.2.11</version>
 			<scope>compile</scope>
 		</dependency>
-	 <dependency>
-	  <groupId>edu.ucar</groupId>
-	  <artifactId>cdm</artifactId>
-	  <version>4.5.0</version>
-	  <type>jar</type>
-	 </dependency>
+
+		 <dependency>
+			 <!--  For NetcdfFiles -->
+		  	<groupId>edu.ucar</groupId>
+			<artifactId>cdm</artifactId>
+		  	<version>4.5.0</version>
+		  	<type>jar</type>
+		 </dependency>
+
 	</dependencies>
 
 	<build>

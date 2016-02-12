@@ -30,13 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections; // for synchronized set
 import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
 import java.util.Enumeration;
-import java.util.Hashtable;   // for file hashing
-import ucar.nc2.NetcdfFile;	// for accessing Netcdf files
+import java.util.Hashtable;   // for file storage
+import ucar.nc2.NetcdfFile;	  // for Netcdf files
+import java.io.*;			  // for IO
+
 
 import ucar.ma2.*;
 /**
@@ -53,7 +57,7 @@ public class Place {
 	  * of x, y, and z, or that of i, j, and k.
 	  */
 	private int[] size;
-	
+
 	 /**  
 	  * Is an array that maintains each place’s coordinates. Intuitively,
 	  * index[0], index[1], and index[2] correspond to coordinates of x, y, and
@@ -78,10 +82,66 @@ public class Place {
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
 	private Vector< int[] > neighbours = null;
-	
-    /** Stores all files in the place
+
+	/** stores all files that have been opened */
+	protected static Hashtable<Object, String[]> fileTable = new Hashtable<>();
+
+	/**
+	 * Open method
+	 * Takes the given fileName, opens the specified file and stores it in the fileTable, returns the file descriptor
 	 */
-	protected static Hashtable<String, Object> fTable;
+
+	/**
+	 *
+	 * Questions: should I store the fileName
+     */
+	protected synchronized Object open( String fileName ) {
+
+		Object descriptor = null;
+		if (fileName.toLowerCase().endsWith(".nc")) {
+			try {
+				String[] fileInformation = new String[3];
+				fileInformation[0] = fileName;
+				fileTable.put( descriptor = NetcdfFile.open( fileName ), fileInformation );
+			} catch ( IOException ioe ) {
+				// TODO: Log error once Matt is ready
+				System.err.println( ioe );
+			}
+		}
+		else if (fileName.toLowerCase().endsWith(".txt")) {
+			try {
+				String[] fileInformation = new String[3];
+				fileInformation[0] = fileName;
+				FileReader fileReader = new FileReader( fileName );
+				fileTable.put( descriptor = new BufferedReader( fileReader ), fileInformation );
+			} catch ( IOException ioe ) {
+				System.err.println( ioe );
+			}
+		}
+		return descriptor;
+	}
+
+	protected synchronized boolean close( Object descriptor ) {
+		if ( fileTable.containsKey( descriptor ) ) {
+
+			if ( descriptor instanceof NetcdfFile ) {
+				try {
+					((NetcdfFile) descriptor).close();
+				} catch ( IOException ioe ) {
+					System.err.println( ioe );
+				}
+			}
+
+			else if ( descriptor instanceof BufferedReader ) {
+				try {
+					( ( BufferedReader ) descriptor ).close( );
+				} catch ( IOException ioe ){
+					System.err.println( ioe );
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
@@ -94,42 +154,6 @@ public class Place {
 	 */
 	public Object callMethod( int functionId, Object argument ) {
 		return null;
-	}
-	
-	/**
-	 * Make synchronized
-	 */
-	protected synchronized Object open(String fileName) {
-	    Object descriptor = fTable.get(fileName);
-	    if (descriptor != null) {
-		   return descriptor;
-	    } else {
-		   if (fileName.contains(".nc")) {
-			  fTable.put(fileName, (descriptor = NetcdfFile.open(fileName, null)));
-			  return descriptor;
-		   }
-		   // add other file types
-		   return null;
-	    }
-	}
-	
-	// must make synchronized 
-	protected synchronized boolean close(Object descriptor) {
-	    Enumeration<String> enumer = fTable.keys();
-	    while(enumer.hasMoreElements()) {
-		  String key =(enumer.nextElement());
-		  Object obj = fTable.get(key);
-		  if (obj == descriptor) {
-			 if (key.contains(".nc"))
-			 {
-				// close the netcdf obj
-				fTable.remove(key);
-				return true;
-			 }
-			 // add more file types
-		  }
-	    }
-	    return false;
 	}
 
 	private Place findDstPlace( int handle, int offset[] ) {
