@@ -15,6 +15,10 @@
 
 	<properties>
 	
+		<!-- Dependency properties -->
+		<slf4j.version>1.7.13</slf4j.version>
+		<log4j.version>2.4.1</log4j.version>
+	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
 		<java.version>1.7</java.version>
@@ -108,14 +112,29 @@
 			<version>2.2.11</version>
 			<scope>compile</scope>
 		</dependency>
-		
-		<dependency>
-			<!-- Logging -->
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.12</version>
-		</dependency>
-		
+
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>${slf4j.version}</version>
+  </dependency>
+  <!-- Binding for Log4J -->
+  <dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-slf4j-impl</artifactId>
+    <version>${log4j.version}</version>
+  </dependency>
+  <!-- Log4j API and Core implementation required for binding -->
+  <dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-api</artifactId>
+    <version>${log4j.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>${log4j.version}</version>
+  </dependency>
   		
   	</dependencies>
 

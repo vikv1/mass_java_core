@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 @SuppressWarnings("serial")
 public class AgentsBase implements Serializable {
@@ -59,6 +60,9 @@ public class AgentsBase implements Serializable {
     private static int agentInitParentId;
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
     // Async section
     //private volatile LinkedList<Agent> asyncQueue;
@@ -96,8 +100,7 @@ public class AgentsBase implements Serializable {
     	//this.asyncQueue = new ConcurrentLinkedQueue<Agent>();
 
     	// For debugging
-    	if ( MASS.isConsoleLoggingEnabled() == true ) 
-    		MASSBase.log( "handle = " + handle
+  		logger.debug( "handle = " + handle
     				+ ",placesHandle = " + placesHandle
     				+ ", class = " + className
     				+ ", argument = " + argument
@@ -116,27 +119,24 @@ public class AgentsBase implements Serializable {
     	try {
     		protoAgent = objectFactory.getInstance(className, argument);
     	} catch ( Exception e ) {
-    		MASSBase.log( "Agents_base.constructor: " + className +
-    				" not instantiated " + e );
+    		// TODO - now what? There is an exception - what to do?
+    		logger.error( "Agents_base.constructor: {} not instantiated ", className, e );
     	}
 
     	// retrieve the corresponding places
     	PlacesBase curPlaces = 
     			MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
 
-    	if ( MASS.isConsoleLoggingEnabled() == true )
-    		MASSBase.log( "Agets_base constructor: placesDillClass = "
-    				+ " curPlaces = " + (Object)curPlaces );
+    		// TODO - what is really being logged here?
+//   		logger.debug( "Agents_base constructor: placesClass = " 
+//    				+ " curPlaces = " + (Object)curPlaces );
 
     	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
 
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
 
-    		if (MASS.isConsoleLoggingEnabled())
-    		{
-    			MASSBase.log( "Agent_base constructor place[" + i + "]" );
-    		}
+   			logger.debug( "Agent_base constructor place[{}]", i );
     		
     		// create as many new agents as nColonists
     		for ( int nColonists =
@@ -155,13 +155,13 @@ public class AgentsBase implements Serializable {
     				newAgent = objectFactory.getInstance(className, argument);
     			
     			} catch ( Exception e ) {
-    				MASSBase.logException( "Agents_base.constructor: " + className +
-    						" not instaitated ", e );    			
+    				// TODO - now what? What to do when there is an exception?
+    				logger.error( "Agents_base.constructor: {} not instaitated ", className, e );    			
     			}
 
-    			if (MASS.isConsoleLoggingEnabled())
-    				MASSBase.log( " newAgent[" + localPopulation + "] = " + 
-    						(Object)newAgent );
+    			// TODO - what is being logged here?
+//   				logger.debug( " newAgent[" + localPopulation + "] = " + 
+//    						(Object)newAgent );
 
     			newAgent.setPlace(curPlace);
     			newAgent.setIndex(curPlace.getIndex());
@@ -213,17 +213,13 @@ public class AgentsBase implements Serializable {
     		synchronized( this ) {
 
     			//Thread checking
-    			if ( MASS.isConsoleLoggingEnabled() == true ) 
-    				MASSBase.log( "Starting index value is: " + 
-    						MThread.getAgentBagSize() );
+   				logger.debug( "Starting index value is: {}", MThread.getAgentBagSize() );
     			
     			myIndex = MThread.getAgentBagSize();
     			MThread.setAgentBagSize(myIndex - 1);
 
     			//Error Checking
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Thread[" + tid + "]: agent(" + myIndex +
-    						") assigned" );
+   				logger.debug( "Thread[" + tid + "]: agent(" + myIndex +	") assigned" );
     		
     		}
 
@@ -233,25 +229,14 @@ public class AgentsBase implements Serializable {
 
     			Agent tmpAgent = agents.get( myIndex - 1 );
     			
-    			if ( MASS.isConsoleLoggingEnabled() == true ) {
-    				
-    				MASSBase.log( "Thread [" + tid + "]: agent(" +
-    						tmpAgent + ")[" + myIndex +
-    						"] was removed " );
-    				
-    				MASSBase.log( "fId = " + functionId + " argument " +
-    						argument ); 
+   				logger.debug( "Thread [" + tid + "]: agent(" + tmpAgent + ")[" + myIndex + "] was removed " );
+    			logger.debug( "fId = " + functionId + " argument " + argument ); 
     			
-    			}
-
     			//Use the Agents' callMethod to have it begin running
     			tmpAgent.callMethod( functionId, argument ); 
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Thread [" + tid + "]: (" + myIndex +
-    						") has called its method; " +
-    						"Current Agent Bag Size is: " + 
-    						MThread.getAgentBagSize() );
+   				logger.debug( "Thread [" + tid + "]: (" + myIndex +	") has called its method; " +
+    						"Current Agent Bag Size is: " + MThread.getAgentBagSize() );
     		
     		}
     		
@@ -271,8 +256,7 @@ public class AgentsBase implements Serializable {
     		
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "Agents_base:callAll: agents.size = " +
+   			logger.debug( "Agents_base:callAll: agents.size = " +
     					MASSBase.getAgentsMap().get( new Integer(handle) ).
     					agents.size_unreduced( ) + "\n" +
     					"Agents_base:callAll: agentsBagSize = " +
@@ -296,17 +280,13 @@ public class AgentsBase implements Serializable {
     		synchronized( this ) {
 
     			// Thread checking
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Starting index value is: " +
-    						MThread.getAgentBagSize() );
+   				logger.debug( "Starting index value is: {}", MThread.getAgentBagSize() );
     			
     			myIndex = MThread.getAgentBagSize(); // myIndex == agentId + 1
     			MThread.setAgentBagSize(myIndex - 1);
 
     			//Error Checking
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Thread[" + tid + "]: agent(" + myIndex + 
-    						") assigned" );
+   				logger.debug( "Thread[" + tid + "]: agent(" + myIndex + ") assigned" );
     		
     		}
 
@@ -318,8 +298,7 @@ public class AgentsBase implements Serializable {
     			// note that myIndex = agentId + 1
     			Agent tmpAgent = agents.get( myIndex - 1 );
     			
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Thread[" + tid + "]: agent("+ myIndex + 
+   				logger.debug( "Thread[" + tid + "]: agent("+ myIndex + 
     						"): MASS_base::currentReturns  = " + 
     						MASSBase.getCurrentReturns() );
 
@@ -328,8 +307,7 @@ public class AgentsBase implements Serializable {
     					tmpAgent.callMethod( functionId, 
     							argument[ myIndex - 1 ] );
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Thread [" + tid + "]: (" + myIndex +
+   				logger.debug( "Thread [" + tid + "]: (" + myIndex +
     						") has called its method; " );
     		
     		}
@@ -350,12 +328,11 @@ public class AgentsBase implements Serializable {
     		
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
-    		if ( MASS.isConsoleLoggingEnabled() == true ) 
-    			MASSBase.log( "Agents_base:callAll: agents.size = " + 
-    					MASSBase.getAgentsMap().get( new Integer(handle) ).
-    					agents.size_unreduced( ) + "\n" +
-    					"Agents_base:callAll: agentsBagSize = " + 
-    					MThread.getAgentBagSize() );
+   			logger.debug( "Agents_base:callAll: agents.size = " + 
+   					MASSBase.getAgentsMap().get( new Integer(handle) ).
+   					agents.size_unreduced( ) + "\n" +
+   					"Agents_base:callAll: agentsBagSize = " + 
+   					MThread.getAgentBagSize() );
     	}
     
     }
@@ -367,9 +344,8 @@ public class AgentsBase implements Serializable {
 	  {
 	    // access by multiple thread
   	  synchronized(asyncQueue) {
-  	    if(MASS.isConsoleLoggingEnabled())
-  	      MASSBase.log("callAllAsync synchronized asyncQueue size =  " 
-  	          + asyncQueueSize());
+
+  		  logger.debug("callAllAsync synchronized asyncQueue size = {}", asyncQueueSize());
 
   	     // executedAgent = asyncQueue.removeFirst();
   	      executedAgentIndex = asyncQueuePoll();
@@ -379,10 +355,11 @@ public class AgentsBase implements Serializable {
   	  }
 	  
   	  if(executedAgentIndex != -1) {
-  	    if(MASS.isConsoleLoggingEnabled())
-  	      MASSBase.log("dequeue index " + executedAgentIndex + ", null = " + (MASSBase.getCurrentAgents().getAgents()
+
+  		  logger.debug("dequeue index " + executedAgentIndex + ", null = " + (MASSBase.getCurrentAgents().getAgents()
               .get(executedAgentIndex) == null));
-        while(MASSBase.getCurrentAgents().getAgents()
+        
+  		  while(MASSBase.getCurrentAgents().getAgents()
             .get(executedAgentIndex).getAsyncFuncListIndex() < asyncFuncList.length) {
           int asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
               .get(executedAgentIndex).pollAsyncFuncListIndex();
@@ -431,8 +408,8 @@ public class AgentsBase implements Serializable {
           synchronized(completeQueue) {
             completeQueue.add(MASSBase.getCurrentAgents().getAgents()
                 .get(executedAgentIndex).cloneForAsyncResult());
-            if(MASS.isConsoleLoggingEnabled())
-            MASS.log(MASSBase.getCurrentAgents().getAgents()
+
+            logger.debug(MASSBase.getCurrentAgents().getAgents()
                 .get(executedAgentIndex).getMyOriginalAsyncIndex() + 
                 " completeQueue size is now " + completeQueue.size());
           }
@@ -560,8 +537,7 @@ public class AgentsBase implements Serializable {
     			MThread.setAgentBagSize(myIndex - 1);
     			evaluationAgent = agents.get( myIndex - 1 );
 
-    			if ( MASS.isConsoleLoggingEnabled() == true ) 
-    				MASSBase.log( "Agents_base.manageALL: Thread " + tid + 
+   				logger.debug( "Agents_base.manageALL: Thread " + tid + 
     						" picked up " 
     						+ evaluationAgent.getAgentId() );
 
@@ -576,19 +552,17 @@ public class AgentsBase implements Serializable {
     		// Spawn() Check
     		int childrenCounter = evaluationAgent.getNewChildren();
 
-    		if ( MASS.isConsoleLoggingEnabled() == true ) 
-    			MASSBase.log( "agent " + evaluationAgent.getAgentId() +
+   			logger.debug( "agent " + evaluationAgent.getAgentId() +
     					"'s childrenCounter = " + childrenCounter );
 
     		while ( childrenCounter > 0 ) {
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agent_base.manageALL: Thread " + tid +
-    						" will spawn a child of agent " + 
-    						evaluationAgent.getAgentId() +
-    						"...arguments.size( ) = " +
-    						evaluationAgent.getArguments().length +
-    						", argumentcounter = " + argumentcounter );
+   				logger.debug( "Agent_base.manageALL: Thread " + tid +
+   						" will spawn a child of agent " + 
+   						evaluationAgent.getAgentId() +
+   						"...arguments.size( ) = " +
+   						evaluationAgent.getArguments().length +
+   						", argumentcounter = " + argumentcounter );
 
     			Agent addAgent = null;
     			Object dummyArgument = new Object( );
@@ -625,8 +599,8 @@ public class AgentsBase implements Serializable {
     				addAgent.setPlace(evaluationAgent.getPlace());
 
     			} catch ( Exception e ) {
-    				MASSBase.log( "Agents_base.manageAll: " + this.className
-    						+ " not instantiated " + e );
+    				// TODO - now what? What to do when an exception is thrown?
+    				logger.error( "Agents_base.manageAll: {} not instantiated", this.className, e );
     			}
 
     			// Push the created agent into our bag for returns and 
@@ -639,8 +613,7 @@ public class AgentsBase implements Serializable {
     			evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
     			childrenCounter--;
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agent_base.manageALL: Thread " + tid +
+   				logger.debug( "Agent_base.manageALL: Thread " + tid +
     						" spawned a child of agent " + 
     						evaluationAgent.getAgentId() +
     						" and put the child " + addAgent.getAgentId() +
@@ -649,8 +622,7 @@ public class AgentsBase implements Serializable {
     		}
 
     		// Kill() Check
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "Agent_base.manageALL: Thread " + tid +
+   			logger.debug( "Agent_base.manageALL: Thread " + tid +
     					" check " + evaluationAgent.getAgentId() + 
     					"'s alive = " + evaluationAgent.isAlive() );
 
@@ -681,8 +653,7 @@ public class AgentsBase implements Serializable {
     		getGlobalAgentArrayIndex( evaluationAgent.getIndex(), 
     				evaluatedPlaces.getSize(), destCoord );
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+   			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"tid[" + tid + "]: calls from" +
     					"[" + evaluationAgent.getIndex()[0] +
     					"].." +
@@ -698,8 +669,7 @@ public class AgentsBase implements Serializable {
     							evaluatedPlaces.
     							getSize() );
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( " linear = " + globalLinearIndex +
+   				logger.debug( " linear = " + globalLinearIndex +
     						" lower = " + evaluatedPlaces.getLowerBoundary()
     						+ " upper = " + 
     						evaluatedPlaces.getUpperBoundary() + ")" );
@@ -715,8 +685,7 @@ public class AgentsBase implements Serializable {
     				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
     					
     					// should not happen
-    					if ( MASS.isConsoleLoggingEnabled() == true ) 
-    						MASSBase.log( "evaluationAgent " + 
+   						logger.error( "evaluationAgent {}" + 
     								evaluationAgent.getAgentId() 
     								+ " couldn't been found in " +
     								"the old place!" );
@@ -725,8 +694,7 @@ public class AgentsBase implements Serializable {
     				
     				}
 
-    				if ( MASS.isConsoleLoggingEnabled() == true )
-    					MASSBase.log( "evaluationAgent " + 
+   					logger.debug( "evaluationAgent " + 
     							evaluationAgent.getAgentId() 
     							+ " was removed from the oldPlace["
     							+ oldPlace.getIndex()[0] + "].." );
@@ -735,22 +703,18 @@ public class AgentsBase implements Serializable {
     				int destinationLocalLinearIndex 
     				= globalLinearIndex - evaluatedPlaces.getLowerBoundary();
 
-    				if ( MASS.isConsoleLoggingEnabled() == true )
-    					MASSBase.log( "destinationLocalLinerIndex = " 
-    							+ destinationLocalLinearIndex );
+   					logger.debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
 
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
     						get( new Integer( placesHandle ) ).
     						getPlaces()[destinationLocalLinearIndex]);
 
-    				if ( MASS.isConsoleLoggingEnabled() == true )
-    					MASSBase.log( "evaluationAgent.place = " 
-    							+ evaluationAgent.getPlace() );
+    				// TODO - what is the purpose of logging an object?
+//   					logger.debug( "evaluationAgent.place = {}", evaluationAgent.getPlace() );
 
     				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
 
-    				if ( MASS.isConsoleLoggingEnabled() == true ) 
-    					MASSBase.log( "evaluationAgent " + 
+   					logger.debug( "evaluationAgent " + 
     							evaluationAgent.getAgentId() +
     							" was inserted into the destPlace[" +
     							evaluationAgent.getPlace().getIndex()[0] + "].." );
@@ -777,9 +741,7 @@ public class AgentsBase implements Serializable {
     				= new AgentMigrationRequest( globalLinearIndex, 
     						evaluationAgent );
 
-    				if ( MASS.isConsoleLoggingEnabled() == true )
-    					MASSBase.log( "AgentMigrationRequest request = " + 
-    							request );
+   					logger.debug( "AgentMigrationRequest request = {}", request );
 
     				// enqueue the request to this node.map
     				Vector<AgentMigrationRequest> migrationReqList 
@@ -788,10 +750,8 @@ public class AgentsBase implements Serializable {
     				synchronized( migrationReqList ) {
     					migrationReqList.add( request );
 
-    					if ( MASS.isConsoleLoggingEnabled() == true )
-    						MASSBase.log( "remoteRequest[" + destRank + 
-    								"].add:" + " dst = " + 
-    								globalLinearIndex );
+   					logger.debug( "remoteRequest[" + destRank +	"].add:" + " dst = " + globalLinearIndex );
+
     				}
     			
     			} 
@@ -800,8 +760,7 @@ public class AgentsBase implements Serializable {
     		
     		else {
     			
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( " to destination invalid" );
+    			logger.error( " to destination invalid" );
     		
     		}
     	
@@ -817,9 +776,7 @@ public class AgentsBase implements Serializable {
     	MThread.barrierThreads( tid );
     	if ( tid == 0 ) {
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "tid[" + tid + 
-    					"] now enters processAgentMigrationRequest" );
+    		logger.debug( "tid[{}] now enters processAgentMigrationRequest", tid );
 
     		// the main thread spawns as many communication threads as the 
     		// number of remote computing nodes and let each invoke 
@@ -846,8 +803,7 @@ public class AgentsBase implements Serializable {
     					= new ProcessAgentMigrationRequest( comThrArgs[rank] );
     			thread_ref[rank].start( );
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agents_base.manageAll will start " +
+   				logger.debug( "Agents_base.manageAll will start " +
     						"processAgentMigrationRequest thread[" +
     						rank + "] = " + thread_ref[rank] );
     		
@@ -856,8 +812,7 @@ public class AgentsBase implements Serializable {
     		// wait for all the communication threads to be terminated
     		for ( int rank = MASSBase.getSystemSize() - 1; rank >= 0; rank-- ) {
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agents_base.manageAll will join " +
+   				logger.debug( "Agents_base.manageAll will join " +
     						"processAgentMigrationRequest A thread["
     						+ rank + "] = " + thread_ref[rank] + 
     						" myPid = " + MASSBase.getMyPid() );
@@ -865,8 +820,7 @@ public class AgentsBase implements Serializable {
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;      
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agents_base.manageAll will join " +
+   				logger.debug( "Agents_base.manageAll will join " +
     						"processAgentMigrationRequest B thread["
     						+ rank + "] = " + thread_ref[rank] );
 
@@ -874,11 +828,10 @@ public class AgentsBase implements Serializable {
     				thread_ref[rank].join( );
     			}
     			catch ( Exception e ) {
-    				MASS.logException(null, e);
+    				logger.error("Unable to join rank!", e);
     			}
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "Agents_base.manageAll joined " +
+   				logger.debug( "Agents_base.manageAll joined " +
     						"processAgentMigrationRequest C thread[" +
     						rank + "] = " + thread_ref[rank] );
     		
@@ -886,16 +839,13 @@ public class AgentsBase implements Serializable {
 
     		localPopulation = agents.size_unreduced( );
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "Agents_base.manageAll completed: " +
-    					"localPopulation = " + localPopulation );
+   			logger.debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	
     	}
     	
     	else {
     		
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+   			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"] tid[" + tid + 
     					"] skips processAgentMigrationRequest" );
     	
@@ -912,8 +862,8 @@ public class AgentsBase implements Serializable {
       Object[] arguments) {
     int argumentIndex = 0;
     while ( numAgents > 0 ) {
-      if ( MASS.isConsoleLoggingEnabled() == true )
-        MASSBase.log( "Agent_base.spawnAsync will spawn a child of agent " + 
+
+        logger.debug( "Agent_base.spawnAsync will spawn a child of agent " + 
             targetAgent.getAgentId() +
             "...arguments index = " + argumentIndex);
 
@@ -948,8 +898,11 @@ public class AgentsBase implements Serializable {
         addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
         childAsyncIndex++;
         argumentIndex++;
-      } catch ( Exception e ) {
-        MASSBase.logException("spawn async", e);
+      } 
+      
+      // TODO - now what? An exception was thrown - what to do next?
+      catch ( Exception e ) {
+        logger.error("spawn async", e);
       }
 
       // Push the created agent into our bag for returns and 
@@ -983,9 +936,9 @@ public class AgentsBase implements Serializable {
         targetCoordStr.append("[" + targetAgent.getIndex()[i] + "]");
         destCoordStr.append("[" + destCoord[i] + "]");
       }
-      MASSBase.log( "migrate async from " +
-          targetCoordStr.toString() +
-          " (destCoord" + destCoordStr.toString() );
+
+      logger.debug( "migrate async from " + targetCoordStr.toString() + " (destCoord" + destCoordStr.toString() );
+    
     }
 
     if( destCoord[0] != -1 ) {      
@@ -996,12 +949,10 @@ public class AgentsBase implements Serializable {
               evaluatedPlaces.
               getSize() );
 
-      if ( MASS.isConsoleLoggingEnabled()) {
-        MASSBase.log( " linear = " + globalLinearIndex +
+       logger.debug( " linear = " + globalLinearIndex +
             " lower = " + evaluatedPlaces.getLowerBoundary()
             + " upper = " + 
             evaluatedPlaces.getUpperBoundary() + ")" );
-      }
 
       if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
           globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
@@ -1012,16 +963,13 @@ public class AgentsBase implements Serializable {
         // points to the migrating Agent
         Place oldPlace = targetAgent.getPlace();
         if ( oldPlace.getAgents().remove( targetAgent ) == false ) {          
-          // should not happen
-            MASSBase.log( "evaluationAgent " + 
-                targetAgent.getAgentId() 
-                + " couldn't been found in " +
-                "the old place!" );
-          System.exit( -1 );        
+
+        	// should not happen
+            logger.error( "evaluationAgent " + targetAgent.getAgentId() + " couldn't been found in the old place!" );
+            System.exit( -1 );        
         }
 
-        if (MASS.isConsoleLoggingEnabled())
-          MASSBase.log( "evaluationAgent " + 
+        logger.debug( "evaluationAgent " + 
               targetAgent.getAgentId() 
               + " was removed from the oldPlace["
               + oldPlace.getIndex()[0] + "].." );
@@ -1030,29 +978,22 @@ public class AgentsBase implements Serializable {
         int destinationLocalLinearIndex 
         = globalLinearIndex - evaluatedPlaces.getLowerBoundary();
 
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASSBase.log( "destinationLocalLinerIndex = " 
-              + destinationLocalLinearIndex );
-        }
+        logger.debug( "destinationLocalLinerIndex = {}",               + destinationLocalLinearIndex );
 
         targetAgent.setPlace(MASSBase.getPlacesMap().
             get( new Integer( placesHandle ) ).
             getPlaces()[destinationLocalLinearIndex]);
 
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASSBase.log( "evaluationAgent.place = " 
-              + targetAgent.getPlace() );
-        }
+        logger.debug( "evaluationAgent.place = {}", targetAgent.getPlace() );
 
         targetAgent.getPlace().getAgents().add( targetAgent );
 
-        if (MASS.isConsoleLoggingEnabled())  {
-          MASSBase.log( "evaluationAgent " + 
+          logger.debug( "evaluationAgent " + 
               targetAgent.getAgentId() +
               " was inserted into the destPlace[" +
               targetAgent.getPlace().getIndex()[0] + "].." );
-        }
-        synchronized(asyncQueue) {
+
+          synchronized(asyncQueue) {
           if(!asyncQueueIsEmpty()) {
             targetAgent.setPutBackToAsyncQueue(true);
           } 
@@ -1069,13 +1010,11 @@ public class AgentsBase implements Serializable {
         }*/
 
         // find the destination node
-        int destRank 
-        = evaluatedPlaces.
-        getRankFromGlobalLinearIndex( globalLinearIndex );
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASSBase.log( "AgentMigrationRequest request from to dest rank " + 
+        int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
+
+        logger.debug( "AgentMigrationRequest request from to dest rank " + 
               destRank + ", globalLinearIndex " + globalLinearIndex );
-        }
+
         // relinquish the old place
         targetAgent.setPlace(null);  
         /* relinquish the parent too, for async purpose
@@ -1083,20 +1022,18 @@ public class AgentsBase implements Serializable {
         targetAgent.setCurrentIndex(-1);*/
         targetAgent.setParentAgents(null);
         // create a request
-        AgentMigrationRequest request 
-        = new AgentMigrationRequest( globalLinearIndex, 
-            targetAgent );
+        AgentMigrationRequest request = new AgentMigrationRequest( globalLinearIndex, targetAgent );
         
         MASS.getAsyncOutputThread().requestMigration(destRank, request);
-        if (MASS.isConsoleLoggingEnabled()) {
-            MASSBase.log("remoteRequest[" + destRank + 
+
+        logger.debug("remoteRequest[" + destRank + 
                 "].add:" + " globalLinearIndex = " + 
                 globalLinearIndex );
-        }      
+
       }
     }    
     else {      
-        MASSBase.log( " to destination invalid" );
+        logger.error( " to destination invalid" );
     }
   }
 	
@@ -1122,16 +1059,12 @@ public class AgentsBase implements Serializable {
   }
   
   public boolean getIsAsyncLoopIdle() {
-    if(MASS.isConsoleLoggingEnabled()) {
-      MASSBase.log("getIsAsyncIdle return " + isIdle);
-    }
+    logger.debug("getIsAsyncIdle return {}", isIdle);
     return isIdle;
   }
   
   public void setIsAsyncLoopIdle(boolean value) {
-    if(MASS.isConsoleLoggingEnabled()) {
-      MASSBase.log("setIsAsyncIdle to " + value);
-    }
+    logger.debug("setIsAsyncIdle to {}", value);
     isIdle = value;
   }
   
@@ -1198,8 +1131,7 @@ public class AgentsBase implements Serializable {
 
     		Vector<AgentMigrationRequest> orgRequest = null;
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+   			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"] rank[" + destRank + 
     					"]: starts processAgentMigrationRequest" );
 
@@ -1207,25 +1139,23 @@ public class AgentsBase implements Serializable {
     		orgRequest = MASSBase.getMigrationRequests().get( destRank );
 
     		// for debugging
-    		if ( MASS.isConsoleLoggingEnabled() ) {
-    			
-    			synchronized( orgRequest ) {
-    				
-    				MASSBase.log( "tid[" + destRank + 
-    						"] sends an exhange request to rank: " + 
-    						destRank + " size() = " + 
-    						orgRequest.size( ) );
-
-    				for ( int i = 0; i < orgRequest.size( ); i++ ) {
-    					MASSBase.log( "send " +
-    							orgRequest.get(i).agent + " to " +
-    							orgRequest.get(i).
-    							destGlobalLinearIndex );
-    				}
-    			
-    			}
+//    			synchronized( orgRequest ) {
+//    				
+//    				logger.debug( "tid[" + destRank + 
+//    						"] sends an exhange request to rank: " + 
+//    						destRank + " size() = " + 
+//    						orgRequest.size( ) );
+//
+//    				for ( int i = 0; i < orgRequest.size( ); i++ ) {
+//    					logger.debug( "send " +
+//    							orgRequest.get(i).agent + " to " +
+//    							orgRequest.get(i).
+//    							destGlobalLinearIndex );
+//    				}
+//    			
+//    			}
     		
-    		}
+//    		}
 
     		// now compose and send a message by a child
     		Message messageToDest = 
@@ -1233,8 +1163,7 @@ public class AgentsBase implements Serializable {
     						AGENTS_MIGRATION_REMOTE_REQUEST,
     						agentHandle, placeHandle, orgRequest );
 
-    		if ( MASS.isConsoleLoggingEnabled() == true ) 
-    			MASSBase.log( "tid[" + destRank + 
+   			logger.debug( "tid[" + destRank + 
     					"] made messageToDest to rank: " + destRank ); 
 
     		SendMessageByChild thread_ref =
@@ -1251,12 +1180,12 @@ public class AgentsBase implements Serializable {
     			orgRequest.clear( );
     		} 
     		catch ( Exception e ) {
-    			MASS.logException(null, e);
+    			// TODO - what to do if an exception is thrown?
+    			logger.error("Exception thrown while exchanging async message", e);
     		}
 
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread id = " + thread_ref +
+   			logger.debug( "pthread id = " + thread_ref +
     					"pthread_join completed for rank[" +
     					destRank );
 
@@ -1269,8 +1198,7 @@ public class AgentsBase implements Serializable {
     		PlacesBase dstPlaces = MASSBase.getPlacesMap().
     				get( new Integer( placesHandle ) );
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "request from rank[" + destRank + "] = " + 
+   			logger.debug( "request from rank[" + destRank + "] = " + 
     					receivedRequest + " size( ) = " + 
     					receivedRequest.size( ) );
 
@@ -1287,12 +1215,9 @@ public class AgentsBase implements Serializable {
     			int destinationLocalLinearIndex 
     			= globalLinearIndex - dstPlaces.getLowerBoundary();
 
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( " dstLocal = " + 
-    						destinationLocalLinearIndex );
+   				logger.debug( " dstLocal = {}", destinationLocalLinearIndex );
 
-    			Place dstPlace = 
-    					dstPlaces.getPlaces()[destinationLocalLinearIndex];
+    			Place dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
 
     			// push this agent into the place and the entire agent bag.
     			agent.setPlace(dstPlace);
@@ -1302,8 +1227,7 @@ public class AgentsBase implements Serializable {
     		
     		}
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+   			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"] retreive agents from rank[" + destRank + 
     					"] complated" );
     	
@@ -1323,14 +1247,12 @@ public class AgentsBase implements Serializable {
 
     	public void run( ) {
     		
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+   			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"] sendMessageByChild to " + rank + " starts" );
 
     		MASSBase.getExchange().sendMessage( rank, message );
 
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "pthread_self[" + Thread.currentThread( ) +
+  			logger.debug( "pthread_self[" + Thread.currentThread( ) +
     					"] sendMessageByChild to " + rank + 
     					" finished" );
     	

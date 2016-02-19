@@ -31,12 +31,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -44,6 +38,7 @@ import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -52,13 +47,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 public class MASSBase {
 
     private static MThread[] threads;          // including main and children
-    private static final String MASS_LOGS = "MASS_logs";
-	private static int MASS_PORT = 3400;    // port # of the MASS library
     private static boolean initialized;  	// check if Mthreads are initialized
-    private static String workingDirectory; // the current working directory
-	private static String hostName;         // my local host name
-	private static int myPid;               // my pid or rank
-	private static FileOutputStream logger; // logger
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, PlacesBase> placesMap = new Hashtable<Integer, PlacesBase>( );
 	private static Hashtable<Integer, AgentsBase> agentsMap = new Hashtable<Integer, AgentsBase>( );
@@ -72,7 +61,7 @@ public class MASSBase {
 	private static Object currentArgument;
 	private static Object[] currentReturns;
 	private static Message.ACTION_TYPE currentMsgType;
-	private static Object logLock;
+	private static MNode thisNode;			// this node configuration
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
@@ -92,6 +81,12 @@ public class MASSBase {
     // object factories are singletons, continue configuration within this class
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
     
+    // logging
+    private static Log4J2Logger logger = Log4J2Logger.getInstance();
+    
+    // helper classes
+    private static Utilities utilities = new Utilities();
+
     /**
      * BEGIN ASync vars section
      */
@@ -121,6 +116,8 @@ public class MASSBase {
      */
     public static void addNode(MNode node) {
 
+    	logger.debug("Adding a node ({}) to the cluster...", node.getHostName());
+    	
     	// add the node to the collection of all nodes
     	allNodes.add(node);
     	
@@ -130,10 +127,13 @@ public class MASSBase {
 
     		node.setPid(0);		// master node ALWAYS has a PID of zero
     		masterNode = node;
-    		
+
+    		logger.debug("This node is the MASTER node");
     		
     	} else {
-    		
+
+    		logger.debug("This node is a REMOTE node");
+
     		// increment last PID and set for this remote node
     		lastPid++;
         	node.setPid(lastPid);
@@ -224,7 +224,18 @@ public class MASSBase {
 		return migrationRequests;
 	}
 	
-	public static int getMyPid( ) { return myPid; }
+	/**
+	 * Get the PID (or node number) of this node
+	 * @return The PID of this node
+	 */
+	public static int getMyPid() {
+		
+		// TODO - Need to throw an Exception if MASS hasn't been init'd yet!
+		return thisNode.getPid();
+		
+	};
+	
+	
 	public static Places getPlaces( int handle ) {
     	return ( Places )placesMap.get( new Integer( handle ) );
     }
@@ -276,16 +287,14 @@ public class MASSBase {
 	 * @return The working directory
 	 */
 	public static String getWorkingDirectory() {
-		return workingDirectory;
+		return thisNode.getMassHome();
 	}
 
 	public static boolean initializeThreads( int nThr ) {
 		
 		if ( initialized ) {
 			
-			if( MASS.isConsoleLoggingEnabled() == true )
-				MASSBase.log("Error: the MASS.init is already initializecd" );
-			
+			logger.error("Error: MASS.init is already initialized" );
 			return false;
 		
 		}
@@ -321,8 +330,7 @@ public class MASSBase {
 		
 		}
 
-		if( MASS.isConsoleLoggingEnabled() == true )
-			log( "Initialized threads - # " + cores );
+		logger.debug( "Initialized threads - # " + cores );
 
 		initialized = true;
 		return true;
@@ -335,30 +343,41 @@ public class MASSBase {
      */
     public static void initMASSBase(MNode nodeConfig) {
 		
-		MASSBase.hostName = nodeConfig.getHostName();
-		MASSBase.myPid = nodeConfig.getPid();
-		setCommunicationPort(nodeConfig.getPort());
-		if(nodeConfig.getMassHome() != null) {
-		  setWorkingDirectory(nodeConfig.getMassHome());
+    	// TODO - everything assumes that a nodeConfig is supplied! Probably should throw IllegalArgumentException.
+    	if (nodeConfig == null) return;
+    	
+    	MASSBase.thisNode = nodeConfig;
+    	
+		// Set hostname if not set previously
+		if (thisNode.getHostName() == null) {
+			thisNode.setHostName( utilities.getLocalHostname() );
 		}
 		
 		// Set the current working directory to default value if not set previously
-		if (MASSBase.workingDirectory == null) {
-		  MASSBase.workingDirectory = System.getProperty( "user.dir" );
+		if (thisNode.getMassHome() == null) {
+		  thisNode.setMassHome( System.getProperty( "user.dir" ) );
 		}
-    ensureLoggingFileExists();
+
+		// with options set, now configure logging
+		logger.setLogFileName( getLogFileName() );
 		
+		// log options that have been set, now that there is a valid log filename
+		logger.debug("Working directory set to {}", getWorkingDirectory());
+		logger.debug("Hostname set to {}", thisNode.getHostName());
+
 		// add MASS home to the list of URLs to be used by the object factory
 		try {
 			objectFactory.addUri(new File(MASSBase.getWorkingDirectory()).toURI().toString());
 		} catch (Exception e) {
-      MASS.logException(null, e);
+			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
+		
 		// Async section
-    initAsyncCommunicationThreads();
-    // ensure logging folders and file exist
-    MASS.log("initMASS_base done");
-	}
+		initAsyncCommunicationThreads();
+    
+		logger.debug("MASSBase initialization complete");
+	
+    }
     
     /**
 	 * Initialize MASS_base, "legacy" mode
@@ -376,8 +395,7 @@ public class MASSBase {
     	thisNode.setPid(myPid);
     	thisNode.setPort(port);    	
     	
-    	// TODO - this is a hack. System size is the number of identified hosts, not some
-    	// command-line argument.
+    	// TODO - this is a hack. System size is the number of identified hosts, not some command-line argument.
     	systemSize = nProc;
     	
 		// init from the MNode object
@@ -392,77 +410,6 @@ public class MASSBase {
 	public static boolean isInitialized() {
 		return initialized;
 	}
-
-	/**
-	 * Logs a message to Mass's internal logs.
-	 * @param msg
-	 */
-	public static void log( String msg ) {
-		try {			
-			if ( logLock == null ) {				
-				logLock = new Object( );				
-				//if ( myPid > 0 )
-					logger = new FileOutputStream( workingDirectory + "/" + 
-							MASS_LOGS + "/PID" + 
-							myPid + "_" + hostName + 
-							"result.txt" );			
-			}
-      String lstring = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS").format(new Date()) 
-      + " , " + Thread.currentThread().getName() +" , " + msg;
-
-			synchronized( logLock ) {
-				
-				if ( myPid == 0 ) {
-					// The master directly prints out msg to standard error.
-					System.err.println(lstring);
-				}
-				if(logger == null) {
-				  logger = new FileOutputStream( workingDirectory + "/" + 
-              MASS_LOGS + "/PID" + 
-              myPid + "_" + hostName + 
-              "result.txt" ); 
-				}
-					// All the slaves print out msge to CUR_DIR/MASS_logs/.
-					logger.write( lstring.concat("\n").getBytes( ) );
-					logger.flush( );
-					logger.getFD().sync();
-			}		
-		}		
-		catch( Exception e ) { 
-		  logException(null, e);
-    }	
-	}
-    
-    public static void logException(String message, Throwable e) {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      log(message + "-" + sw.toString());
-    }
-  private static void ensureLoggingFileExists() {
-    System.err.println("ensureLoggingFileExists: " + workingDirectory + "/" + 
-              MASS_LOGS + "/PID" + 
-              myPid + "_" + hostName + 
-              "result.txt");
-      File logFile = new File(workingDirectory + "/" + 
-              MASS_LOGS + "/PID" + 
-              myPid + "_" + hostName + 
-              "result.txt");
-      if(!logFile.isFile()) {
-        System.err.println("ensureLoggingFileExists: !isFile");
-        if (logFile.getParentFile().exists() || logFile.getParentFile().mkdirs()){
-          System.err.println("ensureLoggingFileExists: about to create");
-          try
-          {
-              logFile.createNewFile();
-          }
-          catch(IOException e)
-          {
-            logException(null, e);
-          }
-        }
-      }
-  }
 
     /**
 	 * Reset the request counter
@@ -521,15 +468,11 @@ public class MASSBase {
 
     	// register all hosts including myself
     	for ( int i = 0; i < host_args.size( ); i++ ) {
-    		if ( MASS.isConsoleLoggingEnabled() ) {
-    			log( "MASS_base.setHosts: Adding host " + host_args.get(i) );
-    		}
+   			logger.debug("MASS_base.setHosts: Adding host {}", host_args.get(i) );
     		hosts.add( host_args.get(i) );
-
     	}
     	
-		if ( MASS.isConsoleLoggingEnabled() )
-			log( "MASS_base.setHosts: System size = " + getSystemSize() );
+		logger.debug( "MASS_base.setHosts: System size = {}", getSystemSize() );
 
     	// instantiate remoteRequests: Vector< Vector<RemoteExchangeReques> >
     	// as well as migrationRequests for the purpose of agent migration.
@@ -542,7 +485,7 @@ public class MASSBase {
     	}
 
     	// establish inter-MASS connection
-    	exchange.establishConnection( getSystemSize(), myPid, hosts, MASS_PORT );
+    	exchange.establishConnection( getSystemSize(), thisNode.getPid(), hosts, thisNode.getPort() );
 
     }
     
@@ -569,8 +512,13 @@ public class MASSBase {
 	 * @param workingDirectory The new working directory for this node
 	 */
 	public static void setWorkingDirectory(String workingDirectory) {
-	  System.err.println("setWorkingDir = " + workingDirectory);
-		MASSBase.workingDirectory = workingDirectory;
+		
+		// has MASS been initialized yet?
+		if (thisNode == null) return;
+		
+		//		System.err.println("setWorkingDir = " + workingDirectory);
+		thisNode.setMassHome( workingDirectory );
+		
 	}
 
 	/**
@@ -578,15 +526,15 @@ public class MASSBase {
 	*/
 	public static void showHosts( ) {
     	
-    	if( MASS.isConsoleLoggingEnabled() == true ) {
+    	if( logger.isDebugEnabled() ) {
     		
-    		String convert = "hosts.....\n";
+    		String convert = "Hosts: ";
     		
     		for ( int i = 0; i < hosts.size( ); i++ ) {
-    			convert += "rank[" + i + "] = " + hosts.get(i) + "\n";
+    			convert += "rank[" + i + "] = " + hosts.get(i) + " ";
     		}
     		
-    		MASSBase.log( convert );
+    		logger.debug( convert );
     	
     	}
     
@@ -607,9 +555,9 @@ public class MASSBase {
     }
     
     public static void initAsyncCommunicationThreads() {
-      MASS.log("init Async Communication Threads");
-      inputThread = new AsyncInputThread(MASS_PORT + 1);
-      outputThread = new AsyncOutputThread(MASS_PORT + 1);
+      logger.debug("Init Async Communication Threads");
+      inputThread = new AsyncInputThread(thisNode.getPort() + 1);
+      outputThread = new AsyncOutputThread(thisNode.getPort() + 1);
       inputThread.start();
       outputThread.start();
     }
@@ -674,7 +622,7 @@ public class MASSBase {
 	 * @return The port number
 	 */
 	public static int getCommunicationPort() {
-		return MASS_PORT;
+		return thisNode.getPort();
 	}
 
     /**
@@ -684,10 +632,37 @@ public class MASSBase {
 	public static void setCommunicationPort(int communicationPort) {
 		
 		// can't set port to zero
+		// TODO - should throw IllegalArgumentException
 		if (communicationPort == 0) return;
 		
-		MASS_PORT = communicationPort;
+		// not init'd yet?
+		// TODO - should throw some form of Exception
+		if (thisNode == null) return;
+		
+		thisNode.setPort( communicationPort );
 	
+	}
+	
+	/**
+	 * Get the filename of the log file, based in part on the node number and hostname
+	 * @return The name of the file that should be used for logging
+	 */
+	public static String getLogFileName() {
+		
+		if ( thisNode == null ) return null;	// not initialized yet!
+		
+		// make sure hostname is cleansed to provide a safe filename fragment
+		String safeHostname = thisNode.getHostName();
+		if (safeHostname != null) {
+			
+			// dots mess up paths
+			safeHostname = safeHostname.replace(".", "_");
+			
+		}
+		
+		String logFilename = getWorkingDirectory() + "/logs/" + "PID" + getMyPid() + "_" + safeHostname + "_result.txt";
+		return logFilename;
+		
 	}
 
 }

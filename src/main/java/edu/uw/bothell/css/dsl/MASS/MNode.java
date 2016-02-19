@@ -45,6 +45,9 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.jcraft.jsch.Channel;  // Jsch used for Node connections
 import com.jcraft.jsch.Session;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+
 /**
  * MNode represents a MASS compute Node and contains references
  * to communication channels with the Node which may be used to
@@ -56,6 +59,8 @@ import com.jcraft.jsch.Session;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
+	private LogLevel logLevel;			// custom logging level for this node
+	private String logFileName;			// custom logging filename for this node
     private String hostName;			// the host name of this node
     private String userName;			// for SSH login, the username - optional
     private String passWord;			// for SSH login, the password - optional
@@ -63,11 +68,12 @@ public class MNode {
     private String massHome;			// where MASS library is located - optional
     private boolean isMaster = false;	// is this the master node? - optional
     private int pid;              		// process ID
-    private int port;					// the port number used for inter-node communications - optional
+    private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
     private Channel channel;            // JSCH channel
     private ObjectInputStream mainIOS;  // from remote to master
     private ObjectOutputStream mainOOS; // from master to remote
     private int resetCounter = 0;
+    private Log4J2Logger logger = Log4J2Logger.getInstance();
     
 	/**
 	 * Terminate all communications channels to the remote Node
@@ -84,8 +90,8 @@ public class MNode {
 
 		} catch( Exception e ) {
 
-			MASSBase.log( "closeMainConnection error with rank[" + pid + 
-					"] at " + hostName );
+			logger.error( "closeMainConnection error with rank[" + pid + 
+					"] at " + hostName, e );
 			System.exit( -1 );
 
 		}
@@ -182,10 +188,10 @@ public class MNode {
 		
 		// TODO - need better method of handling errors here rather than terminating application
 		catch( Exception e ) {	
-			MASSBase.logException( "ERROR: mNode: Pid: " + pid, e);
-			
+
+			logger.error( "ERROR: mNode: Pid: {}", pid, e);
 			System.exit( -1 );
-	
+		
 		}
 		
 	}
@@ -216,7 +222,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASSBase.logException( "receivMessage error from rank[" + pid + "] at " +
+			logger.error( "receivMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 
 			System.exit( -1 );
@@ -247,7 +253,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASSBase.log( "sendMessage error to rank[" + pid + "] at " +
+			logger.error( "sendMessage error to rank[" + pid + "] at " +
 					hostName );
 
 			System.exit( -1 );

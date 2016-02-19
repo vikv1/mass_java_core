@@ -41,6 +41,8 @@ import java.net.SocketException;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 /**
  * Handle async Migration req and other type of message from other nodes
  * 
@@ -48,10 +50,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  */
 public class AsyncInputThread extends Thread {
-  private int portNumber;
-  private ServerSocket serverSocket = null;
-  private boolean listening;
-  private volatile AtomicInteger runningChildThreadCount;
+  
+	private int portNumber;
+	private ServerSocket serverSocket = null;
+	private boolean listening;
+	private volatile AtomicInteger runningChildThreadCount;
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
   public AsyncInputThread(int port) {
     portNumber = port;
@@ -59,8 +65,10 @@ public class AsyncInputThread extends Thread {
   }
 
   public void run() {
-    MASS.log("AsyncInputThread start at port " + portNumber);
-    listening = true;
+
+	  logger.debug("AsyncInputThread start at port {}", portNumber);
+    
+	  listening = true;
     try {
       serverSocket = new ServerSocket(portNumber);
       while (listening) {
@@ -69,24 +77,23 @@ public class AsyncInputThread extends Thread {
     } catch (IOException e) {
       // Only Unexpected exception need to be logged
       if (listening || !(e instanceof SocketException)) {
-        MASSBase.logException(
-            "Unexpected exception in AsyncInputThread.run()", e);
+        logger.error("Unexpected exception in AsyncInputThread.run()", e);
       }
     }
-    MASS.log("AsyncInputThread.end");
+    logger.debug("AsyncInputThread.end");
   }
 
   public void finish() {
     listening = false;
     if (serverSocket != null) {
-      MASS.log("AsyncInputThread tries to close server socket");
+      logger.debug("AsyncInputThread tries to close server socket");
       try {
         serverSocket.close();
       } catch (IOException e) {
-        MASS.logException(null, e);
+        logger.error("Exception thrown while attempting to close server socket", e);
       }
     }
-    MASS.log("AsyncInputThread finishes");
+    logger.debug("AsyncInputThread finishes");
   }
 
   /**
@@ -97,11 +104,9 @@ public class AsyncInputThread extends Thread {
    */
   public boolean isIdle(boolean completeReqFromMaster) {
     synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
-      if (MASS.isConsoleLoggingEnabled()) {
-        MASS.log(completeReqFromMaster
+        logger.debug(completeReqFromMaster
             + " Asyncinput running child thread count = "
             + runningChildThreadCount.get());
-      }
       if (completeReqFromMaster) {
         return runningChildThreadCount.get() == 1;
       } else {
@@ -114,30 +119,27 @@ public class AsyncInputThread extends Thread {
     private Socket socket = null;
 
     public AsyncInputChildThread(Socket socket) {
-      if (MASS.isConsoleLoggingEnabled()) {
-        MASS.log("construct AsyncInputChildThread");
-      }
+      logger.debug("construct AsyncInputChildThread");
       runningChildThreadCount.incrementAndGet();
       this.socket = socket;
     }
 
     public void run() {
       if (MASSBase.getCurrentAgents() == null) {
-        MASS.log("MASS is not ready " + socket.getRemoteSocketAddress());
+        logger.error("MASS is not ready " + socket.getRemoteSocketAddress());
         return;
       }
       try {
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASS.log("AsyncInputChildThread processing "
-              + socket.getRemoteSocketAddress());
-        }
-        InputStream is = socket.getInputStream();
-        ObjectInputStream ois = new ObjectInputStream(is);
-        Message m = (Message) ois.readObject();
-        if (MASS.isConsoleLoggingEnabled()) {
-          MASS.log("Receive m " + m.getActionString());
-        }
-        switch (m.getAction()) {
+
+    	  logger.debug("AsyncInputChildThread processing " + socket.getRemoteSocketAddress());
+        
+    	  InputStream is = socket.getInputStream();
+    	  ObjectInputStream ois = new ObjectInputStream(is);
+    	  Message m = (Message) ois.readObject();
+          
+    	  logger.debug("Receive m {}", m.getActionString());
+        
+    	  switch (m.getAction()) {
         case AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST:
           // process a message
           Vector<AgentMigrationRequest> receivedRequests = m
@@ -149,17 +151,14 @@ public class AsyncInputThread extends Thread {
             if (MASSBase.getMyPid() != 0 // Master doesn't need source ever
                // && MASS_base.getCurrentAgents().getAgents().estimateSize() == 0
                 && MASSBase.getSourceAgentPid() == -1) {
-              if(MASS.isConsoleLoggingEnabled()) {
-                MASS.log("Choose " + m.getSourcePid() + " as source");
+                logger.debug("Choose {} as source", m.getSourcePid());
               }
               chosen = true;
               MASSBase.setSourceAgentPid(m.getSourcePid());
             }
-          }
           OutputStream os = socket.getOutputStream();
           ObjectOutputStream oos = new ObjectOutputStream(os);
-          oos.writeObject(new AgentMigrationResponse(receivedRequests.size(),
-              chosen));
+          oos.writeObject(new AgentMigrationResponse(receivedRequests.size(), chosen));
           oos.flush();
           // retrieve agents from receiveRequest
           synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
@@ -171,8 +170,7 @@ public class AsyncInputThread extends Thread {
               // local destination
               int destinationLocalLinearIndex = globalLinearIndex
                   - dstPlaces.getLowerBoundary();
-              if (MASS.isConsoleLoggingEnabled())
-                MASSBase.log(" dstLocalIndex = " + destinationLocalLinearIndex
+                logger.debug(" dstLocalIndex = " + destinationLocalLinearIndex
                     + ", async func index = " + agent.getAsyncFuncListIndex());
 
               Place dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
@@ -185,15 +183,10 @@ public class AsyncInputThread extends Thread {
               agent.setParentAgents(MASSBase.getCurrentAgents());
               MASSBase.getCurrentAgents().getAgents().add(agent);
               MASSBase.getCurrentAgents().asyncQueueAdd(agent.getCurrentIndex());
-              if (MASS.isConsoleLoggingEnabled())
-                MASSBase.log("migrate agent added to async queue, new size = "
-                    + MASSBase.getCurrentAgents().asyncQueueSize());
+              logger.debug("migrate agent added to async queue, new size = {}", MASSBase.getCurrentAgents().asyncQueueSize());
             }
-            MASSBase.getInAsyncAgents()[m.getSourcePid()] += receivedRequests
-                .size();
-            if(MASS.isConsoleLoggingEnabled()) {
-              MASSBase.log("InAsync[" + m.getSourcePid() + "] is now " + MASSBase.getInAsyncAgents()[m.getSourcePid()]);
-            }
+            MASSBase.getInAsyncAgents()[m.getSourcePid()] += receivedRequests.size();
+              logger.debug("InAsync[" + m.getSourcePid() + "] is now " + MASSBase.getInAsyncAgents()[m.getSourcePid()]);
             MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
           }
 
@@ -209,13 +202,17 @@ public class AsyncInputThread extends Thread {
           }
           os = socket.getOutputStream();
           oos = new ObjectOutputStream(os);
-          if (MASS.isConsoleLoggingEnabled()) {
-            MASS.log("Return to master completeQueue of size "
-                + MASSBase.getCurrentAgents().getCompleteQueue().size());
-            for (Agent a : MASSBase.getCurrentAgents().getCompleteQueue()) {
-              MASS.log("agent result size = " + a.asyncResultsSize());
-            }
-          }
+            
+          if (logger.isDebugEnabled()) {
+
+        	  logger.debug("Return to master completeQueue of size {}", MASSBase.getCurrentAgents().getCompleteQueue().size());
+	            
+        	  for (Agent a : MASSBase.getCurrentAgents().getCompleteQueue()) {
+	              logger.debug("agent result size = {}", a.asyncResultsSize());
+	            }
+        	  
+	          }
+    	  
           Message result = new Message(Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
               MASSBase.getCurrentAgents().getCompleteQueue(), MASSBase
                   .getCurrentAgents().getLocalPopulation());
@@ -266,11 +263,12 @@ public class AsyncInputThread extends Thread {
           // runningChildThreadCount.get());
         }
       } catch (IOException | ClassNotFoundException e) {
-        MASS.logException(null, e);
+    	  // TODO - needs to be better handling of the exception rather than just logging it
+        logger.error("Unknown exception in AsyncInputThread", e);
       }
-      if (MASS.isConsoleLoggingEnabled()) {
-        MASS.log("AsyncInputChildThread ends");
-      }
+
+      logger.debug("AsyncInputChildThread ends");
+      
     }
   }
 }

@@ -32,11 +32,16 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 /**
  * Places manages all Place elements within the simulation space.
  */
 public class Places extends PlacesBase {
-	
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
+
 	/**
 	 * Places constructor that creates places with a given dimension.
 	 * @param handle	A unique identifier that designates a group of places.
@@ -103,8 +108,7 @@ public class Places extends PlacesBase {
 				m = new Message( type, this.getHandle(), functionId, 
 						 partialArguments );
 				
-				if ( MASS.isConsoleLoggingEnabled() ) 
-				    MASSBase.log( "Places.callAll: arg_size = " + 
+			    logger.debug( "Places.callAll: arg_size = " + 
 						   partialArguments.length +
 						   " stripe = " + stripe + 
 						   " i + 1 = " + (i + 1) );
@@ -113,8 +117,7 @@ public class Places extends PlacesBase {
 		    // send it
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
-		    if ( MASS.isConsoleLoggingEnabled() )
-			MASSBase.log( "PLACES_CALL_ALL " + m.getAction( ) +
+		    logger.debug( "PLACES_CALL_ALL " + m.getAction( ) +
 				       " sent to " + i );
 		}
 	
@@ -168,8 +171,7 @@ public class Places extends PlacesBase {
 	 */
 	public void callAll( int functionId, Object argument ) {
 	
-		if ( MASS.isConsoleLoggingEnabled() )
-		    MASSBase.log( "callAll void object" );
+	    logger.debug( "callAll void object" );
 		
 		ca_setup( functionId, argument, 
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
@@ -190,8 +192,7 @@ public class Places extends PlacesBase {
 	 */
 	public Object callAll( int functionId, Object argument[] ) {
 	
-		if ( MASS.isConsoleLoggingEnabled() )
-		    MASSBase.log( "callAll return object" );
+	    logger.debug( "callAll return object" );
 		
 		return ca_setup( functionId, ( Object )argument,
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
@@ -217,8 +218,7 @@ public class Places extends PlacesBase {
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, 
 					  this.getHandle(), destinationHandle, functionId );
 		
-		if ( MASS.isConsoleLoggingEnabled() )
-		    MASSBase.log( "dest_handle = " + destinationHandle );
+	    logger.debug( "dest_handle = {}", destinationHandle );
 		
 		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
@@ -315,7 +315,7 @@ public class Places extends PlacesBase {
 		try {
 		    hosts.add( MASS.getMasterNode().getHostName() );
 		} catch ( Exception e ) {
-		    MASSBase.log( "init_master: InetAddress.getLocalHost( ) " + e );
+		    logger.error( "init_master: InetAddress.getLocalHost( ) ", e );
 		    System.exit( -1 );
 		}
 		
@@ -334,8 +334,7 @@ public class Places extends PlacesBase {
 		    
 			node.sendMessage( m );
 		    
-		    if ( MASS.isConsoleLoggingEnabled() )
-			MASSBase.log( "PLACES_INITIALIZE sent to " + node.getPid() );
+			logger.debug( "PLACES_INITIALIZE sent to {}", node.getPid() );
 		
 		}
 		

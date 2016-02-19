@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -143,5 +144,18 @@ public class UtilitiesTest extends AbstractTest {
 		
 	}
 	
-	
+	@Test
+	public void testHostnameDetect() throws Exception {
+
+		// put mocks into replay mode (even though this method isn't using mock
+		// objects, the ones that exist must be in replay mode for teardown
+		replayAll();
+
+		String hostname = utilities.getLocalHostname();
+		
+		// logging filename should include a real hostname or IP address
+		assertNotNull(hostname);
+		
+	}
+
 }

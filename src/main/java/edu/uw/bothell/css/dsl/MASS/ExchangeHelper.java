@@ -41,11 +41,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 public class ExchangeHelper {
 
     private static Socket[] sockets;
     private static InputStream[] inputs;
     private static OutputStream[] outputs;
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
     @SuppressWarnings("static-access")
     public void establishConnection( int size, int rank, Vector<String> hosts, int port ) {
@@ -65,9 +70,7 @@ public class ExchangeHelper {
     		// accept connections from higher ranks
     		for ( int i = rank + 1; i < size; i++ ) {
     			
-    			if ( MASS.isConsoleLoggingEnabled() == true )
-    				MASSBase.log( "rank[" + rank + "] will accept " + i + 
-    						"-th connection" );
+   				logger.debug( "rank[" + rank + "] will accept " + i + "-th connection" );
 
     			// accept a new connection
     			Socket socket = server.accept( );
@@ -77,15 +80,12 @@ public class ExchangeHelper {
     			InetAddress addr = socket.getInetAddress( );
     			String ipaddr = addr.getCanonicalHostName( );
 
-    			if ( MASS.isConsoleLoggingEnabled() == true ) {
-    				MASSBase.log( "connection from " + ipaddr );
-    			}
+   				logger.debug( "connection from {}", ipaddr );
 
     			// identify the rank of this connection from ipaddr
     			for ( int j = rank + 1; j < size; j++ ) {
     				
-    				if ( MASS.isConsoleLoggingEnabled() == true )
-    					MASSBase.log( "compare with " + hosts.get(j) );
+   					logger.debug( "compare with {}", hosts.get(j) );
 
     				if ( hosts.get(j).equals( ipaddr ) ) {
     					
@@ -94,11 +94,7 @@ public class ExchangeHelper {
     					inputs[j] =  sockets[j].getInputStream( );
     					outputs[j] = sockets[j].getOutputStream( );
     					
-    					if ( MASS.isConsoleLoggingEnabled() == true ) {
-    						MASSBase.log( "rank" + rank + 
-    								"] accepted from rank[" +
-    								j + "]:" + hosts.get(j) );
-    					}
+   						logger.debug( "rank" + rank + "] accepted from rank[" + j + "]:" + hosts.get(j) );
     					
     					break;
     				
@@ -111,7 +107,7 @@ public class ExchangeHelper {
     	}
     	
     	catch ( Exception e ) {
-    		MASSBase.log( "exchange.establishConnection: server " + e );
+    		logger.error( "exchange.establishConnection: server " + e );
     		System.exit( -1 );
     	}
 
@@ -121,7 +117,7 @@ public class ExchangeHelper {
     			
     			try {
     				
-    				MASSBase.log( "exchange.establishConnection: attempting to connect to " +
+    				logger.debug( "exchange.establishConnection: attempting to connect to " +
     						hosts.get(i) + ":" + port + "...");
     						
     				sockets[i] = new Socket( hosts.get(i), port );
@@ -134,7 +130,7 @@ public class ExchangeHelper {
     			
     			catch ( Exception e1 ) {
     				
-    				MASSBase.log( "rank" + rank + "] " + j + 
+    				logger.debug( "rank" + rank + "] " + j + 
     						"-th try to connect to" +
     						"rank [" + i + "]: " + hosts.get(i) );
     				try {
@@ -142,34 +138,26 @@ public class ExchangeHelper {
     				} 
     				
     				catch ( Exception e2 ) { 
-              MASS.logException(null, e2);}
+    					logger.error("Exception while attempting to connect in ExchangeHelper", e2);}
     			
     			}
     		
     		}
     		
     		if ( sockets[i] == null ) {
-    			MASSBase.log( "exchange.establishConnection: client failed" );
+    			logger.debug( "exchange.establishConnection: client failed" );
     			System.exit( -1 );
     		}
     		
-    		if ( MASS.isConsoleLoggingEnabled() == true ) {
-    			
-    			MASSBase.log( "rank[" + rank + 
-    					"] has connected to rank[" + i + "]: " + 
-    					hosts.get(i) );
+   			logger.debug( "rank[" + rank + "] has connected to rank[" + i + "]: " +	hosts.get(i) );
     		
-    		}
-    	
     	}
     
     }
 
     public Message receiveMessage( int rank ) {
 
-    	if ( MASS.isConsoleLoggingEnabled() == true )
-    		MASSBase.log( "exchange.receiveMessage will receive from rank: " 
-    				+ rank );
+   		logger.debug( "exchange.receiveMessage will receive from rank: {}", rank );
 
     	Message m = null;
     	
@@ -199,7 +187,7 @@ public class ExchangeHelper {
     	
     	catch ( Exception e ) {
     		
-    		MASSBase.log ( "exchange.receiveMessage from rank: " + rank + 
+    		logger.debug( "exchange.receiveMessage from rank: " + rank + 
     				". Error: " + e + ", inputs[rank] = " + 
     				inputs[rank] );
     	
@@ -207,17 +195,13 @@ public class ExchangeHelper {
 
     	if ( m != null ) {
     		
-    		if ( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "exchange.receiveMessage received from rank: " 
-    					+ rank );
+   			logger.debug( "exchange.receiveMessage received from rank: {}", rank );
     		
     		return m;
     	
     	} else {
     		
-    		if( MASS.isConsoleLoggingEnabled() == true )
-    			MASSBase.log( "exchange.receiveMessage error from rank[" + 
-    					rank + "]" );
+   			logger.debug( "exchange.receiveMessage error from rank[{}]", rank );
     		
     		System.exit( -1 );
     	
@@ -229,8 +213,7 @@ public class ExchangeHelper {
 
     public void sendMessage( int rank, Message exchangeReq ) {
 
-    	if ( MASS.isConsoleLoggingEnabled() == true )
-    		MASSBase.log( "exchange.sendMessage will be sent to rank: " +
+   		logger.debug( "exchange.sendMessage will be sent to rank: " +
     				rank + ", exchangeReq.exchangeReqList = " +
     				exchangeReq.getExchangeReqList()  + 
     				", exchangeReq.migrationReqList = " +
@@ -256,16 +239,14 @@ public class ExchangeHelper {
     	
     	catch ( Exception e ) {
     		
-    		MASSBase.log ( "exchange.sendMessage to rank: " + rank + 
+    		logger.debug ( "exchange.sendMessage to rank: " + rank + 
     				". Error: " + e + ", outputs[rank] = " + 
     				outputs[rank] + 
     				", exchangeReq" + exchangeReq );
     	
     	}
 
-    	if ( MASS.isConsoleLoggingEnabled() == true )
-    		MASSBase.log( "exchange.sendMessage has been sent to rank: " +
-    				rank );
+   		logger.debug( "exchange.sendMessage has been sent to rank: {}",	rank );
     
     }
 
@@ -279,14 +260,11 @@ public class ExchangeHelper {
     		} 
     		
     		catch ( Exception e ) {
-          MASS.logException(null, e); }
-    		
-    		if ( MASS.isConsoleLoggingEnabled() == true ) {
-    			
-    			MASSBase.log( "rank[" + rank + 
-    					"] has disconnected to rank[" + i + "]: " );
-    		
+    			logger.error("Exception thrown while terminating connection in ExchangeHelper", e); 
     		}
+    		
+   			logger.debug( "rank[" + rank + "] has disconnected to rank[" + i + "]: " );
+    		
     	
     	}
     

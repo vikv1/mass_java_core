@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 public class PlacesBase {
 
@@ -54,6 +55,9 @@ public class PlacesBase {
     private Place[] rightShadow;
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
+
 	public PlacesBase( int handle, String className, int boundary_width, Object argument, int[] size ) {
 		
 		this.handle = handle;
@@ -61,8 +65,7 @@ public class PlacesBase {
 		this.boundaryWidth = boundary_width;
 		this.size = size;
 
-		if ( MASS.isConsoleLoggingEnabled() )
-			MASSBase.log( "Places_base handle = " + handle
+		logger.debug( "Places_base handle = " + handle
 					+ ", class = " + className
 					+ ", argument = " + argument
 					+ ", boundary_width = " + boundary_width 
@@ -87,8 +90,7 @@ public class PlacesBase {
     		places_size = param[2];
     		shadow_size = param[3];
 
-    		if ( MASS.isConsoleLoggingEnabled() )
-    			MASSBase.log( "Places_base.ExchangeBoundary_helper direction"+
+   			logger.debug( "Places_base.ExchangeBoundary_helper direction"+
     					" = " + direction
     					+ ", handle = " + handle
     					+ ", places_size = " + places_size 
@@ -108,12 +110,11 @@ public class PlacesBase {
     		for ( int i = 0; i < shadow_size; i++ )
     			buffer[i] = places[startIndex + i].getOutMessage();
 
-    		if ( MASS.isConsoleLoggingEnabled() ) {
-    			MASSBase.log( "Places_base.exchangeBoundary_helper direction"+
-    					" = " + direction );
+    		if ( logger.isDebugEnabled() ) {
+    			logger.debug( "Places_base.exchangeBoundary_helper direction = {}", direction );
 
     			for ( int i = 0; i < shadow_size; i++ )
-    				MASSBase.log( "buffer[" + i + "] = " + buffer[i] );
+    				logger.debug( "buffer[" + i + "] = " + buffer[i] );
 
     		}
 
@@ -128,8 +129,7 @@ public class PlacesBase {
     				
     				MASSBase.getMyPid() - 1 : MASSBase.getMyPid() + 1;
 
-    				if ( MASS.isConsoleLoggingEnabled() )
-    					MASSBase.log( "Places_base.exchangeBoundary_helper direction"+
+   					logger.debug( "Places_base.exchangeBoundary_helper direction"+
     							" = " + direction + ", rankNmessage.rank = " + 
     							destRank );
 
@@ -143,8 +143,7 @@ public class PlacesBase {
     				Message messageFromDest 
     				= MASSBase.getExchange().receiveMessage( destRank );
 
-    				if ( MASS.isConsoleLoggingEnabled() )
-    					MASSBase.log( "Places_base.exchangeBoundary_helper direction"+
+   					logger.debug( "Places_base.exchangeBoundary_helper direction"+
     							" = " + direction
     							+ ", messageFromDest = " + messageFromDest );
 
@@ -155,12 +154,10 @@ public class PlacesBase {
     						thread_ref.join( );
     					} 
     					catch ( Exception e ) {
-                MASS.logException(null, e);
+    						logger.error("Unknown exception caught waiting for child termination", e);
     					}
     					
-    					MASSBase.log( "Places_base.exchangeBoundary_helper " +
-    							"direction = " + direction +
-    							", sendMessageByChild terminated" );
+    					logger.debug( "Places_base.exchangeBoundary_helper direction = {}, sendMessageByChild terminated", direction );
     				
     				}
 
@@ -178,8 +175,8 @@ public class PlacesBase {
     					
     					shadow[i].setOutMessage(buffer[i]);
     					
-    					if ( MASS.isConsoleLoggingEnabled() ) 
-    						MASSBase.log( "Places_base.exchangeBoundary_helper " +
+    					if ( logger.isDebugEnabled() ) 
+    						logger.debug( "Places_base.exchangeBoundary_helper " +
     								"direction = " + direction +
     								", shadow[" + i + "].outMessage = " +
     								shadow[i].getOutMessage() +
@@ -214,23 +211,22 @@ public class PlacesBase {
     		Vector<RemoteExchangeRequest> orgRequest = null;
 
     		if ( MASS.isConsoleLoggingEnabled() )
-    			MASSBase.log( "rank[" + destRank + 
-    					"]: starts processRemoteExchangeRequest" );
+    			logger.debug( "rank[{}]: starts processRemoteExchangeRequest", destRank );
 
     		// pick up the next rank to process
     		orgRequest = MASSBase.getRemoteRequests().get(destRank);
 
     		// for debugging
+    		if ( logger.isDebugEnabled() ) {
     		synchronized( orgRequest ) {
     			
-    			if ( MASS.isConsoleLoggingEnabled() ) {
-    				MASSBase.log( "tid[" + destRank + 
+    				logger.debug( "tid[" + destRank + 
     						"] sends an exhange request to rank: " +
     						destRank + " size() = " + 
     						orgRequest.size( ) );
     				
     				for ( int i = 0; i < orgRequest.size( ); i++ )
-    					MASSBase.log( "send from " +
+    					logger.debug( "send from " +
     							orgRequest.get(i).
     							getOrgGlobalLinearIndex() + " to " +
     							orgRequest.get(i).
@@ -240,7 +236,7 @@ public class PlacesBase {
     			}
     		
     		}
-
+    	
     		// now compose and send a message by a child
     		Message messageToDest = new
     				Message( Message.ACTION_TYPE.
@@ -261,7 +257,8 @@ public class PlacesBase {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-          MASS.logException(null, e);
+    			// TODO - should do something when this exception is caught - not just swallow it
+    			logger.error("Exception during message exchanging in PlacesBase", e);
     		}
 
     		// process a message
@@ -272,10 +269,9 @@ public class PlacesBase {
     		PlacesBase dstPlaces = 
     				MASSBase.getPlacesMap().get( new Integer( destHandle_at_dst ) );
 
-    		if ( MASS.isConsoleLoggingEnabled() ) {
-    			MASSBase.log( "request from rank[" + destRank + "] = " +
-    					receivedRequest );
-    			MASSBase.log( " size( ) = " + receivedRequest.size( ) );
+    		if ( logger.isDebugEnabled() ) {
+    			logger.debug( "request from rank[" + destRank + "] = ", receivedRequest );
+    			logger.debug( " size( ) = " + receivedRequest.size( ) );
     		}
 
     		// get prepared for a space to sotre return values
@@ -284,8 +280,8 @@ public class PlacesBase {
     		// for each place, call the corresponding callMethod( ).
     		for ( int i = 0; i < receivedRequest.size( ); i++ ) {
 
-    			if ( MASS.isConsoleLoggingEnabled() )
-    				MASSBase.log( "received from " +
+    			if ( logger.isDebugEnabled() )
+    				logger.debug( "received from " +
     						receivedRequest.get(i).
     						getOrgGlobalLinearIndex() + " to " +
     						receivedRequest.get(i).
@@ -306,12 +302,9 @@ public class PlacesBase {
     				int destinationLocalLinearIndex 
     				= globalLinearIndex - dstPlaces.lowerBoundary;
 
-    				if ( MASS.isConsoleLoggingEnabled() )
-    					MASSBase.log( " dstLocal = " + 
-    							destinationLocalLinearIndex );
+    				logger.debug( " dstLocal = ", destinationLocalLinearIndex );
 
-    				Place dstPlace 
-    				= dstPlaces.places[destinationLocalLinearIndex];
+    				Place dstPlace = dstPlaces.places[destinationLocalLinearIndex];
 
     				// call the destination function
     				retVals[i] = dstPlace.callMethod( functionId, outMessage );
@@ -337,7 +330,8 @@ public class PlacesBase {
     			thread_ref.join( );
     		} 
     		catch ( Exception e ) {
-          MASS.logException(null, e);
+    			// TODO - need to so something once this exception is thrown
+    			logger.debug("Exception thrown while exchanging messages in PlacesBase", e);
     		}
 
     		// store return values to the orignal places
@@ -362,8 +356,8 @@ public class PlacesBase {
     			srcPlace.getInMessages()[orgRequest.get(i).getInMessageIndex()]
     					= inMessage;
 
-    			if ( MASS.isConsoleLoggingEnabled() )
-    				MASSBase.log( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
+    			if ( logger.isDebugEnabled() )
+    				logger.debug( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
     						+ srcPlace.getIndex()[1] + "] inserted " 
     						+ "at " 
     						+ orgRequest.get(i).getInMessageIndex() );
@@ -395,8 +389,8 @@ public class PlacesBase {
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		MASSBase.log( "thread[" + tid + "] callAll functionId = " + 
+    	if ( logger.isDebugEnabled() )
+    		logger.debug( "thread[" + tid + "] callAll functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] );
 
@@ -404,9 +398,10 @@ public class PlacesBase {
     		
     		for ( int i = range[0]; i <= range[1]; i++ ) {
     			
-    			if ( MASS.isConsoleLoggingEnabled() )
-    				MASSBase.log( "thread[" + tid + "]: places[i] = " + 
-    						places[i] );
+    			// TODO - what is being logged here? A Places object?
+//    			if ( logger.isDebugEnabled() )
+//    				logger.debug( "thread[" + tid + "]: places[i] = " + 
+//    						places[i] );
 
     			places[i].callMethod( functionId, argument );
     		
@@ -422,8 +417,8 @@ public class PlacesBase {
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		MASSBase.log( "thread[" + tid + 
+    	if ( logger.isDebugEnabled() )
+    		logger.debug( "thread[" + tid + 
     				"] callAll_return object functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] +
@@ -433,8 +428,8 @@ public class PlacesBase {
 
     		for ( int i = range[0]; i <= range[1]; i++ ) {
     			
-    			if ( MASS.isConsoleLoggingEnabled() )
-    				MASSBase.log( "thread[" + tid + "]: places[" + i + "] = " + 
+    			if ( logger.isDebugEnabled() )
+    				logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
     						places[i] );
 
     			MASSBase.getCurrentReturns()[i] = 
@@ -454,8 +449,8 @@ public class PlacesBase {
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		MASSBase.log( "thread[" + tid + "] exchangeAll functionId = " + 
+    	if ( logger.isDebugEnabled() )
+    		logger.debug( "thread[" + tid + "] exchangeAll functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] );
 
@@ -483,8 +478,8 @@ public class PlacesBase {
     						dstPlaces.size,
     						neighborCoord );
     				
-    				if ( MASS.isConsoleLoggingEnabled() )
-    					MASSBase.log( "tid[" + tid + "]: calls from"
+    				if ( logger.isDebugEnabled() )
+    					logger.debug( "tid[" + tid + "]: calls from"
     							+ "[" + srcPlace.getIndex()[0]
     									+ "][" + srcPlace.getIndex()[1] + "]"
     									+ " (neighborCord[" + neighborCoord[0]
@@ -501,8 +496,8 @@ public class PlacesBase {
     									neighborCoord,
     									dstPlaces.size );
 
-    					if ( MASS.isConsoleLoggingEnabled() ) 
-    						MASSBase.log( " linear = " + globalLinearIndex
+    					if ( logger.isDebugEnabled() ) 
+    						logger.debug( " linear = " + globalLinearIndex
     								+ " lower = " 
     								+ dstPlaces.lowerBoundary
     								+ " upper = " 
@@ -516,8 +511,8 @@ public class PlacesBase {
     						Place dstPlace = 
     								dstPlaces.places[destinationLocalLinearIndex];
 
-    						if ( MASS.isConsoleLoggingEnabled() )
-    							MASSBase.log( " to [" + dstPlace.getIndex()[0] +
+    						if ( logger.isDebugEnabled() )
+    							logger.debug( " to [" + dstPlace.getIndex()[0] +
     									"][" + dstPlace.getIndex()[1] + "]");
 
     						// call the destination function
@@ -529,9 +524,7 @@ public class PlacesBase {
     						srcPlace.getInMessages()[j] = inMessage;
 
     						// for debug
-    						if ( MASS.isConsoleLoggingEnabled() )
-    							MASSBase.log( " inMessage = " +
-    									srcPlace.getInMessages()[j] );
+    						logger.debug( " inMessage = {}",srcPlace.getInMessages()[j] );
     					
     					} 
     					
@@ -561,8 +554,8 @@ public class PlacesBase {
     							
     							remoteRequests.add( request );
     							
-    							if ( MASS.isConsoleLoggingEnabled() )
-    								MASSBase.log( "remoteRequest[" + 
+    							if ( logger.isDebugEnabled() )
+    								logger.debug( "remoteRequest[" + 
     										destRank + "].add:" +
     										" org = " + 
     										orgGlobalLinearIndex +
@@ -579,8 +572,7 @@ public class PlacesBase {
     				
     				else {
     					
-    					if ( MASS.isConsoleLoggingEnabled() )
-    						MASSBase.log( " to destination invalid" );
+    					logger.error( " to destination invalid" );
     				
     				}
     			
@@ -595,9 +587,7 @@ public class PlacesBase {
     	
     	if ( tid == 0 ) {
 
-    		if ( MASS.isConsoleLoggingEnabled() )
-    			MASSBase.log( "tid[" + tid + 
-    					"] now enters processRemoteExchangeRequest" );
+    		logger.debug( "tid[{}] now enters processRemoteExchangeRequest", tid );
 
     		// the main thread spawns as many communication threads as 
     		// the number of remote computing nodes and let each invoke 
@@ -635,9 +625,13 @@ public class PlacesBase {
     			
     			try {
     				thread_ref[rank].join( );
-    			} 
+    			}
+    			
+    			// TODO - should something be done here on exception?
     			catch ( Exception e ) {
-            MASS.logException(null, e);
+    				
+    				logger.error("Exception thrown in PlacesBase while attempting to join rank {}", rank, e);
+
     			}
     		
     		}
@@ -646,9 +640,7 @@ public class PlacesBase {
     	
     	else {
     		
-    		if ( MASS.isConsoleLoggingEnabled() )
-    			MASSBase.log( "tid[" + tid + 
-    					"] skips processRemoteExchangeRequest" );
+    		logger.debug( "tid[{}] skips processRemoteExchangeRequest", tid );
     	
     	}
     
@@ -657,17 +649,13 @@ public class PlacesBase {
     public void exchangeBoundary( ) {
     	
     	if ( shadowSize == 0 ) { // no boundary, no exchange
-    		MASSBase.log( "places (handle = " + handle +
-    				") has NO boundary, " + 
-    				"and thus invokes NO exchange boundary" );
+    		logger.debug( "places (handle = {}) has NO boundary, and thus invokes NO exchange boundary", handle );
     		return;
     	}
 
     	ExchangeBoundary_helper thread_ref = null;
 
-    	if ( MASS.isConsoleLoggingEnabled() ) {
-    		MASSBase.log( "exchangeBoundary starts" );
-    	}
+    	logger.debug( "exchangeBoundary starts" );
 
     	int[][] param = new int[2][4];
     	if ( MASSBase.getMyPid() < MASSBase.getSystemSize() - 1 ) {
@@ -677,10 +665,7 @@ public class PlacesBase {
     		param[0][1] = handle;
     		param[0][2] = placesSize;
     		param[0][3] = shadowSize;
-    		if ( MASS.isConsoleLoggingEnabled() ) 
-    			MASSBase.log( "exchangeBoundary: " +
-    					"pthreacd_create( helper, R ) places_size=" +
-    					placesSize );
+    		logger.debug( "exchangeBoundary: pthreacd_create( helper, R ) places_size= {}", placesSize );
 
     		thread_ref = new ExchangeBoundary_helper( param[0] );
     		thread_ref.start( );
@@ -694,10 +679,8 @@ public class PlacesBase {
     		param[1][1] = handle;    
     		param[1][2] = placesSize;
     		param[1][3] = shadowSize;
-    		if ( MASS.isConsoleLoggingEnabled() ) 
-    			MASSBase.log( "exchangeBoundary: " +
-    					"main thread( helper, L ) places_size=" + 
-    					placesSize );
+
+    		logger.debug( "exchangeBoundary: main thread( helper, L ) places_size = {}", placesSize );
 
     		( new ExchangeBoundary_helper( param[1] ) ).run( );
     	
@@ -710,9 +693,9 @@ public class PlacesBase {
     			thread_ref.join( ); 
     		} 
     		catch ( Exception e ) {
-    			MASSBase.log( "exchangeBoundary: " +
-    					"the main failed in joining with the child = " +
-    					e );
+    			
+    			logger.debug( "exchangeBoundary: the main failed in joining with the child = {}", e );
+    		
     		}
     	
     	}
@@ -904,11 +887,9 @@ public class PlacesBase {
     public void init_all( Object argument ) {
     	
     	// For debugging
-    	if ( MASS.isConsoleLoggingEnabled() ) {
-    		MASSBase.log( "init_all handle = " + handle + 
+    	logger.debug( "init_all handle = " + handle + 
     				", class = " + className + 
     				", argument = " + argument );
-    	}
 
     	// load the place constructor
     	try {
@@ -947,10 +928,10 @@ public class PlacesBase {
     		}
     	
     	} 
-
+    	
+    	// TODO - what to do when this exception is caught?
     	catch ( Exception e ) {
-    	  MASSBase.logException( "Places_base.init_all: " + className + 
-    				" not loaded and/or instantiated", e);
+    	  logger.error( "Places_base.init_all: {} not loaded and/or instantiated", className, e);
     	}
 
     	// allocate the left/right shadows
@@ -966,8 +947,7 @@ public class PlacesBase {
     	shadowSize = ( size.length == 1 ) 
     			? boundaryWidth : total / size[0] * boundaryWidth;
     	
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		MASSBase.log( "Places_base.shadow_size = " + shadowSize );
+    	logger.debug( "Places_base.shadow_size = {}", shadowSize );
 
     	leftShadow = ( MASSBase.getMyPid() == 0 ) ?
     			null : new Place[ shadowSize ];
@@ -1004,9 +984,11 @@ public class PlacesBase {
     		
     		}
     	
-    	} 
+    	}
+    	
+    	// TODO - what to do if this is caught?
     	catch ( Exception e ) {
-        MASS.logException(null, e);
+        	logger.error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
     	} 
     
     }

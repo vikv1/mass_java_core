@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 public class AsyncOutputThread extends Thread {
 	
 	private static final int NAGLE_TIMEOUT = 30; // milisec
@@ -70,6 +72,9 @@ public class AsyncOutputThread extends Thread {
 											 * AsyncCommunicationLock(),
 											 */
 	slaveResultLock = new AsyncCommunicationLock();
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	@SuppressWarnings("unchecked")
 	public AsyncOutputThread(int port) {
@@ -103,14 +108,15 @@ public class AsyncOutputThread extends Thread {
 
 	public void run() {
 
-		MASS.log("AsyncOutputThread start at port " + port);
+		logger.debug("AsyncOutputThread start at port {}", port);
 		while (running) {
 			synchronized (lastRequestRank) {
 				while (lastRequestRank.isEmpty() && running) {
 					try {
 						lastRequestRank.wait();
 					} catch (InterruptedException e) {
-						MASS.logException(null, e);
+						// TODO - really, really bad to swallow thread interruptions
+						logger.error("Async thread interrupted", e);
 					}
 				}
 
@@ -123,10 +129,8 @@ public class AsyncOutputThread extends Thread {
 
 							synchronized (migrationRequestMap[dequeueRank]) {
 								if (migrationRequestMap[dequeueRank].size() > 0) {
-									if (MASS.isConsoleLoggingEnabled()) {
-										MASS.log("AOT async migrate to " + dequeueRank + ", req size = "
+										logger.debug("AOT async migrate to " + dequeueRank + ", req size = "
 												+ migrationRequestMap[dequeueRank].size());
-									}
 									reqlist = new Vector<AgentMigrationRequest>(migrationRequestMap[dequeueRank]);
 									migrationRequestMap[dequeueRank].clear();
 								}
@@ -146,7 +150,7 @@ public class AsyncOutputThread extends Thread {
 				}
 			}
 		}
-		MASS.log("AsyncOutputThread ends");
+		logger.debug("AsyncOutputThread ends");
 	}
 
 	public void finish() {
@@ -154,7 +158,7 @@ public class AsyncOutputThread extends Thread {
 		synchronized (lastRequestRank) {
 			lastRequestRank.notifyAll();
 		}
-		MASS.log("AsyncOutputThread finishes");
+		logger.debug("AsyncOutputThread finishes");
 	}
 
 	public void requestMigration(int destRank, AgentMigrationRequest request) {
@@ -163,10 +167,8 @@ public class AsyncOutputThread extends Thread {
 				migrationRequestMap[destRank].add(request);
 			}
 			int lastCount = runningChildRequestCount.incrementAndGet();
-			if (MASS.isConsoleLoggingEnabled()) {
-				MASS.log("requestMigration to [" + destRank + "]. asyncfunc index = "
+				logger.debug("requestMigration to [" + destRank + "]. asyncfunc index = "
 						+ request.agent.getAsyncFuncListIndex() + " runningChildRequestCount = " + lastCount);
-			}
 
 			if (MIN_ITEM_TO_SEND > 1 && timeouts[destRank] == 0) {
 				// NAGLE algorithm in effect
@@ -195,7 +197,8 @@ public class AsyncOutputThread extends Thread {
 				try {
 					slaveResultLock.wait();
 				} catch (InterruptedException e) {
-					MASS.logException(null, e);
+					// TODO - really, really bad idea to swallow thread interruption exceptions
+					logger.error("Interrupted thread exception in requestAsyncResults", e);
 				}
 			}
 			finalAgents = (List<Agent>) slaveResultLock.getResult();
@@ -203,7 +206,7 @@ public class AsyncOutputThread extends Thread {
 		}
 
 		if (MASS.isConsoleLoggingEnabled())
-			MASSBase.log("All slaves return " + (finalAgents != null ? finalAgents.size() : 0));
+			logger.debug("All slaves return " + (finalAgents != null ? finalAgents.size() : 0));
 
 		synchronized (MASSBase.getCurrentAgents().getCompleteQueue()) {
 			MASSBase.getCurrentAgents().getCompleteQueue().addAll(finalAgents);
@@ -223,15 +226,14 @@ public class AsyncOutputThread extends Thread {
 			try {
 				Thread.sleep(NAGLE_TIMEOUT);
 			} catch (InterruptedException e) {
-				MASS.logException(null, e);
+				// TODO - really bad idea to swallow thread interruption exceptions
+				logger.error("Thread interruption exception in timout handler", e);
 			}
 			synchronized (lastRequestRank) {
 				lastRequestRank.add(destRank);
 				timeouts[destRank] = 2;
 				lastRequestRank.notifyAll();
-				if (MASS.isConsoleLoggingEnabled()) {
-					MASS.log("TimoutHandler notified " + destRank);
-				}
+				logger.debug("TimoutHandler notified {}", destRank);
 			}
 		}
 	}
@@ -246,11 +248,10 @@ public class AsyncOutputThread extends Thread {
 		}
 
 		public void run() {
+			
 			String hostName = MASSBase.getHosts().get(rank);
-			if (MASS.isConsoleLoggingEnabled()) {
-				MASSBase.log("SendMessageByChild to rank " + rank + "= " + hostName + " starts for message type "
+			logger.debug("SendMessageByChild to rank " + rank + "= " + hostName + " starts for message type "
 						+ message.getActionString());
-			}
 
 			try {
 				if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
@@ -264,10 +265,7 @@ public class AsyncOutputThread extends Thread {
 				oos.writeObject(message);
 				oos.flush();
 				if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
-					if (MASS.isConsoleLoggingEnabled()) {
-						MASS.log(message.getMigrationReqList().size()
-								+ " agent(s) migrated. Wait from migration complete ack");
-					}
+					logger.debug("{} agent(s) migrated. Wait from migration complete ack", message.getMigrationReqList().size());
 					ObjectInputStream ois = new ObjectInputStream(sendSocket.getInputStream());
 					AgentMigrationResponse decrease = (AgentMigrationResponse) ois.readObject();
 					synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
@@ -278,9 +276,7 @@ public class AsyncOutputThread extends Thread {
 						if (incompleteCount == 0) {
 							MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
 						}
-						if (MASS.isConsoleLoggingEnabled()) {
-							MASS.log("Migration complete ACK received " + incompleteCount);
-						}
+						logger.debug("Migration complete ACK received {}", incompleteCount);
 					}
 					ois.close();
 				}
@@ -296,12 +292,11 @@ public class AsyncOutputThread extends Thread {
 				 * }
 				 */
 			} catch (IOException | ClassNotFoundException e) {
-				MASS.logException(null, e);
+				logger.error("Unexpected exception in AsyncOutputThread", e);
 			}
 
-			if (MASS.isConsoleLoggingEnabled()) {
-				MASSBase.log("Req to " + rank + " finished");
-			}
+			logger.debug("Req to {} finished", rank);
+		
 		}
 	}
 
@@ -324,8 +319,7 @@ public class AsyncOutputThread extends Thread {
 				ObjectInputStream ois = new ObjectInputStream(sendSocket.getInputStream());
 				Message result = (Message) ois.readObject();
 				synchronized (slaveResultLock) {
-					if (MASS.isConsoleLoggingEnabled())
-						MASS.log("Agent Async result from " + result.getSourcePid() + " has "
+						logger.debug("Agent Async result from " + result.getSourcePid() + " has "
 								+ ((List<Agent>) result.getArgument()).size() + " agents, local population is "
 								+ result.getAgentPopulation());
 					((List<Agent>) slaveResultLock.getResult()).addAll((List<Agent>) result.getArgument());
@@ -347,7 +341,7 @@ public class AsyncOutputThread extends Thread {
 					}
 				}
 			} catch (IOException | ClassNotFoundException e) {
-				MASS.logException(null, e);
+				logger.error("Unexpected exception in AsyncOutputThread", e);
 			}
 		}
 	}
@@ -412,9 +406,7 @@ public class AsyncOutputThread extends Thread {
 
 	public void notifySourceOfCompleteness(int numOfInAgents) {
 		if (MASSBase.getSourceAgentPid() != -1) {
-			if (MASS.isConsoleLoggingEnabled()) {
-				MASSBase.log("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to " + MASSBase.getSourceAgentPid());
-			}
+			logger.debug("Send NODE_SLAVE_COMPLETE_NOTIFY_SENDER to {}", MASSBase.getSourceAgentPid());
 			Message messageToDest = new Message(Message.ACTION_TYPE.NODE_COMPLETE_NOTIFY_SOURCE, numOfInAgents);
 			messageToDest.setSourcePid(MASSBase.getMyPid());
 			SendMessageByChild thread_ref = new SendMessageByChild(MASSBase.getSourceAgentPid(), messageToDest);
@@ -428,9 +420,7 @@ public class AsyncOutputThread extends Thread {
 		// and
 		// Agents loop
 		synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
-			if (MASS.isConsoleLoggingEnabled()) {
-				MASS.log("AsyncOutputThread isIdle = " + runningChildRequestCount.get());
-			}
+			logger.debug("AsyncOutputThread isIdle = {}", runningChildRequestCount.get());
 			return runningChildRequestCount.get() == 0;
 		}
 	}

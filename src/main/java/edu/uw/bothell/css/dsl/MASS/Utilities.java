@@ -30,6 +30,9 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -49,6 +52,9 @@ class Utilities {
 	// reference to the SSH library - not initialized by default so it can be
 	// replaced by a mock object for testing
 	private JSch jsch = null;
+	
+	// logging
+	//private Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	/**
 	 * Obtain a communications channel with a remote host and execute a command.
@@ -136,6 +142,29 @@ class Utilities {
     	public boolean promptYesNo( String message ) { return true; };
     	public void showMessage( String message ) { };
     
+    }
+
+    /**
+     * Get the hostname or IP address of this node
+     * @return The network address of this node
+     */
+    public String getLocalHostname() {
+
+		String hostname = null;
+		
+		try {
+			
+			hostname = InetAddress.getLocalHost().getHostName();
+			
+		}
+		catch (UnknownHostException e) {
+
+			// no biggie, at least not now
+			
+		}
+
+		return hostname;
+		
     }
 
 }

@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
@@ -72,6 +74,9 @@ public class Agent implements Serializable {
 	 */
 	private Object[] arguments = null;
 
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
+	
 	// Async
 	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
 	private Object[] asyncResults;
@@ -394,8 +399,7 @@ public class Agent implements Serializable {
 		}
 		result.myAsyncOriginalPid = this.myAsyncOriginalPid;
 		result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-		if(MASS.isConsoleLoggingEnabled())
-			MASSBase.log("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
+		logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
 		return result;
 	}
 

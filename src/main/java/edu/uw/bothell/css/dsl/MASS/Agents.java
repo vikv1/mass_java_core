@@ -34,6 +34,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
@@ -44,6 +46,9 @@ public class Agents extends AgentsBase implements Serializable {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
   private int total;
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
    * Instantiates a set of agents from the "className" class, passes the
@@ -151,15 +156,7 @@ public class Agents extends AgentsBase implements Serializable {
     }
 
     // resume threads
-    if (MASS.isConsoleLoggingEnabled()) {
-
-      MASSBase.log("MASS_base.currentgAgents = "
-          + MASSBase.getCurrentAgents());
-
-      MASSBase.log("MASS_base.getCurrentgAgents = "
-          + MASSBase.getCurrentAgents());
-
-    }
+    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgents());
 
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
@@ -226,9 +223,7 @@ public class Agents extends AgentsBase implements Serializable {
         // Node started with zero agent won't send completeness notification
         MASS.getChildAgentPids().add(i);
         MASS.getOutAsyncAgents()[i] += localAgents[i]; // a way for master to keep track
-        if(MASS.isConsoleLoggingEnabled()) {
-          MASS.log("Node " + i + " has master as originator");
-        }
+          logger.debug("Node {} has master as originator", i);
       }
     }
     
@@ -240,7 +235,7 @@ public class Agents extends AgentsBase implements Serializable {
         expectedAgentSize *= places.getSize()[i];
       }
       if(total != expectedAgentSize) {
-        MASS.log("Need " + expectedAgentSize + " for automigration. There are " + total + " agents total");
+        logger.debug("Need " + expectedAgentSize + " for automigration. There are " + total + " agents total");
         return null;
       }
     }
@@ -303,15 +298,12 @@ public class Agents extends AgentsBase implements Serializable {
      */
 
     // resume threads
-    if (MASS.isConsoleLoggingEnabled()) {
-      MASSBase.log("MASS_base.currentgAgents = "
-          + MASSBase.getCurrentAgents());
-    }
+    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgents());
 
     boolean asyncQueueComplete = false;
     do {
-      if (MASS.isConsoleLoggingEnabled())
-        MASS.log("Begin callAllAsync loop");
+
+      logger.debug("Begin callAllAsync loop");
       
       // Mark myself as busy executing my async queue
       setIsAsyncLoopIdle(false);
@@ -323,32 +315,31 @@ public class Agents extends AgentsBase implements Serializable {
 
       // Done with processing my async queue
       setIsAsyncLoopIdle(true);
-      synchronized (getAsyncQueue()) {
-          asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
-          if(MASS.isConsoleLoggingEnabled()) {
-            MASS.log("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " 
-                + asyncQueueIsEmpty() + " && " + hasNoInprocessAgents() +
-                "; MASS.getChildAgentPids().isEmpty() = " +
-                MASS.getChildAgentPids().isEmpty());
-          }
-          while((!MASS.getChildAgentPids().isEmpty() || 
-              !MASS.getAsyncOutputThread().isIdle()
-              || !MASS.getAsyncInputThread().isIdle(false))
-              && asyncQueueComplete) {
-              if (MASS.isConsoleLoggingEnabled()) {
-                MASS.log(MASS.getChildAgentPids().isEmpty() + " && "
-                    + MASS.getAsyncOutputThread().isIdle() + " && "
-                    + MASS.getAsyncInputThread().isIdle(false) + 
-                    " getAsyncQueue().size() = " + asyncQueueSize());
-              }
-              try {
-                getAsyncQueue().wait();
-              } catch (InterruptedException e) {
-                MASS.logException(null, e);
-              }              
-              asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
-            }
-          }
+			synchronized (getAsyncQueue()) {
+				
+				asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+				
+				logger.debug("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " + asyncQueueIsEmpty() + " && "
+						+ hasNoInprocessAgents() + "; MASS.getChildAgentPids().isEmpty() = "
+						+ MASS.getChildAgentPids().isEmpty());
+			
+			}
+			
+			while ((!MASS.getChildAgentPids().isEmpty() || !MASS.getAsyncOutputThread().isIdle()
+					|| !MASS.getAsyncInputThread().isIdle(false)) && asyncQueueComplete) {
+				
+				logger.debug(MASS.getChildAgentPids().isEmpty() + " && " + MASS.getAsyncOutputThread().isIdle() + " && "
+						+ MASS.getAsyncInputThread().isIdle(false) + " getAsyncQueue().size() = " + asyncQueueSize());
+				
+				try {
+					getAsyncQueue().wait();
+				} catch (InterruptedException e) {
+					logger.error("Caught exception while processing async queue", e);
+				}
+				
+				asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+			
+			}
       
       // confirm all threads are done with agents.callAllAsync
       // backward compatibility barrier twice,
@@ -428,9 +419,8 @@ public class Agents extends AgentsBase implements Serializable {
     for (MNode node : MASS.getRemoteNodes()) {
 
       node.sendMessage(m);
-      if (MASS.isConsoleLoggingEnabled() == true)
-        MASSBase.log("AGENT_INITIALIZE sent to " + node.getPid());
-
+      logger.debug("AGENT_INITIALIZE sent to {}", node.getPid());
+    
     }
 
     // Synchronized with all slave processes
@@ -441,11 +431,7 @@ public class Agents extends AgentsBase implements Serializable {
     for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 
       total += localAgents[i];
-      // for debugging
-
-      if (MASS.isConsoleLoggingEnabled())
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
+      logger.debug("rank[" + i + "]'s local agent population = " + localAgents[i]);
 
     }
 

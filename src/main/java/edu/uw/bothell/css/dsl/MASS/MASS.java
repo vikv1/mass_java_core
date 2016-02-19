@@ -48,6 +48,8 @@ import com.jcraft.jsch.Channel;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -84,6 +86,8 @@ public class MASS extends MASSBase {
 	private static Places debuggerInstance;
 	public static final int DEBUGGER_HANDLE = 99;
 
+	// Logging
+	private static Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
@@ -91,17 +95,23 @@ public class MASS extends MASSBase {
      */
     public static void addLibrary(String libraryName) {
     	
+    	logger.debug("Adding library: " + libraryName);
+    	
     	// add the library to the object factory
     	try {
+    		
     		objectFactory.addLibrary(libraryName);
+
+        	// remember the specified library so it can be set on remote nodes as well
+        	libraries.add(libraryName);
+
     	}
     	catch (Exception e) {
-        MASS.logException(null, e);
+        	logger.error("Exception thrown while adding library!", e);
     	}
-
-    	// remember the specified library so it can be set on remote nodes as well
-    	libraries.add(libraryName);
-    
+    	
+    	logger.debug("Library successfully added!");
+    	
     }
     
 	static void barrierAllSlaves( ) { 
@@ -404,7 +414,7 @@ public class MASS extends MASSBase {
 
     		catch ( Exception e ) {
 
-    			log( "wrong host name: " + node.getHostName() );
+    			logger.error( "Wrong host name: {}", node.getHostName(), e );
     			System.exit( -1 );
 
     		}
@@ -703,5 +713,13 @@ public class MASS extends MASSBase {
 		//Debugger.sendDataToGUI(2);
 		//MASS.debuggerInstance.callAll(Debugger.fetchAgentDebugData_, new Integer[2]);
 	}
-
+	
+	/**
+	 * Change logger level
+	 * @param level The logging level
+	 */
+	public static void setLoggingLevel(LogLevel level) {
+		logger.setLogLevel(level);
+	}
+	
 }

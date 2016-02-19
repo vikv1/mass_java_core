@@ -30,6 +30,8 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 public class AgentList {
 
 	private final int CAPACITY_X = 1000; // max agent population = 1 million
@@ -43,6 +45,9 @@ public class AgentList {
 	private int nextY = 0;
 	private int iterator = 0;
 	private int estimateSize = 0;
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	public AgentList( ) {
 		init( CAPACITY_Y );
@@ -85,7 +90,7 @@ public class AgentList {
 	public void checkInternal( ) {
 		
 		for ( int x = 0; x < currentX * capacityY + nextY; x++ )
-			MASSBase.log( "AgentList[" + get( x ) + "]" );
+			logger.debug( "AgentList[{}]", get( x ) );
 	
 	}
 
@@ -211,7 +216,7 @@ public class AgentList {
 		nextY = yNull;
 		reduceDone = true;
 		estimateSize = this.size_unreduced();
-		MASS.log( "reduce done to " + size_unreduced( ) );
+		logger.debug( "Reduce done to {}", size_unreduced( ) );
 	
 	}
 
