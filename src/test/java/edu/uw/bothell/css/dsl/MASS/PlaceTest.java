@@ -20,9 +20,14 @@ import ucar.nc2.stream.NcStreamProto;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Place Test
@@ -31,26 +36,33 @@ import java.util.List;
  */
 public class PlaceTest extends AbstractTest {
 
+
     @TestSubject
-    private Place place = new Place(); // create a place object to test with
+    private Place place1 = new Place(); // create a place object to test with
+
+    @TestSubject
+    private Place place2 = new Place();
 
     @Test
     public void testOpenWithTxt() throws Exception {
-        String fileName = "testTxt.txt";
+        String filePath = "/Users/Michael/mass_java_core/testTxt.txt";
 
+        Object descriptor = null;
         // call places open method with the given files name and check if
         // returned descriptor object is returned as expected
-        Object descriptor = place.open(fileName);
+        descriptor = place1.open(filePath, 0);
 
-        // check if descriptor is a BufferedReader object
-        if (descriptor instanceof BufferedReader) {
+        descriptor = place2.open(filePath, 0);
 
-            // txt file will read "SUCCESS" if returned properly
-            System.out.println(((BufferedReader) descriptor).readLine());
+
+
+        // check if descriptor is a SeekableByteChannel object
+
+        if (descriptor instanceof FileChannel) {
 
             // close the txt file
             try {
-                ((BufferedReader) descriptor).close();
+                ((FileChannel) descriptor).close();
             } catch (IOException ioe) {
                 System.err.println( ioe );
             }
@@ -60,11 +72,11 @@ public class PlaceTest extends AbstractTest {
     // TODO: Ask Matt about solving slf4j logging dependencies for NetdfFiles
     @Test
     public void testOpenWithNetcdf() throws Exception {
-        String fileName = "testNetcdf.nc";
+        String filePath = "/testNetcdf.nc";
 
         // call places open method with the given file name and check if returned
         // descriptor object is returned as expected
-        Object descriptor = place.open(fileName);
+        Object descriptor = place1.open(filePath, 0);
 
         // check if descriptor is a NetcdfFile
         if (descriptor instanceof NetcdfFile) {

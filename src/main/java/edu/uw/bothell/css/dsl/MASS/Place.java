@@ -32,14 +32,24 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.util.Collections; // for synchronized set
 import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
-import java.util.Enumeration;
 import java.util.Hashtable;   // for file storage
+
+import sun.nio.ch.Net;
 import ucar.nc2.NetcdfFile;	  // for Netcdf files
 import java.io.*;			  // for IO
+
+import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.READ;
 
 
 import ucar.ma2.*;
@@ -83,8 +93,80 @@ public class Place {
 	
 	private Vector< int[] > neighbours = null;
 
-	/** stores all files that have been opened */
-	protected static Hashtable<Object, String[]> fileTable = new Hashtable<>();
+	/** stores all files that have been opened
+	 *  String array stores file name at index 0
+	 *  boolean has been read at index 1
+	 *  number of places (for write at index 2)
+	 */
+
+	protected static Hashtable<Object, FileAttributes> fileTable = new Hashtable<>();
+
+	private static final OpenOption[] OpenOperations = new OpenOption[] { READ, WRITE};
+
+	private byte[] data;
+
+	private static ByteBuffer buffer;
+
+
+	private class FileAttributes {
+		private String fileName;
+		private int numberOfPlaces;
+		private boolean isRead;
+		private int remainingReads;
+		private int remainingWrites;
+
+		FileAttributes( String fileName, int numberOfPlaces, boolean isRead ) {
+			this.fileName = fileName;
+			this.numberOfPlaces = numberOfPlaces;
+			this.isRead = isRead;
+			remainingReads = numberOfPlaces;
+			remainingWrites = numberOfPlaces;
+		}
+
+		// decrements the number of remaining reads by 1
+		public void decrementReads( ) {
+			this.remainingReads -= 1;
+		}
+
+		// decrements the number of remaining writes by 1
+		public void decrementWrites( ) {
+			this.remainingWrites -= 1;
+		}
+
+		// getter methods
+
+		public String getFileName( ) {
+			return fileName;
+		}
+
+		public int getNumberOfPlaces( ) { return numberOfPlaces; }
+
+		public boolean isRead( ) { return isRead; }
+
+		public int getRemainingWrites( ) { return remainingWrites; }
+
+		public int getRemainingReads( ) { return remainingReads; }
+
+		// setter methods
+
+		public void setFileName( String fileName ) {
+			this.fileName = fileName;
+		}
+
+		public void setNumberOfPlaces( int numberOfPlaces ) {
+			this.numberOfPlaces = numberOfPlaces;
+		}
+
+		public void setRead( boolean isRead ) {
+			this.isRead = isRead;
+		}
+
+		public void setRemainingReads( int remainingReads ) { this.remainingReads = remainingReads; }
+
+		public void setRemainingWrites( int remainingWrites ) { this.remainingWrites = remainingWrites; }
+
+
+	}
 
 	/**
 	 * Open method
@@ -93,32 +175,142 @@ public class Place {
 
 	/**
 	 *
-	 * Questions: should I store the fileName
+	 * Questions:
+	 * - should I store the fileName
+	 * - should read and write really be done within the open method? What if you want to write
+	 * - and read? Wouldn't you open the file twice then
      */
-	protected synchronized Object open( String fileName ) {
+	protected synchronized Object open( String filePath, int ioType ) throws IOException {
 
+		// set file descriptor to null
 		Object descriptor = null;
-		if (fileName.toLowerCase().endsWith(".nc")) {
-			try {
-				String[] fileInformation = new String[3];
-				fileInformation[0] = fileName;
-				fileTable.put( descriptor = NetcdfFile.open( fileName ), fileInformation );
-			} catch ( IOException ioe ) {
-				// TODO: Log error once Matt is ready
-				System.err.println( ioe );
+
+		// set file attributes to null
+		FileAttributes fileAttributes = null;
+
+		// create a path object from the given file path string
+		Path path = Paths.get( filePath );
+
+		// isolate the file name
+		String fileName = path.getFileName( ).toString( );
+
+		// check if the file is type nc
+		if ( fileName.toLowerCase( ).endsWith( ".nc" ) ) {
+
+			NetcdfFile netcdfFile = NetcdfFile.open( fileName );
+
+			descriptor = netcdfFile;
+
+			if ( !fileTable.containsKey( descriptor ) ) {
+
+				// set the file attributes - string file name, int number of places, boolean has been read
+				fileAttributes = new FileAttributes( fileName, 1 , false );
+
+				// add the file descriptor and the corresponding file attributes to the file table
+				fileTable.put( descriptor, fileAttributes );
+
+
+
+			} else {
+				fileAttributes = fileTable.get( descriptor );
 			}
+			if ( ioType == 0 && !fileAttributes.isRead ( ) ) {
+				descriptor = NetcdfFile.openInMemory( fileName );
+			}
+
 		}
-		else if (fileName.toLowerCase().endsWith(".txt")) {
-			try {
-				String[] fileInformation = new String[3];
-				fileInformation[0] = fileName;
-				FileReader fileReader = new FileReader( fileName );
-				fileTable.put( descriptor = new BufferedReader( fileReader ), fileInformation );
-			} catch ( IOException ioe ) {
-				System.err.println( ioe );
+
+		// check if the file is type txt
+		else if ( fileName.toLowerCase( ).endsWith( ".txt" ) ) {
+
+			// opens a file, returning a FileChannel to access the supplied file
+			// file is opened with the specified OpenOption of either READ or WRITE
+			FileChannel fileChannel = FileChannel.open( path, OpenOperations[ ioType ] );
+
+			descriptor = fileChannel;
+
+			// file descriptor has not been added to file table
+			if ( !fileTable.containsKey( descriptor ) ) {
+
+				// set the file attributes
+				// note that the second parameter should be: MASS_base.getCurrentPlaces().getPlacesSize()
+				// but 0 is being used now for testing purposes
+				fileAttributes = new FileAttributes( fileName, 2 , false );
+
+				// add file to the file table
+				fileTable.put( descriptor, fileAttributes );
+
+			} else {
+
+				// retrieve the file attributes from the file table
+				fileAttributes = fileTable.get( descriptor );
+
+			}
+
+			// the user wants to preform a read operation and the the
+			// first read has not yet been preformed
+			if ( ioType == 0 && !fileAttributes.isRead( ) ) {
+
+				// create a buffer that has the same space as the file being read
+				buffer = ByteBuffer.allocate( ( int) fileChannel.size( ) );
+
+				// read the file contents to the buffer
+				fileChannel.read( buffer );
+
+				buffer.position(0);
+
+				// update the file table
+				fileAttributes.setRead( true );
+
+			}
+
+			if ( ioType == 0 && fileAttributes.isRead( ) ) {
+
+				// divide the buffer size by the number of places
+				int length = buffer.capacity( ) / fileAttributes.getNumberOfPlaces( );
+
+				read( descriptor, length, fileAttributes );
 			}
 		}
 		return descriptor;
+	}
+
+	private void read( Object descriptor, int length, FileAttributes fileAttributes ) {
+		if ( descriptor instanceof FileChannel ) {
+			try {
+				// perform all place reads but the last one
+				if ( fileAttributes.getRemainingReads( ) > 1 ) {
+
+					data = new byte[ length ];
+
+					buffer.get( data, buffer.position( ), length);
+
+					String byteData = new String( data );
+
+					fileAttributes.decrementReads( );
+
+					System.out.println( byteData );
+				}
+
+				// perform final read
+				else {
+
+					data = new byte[ buffer.remaining( ) ];
+
+					buffer.get( data, buffer.position( ), buffer.remaining( ) );
+
+					String byteData = new String( data );
+
+					fileAttributes.decrementReads( );
+
+					System.out.println( byteData );
+
+				}
+			}
+			catch ( BufferUnderflowException err ) {
+				System.err.println( err );
+			}
+		}
 	}
 
 	protected synchronized boolean close( Object descriptor ) {
@@ -126,7 +318,7 @@ public class Place {
 
 			if ( descriptor instanceof NetcdfFile ) {
 				try {
-					((NetcdfFile) descriptor).close();
+					( ( NetcdfFile ) descriptor ).close( );
 				} catch ( IOException ioe ) {
 					System.err.println( ioe );
 				}
