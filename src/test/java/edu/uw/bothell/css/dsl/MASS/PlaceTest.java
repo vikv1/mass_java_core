@@ -43,20 +43,30 @@ public class PlaceTest extends AbstractTest {
     @TestSubject
     private Place place2 = new Place();
 
+
     @Test
     public void testOpenWithTxt() throws Exception {
         String filePath = "/Users/Michael/mass_java_core/testTxt.txt";
 
+        String filePath2 = "/Users/Michael/mass_java_core/testTxt2.txt";
+
         Object descriptor = null;
-        // call places open method with the given files name and check if
-        // returned descriptor object is returned as expected
+        Object descriptor2 = null;
+        Object descriptor3 = null;
+
         descriptor = place1.open(filePath, 0);
 
         descriptor = place2.open(filePath, 0);
 
+        descriptor2 = place1.open(filePath2, 0);
+
+        descriptor2 = place2.open(filePath2, 0);
+
+        descriptor3 = place1.open(filePath, 0);
+
+        descriptor3 = place2.open(filePath, 0);
 
 
-        // check if descriptor is a SeekableByteChannel object
 
         if (descriptor instanceof FileChannel) {
 
@@ -67,9 +77,29 @@ public class PlaceTest extends AbstractTest {
                 System.err.println( ioe );
             }
         }
+
+        if (descriptor2 instanceof FileChannel) {
+
+            // close the txt file
+            try {
+                ((FileChannel) descriptor2).close();
+            } catch (IOException ioe) {
+                System.err.println( ioe );
+            }
+        }
+
+        if (descriptor3 instanceof FileChannel) {
+
+            // close the txt file
+            try {
+                ((FileChannel) descriptor3).close();
+            } catch (IOException ioe) {
+                System.err.println( ioe );
+            }
+        }
     }
 
-    // TODO: Ask Matt about solving slf4j logging dependencies for NetdfFiles
+    // TODO: slf4j logging dependencies for NetdfFiles
     @Test
     public void testOpenWithNetcdf() throws Exception {
         String filePath = "/testNetcdf.nc";

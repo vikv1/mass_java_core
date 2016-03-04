@@ -89,7 +89,7 @@ public class Place {
 	private Object[] inMessages = null;
 	
 	/** Includes all the agents residing locally on this place. */
-	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	private Set< Agent > agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
 	private Vector< int[] > neighbours = null;
 
@@ -99,37 +99,50 @@ public class Place {
 	 *  number of places (for write at index 2)
 	 */
 
-	protected static Hashtable<Object, FileAttributes> fileTable = new Hashtable<>();
+	// stores each file and its attributes
+	protected static Hashtable< Object, FileAttributes > fileTable = new Hashtable< >( );
 
-	private static final OpenOption[] OpenOperations = new OpenOption[] { READ, WRITE};
+	// open options, 0 for READ, 1 for WRITE
+	private static final OpenOption[] OpenOperations = new OpenOption[ ] { READ, WRITE };
 
+	// place memory storage
 	private byte[] data;
 
-	private static ByteBuffer buffer;
+	// stores each file - indexed at their file count number
+	private static Object[] descriptors =  new Object[50];
 
+	// counts the number of files open
+	private static int count = 0;
 
+	// private class that stores all of a file's attributes
 	private class FileAttributes {
+
 		private String fileName;
 		private int numberOfPlaces;
 		private boolean isRead;
 		private int remainingReads;
 		private int remainingWrites;
+		private int count;
+		private int readLength;
+		private ByteBuffer buffer;
 
-		FileAttributes( String fileName, int numberOfPlaces, boolean isRead ) {
+		FileAttributes( String fileName, int numberOfPlaces, boolean isRead, int count ) {
 			this.fileName = fileName;
 			this.numberOfPlaces = numberOfPlaces;
 			this.isRead = isRead;
 			remainingReads = numberOfPlaces;
 			remainingWrites = numberOfPlaces;
+			this.count = count;
+			readLength = 0;
 		}
 
-		// decrements the number of remaining reads by 1
-		public void decrementReads( ) {
-			this.remainingReads -= 1;
+		public synchronized int testAndDecrementReads() {
+			int returnValue = remainingReads--;
+			return returnValue;
 		}
 
 		// decrements the number of remaining writes by 1
-		public void decrementWrites( ) {
+		public synchronized void decrementWrites( ) {
 			this.remainingWrites -= 1;
 		}
 
@@ -146,6 +159,12 @@ public class Place {
 		public int getRemainingWrites( ) { return remainingWrites; }
 
 		public int getRemainingReads( ) { return remainingReads; }
+
+		public int getCount() { return count; }
+
+		public int getReadLength() { return readLength; }
+
+		public ByteBuffer getBuffer() { return buffer; }
 
 		// setter methods
 
@@ -165,6 +184,13 @@ public class Place {
 
 		public void setRemainingWrites( int remainingWrites ) { this.remainingWrites = remainingWrites; }
 
+		public void setCount(int count) { this.count = count; }
+
+		public void setReadLength(int readLength) { this.readLength = readLength; }
+
+		public void setBuffer(ByteBuffer buffer) { this.buffer = buffer; }
+
+
 
 	}
 
@@ -182,9 +208,6 @@ public class Place {
      */
 	protected synchronized Object open( String filePath, int ioType ) throws IOException {
 
-		// set file descriptor to null
-		Object descriptor = null;
-
 		// set file attributes to null
 		FileAttributes fileAttributes = null;
 
@@ -197,53 +220,53 @@ public class Place {
 		// check if the file is type nc
 		if ( fileName.toLowerCase( ).endsWith( ".nc" ) ) {
 
-			NetcdfFile netcdfFile = NetcdfFile.open( fileName );
+			if ( !fileTable.containsKey( descriptors[count])  ) {
 
-			descriptor = netcdfFile;
+				NetcdfFile netcdfFile = NetcdfFile.open( fileName );
 
-			if ( !fileTable.containsKey( descriptor ) ) {
+				descriptors[count] = netcdfFile;
 
 				// set the file attributes - string file name, int number of places, boolean has been read
-				fileAttributes = new FileAttributes( fileName, 1 , false );
+				fileAttributes = new FileAttributes( fileName, 1 , false, count );
 
 				// add the file descriptor and the corresponding file attributes to the file table
-				fileTable.put( descriptor, fileAttributes );
-
-
+				fileTable.put( descriptors[count], fileAttributes );
 
 			} else {
-				fileAttributes = fileTable.get( descriptor );
+				fileAttributes = fileTable.get( descriptors[count] );
 			}
 			if ( ioType == 0 && !fileAttributes.isRead ( ) ) {
-				descriptor = NetcdfFile.openInMemory( fileName );
+				//descriptors.get(fileAttributes.count) = NetcdfFile.openInMemory( fileName );
 			}
 
 		}
 
 		// check if the file is type txt
-		else if ( fileName.toLowerCase( ).endsWith( ".txt" ) ) {
+		if ( fileName.toLowerCase( ).endsWith( ".txt" ) ) {
 
-			// opens a file, returning a FileChannel to access the supplied file
-			// file is opened with the specified OpenOption of either READ or WRITE
-			FileChannel fileChannel = FileChannel.open( path, OpenOperations[ ioType ] );
-
-			descriptor = fileChannel;
+			FileChannel fileChannel = null;
 
 			// file descriptor has not been added to file table
-			if ( !fileTable.containsKey( descriptor ) ) {
+			if ( descriptors[count] == null) {
+
+				// opens a file, returning a FileChannel to access the supplied file
+				// file is opened with the specified OpenOption of either READ or WRITE
+				fileChannel = FileChannel.open( path, OpenOperations[ ioType ] );
+
+				descriptors[count] = fileChannel;
 
 				// set the file attributes
 				// note that the second parameter should be: MASS_base.getCurrentPlaces().getPlacesSize()
 				// but 0 is being used now for testing purposes
-				fileAttributes = new FileAttributes( fileName, 2 , false );
+				fileAttributes = new FileAttributes( fileName, 2 , false, count );
 
 				// add file to the file table
-				fileTable.put( descriptor, fileAttributes );
+				fileTable.put( descriptors[count], fileAttributes );
 
 			} else {
 
 				// retrieve the file attributes from the file table
-				fileAttributes = fileTable.get( descriptor );
+				fileAttributes = fileTable.get( descriptors[count] );
 
 			}
 
@@ -252,66 +275,78 @@ public class Place {
 			if ( ioType == 0 && !fileAttributes.isRead( ) ) {
 
 				// create a buffer that has the same space as the file being read
-				buffer = ByteBuffer.allocate( ( int) fileChannel.size( ) );
+				fileAttributes.setBuffer(ByteBuffer.allocate( ( int) fileChannel.size( ) ));
 
+				ByteBuffer buffer = fileAttributes.getBuffer();
 				// read the file contents to the buffer
 				fileChannel.read( buffer );
 
-				buffer.position(0);
+				buffer.flip();
 
 				// update the file table
 				fileAttributes.setRead( true );
+
+				fileAttributes.setReadLength( buffer.capacity( ) / fileAttributes.getNumberOfPlaces( ) );
+
+				// finished reading from the fileChannel
+				//fileChannel.close();
 
 			}
 
 			if ( ioType == 0 && fileAttributes.isRead( ) ) {
 
-				// divide the buffer size by the number of places
-				int length = buffer.capacity( ) / fileAttributes.getNumberOfPlaces( );
-
-				read( descriptor, length, fileAttributes );
+				return read( descriptors[count], fileAttributes );
 			}
+		}
+		return descriptors[count];
+	}
+
+	private Object read(Object descriptor, FileAttributes fileAttributes ) {
+		try {
+
+			ByteBuffer buffer = fileAttributes.getBuffer();
+
+			// perform all place reads but the last one
+			if ( fileAttributes.testAndDecrementReads() > 1 ) {
+
+				int length = fileAttributes.getReadLength();
+
+				data = new byte[ length ];
+
+				buffer.get( data, buffer.position( ), length);
+
+				String byteData = new String( data );
+
+				System.out.print( byteData );
+			}
+
+			// perform final read
+			else {
+
+				data = new byte[ buffer.remaining( ) ];
+
+				int index = 0;
+				while(buffer.hasRemaining()) {
+					data[index] = buffer.get();
+					index++;
+				}
+
+				// finished opening and reading
+				// ready to process next command
+				count++;
+
+				String byteData = new String( data );
+
+				System.out.println( byteData );
+			}
+
+		}
+		catch ( BufferUnderflowException err ) {
+			System.err.println( err );
 		}
 		return descriptor;
 	}
 
-	private void read( Object descriptor, int length, FileAttributes fileAttributes ) {
-		if ( descriptor instanceof FileChannel ) {
-			try {
-				// perform all place reads but the last one
-				if ( fileAttributes.getRemainingReads( ) > 1 ) {
-
-					data = new byte[ length ];
-
-					buffer.get( data, buffer.position( ), length);
-
-					String byteData = new String( data );
-
-					fileAttributes.decrementReads( );
-
-					System.out.println( byteData );
-				}
-
-				// perform final read
-				else {
-
-					data = new byte[ buffer.remaining( ) ];
-
-					buffer.get( data, buffer.position( ), buffer.remaining( ) );
-
-					String byteData = new String( data );
-
-					fileAttributes.decrementReads( );
-
-					System.out.println( byteData );
-
-				}
-			}
-			catch ( BufferUnderflowException err ) {
-				System.err.println( err );
-			}
-		}
-	}
 
 	protected synchronized boolean close( Object descriptor ) {
 		if ( fileTable.containsKey( descriptor ) ) {
@@ -319,14 +354,16 @@ public class Place {
 			if ( descriptor instanceof NetcdfFile ) {
 				try {
 					( ( NetcdfFile ) descriptor ).close( );
+					return true;
 				} catch ( IOException ioe ) {
 					System.err.println( ioe );
 				}
 			}
 
-			else if ( descriptor instanceof BufferedReader ) {
+			else if ( descriptor instanceof FileChannel ) {
 				try {
-					( ( BufferedReader ) descriptor ).close( );
+					( ( FileChannel ) descriptor ).close( );
+					return true;
 				} catch ( IOException ioe ){
 					System.err.println( ioe );
 				}
