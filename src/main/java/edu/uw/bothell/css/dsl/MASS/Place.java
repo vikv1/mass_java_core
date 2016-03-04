@@ -100,16 +100,13 @@ public class Place {
 	 */
 
 	// stores each file and its attributes
-	protected static Hashtable< Object, FileAttributes > fileTable = new Hashtable< >( );
+	protected static Hashtable< Integer, FileAttributes > fileTable = new Hashtable< >( );
 
 	// open options, 0 for READ, 1 for WRITE
 	private static final OpenOption[] OpenOperations = new OpenOption[ ] { READ, WRITE };
 
 	// place memory storage
 	private byte[] data;
-
-	// stores each file - indexed at their file count number
-	private static Object[] descriptors =  new Object[50];
 
 	// counts the number of files open
 	private static int count = 0;
@@ -125,13 +122,16 @@ public class Place {
 		private int count;
 		private int readLength;
 		private ByteBuffer buffer;
+		private Object file;
 
-		FileAttributes( String fileName, int numberOfPlaces, boolean isRead, int count ) {
+		FileAttributes(String fileName, Object file, int numberOfPlaces, boolean isRead, int count ) {
+
 			this.fileName = fileName;
 			this.numberOfPlaces = numberOfPlaces;
 			this.isRead = isRead;
 			remainingReads = numberOfPlaces;
 			remainingWrites = numberOfPlaces;
+			this.file = file;
 			this.count = count;
 			readLength = 0;
 		}
@@ -166,6 +166,8 @@ public class Place {
 
 		public ByteBuffer getBuffer() { return buffer; }
 
+		public Object getFile() { return file; }
+
 		// setter methods
 
 		public void setFileName( String fileName ) {
@@ -190,7 +192,7 @@ public class Place {
 
 		public void setBuffer(ByteBuffer buffer) { this.buffer = buffer; }
 
-
+		public void setFile(Object file) { this.file = file; }
 
 	}
 
@@ -206,7 +208,7 @@ public class Place {
 	 * - should read and write really be done within the open method? What if you want to write
 	 * - and read? Wouldn't you open the file twice then
      */
-	protected synchronized Object open( String filePath, int ioType ) throws IOException {
+	protected synchronized int open( String filePath, int ioType ) throws IOException {
 
 		// set file attributes to null
 		FileAttributes fileAttributes = null;
@@ -220,20 +222,20 @@ public class Place {
 		// check if the file is type nc
 		if ( fileName.toLowerCase( ).endsWith( ".nc" ) ) {
 
-			if ( !fileTable.containsKey( descriptors[count])  ) {
+			if ( !fileTable.containsKey( count )  ) {
 
 				NetcdfFile netcdfFile = NetcdfFile.open( fileName );
 
-				descriptors[count] = netcdfFile;
-
 				// set the file attributes - string file name, int number of places, boolean has been read
-				fileAttributes = new FileAttributes( fileName, 1 , false, count );
+				fileAttributes = new FileAttributes( fileName, netcdfFile,  1 , false, count );
 
 				// add the file descriptor and the corresponding file attributes to the file table
-				fileTable.put( descriptors[count], fileAttributes );
+				fileTable.put( count, fileAttributes );
 
 			} else {
-				fileAttributes = fileTable.get( descriptors[count] );
+
+				fileAttributes = fileTable.get( count );
+
 			}
 			if ( ioType == 0 && !fileAttributes.isRead ( ) ) {
 				//descriptors.get(fileAttributes.count) = NetcdfFile.openInMemory( fileName );
@@ -247,26 +249,24 @@ public class Place {
 			FileChannel fileChannel = null;
 
 			// file descriptor has not been added to file table
-			if ( descriptors[count] == null) {
+			if ( !fileTable.containsKey(count) ) {
 
 				// opens a file, returning a FileChannel to access the supplied file
 				// file is opened with the specified OpenOption of either READ or WRITE
 				fileChannel = FileChannel.open( path, OpenOperations[ ioType ] );
 
-				descriptors[count] = fileChannel;
-
 				// set the file attributes
 				// note that the second parameter should be: MASS_base.getCurrentPlaces().getPlacesSize()
 				// but 0 is being used now for testing purposes
-				fileAttributes = new FileAttributes( fileName, 2 , false, count );
+				fileAttributes = new FileAttributes( fileName, fileChannel, 2 , false, count );
 
 				// add file to the file table
-				fileTable.put( descriptors[count], fileAttributes );
+				fileTable.put( count, fileAttributes );
 
 			} else {
 
 				// retrieve the file attributes from the file table
-				fileAttributes = fileTable.get( descriptors[count] );
+				fileAttributes = fileTable.get( count );
 
 			}
 
@@ -295,13 +295,13 @@ public class Place {
 
 			if ( ioType == 0 && fileAttributes.isRead( ) ) {
 
-				return read( descriptors[count], fileAttributes );
+				read( fileAttributes );
 			}
 		}
-		return descriptors[count];
+		return fileAttributes.getCount();
 	}
 
-	private Object read(Object descriptor, FileAttributes fileAttributes ) {
+	private void read( FileAttributes fileAttributes ) {
 		try {
 
 			ByteBuffer buffer = fileAttributes.getBuffer();
@@ -344,25 +344,24 @@ public class Place {
 		catch ( BufferUnderflowException err ) {
 			System.err.println( err );
 		}
-		return descriptor;
 	}
 
 
-	protected synchronized boolean close( Object descriptor ) {
-		if ( fileTable.containsKey( descriptor ) ) {
-
-			if ( descriptor instanceof NetcdfFile ) {
+	protected synchronized boolean close( int fd ) {
+		if ( fileTable.containsKey( fd ) ) {
+			Object file = fileTable.get(fd).getFile();
+			if ( file instanceof NetcdfFile ) {
 				try {
-					( ( NetcdfFile ) descriptor ).close( );
+					( ( NetcdfFile ) file ).close( );
 					return true;
 				} catch ( IOException ioe ) {
 					System.err.println( ioe );
 				}
 			}
 
-			else if ( descriptor instanceof FileChannel ) {
+			else if ( file instanceof FileChannel ) {
 				try {
-					( ( FileChannel ) descriptor ).close( );
+					( ( FileChannel ) file ).close( );
 					return true;
 				} catch ( IOException ioe ){
 					System.err.println( ioe );

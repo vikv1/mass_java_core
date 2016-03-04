@@ -47,12 +47,11 @@ public class PlaceTest extends AbstractTest {
     @Test
     public void testOpenWithTxt() throws Exception {
         String filePath = "/Users/Michael/mass_java_core/testTxt.txt";
-
         String filePath2 = "/Users/Michael/mass_java_core/testTxt2.txt";
 
-        Object descriptor = null;
-        Object descriptor2 = null;
-        Object descriptor3 = null;
+        int descriptor;
+        int descriptor2;
+        int descriptor3;
 
         descriptor = place1.open(filePath, 0);
 
@@ -66,37 +65,9 @@ public class PlaceTest extends AbstractTest {
 
         descriptor3 = place2.open(filePath, 0);
 
-
-
-        if (descriptor instanceof FileChannel) {
-
-            // close the txt file
-            try {
-                ((FileChannel) descriptor).close();
-            } catch (IOException ioe) {
-                System.err.println( ioe );
-            }
-        }
-
-        if (descriptor2 instanceof FileChannel) {
-
-            // close the txt file
-            try {
-                ((FileChannel) descriptor2).close();
-            } catch (IOException ioe) {
-                System.err.println( ioe );
-            }
-        }
-
-        if (descriptor3 instanceof FileChannel) {
-
-            // close the txt file
-            try {
-                ((FileChannel) descriptor3).close();
-            } catch (IOException ioe) {
-                System.err.println( ioe );
-            }
-        }
+        place1.close(descriptor);
+        place2.close(descriptor);
+        place1.close(descriptor);
     }
 
     // TODO: slf4j logging dependencies for NetdfFiles
