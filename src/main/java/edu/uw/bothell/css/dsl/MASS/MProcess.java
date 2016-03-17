@@ -87,7 +87,7 @@ public class MProcess {
     // this.nProc = nProc;
     MASS.setNumThreads(nThr);
     MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
-    MASSBase.initMASS_base(hostName, myPid, nProc, port);
+    MASSBase.initMASSBase(hostName, myPid, nProc, port);
 
       logger.debug("Launching MProcess... (" + "hostname = " + hostName
           + ", myPid = " + myPid + ", nProc = " + nProc + ", nThr = " + nThr
@@ -510,11 +510,19 @@ public class MProcess {
             // I'm done with my async queue and agents migration
             MASSBase.getCurrentAgents().setIsAsyncLoopIdle(true);
 
-            // tell master about that
+            // Notify master that I am done
+            /*
+             * When an agent is started to run it is taken out from the async queue
+             * However, an agent might still be running even if it is removed from the queue,
+                therefore, we need to make sure if there is any agent is running.
+             * When an agent stops running,  inProcessAgentCount variable is decreased by one
+                in AgentsBase.java
+            */
             if (MASSBase.getCurrentAgents().asyncQueueIsEmpty()
                 && MASSBase.getCurrentAgents().hasNoInprocessAgents()
                 && MASSBase.getChildAgentPids().isEmpty()
-                && MASSBase.getSourceAgentPid() > -1) {
+                && MASSBase.getSourceAgentPid() > -1)
+            {
                 MASSBase.getAsyncOutputThread()
                     .notifySourceOfCompleteness(
                         MASSBase.getInAsyncAgents()[MASSBase

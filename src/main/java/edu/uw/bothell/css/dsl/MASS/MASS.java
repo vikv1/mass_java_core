@@ -79,8 +79,8 @@ public class MASS extends MASSBase {
     private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
     
     // Async
-    // number of node that return async result
-    private static int LocalAgents[];
+    // number of agents at rank i that returns async results
+    private static int[] LocalAgents;
 
 	//MASS debugger variables
 	private static Places debuggerInstance;
@@ -393,7 +393,7 @@ public class MASS extends MASSBase {
     	} else {
     	
     		// init using "old" method
-        	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
+        	initMASSBase( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
 
     	}
 
@@ -528,7 +528,7 @@ public class MASS extends MASSBase {
     }
     
     /**
-     * Initialize the MASS library using arguments. Calling this method effectively begins computation.
+     * IniNBA LIVE 2003 Soundtracktialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
      * @param nThr The number of threads to spawn on each node
@@ -605,11 +605,11 @@ public class MASS extends MASSBase {
 	 * @param numThreads The number of threads to spawn
 	 */
 	public static void setNumThreads(int numThreads) {
-		
-		// can't set number of threads < 1
-		if (numThreads < 1) return;
-		
-		MASS.numThreads = numThreads;
+
+		if (numThreads >= 1)
+		{
+			MASS.numThreads = numThreads;
+		}
 		
 	}
 	
@@ -620,45 +620,13 @@ public class MASS extends MASSBase {
 	public static void setLocalAgents(int[] values) {
 	  LocalAgents = values;
 	}
-	
-	/**
-	 * ONLY to call by Master node
-	 * @return
-	public static boolean getSlaveNodeAsyncCompleteness() {
-	  if(MASS.isConsoleLoggingEnabled()) {
-	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
-	  }
-	  
-	  if(getEsimateSlaveNodeComplete() >= getRemoteNodes().size()) {
-	    MASS_base.setCachedSlaveNodeAsyncCompleteness(getAsyncOutputThread().requestSlaveNodeAsyncCompleteness());
-	  }
-	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
-	}
-   */
 
-  public static void getRemoteAsyncResults() {
+  	public static void getRemoteAsyncResults() {
     if(!getRemoteNodes().isEmpty()) {
       LocalAgents = new int[getRemoteNodes().size()];
       getAsyncOutputThread().requestAsyncResults();
     }
   }
-	
-	/**
-	 * Overloaded MASS init method to be used in conjunction with MASS debugger application.
-	 * Port number must match port number entered in the debugging GUI.
-	 *
-	 * @param args username, password, machinefile, MASS port number
-	 * @param nProc number of processes
-	 * @param nThr number of threads
-	 * @param placeHandle place handle
-	 * @param agentHandle agent handle
-	 * @param portNumber Debugging port number
-	 */
-	public static void init(String args[], int nProc,int nThr, int placeHandle, int agentHandle, int portNumber)
-	{
-		MASS.init(args, nProc, nThr);
-		MASS.debugInit(placeHandle, agentHandle, portNumber);
-	}
 
 	/**
 	 * Alternative to the debugging init function. debugInit should be called after a call to the

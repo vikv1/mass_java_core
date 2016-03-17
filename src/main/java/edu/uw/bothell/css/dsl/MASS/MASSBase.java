@@ -386,8 +386,8 @@ public class MASSBase {
 	 * @param nProc The total number of nodes in the cluster
 	 * @param port The port number to use for communications with this node
 	 */
-	@Deprecated
-	public static void initMASS_base( String name, int myPid, int nProc, int port) {
+	//@Deprecated
+	public static void initMASSBase( String name, int myPid, int nProc, int port) {
     	
     	// create a MNode representation of this node, only for init purposes (legacy mode)
     	MNode thisNode = new MNode();
@@ -562,6 +562,10 @@ public class MASSBase {
       outputThread.start();
     }
 
+	/*
+		1) Called from callAllSetupAsync method in Agents.java
+		2) In MProcess.java upon receiving the message AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
+	* */
     public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
       setCurrentAgents(agents);
       MThread.setAgentBagSize(currentAgents.getAgents().size());
