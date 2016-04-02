@@ -568,13 +568,13 @@ public class MASSBase {
 	* */
     public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
       setCurrentAgents(agents);
-      MThread.setAgentBagSize(currentAgents.getAgents().size());
-      
+      MThread.setAgentBagSize(currentAgents.getAgents().size()); // number of agents that are going to be executed
+
       currentAgents.setAsyncFuncList(fIds);
-      currentAgents.resetChildAsyncIndex();
-      currentAgents.resetCompleteQueue();
+      currentAgents.resetChildAsyncIndex(); // queue for maintaining agents created
+      currentAgents.resetCompleteQueue(); // queue for maintaining agents that completed the function
       
-      currentAgents.asyncQueueClear();
+      currentAgents.asyncQueueClear(); // agents to be executed
       for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
         currentAgents.asyncQueueAdd(i);
         currentAgents.getAgents().get(i).setParentAgents(currentAgents);

@@ -83,6 +83,7 @@ public class Agents extends AgentsBase implements Serializable {
       total += localAgents[i];
 
     // send a AGENTS_CALL_ALL message to each slave
+    // i is the indicator of MNode at ith position of the MNode vector
     Message m = null;
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
 
@@ -161,6 +162,7 @@ public class Agents extends AgentsBase implements Serializable {
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
     // callall implementation
+    // Agents.java is visible to user but AgentsBase(super) should not be visible
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
       super.callAll(functionId, argument, 0); // 0 = main tid
     else
@@ -189,12 +191,14 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
+  // The master program needs to inform processes that callAllAsync is about to start
   List<Agent> callAllSetupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
     // FOR auto migration
     Places places = MASSBase.getPlaces(this.getPlacesHandle());
     int lastDimensionLength = places.getSize()
         [places.getSize().length - 1];
-    
+
+    // The functionality is not checked yet
     if(autoMigration) {
       // if user supplies funcs a b c then the func list
       // become -2 a b c -1 a b c -1 a b c .. -1 a b c
@@ -216,6 +220,7 @@ public class Agents extends AgentsBase implements Serializable {
     MASSBase.prepareAsyncExecution(this, functionIds);
 
     // calculate the total number of agents
+    // i is the indicator of MNode at ith position of the MNode vector
     total = 0;
     for (int i = 0; i < MASSBase.getSystemSize(); i++) {
       total += localAgents[i];
@@ -241,6 +246,7 @@ public class Agents extends AgentsBase implements Serializable {
     }
 
     // send a AGENTS_CALL_ALL_ASYNC message to each slave
+    // i is the indicator of MNode at ith position of the MNode vector
     Message m = null;
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
       // calculate argument position
@@ -252,11 +258,13 @@ public class Agents extends AgentsBase implements Serializable {
               + " localAgents[" + (dest + 1) + "] = " + localAgents[dest + 1]);        
       }
 
+      //
       Object[] partitionedArgument = new Object[localAgents[i + 1]];
       if(arguments != null) {
         System.arraycopy((Object[]) arguments, argumentPosition, partitionedArgument, 0,
             localAgents[i + 1]);
       }
+      // create message that is going to be sent to remote MNodes
       m = new Message(Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,
           this.getHandle(), functionIds, partitionedArgument);
       if(autoMigration) {
@@ -270,7 +278,7 @@ public class Agents extends AgentsBase implements Serializable {
         System.err.println("Agents.callAll: to rank[" + (i + 1)
             + "] arg_pos = " + argumentPosition);
 
-      // send callAllAsync to other nodes
+      // send callAllAsync to remote MNodes
       MASS.getRemoteNodes().get(i).sendMessage(m);
       if (MASS.isConsoleLoggingEnabled()) {
         System.err.println("AGENTS_CALL_ALL_ASYNC " + m.getAction()
@@ -391,11 +399,15 @@ public class Agents extends AgentsBase implements Serializable {
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
   }
 
+  // user program calls this method
+  // Arguments are delivered to all agents but should be given to only first function
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments) throws Exception {
     return callAllSetupAsync(functionIds, arguments, false);
   }
-  
+
+  // user program calls this method
+  // Arguments are delivered to all agents but should be given to only first function
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments, boolean autoMigration) throws Exception {
     return callAllSetupAsync(functionIds, arguments, autoMigration);
