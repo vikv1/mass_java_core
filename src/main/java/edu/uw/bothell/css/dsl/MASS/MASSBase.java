@@ -572,12 +572,12 @@ public class MASSBase {
 
       currentAgents.setAsyncFuncList(fIds);
       currentAgents.resetChildAsyncIndex(); // queue for maintaining agents created
-      currentAgents.resetCompleteQueue(); // queue for maintaining agents that completed the function
+      currentAgents.resetAsyncCompletedAgentList(); // queue for maintaining agents that completed the function
       
-      currentAgents.asyncQueueClear(); // agents to be executed
+      currentAgents.asyncAgentIdListClear(); // agents to be executed
       for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
-        currentAgents.asyncQueueAdd(i);
-        currentAgents.getAgents().get(i).setParentAgents(currentAgents);
+        currentAgents.asyncAgentIdListAdd(i);
+        currentAgents.getAgents().get(i).setMyAgentsBase(currentAgents);
         currentAgents.getAgents().get(i).setAsyncFuncListIndex(0);
         currentAgents.getAgents().get(i).resetAsyncResults();
         currentAgents.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());

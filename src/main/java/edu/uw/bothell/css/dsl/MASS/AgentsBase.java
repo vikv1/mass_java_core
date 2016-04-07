@@ -44,8 +44,18 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 @SuppressWarnings("serial")
 public class AgentsBase implements Serializable {
 
+
+	/*
+		The original developer did not want to mess up with the original agents.
+		 Therefore, when an agent spawns another agent asynchronously, the ids start from
+		 1 million and is incremented by one. (1 million is the upper limit for the number of agents).
+
+		Currently we are using STARTING_CHILD_ASYNC_INDEX, however in the future
+		 we are supposed to use currentAgentId.
+	*/
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
-    public static final int STARTING_CHILD_ASYNC_INDEX = 1000000;
+    public static final int STARTING_CHILD_ASYNC_INDEX = 1000000; // 1 million
+
 
     private final int handle;
     private final String className;
@@ -66,13 +76,14 @@ public class AgentsBase implements Serializable {
 
     // Async section
     //private volatile LinkedList<Agent> asyncQueue;
-    private volatile int[] asyncQueue; // indices of agents in the bag
-    private volatile int asyncQueueHead = 0; // next location in the queue to poll index
-    private volatile int asyncQueueTail = 0; // next location in the queue to insert index
-    private volatile List<Agent> completeQueue;
-    private volatile int[] asyncFuncList;
+    private volatile int[] asyncAgentIdList; // indices of agents in the bag - list of agent ids for callAllAsync
+    private volatile int asyncAgentIdListHead = 0; // next location in the queue to poll index
+    private volatile int asyncAgentIdListTail = 0; // next location in the queue to insert index
+    private volatile List<Agent> asyncCompletedAgentList; // agents that have been completed from callAllAsync
+    private volatile int[] asyncFuncList; // list of function ids to be executed asynchronously
     private volatile boolean isIdle = true; // whether this node is processing async queue or not
-    private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0);
+    private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0); // the number of agents in process
+																				// - shared among MThreads
     
     /**
      * true when slave node receive request 
@@ -338,86 +349,96 @@ public class AgentsBase implements Serializable {
     }
 
   public void callAllAsync(int tid ) throws Exception {	 
-	  int executedAgentIndex = -1;
-	  int inProcessCount = 0;
+	  int executedAgentIndex = -1; 	// next agent id in the list to be executed
+	  int inProcessCount = 0;		// thread local variable copied from inProcessAgentCount
 	  do 
 	  {
-	    // access by multiple thread
-  	  synchronized(asyncQueue) {
+		  // access by multiple thread
+		  // each thread pick up the next agent id to be executed
+		  synchronized(asyncAgentIdList) {
 
-  		  logger.debug("callAllAsync synchronized asyncQueue size = {}", asyncQueueSize());
+			  logger.debug("callAllAsync synchronized asyncQueue size = {}", asyncAgentIdListSize());
 
-  	     // executedAgent = asyncQueue.removeFirst();
-  	      executedAgentIndex = asyncQueuePoll();
-  	      if(executedAgentIndex != -1) {
-  	      inProcessCount = inProcessAgentCount.incrementAndGet();
-  	    } 
-  	  }
-	  
-  	  if(executedAgentIndex != -1) {
+			  executedAgentIndex = asyncAgentIdListGetNextId();
+			  if(executedAgentIndex != -1) {
+			  		inProcessCount = inProcessAgentCount.incrementAndGet();
+			  }
+		  }
+
+		  // this thread still has an agent to be executed
+		  if(executedAgentIndex != -1) {
 
   		  logger.debug("dequeue index " + executedAgentIndex + ", null = " + (MASSBase.getCurrentAgents().getAgents()
               .get(executedAgentIndex) == null));
-        
-  		  while(MASSBase.getCurrentAgents().getAgents()
-            .get(executedAgentIndex).getAsyncFuncListIndex() < asyncFuncList.length) {
-          int asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
-              .get(executedAgentIndex).pollAsyncFuncListIndex();
-          switch(asyncFuncList[asyncFuncIndex]) {
-          case -2:
-            MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateStart();
-            break;
-          case -1:
-            MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateNext();
-            break;
-          default:
-            MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
-              asyncFuncList[asyncFuncIndex], 
-                            MASSBase.getCurrentAgents().getAgents()
-                              .get(executedAgentIndex).getAsyncArgument());
-            break;
-          }
+
+		  // invoke all functions in this agent's function list
+		  int asyncFuncIndex;
+  		  while((asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
+            .get(executedAgentIndex).nextAsyncFuncListIndex()) < asyncFuncList.length)
+		  {
+			  	/*
+				int asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
+				  .get(executedAgentIndex).nextAsyncFuncListIndex();
+				*/
+			    //
+			  	switch(asyncFuncList[asyncFuncIndex]) {
+				  	case -2:
+						MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateStart();
+						break;
+				  	case -1:
+						MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).autoMigrateNext();
+						break;
+				  	default:
+						MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).callMethod(
+					  	asyncFuncList[asyncFuncIndex],
+										MASSBase.getCurrentAgents().getAgents()
+									  	.get(executedAgentIndex).getAsyncArgument());
+						break;
+				}
           
-          // only the first method has arg
-          MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).setAsyncArgument(null);
-          
-          if(MASSBase.getCurrentAgents().getAgents()
-              .get(executedAgentIndex).hasAlreadyRemoteMigrate())
-          {
-            MASSBase.getCurrentAgents().getAgents()
-              .get(executedAgentIndex).setHasAlreadyRemoteMigrated(false);
-            agents.remove( executedAgentIndex);
-            break;
-          }
-          if(MASSBase.getCurrentAgents().getAgents()
-               .get(executedAgentIndex).shouldPutBackToAsyncQueue()) {
-            synchronized(asyncQueue) {
-              MASSBase.getCurrentAgents().getAgents()
-                .get(executedAgentIndex).setPutBackToAsyncQueue(false);
-              asyncQueueAdd(executedAgentIndex);
-              asyncQueue.notifyAll(); 
-            }
-            break;
-          }
-        }
+			  	// only the first method has arg
+			  	MASSBase.getCurrentAgents().getAgents().get(executedAgentIndex).setAsyncArgument(null);
+
+			  	//
+			  	if(MASSBase.getCurrentAgents().getAgents()
+				  .get(executedAgentIndex).hasAlreadyRemoteMigrate())
+			  	{
+					MASSBase.getCurrentAgents().getAgents()
+				  	.get(executedAgentIndex).setHasAlreadyRemoteMigrated(false);
+					agents.remove( executedAgentIndex);
+					break;
+			  	}
+
+			  	if(MASSBase.getCurrentAgents().getAgents()
+				   .get(executedAgentIndex).shouldPutBackToAsyncQueue())
+				{
+					synchronized(asyncAgentIdList) {
+					  MASSBase.getCurrentAgents().getAgents()
+						.get(executedAgentIndex).setPutBackToAsyncQueue(false);
+						asyncAgentIdListAdd(executedAgentIndex);
+						asyncAgentIdList.notifyAll();
+					}
+					break;
+			  	}
+		  }
         
         if(MASSBase.getCurrentAgents().getAgents()
             .get(executedAgentIndex) != null &&
             MASSBase.getCurrentAgents().getAgents()
             .get(executedAgentIndex).getAsyncFuncListIndex() >= asyncFuncList.length) {
-          synchronized(completeQueue) {
-            completeQueue.add(MASSBase.getCurrentAgents().getAgents()
+          synchronized(asyncCompletedAgentList) {
+			  asyncCompletedAgentList.add(MASSBase.getCurrentAgents().getAgents()
                 .get(executedAgentIndex).cloneForAsyncResult());
 
             logger.debug(MASSBase.getCurrentAgents().getAgents()
                 .get(executedAgentIndex).getMyOriginalAsyncIndex() + 
-                " completeQueue size is now " + completeQueue.size());
+                " asyncCompletedAgentList size is now " + asyncCompletedAgentList.size());
           }
         }
-        synchronized(asyncQueue) {
+        synchronized(asyncAgentIdList) {
           if(executedAgentIndex != -1) {
             inProcessCount = inProcessAgentCount.decrementAndGet();
-            asyncQueue.notifyAll();
+			  asyncAgentIdList.notifyAll();
           }
         }
   	  }
@@ -453,9 +474,9 @@ public class AgentsBase implements Serializable {
 		return agents;
 	}
 	
-	public int[] getAsyncQueue() {
+	public int[] getAsyncAgentIdList() {
 	//public LinkedList<Agent> getAsyncQueue() {
-	  return asyncQueue;
+	  return asyncAgentIdList;
 	}
 	
 	public int[] getAsyncFuncList() {
@@ -889,7 +910,7 @@ public class AgentsBase implements Serializable {
         addAgent.setIndex(targetAgent.getIndex());
         addAgent.setPlace(targetAgent.getPlace());
         addAgent.setAsyncFuncListIndex(0);
-        addAgent.setParentAgents(this);
+        addAgent.setMyAgentsBase(this);
         addAgent.resetAsyncResults();
         if(arguments != null) {
         addAgent.setAsyncArgument(arguments[argumentIndex]);
@@ -908,11 +929,11 @@ public class AgentsBase implements Serializable {
       // Push the created agent into our bag for returns and 
       // update the counter needed to keep track of our agents.
       addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-      synchronized(asyncQueue) {
+      synchronized(asyncAgentIdList) {
         addAgent.setCurrentIndex(this.agents.size_unreduced());
         this.agents.add( addAgent );           // auto syn
-        asyncQueueAdd(addAgent.getCurrentIndex());
-        asyncQueue.notifyAll();
+		  asyncAgentIdListAdd(addAgent.getCurrentIndex());
+		  asyncAgentIdList.notifyAll();
       }
       numAgents--;
     }
@@ -993,8 +1014,8 @@ public class AgentsBase implements Serializable {
               " was inserted into the destPlace[" +
               targetAgent.getPlace().getIndex()[0] + "].." );
 
-          synchronized(asyncQueue) {
-          if(!asyncQueueIsEmpty()) {
+          synchronized(asyncAgentIdList) {
+          if(!asyncAgentIdListIsEmpty()) {
             targetAgent.setPutBackToAsyncQueue(true);
           } 
         }
@@ -1020,7 +1041,7 @@ public class AgentsBase implements Serializable {
         /* relinquish the parent too, for async purpose
          * DO NOT REMOVE to remove in callAllAsync loop only
         targetAgent.setCurrentIndex(-1);*/
-        targetAgent.setParentAgents(null);
+        targetAgent.setMyAgentsBase(null);
         // create a request
         AgentMigrationRequest request = new AgentMigrationRequest( globalLinearIndex, targetAgent );
         
@@ -1041,13 +1062,13 @@ public class AgentsBase implements Serializable {
     childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
   }
 
-  public void resetCompleteQueue() {
+  public void resetAsyncCompletedAgentList() {
     int estFinalSize = (int)(1.2 * agents.size_unreduced());
-    completeQueue = Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
+	  asyncCompletedAgentList = Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
   }
   
-  public List<Agent> getCompleteQueue() {
-    return completeQueue;
+  public List<Agent> getAsyncCompletedAgentList() {
+    return asyncCompletedAgentList;
   }
 
   public boolean getResultRequestFromMaster() {
@@ -1076,42 +1097,42 @@ public class AgentsBase implements Serializable {
    * AsyncQueue functions only to be called when asyncQueue is synchronized
    * @return
    */
-  public int asyncQueueSize() {
-    if(asyncQueueTail < asyncQueueHead) {
-      return asyncQueueTail - asyncQueueHead + asyncQueue.length;
+  public int asyncAgentIdListSize() {
+    if(asyncAgentIdListTail < asyncAgentIdListHead) {
+      return asyncAgentIdListTail - asyncAgentIdListHead + asyncAgentIdList.length;
     }
     else {
-      return asyncQueueTail - asyncQueueHead;
+      return asyncAgentIdListTail - asyncAgentIdListHead;
     }
   }
   
-  public int asyncQueuePoll() {
-    if(asyncQueueSize() == 0) {
+  public int asyncAgentIdListGetNextId() {
+    if(asyncAgentIdListSize() == 0) {
       return -1;
     } else {
-      int index = asyncQueueHead;
-      asyncQueueHead = (asyncQueueHead + 1) % asyncQueue.length;
-      return asyncQueue[index];
+      int index = asyncAgentIdListHead;
+		asyncAgentIdListHead = (asyncAgentIdListHead + 1) % asyncAgentIdList.length;
+      return asyncAgentIdList[index];
     }
   }
 
-  public void asyncQueueClear() {
-    asyncQueue = new int[1000000];
-    asyncQueueHead = 0;
-    asyncQueueTail = 0;
+  public void asyncAgentIdListClear() {
+	  asyncAgentIdList = new int[1000000];
+	  asyncAgentIdListHead = 0;
+	  asyncAgentIdListTail = 0;
   }
   
-  public void asyncQueueAdd(int value) {
-    asyncQueue[asyncQueueTail] = value;
-    asyncQueueTail = (asyncQueueTail + 1)% asyncQueue.length;
+  public void asyncAgentIdListAdd(int value) {
+	  asyncAgentIdList[asyncAgentIdListTail] = value;
+	  asyncAgentIdListTail = (asyncAgentIdListTail + 1)% asyncAgentIdList.length;
   }
   
-  public boolean asyncQueueIsEmpty() {
-    return asyncQueueTail == asyncQueueHead;
+  public boolean asyncAgentIdListIsEmpty() {
+    return asyncAgentIdListTail == asyncAgentIdListHead;
   }
   
-  public int asyncQueueGet(int index) {
-    return asyncQueue[(index + asyncQueueHead) % asyncQueue.length];
+  public int asyncAgentIdListGet(int index) {
+    return asyncAgentIdList[(index + asyncAgentIdListHead) % asyncAgentIdList.length];
   }
 
   private class ProcessAgentMigrationRequest extends Thread {

@@ -258,7 +258,9 @@ public class Agents extends AgentsBase implements Serializable {
               + " localAgents[" + (dest + 1) + "] = " + localAgents[dest + 1]);        
       }
 
-      //
+      // localAgents[0] indicates the agents in the master node, slaves start from the index 1
+      // in order to avoid getting an exception partitionedArgument is used. If arguments is null
+      //  we are going to have any empty object.
       Object[] partitionedArgument = new Object[localAgents[i + 1]];
       if(arguments != null) {
         System.arraycopy((Object[]) arguments, argumentPosition, partitionedArgument, 0,
@@ -289,11 +291,11 @@ public class Agents extends AgentsBase implements Serializable {
       }
     }
 
-    for (int i = 0; i < asyncQueueSize(); i++) {
+    for (int i = 0; i < asyncAgentIdListSize(); i++) {
       if(arguments != null) {
-        getAgents().get(asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+        getAgents().get(asyncAgentIdListGet(i)).setAsyncArgument(arguments[i]);
       }
-      getAgents().get(asyncQueueGet(i)).setAutoMigrationStartingIndex(i * lastDimensionLength);
+      getAgents().get(asyncAgentIdListGet(i)).setAutoMigrationStartingIndex(i * lastDimensionLength);
     }
     // shared between agents
     // TODO What is share here?
@@ -323,11 +325,11 @@ public class Agents extends AgentsBase implements Serializable {
 
       // Done with processing my async queue
       setIsAsyncLoopIdle(true);
-			synchronized (getAsyncQueue()) {
+			synchronized (getAsyncAgentIdList()) {
 				
-				asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+				asyncQueueComplete = asyncAgentIdListIsEmpty() && hasNoInprocessAgents();
 				
-				logger.debug("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " + asyncQueueIsEmpty() + " && "
+				logger.debug("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " + asyncAgentIdListIsEmpty() + " && "
 						+ hasNoInprocessAgents() + "; MASS.getChildAgentPids().isEmpty() = "
 						+ MASS.getChildAgentPids().isEmpty());
 			
@@ -337,15 +339,15 @@ public class Agents extends AgentsBase implements Serializable {
 					|| !MASS.getAsyncInputThread().isIdle(false)) && asyncQueueComplete) {
 				
 				logger.debug(MASS.getChildAgentPids().isEmpty() + " && " + MASS.getAsyncOutputThread().isIdle() + " && "
-						+ MASS.getAsyncInputThread().isIdle(false) + " getAsyncQueue().size() = " + asyncQueueSize());
+						+ MASS.getAsyncInputThread().isIdle(false) + " getAsyncQueue().size() = " + asyncAgentIdListSize());
 				
 				try {
-					getAsyncQueue().wait();
+                  getAsyncAgentIdList().wait();
 				} catch (InterruptedException e) {
 					logger.error("Caught exception while processing async queue", e);
 				}
 				
-				asyncQueueComplete = asyncQueueIsEmpty() && hasNoInprocessAgents();
+				asyncQueueComplete = asyncAgentIdListIsEmpty() && hasNoInprocessAgents();
 			
 			}
       
@@ -359,7 +361,7 @@ public class Agents extends AgentsBase implements Serializable {
     } while (!asyncQueueComplete);
     
     collectAsyncResult();
-    return getCompleteQueue();
+    return getAsyncCompletedAgentList();
   }
 
   /**
@@ -535,8 +537,8 @@ public class Agents extends AgentsBase implements Serializable {
     localAgents[0] = getLocalPopulation();
 
     MASS.getRemoteAsyncResults();
-    Collections.sort(getCompleteQueue(), new AgentAsyncComparator());
-    MASSBase.setCurrentReturns(getCompleteQueue().toArray());
+    Collections.sort(getAsyncCompletedAgentList(), new AgentAsyncComparator());
+    MASSBase.setCurrentReturns(getAsyncCompletedAgentList().toArray());
     for (int i = 1; i < MASSBase.getSystemSize(); i++) {
       localAgents[i] = MASS.getLocalAgents()[i - 1];
     }

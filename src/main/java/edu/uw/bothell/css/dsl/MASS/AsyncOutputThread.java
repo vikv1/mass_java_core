@@ -208,8 +208,8 @@ public class AsyncOutputThread extends Thread {
 		if (MASS.isConsoleLoggingEnabled())
 			logger.debug("All slaves return " + (finalAgents != null ? finalAgents.size() : 0));
 
-		synchronized (MASSBase.getCurrentAgents().getCompleteQueue()) {
-			MASSBase.getCurrentAgents().getCompleteQueue().addAll(finalAgents);
+		synchronized (MASSBase.getCurrentAgents().getAsyncCompletedAgentList()) {
+			MASSBase.getCurrentAgents().getAsyncCompletedAgentList().addAll(finalAgents);
 			MASS.setLocalAgents(finalLocalAgents);
 		}
 	}
@@ -255,7 +255,7 @@ public class AsyncOutputThread extends Thread {
 
 			try {
 				if (message.getAction() == Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
-					synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+					synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
 						MASSBase.getOutAsyncAgents()[rank] += message.getMigrationReqList().size();
 					}
 				}
@@ -268,13 +268,13 @@ public class AsyncOutputThread extends Thread {
 					logger.debug("{} agent(s) migrated. Wait from migration complete ack", message.getMigrationReqList().size());
 					ObjectInputStream ois = new ObjectInputStream(sendSocket.getInputStream());
 					AgentMigrationResponse decrease = (AgentMigrationResponse) ois.readObject();
-					synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+					synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
 						int incompleteCount = runningChildRequestCount.addAndGet(decrease.getNumOfAgentReceived() * -1);
 						if (decrease.isChosenAsParentPid()) {
 							MASSBase.getChildAgentPids().add(rank);
 						}
 						if (incompleteCount == 0) {
-							MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
+							MASSBase.getCurrentAgents().getAsyncAgentIdList().notifyAll();
 						}
 						logger.debug("Migration complete ACK received {}", incompleteCount);
 					}
@@ -335,9 +335,9 @@ public class AsyncOutputThread extends Thread {
 				ois.close();
 				os.close();
 				sendSocket.close();
-				synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+				synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
 					if (runningChildRequestCount.decrementAndGet() == 0) {
-						MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
+						MASSBase.getCurrentAgents().getAsyncAgentIdList().notifyAll();
 					}
 				}
 			} catch (IOException | ClassNotFoundException e) {
@@ -419,7 +419,7 @@ public class AsyncOutputThread extends Thread {
 		// read need to lock, use async queue to avoid nested lock in MProcess
 		// and
 		// Agents loop
-		synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+		synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
 			logger.debug("AsyncOutputThread isIdle = {}", runningChildRequestCount.get());
 			return runningChildRequestCount.get() == 0;
 		}

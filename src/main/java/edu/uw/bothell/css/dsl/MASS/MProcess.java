@@ -449,20 +449,20 @@ public class MProcess {
         Object[] arguments = (Object[]) argument;
         int[] autoMigrationStartIndices = m.getAutoMigrationStartingIndex();
 
-        for (int i = 0; i < MASSBase.getCurrentAgents().asyncQueueSize(); i++) {
+        for (int i = 0; i < MASSBase.getCurrentAgents().asyncAgentIdListSize(); i++) {
           if(arguments != null) {
             MASSBase.getCurrentAgents().getAgents()
-              .get(MASSBase.getCurrentAgents().asyncQueueGet(i)).setAsyncArgument(arguments[i]);
+              .get(MASSBase.getCurrentAgents().asyncAgentIdListGet(i)).setAsyncArgument(arguments[i]);
           }
           if(autoMigrationStartIndices != null) {
             MASSBase.getCurrentAgents().getAgents()
-            .get(MASSBase.getCurrentAgents().asyncQueueGet(i)).setAutoMigrationStartingIndex(i);
+            .get(MASSBase.getCurrentAgents().asyncAgentIdListGet(i)).setAutoMigrationStartingIndex(i);
           }
         }
 
-        if (!MASSBase.getCurrentAgents().asyncQueueIsEmpty()) {
+        if (!MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty()) {
           MASSBase.setSourceAgentPid(0); // Need to notify Master
-          MASSBase.getInAsyncAgents()[0] += MASSBase.getCurrentAgents().asyncQueueSize();
+          MASSBase.getInAsyncAgents()[0] += MASSBase.getCurrentAgents().asyncAgentIdListSize();
         } else {
           MASSBase.setSourceAgentPid(-1);
         }
@@ -489,20 +489,20 @@ public class MProcess {
 
           // confirm all threads are done with agents.callAllAsync
           // tell master that I'm done
-          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+          synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
               logger.debug("output idle = "
                   + MASSBase.getAsyncOutputThread().isIdle()
                   + ", input idle = "
                   + MASSBase.getAsyncInputThread().isIdle(false)
                   + ", output migrate set is empty = "
                   + MASSBase.getChildAgentPids().isEmpty());
-            while ( (MASSBase.getCurrentAgents().asyncQueueIsEmpty() && MASSBase
+            while ( (MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty() && MASSBase
                 .getCurrentAgents().hasNoInprocessAgents())
                 && (!MASSBase.getAsyncOutputThread().isIdle()
                 || !MASSBase.getAsyncInputThread().isIdle(false)
                 || !MASSBase.getChildAgentPids().isEmpty())) {
               try {
-                MASSBase.getCurrentAgents().getAsyncQueue().wait();
+                MASSBase.getCurrentAgents().getAsyncAgentIdList().wait();
               } catch (InterruptedException e) {
               }
             }
@@ -518,7 +518,7 @@ public class MProcess {
              * When an agent stops running,  inProcessAgentCount variable is decreased by one
                 in AgentsBase.java
             */
-            if (MASSBase.getCurrentAgents().asyncQueueIsEmpty()
+            if (MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty()
                 && MASSBase.getCurrentAgents().hasNoInprocessAgents()
                 && MASSBase.getChildAgentPids().isEmpty()
                 && MASSBase.getSourceAgentPid() > -1)
@@ -530,15 +530,15 @@ public class MProcess {
             }
 
             while ((!MASSBase.getCurrentAgents().getResultRequestFromMaster()
-                && MASSBase.getCurrentAgents().asyncQueueIsEmpty() && MASSBase
+                && MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty() && MASSBase
                 .getCurrentAgents().hasNoInprocessAgents())) {
                 logger.debug("After notifying Master: "
                     + !MASSBase.getCurrentAgents()
                         .getResultRequestFromMaster() + " && "
-                    + MASSBase.getCurrentAgents().asyncQueueIsEmpty());
+                    + MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty());
               }
               try {
-                MASSBase.getCurrentAgents().getAsyncQueue().wait();
+                MASSBase.getCurrentAgents().getAsyncAgentIdList().wait();
               } catch (InterruptedException e) {
               }
             }
