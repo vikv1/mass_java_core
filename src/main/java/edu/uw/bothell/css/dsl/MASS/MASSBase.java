@@ -53,8 +53,8 @@ public class MASSBase {
 	private static Hashtable<Integer, AgentsBase> agentsMap = new Hashtable<Integer, AgentsBase>( );
 	private static Vector<Vector<RemoteExchangeRequest>> remoteRequests = new Vector<Vector<RemoteExchangeRequest>>( );
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
-	private static PlacesBase currentPlaces = null;
-	private static AgentsBase currentAgents = null;
+	private static PlacesBase currentPlacesBase = null;
+	private static AgentsBase currentAgentsBase = null;
 	private static ExchangeHelper exchange = new ExchangeHelper( );
 	private static PlacesBase destinationPlaces;
 	private static int currentFunctionId;
@@ -168,8 +168,8 @@ public class MASSBase {
 		return Runtime.getRuntime().availableProcessors();
     }
 	
-	public static AgentsBase getCurrentAgents( ) {
-    	return currentAgents; 
+	public static AgentsBase getCurrentAgentsBase( ) {
+    	return currentAgentsBase;
     }
 	
 	public static Object getCurrentArgument( ) { 
@@ -188,8 +188,8 @@ public class MASSBase {
      * Get the current Places object being worked on
      * @return The current Places object
      */
-    public static PlacesBase getCurrentPlaces( ) { 
-    	return currentPlaces; 
+    public static PlacesBase getCurrentPlacesBase( ) {
+    	return currentPlacesBase;
     }
 	
     public static Object[] getCurrentReturns() {
@@ -422,8 +422,8 @@ public class MASSBase {
 		MASSBase.agentsMap = agentsMap;
 	}
 
-	public static void setCurrentAgents(AgentsBase currentAgents) {
-		MASSBase.currentAgents = currentAgents;
+	public static void setCurrentAgentsBase(AgentsBase currentAgents) {
+		MASSBase.currentAgentsBase = currentAgents;
 	}
 	
 	public static void setCurrentArgument(Object currentArgument) {
@@ -442,8 +442,8 @@ public class MASSBase {
 	 * Set the current Places object to be worked on
 	 * @param currentPlaces The current Places object
 	 */
-	public static void setCurrentPlaces(PlacesBase currentPlaces) {
-		MASSBase.currentPlaces = currentPlaces;
+	public static void setCurrentPlacesBase(PlacesBase currentPlaces) {
+		MASSBase.currentPlacesBase = currentPlaces;
 	};
 
     public static void setCurrentReturns(Object[] currentReturns) {
@@ -567,22 +567,22 @@ public class MASSBase {
 		2) In MProcess.java upon receiving the message AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
 	* */
     public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
-      setCurrentAgents(agents);
-      MThread.setAgentBagSize(currentAgents.getAgents().size()); // number of agents that are going to be executed
+		setCurrentAgentsBase(agents);
+      MThread.setAgentBagSize(currentAgentsBase.getAgents().size()); // number of agents that are going to be executed
 
-      currentAgents.setAsyncFuncList(fIds);
-      currentAgents.resetChildAsyncIndex(); // queue for maintaining agents created
-      currentAgents.resetAsyncCompletedAgentList(); // queue for maintaining agents that completed the function
-      
-      currentAgents.asyncAgentIdListClear(); // agents to be executed
-      for(int i = 0; i < currentAgents.getAgents().size_unreduced(); i++) {
-        currentAgents.asyncAgentIdListAdd(i);
-        currentAgents.getAgents().get(i).setMyAgentsBase(currentAgents);
-        currentAgents.getAgents().get(i).setAsyncFuncListIndex(0);
-        currentAgents.getAgents().get(i).resetAsyncResults();
-        currentAgents.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
-        currentAgents.getAgents().get(i).setMyOriginalAsyncIndex(i);
-        currentAgents.getAgents().get(i).setCurrentIndex(i);
+		currentAgentsBase.setAsyncFuncList(fIds);
+		currentAgentsBase.resetChildAsyncIndex(); // queue for maintaining agents created
+		currentAgentsBase.resetAsyncCompletedAgentList(); // queue for maintaining agents that completed the function
+
+		currentAgentsBase.asyncAgentIdListClear(); // agents to be executed
+      for(int i = 0; i < currentAgentsBase.getAgents().size_unreduced(); i++) {
+		  currentAgentsBase.asyncAgentIdListAdd(i);
+		  currentAgentsBase.getAgents().get(i).setMyAgentsBase(currentAgentsBase);
+		  currentAgentsBase.getAgents().get(i).setAsyncFuncListIndex(0);
+		  currentAgentsBase.getAgents().get(i).resetAsyncResults();
+		  currentAgentsBase.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
+		  currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
+		  currentAgentsBase.getAgents().get(i).setCurrentIndex(i);
       }
       outputThread.setAgentHandle(agents.getHandle());
       outputThread.setPlaceHandle(agents.getPlacesHandle());
@@ -592,7 +592,7 @@ public class MASSBase {
         outAgents[i] = 0;
         inAgents[i] = 0;
       }
-      currentAgents.setResultRequestFromMaster(false);
+		currentAgentsBase.setResultRequestFromMaster(false);
       sourceAgentPid = -1;
       childAgentPids.clear();
     }

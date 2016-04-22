@@ -144,7 +144,7 @@ public class Agents extends AgentsBase implements Serializable {
     // retrieve the corresponding agents
 
     // shared between agents
-    MASSBase.setCurrentAgents(this);
+    MASSBase.setCurrentAgentsBase(this);
     MASSBase.setCurrentFunctionId(functionId);
     MASSBase.setCurrentArgument(argument);
     MASSBase.setCurrentMsgType(type);
@@ -157,7 +157,7 @@ public class Agents extends AgentsBase implements Serializable {
     }
 
     // resume threads
-    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgents());
+    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
 
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
@@ -308,7 +308,7 @@ public class Agents extends AgentsBase implements Serializable {
      */
 
     // resume threads
-    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgents());
+    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
 
     boolean asyncQueueComplete = false;
     do {
@@ -474,7 +474,7 @@ public class Agents extends AgentsBase implements Serializable {
     }
 
     // retrieve the corresponding agents
-    MASSBase.setCurrentAgents(this);
+    MASSBase.setCurrentAgentsBase(this);
     MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
 
     // resume threads

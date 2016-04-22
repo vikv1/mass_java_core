@@ -122,7 +122,7 @@ public class Places extends PlacesBase {
 		}
 	
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		MASSBase.setCurrentFunctionId(functionId);
 		MASSBase.setCurrentArgument(argument);
 		MASSBase.setCurrentMsgType(type);
@@ -224,7 +224,7 @@ public class Places extends PlacesBase {
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get( new Integer( destinationHandle ) ));
 		MASSBase.setCurrentFunctionId(functionId);
 		//MASS_base.currentDestinations = destinations;
@@ -288,7 +288,7 @@ public class Places extends PlacesBase {
 		    node.sendMessage( m );
 	
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		
 		// for debug
 		MASSBase.showHosts( );

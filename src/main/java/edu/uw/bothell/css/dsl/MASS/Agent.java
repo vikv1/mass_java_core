@@ -86,8 +86,8 @@ public class Agent implements Serializable {
 
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
-	private volatile boolean hasAlreadyRemoteMigrated = false;
-	private volatile boolean putBackToAsyncQueue = false;
+	private volatile boolean hasAlreadyGone= false;
+	private volatile boolean needsToGoBackToAsyncQueue = false;
 
 	/**
 	 *  backward compatibility with agentbag,
@@ -170,7 +170,7 @@ public class Agent implements Serializable {
 	public void killAsync() {
 
 		kill();
-		hasAlreadyRemoteMigrated = true;
+		hasAlreadyGone = true;
 
 		synchronized(MThread.class){
 			MThread.setAgentBagSize(MThread.getAgentBagSize() - 1);
@@ -342,20 +342,20 @@ public class Agent implements Serializable {
 		return myAgentsBase;
 	}
 
-	public boolean hasAlreadyRemoteMigrate() {
-		return hasAlreadyRemoteMigrated;
+	public boolean isHasAlreadyGone() {
+		return hasAlreadyGone;
 	}
 
-	public void setHasAlreadyRemoteMigrated(boolean value) {
-		hasAlreadyRemoteMigrated = value;
+	public void setHasAlreadyGone(boolean value) {
+		hasAlreadyGone = value;
 	}
 
-	public boolean shouldPutBackToAsyncQueue() {
-		return putBackToAsyncQueue;
+	public boolean isNeedsToGoBackToAsyncQueue() {
+		return needsToGoBackToAsyncQueue;
 	}
 
-	public void setPutBackToAsyncQueue(boolean value) {
-		putBackToAsyncQueue = value;
+	public void setNeedsToGoBackToAsyncQueue(boolean value) {
+		needsToGoBackToAsyncQueue = value;
 	}
 
 	/**

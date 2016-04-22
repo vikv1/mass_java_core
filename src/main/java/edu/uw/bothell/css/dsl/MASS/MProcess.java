@@ -239,7 +239,7 @@ public class MProcess {
         logger.debug("PLACES_CALL_ALL_VOID_OBJECT received");
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlaces(MASSBase.getPlacesMap().get(
+        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
             new Integer(m.getHandle())));
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
@@ -249,7 +249,7 @@ public class MProcess {
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
         // 3rd arg: 0 = the main thread id
-        MASSBase.getCurrentPlaces().callAll(m.getFunctionId(), argument, 0);
+        MASSBase.getCurrentPlacesBase().callAll(m.getFunctionId(), argument, 0);
 
         // confirm all threads are done with places.callAll
         MThread.barrierThreads(0);
@@ -262,19 +262,19 @@ public class MProcess {
         logger.debug("PLACES_CALL_ALL_RETURN_OBJECT received");
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlaces(MASSBase.getPlacesMap().get(
+        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
             new Integer(m.getHandle())));
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
-        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlaces()
+        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase()
             .getPlacesSize()]);
 
         // resume threads to work on call all.
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
         // 3rd arg: 0 = the main thread id
-        MASSBase.getCurrentPlaces().callAll(MASSBase.getCurrentFunctionId(),
+        MASSBase.getCurrentPlacesBase().callAll(MASSBase.getCurrentFunctionId(),
             (Object[]) (MASSBase.getCurrentArgument()),
             ((Object[]) (MASSBase.getCurrentArgument())).length, 0);
 
@@ -290,7 +290,7 @@ public class MProcess {
               + m.getHandle() + " dest_handle = " + m.getDestHandle());
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlaces(MASSBase.getPlacesMap().get(
+        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
             new Integer(m.getHandle())));
         MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get(
             new Integer(m.getDestHandle())));
@@ -307,7 +307,7 @@ public class MProcess {
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
         // exchangeall implementation
-        MASSBase.getCurrentPlaces().exchangeAll(
+        MASSBase.getCurrentPlacesBase().exchangeAll(
             MASSBase.getDestinationPlaces(), MASSBase.getCurrentFunctionId(),
             0);
 
@@ -327,13 +327,13 @@ public class MProcess {
         logger.debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlaces(MASSBase.getPlacesMap().get(new Integer(m.getHandle())));
+        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(new Integer(m.getHandle())));
 
         // for debug
         MASSBase.showHosts();
 
         // exchange boundary implementation
-        MASSBase.getCurrentPlaces().exchangeBoundary();
+        MASSBase.getCurrentPlacesBase().exchangeBoundary();
 
         sendAck();
 
@@ -365,47 +365,47 @@ public class MProcess {
 
         logger.debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-        MASSBase.setCurrentAgents(MASSBase.getAgentsMap().get(
+        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
 
-        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
             .size_unreduced());
 
         // resume threads to work on call all
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
-        MASSBase.getCurrentAgents().callAll(m.getFunctionId(), argument, 0);
+        MASSBase.getCurrentAgentsBase().callAll(m.getFunctionId(), argument, 0);
 
         // confirm all threads are done with agents.callAll
         MThread.barrierThreads(0);
 
         logger.debug("barrier done");
 
-        sendAck(MASSBase.getCurrentAgents().getLocalPopulation());
+        sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
         break;
 
       case AGENTS_CALL_ALL_RETURN_OBJECT:
 
         logger.debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
 
-        MASSBase.setCurrentAgents(MASSBase.getAgentsMap().get(
+        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
-        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgents()
+        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgentsBase()
             .getLocalPopulation()]);
 
-        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
             .size_unreduced());
 
         // resume threads to work on call all with return objects
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
-        MASSBase.getCurrentAgents().callAll(MASSBase.getCurrentFunctionId(),
+        MASSBase.getCurrentAgentsBase().callAll(MASSBase.getCurrentFunctionId(),
             (Object[]) (MASSBase.getCurrentArgument()), 0);
 
         // confirm all threads are done with agnets.callAll with
@@ -414,7 +414,7 @@ public class MProcess {
         logger.debug("barrier done");
 
         sendReturnValues(MASSBase.getCurrentReturns(), MASSBase
-            .getCurrentAgents().getLocalPopulation());
+            .getCurrentAgentsBase().getLocalPopulation());
 
         break;
 
@@ -422,21 +422,21 @@ public class MProcess {
 
         logger.debug("AGENTS_MANAGE_ALL received");
 
-        MASSBase.setCurrentAgents(MASSBase.getAgentsMap().get(
+        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
-        MThread.setAgentBagSize(MASSBase.getCurrentAgents().getAgents()
+        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
             .size_unreduced());
 
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
 
-        MASSBase.getCurrentAgents().manageAll(0); // 0 = the main tid
+        MASSBase.getCurrentAgentsBase().manageAll(0); // 0 = the main tid
 
         // confirm all threads are done with agents.manageAll.
         MThread.barrierThreads(0);
 
-        logger.debug("sendAck will send localPopulation = {}", MASSBase.getCurrentAgents().getLocalPopulation());
+        logger.debug("sendAck will send localPopulation = {}", MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
-        sendAck(MASSBase.getCurrentAgents().getLocalPopulation());
+        sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
         break;
 
@@ -449,20 +449,20 @@ public class MProcess {
         Object[] arguments = (Object[]) argument;
         int[] autoMigrationStartIndices = m.getAutoMigrationStartingIndex();
 
-        for (int i = 0; i < MASSBase.getCurrentAgents().asyncAgentIdListSize(); i++) {
+        for (int i = 0; i < MASSBase.getCurrentAgentsBase().asyncAgentIdListSize(); i++) {
           if(arguments != null) {
-            MASSBase.getCurrentAgents().getAgents()
-              .get(MASSBase.getCurrentAgents().asyncAgentIdListGet(i)).setAsyncArgument(arguments[i]);
+            MASSBase.getCurrentAgentsBase().getAgents()
+              .get(MASSBase.getCurrentAgentsBase().asyncAgentIdListGet(i)).setAsyncArgument(arguments[i]);
           }
           if(autoMigrationStartIndices != null) {
-            MASSBase.getCurrentAgents().getAgents()
-            .get(MASSBase.getCurrentAgents().asyncAgentIdListGet(i)).setAutoMigrationStartingIndex(i);
+            MASSBase.getCurrentAgentsBase().getAgents()
+            .get(MASSBase.getCurrentAgentsBase().asyncAgentIdListGet(i)).setAutoMigrationStartingIndex(i);
           }
         }
 
-        if (!MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty()) {
+        if (!MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty()) {
           MASSBase.setSourceAgentPid(0); // Need to notify Master
-          MASSBase.getInAsyncAgents()[0] += MASSBase.getCurrentAgents().asyncAgentIdListSize();
+          MASSBase.getInAsyncAgents()[0] += MASSBase.getCurrentAgentsBase().asyncAgentIdListSize();
         } else {
           MASSBase.setSourceAgentPid(-1);
         }
@@ -470,45 +470,45 @@ public class MProcess {
         // Object[MASS_base.getCurrentAgents().getLocalPopulation()]); //
         // prepare an entire return space
         // resume threads
-          logger.debug("MASS_base.currentgAgents = {}", MASSBase.getCurrentAgents());
-          logger.debug("MASS_base.getCurrentgAgents = {}", MASSBase.getCurrentAgents());
+          logger.debug("MASS_base.currentgAgents = {}", MASSBase.getCurrentAgentsBase());
+          logger.debug("MASS_base.getCurrentgAgents = {}", MASSBase.getCurrentAgentsBase());
 
         do {
           
         	// Mark myself as busy processing my async queue
-          MASSBase.getCurrentAgents().setIsAsyncLoopIdle(false);
+          MASSBase.getCurrentAgentsBase().setIsAsyncLoopIdle(false);
           logger.debug("begin callAllAsync loop");
 
           // resume threads to work on call all
           MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
           try {
-            MASSBase.getCurrentAgents().callAllAsync(0);
+            MASSBase.getCurrentAgentsBase().callAllAsync(0);
           } catch(Exception e) {
             logger.error("Unknown exception sending async callAll", e);
           }
 
           // confirm all threads are done with agents.callAllAsync
           // tell master that I'm done
-          synchronized (MASSBase.getCurrentAgents().getAsyncAgentIdList()) {
+          synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
               logger.debug("output idle = "
                   + MASSBase.getAsyncOutputThread().isIdle()
                   + ", input idle = "
                   + MASSBase.getAsyncInputThread().isIdle(false)
                   + ", output migrate set is empty = "
                   + MASSBase.getChildAgentPids().isEmpty());
-            while ( (MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty() && MASSBase
-                .getCurrentAgents().hasNoInprocessAgents())
+            while ( (MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty() && MASSBase
+                .getCurrentAgentsBase().hasNoInprocessAgents())
                 && (!MASSBase.getAsyncOutputThread().isIdle()
                 || !MASSBase.getAsyncInputThread().isIdle(false)
                 || !MASSBase.getChildAgentPids().isEmpty())) {
               try {
-                MASSBase.getCurrentAgents().getAsyncAgentIdList().wait();
+                MASSBase.getCurrentAgentsBase().getAsyncAgentIdList().wait();
               } catch (InterruptedException e) {
               }
             }
 
             // I'm done with my async queue and agents migration
-            MASSBase.getCurrentAgents().setIsAsyncLoopIdle(true);
+            MASSBase.getCurrentAgentsBase().setIsAsyncLoopIdle(true);
 
             // Notify master that I am done
             /*
@@ -518,8 +518,8 @@ public class MProcess {
              * When an agent stops running,  inProcessAgentCount variable is decreased by one
                 in AgentsBase.java
             */
-            if (MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty()
-                && MASSBase.getCurrentAgents().hasNoInprocessAgents()
+            if (MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty()
+                && MASSBase.getCurrentAgentsBase().hasNoInprocessAgents()
                 && MASSBase.getChildAgentPids().isEmpty()
                 && MASSBase.getSourceAgentPid() > -1)
             {
@@ -529,24 +529,24 @@ public class MProcess {
                             .getSourceAgentPid()]);
             }
 
-            while ((!MASSBase.getCurrentAgents().getResultRequestFromMaster()
-                && MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty() && MASSBase
-                .getCurrentAgents().hasNoInprocessAgents())) {
+            while ((!MASSBase.getCurrentAgentsBase().getResultRequestFromMaster()
+                && MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty() && MASSBase
+                .getCurrentAgentsBase().hasNoInprocessAgents())) {
                 logger.debug("After notifying Master: "
-                    + !MASSBase.getCurrentAgents()
+                    + !MASSBase.getCurrentAgentsBase()
                         .getResultRequestFromMaster() + " && "
-                    + MASSBase.getCurrentAgents().asyncAgentIdListIsEmpty());
+                    + MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty());
               }
               try {
-                MASSBase.getCurrentAgents().getAsyncAgentIdList().wait();
+                MASSBase.getCurrentAgentsBase().getAsyncAgentIdList().wait();
               } catch (InterruptedException e) {
               }
             }
             logger.debug("end of callAllAsync loop: "
-                + !MASSBase.getCurrentAgents().getResultRequestFromMaster());
+                + !MASSBase.getCurrentAgentsBase().getResultRequestFromMaster());
 
           // Mthread.barrierThreads(0);
-        } while (!MASSBase.getCurrentAgents().getResultRequestFromMaster());
+        } while (!MASSBase.getCurrentAgentsBase().getResultRequestFromMaster());
 
 
         logger.debug("barrier done callAll_ASync");
