@@ -43,31 +43,77 @@ public class PlaceTest extends AbstractTest {
     @TestSubject
     private Place place2 = new Place();
 
+    @TestSubject
+    private Place place3 = new Place();
+
+    /*
+    @Mock
+    private int[] index;
+
+    @Mock
+    private int[] size;
+
+    */
+
 
     @Test
-    public void testOpenWithTxt() throws Exception {
-        String filePath = "/Users/Michael/mass_java_core/testTxt.txt";
+    public void testOpenReadCloseWithTxt() throws Exception {
+        String filePath = "../mass_java_core/testTxt.txt";
         String filePath2 = "/Users/Michael/mass_java_core/testTxt2.txt";
 
         int descriptor;
         int descriptor2;
         int descriptor3;
 
+        byte[] data = new byte[1];
+
         descriptor = place1.open(filePath, 0);
 
         descriptor = place2.open(filePath, 0);
+
+        descriptor = place3.open(filePath, 0);
 
         descriptor2 = place1.open(filePath2, 0);
 
         descriptor2 = place2.open(filePath2, 0);
 
+        descriptor2 = place3.open(filePath, 0);
+
         descriptor3 = place1.open(filePath, 0);
 
         descriptor3 = place2.open(filePath, 0);
 
-        place1.close(descriptor);
-        place2.close(descriptor);
-        place1.close(descriptor);
+        descriptor3 = place3.open(filePath, 0);
+
+
+        place1.read(descriptor, data);
+
+        place2.read(descriptor, data);
+
+        place3.read(descriptor, data);
+
+        place1.read(descriptor2, data);
+
+        place2.read(descriptor2, data);
+
+        place3.read(descriptor2, data);
+
+        place1.read(descriptor3, data);
+
+        place2.read(descriptor3, data);
+
+        place3.read(descriptor3, data);
+
+
+        boolean closeError = false;
+        if (!place1.close(descriptor))
+            closeError = true;
+        if (!place2.close(descriptor2))
+            closeError = true;
+        if (!place1.close(descriptor3))
+            closeError = true;
+        if (closeError)
+            System.out.println("Error Closing");
     }
 
     // TODO: slf4j logging dependencies for NetdfFiles
@@ -75,10 +121,31 @@ public class PlaceTest extends AbstractTest {
     public void testOpenWithNetcdf() throws Exception {
         String filePath = "/testNetcdf.nc";
 
-        // call places open method with the given file name and check if returned
-        // descriptor object is returned as expected
-        Object descriptor = place1.open(filePath, 0);
+        int descriptor;
 
+        byte[] data = new byte[1];
+
+        descriptor = place1.open(filePath, 0);
+
+        descriptor = place2.open(filePath, 0);
+
+        descriptor = place3.open(filePath, 0);
+
+        place1.read(descriptor, data);
+
+        place2.read(descriptor, data);
+
+        place3.read(descriptor, data);
+
+        boolean closeError = false;
+
+        if (!place1.close(descriptor))
+            closeError = true;
+        if (closeError)
+            System.out.println("Error Closing");
+    }
+}
+        /*
         // check if descriptor is a NetcdfFile
         if (descriptor instanceof NetcdfFile) {
 
@@ -107,6 +174,7 @@ public class PlaceTest extends AbstractTest {
             } catch (IOException ioe) {
                 System.err.println( ioe );
             }
-        }
+       }
     }
 }
+*/

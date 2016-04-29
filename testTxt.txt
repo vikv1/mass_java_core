@@ -1,16 +1,11 @@
-testOpenText() SUCCESS
-
-Here we are
+testTxt.txt is being read
 
 
-Doing it big
-
-
-If this works
-
-
-Then the buffer is being read from
-
-
-PROP
-ERLY
+p
+r
+o
+p
+e
+r
+l
+y
