@@ -30,28 +30,21 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.FileNotFoundException;
+import ucar.ma2.*;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
+
 import java.io.IOException;
-import java.lang.reflect.*;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.charset.Charset;
-import java.nio.file.*;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
-import sun.nio.ch.Net;
-import ucar.ma2.Array;
-import ucar.nc2.NetcdfFile;	  // for Netcdf files
-
-import java.io.*;			  // for IO
-
-import static java.nio.file.StandardOpenOption.WRITE;
 import static java.nio.file.StandardOpenOption.READ;
-
-import ucar.ma2.*;
-import ucar.nc2.Variable;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  *	Place represents a single element from a collection of places distributed
@@ -114,7 +107,13 @@ public class Place {
 	private static int count = 0;
 
 	// current file descriptor (for open method)
+	// TODO: Check where used
 	private static int fileDescriptor;
+
+	public static final int READ_ = 0;
+
+	public static final int WRITE_ = 1;
+
 
 	// private class that stores all of a file's attributes
 	private class FileAttributes {
@@ -287,17 +286,20 @@ public class Place {
 		// isolate the file name
 		String fileName = path.getFileName().toString();
 
-		// only the first place opens the file
-		if (!fileTable.containsKey(count) && index[0] == 0 && index[1] == 0 && index[2] == 0) {
+		synchronized (fileTable) {
+			// only the first place opens the file
+			if (!fileTable.containsKey(count) && index[0] == 0 && index[1] == 0 && index[2] == 0) {
 
-			// open the file if the file type is supported, return -1 if not supported
-			if (fileName.toLowerCase().endsWith(".nc")) {
-				fileDescriptor = openNetcdfFile(fileName, ioType);
-			} else if (fileName.toLowerCase().endsWith(".txt")) {
-				fileDescriptor = openTextFile(fileName, ioType, path);
-			} else {
-				System.err.println("File type not supported by MASS parallel I/O");
-				return -1;
+				// open the file if the file type is supported, return -1 if not supported
+				if (fileName.toLowerCase().endsWith(".nc")) {
+					fileDescriptor = openNetcdfFile(fileName, ioType);
+				} else if (fileName.toLowerCase().endsWith(".txt")) {
+					fileDescriptor = openTextFile(fileName, ioType, path);
+				} else {
+					System.err.println("File type not supported by MASS parallel I/O");
+					return -1;
+				}
+				System.out.println(fileTable.get(fileDescriptor).getFileName() + " opened");
 			}
 		}
 
@@ -349,18 +351,15 @@ public class Place {
 			variables.put(currVar.getShortName(), currVar);
 		}
 
-		// user will need to know the shape of the variables and create that many places
-		//int[] varShape = dataVar.getShape();
-
-		// shape of data that each place will read/write
-		//int[] placeShape = { varShape[0] / size[0] , varShape[1] / size [1], varShape[2] / size[2]  };
-
 		// set file attributes and add them to the file table
 		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlaces().getPlacesSize(), count, variables);
+
 		fileTable.put(count, fileAttributes);
+
 
 		// increment the file count since a file has been added to the file table
 		count++;
+
 
 		// return the file's count (which is the file's unique descriptor)
 		return fileAttributes.getCount();
@@ -428,17 +427,19 @@ public class Place {
 
 	// read function used for netcdf files
 	protected boolean read(int fd, Hashtable<String, Array> ncData) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
-				return readNetcdfFile(fileAttributes, ncData);
-			} else {
-				System.err.println("Given fd to read is not supported by MASS parallel I/O");
-			}
-		} else {
-			System.err.println("Given fd to read does not exisit in the file table (has not been opened)");
-		}
+		synchronized (fileTable) {
+			if (fileTable.containsKey(fd)) {
 
+				FileAttributes fileAttributes = fileTable.get(fd);
+				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
+					return readNetcdfFile(fileAttributes, ncData);
+				} else {
+					System.err.println("Given fd to read is not supported by MASS parallel I/O");
+				}
+			} else {
+				System.err.println("Given fd to read does not exist in the file table (has not been opened)");
+			}
+		}
 		return false;
 	}
 
@@ -462,19 +463,13 @@ public class Place {
 			try {
 
 				Array userDataset = varsData.get(varName);
-				Index currIndex = userDataset.getIndex();
-				Array varData;
-
-				// note that arraycopy will not work because destPos has to be an int not an array
-				//System.arraycopy(varData, 0, varsData.get(varName), index, 1 );
+				ArrayFloat.D3 varData;
 
 				// read for 3D float
-				if (var.getDataType().equals(DataType.FLOAT)) {
-					if (currIndex.getRank() == 3) {
-						// read one element starting at this places index
-						varData = var.read(index, new int[]{1, 1, 1});
-						userDataset.setFloat(new Index(userDataset.getShape(), index), varData.getFloat(0));
-					}
+				if (userDataset instanceof ArrayFloat.D3) {
+					// read one element starting at this places index
+					varData = (ArrayFloat.D3) var.read(index, new int[]{1, 1, 1});
+					((ArrayFloat.D3) userDataset).set(index[0], index[1], index[2], varData.get(0, 0, 0));
 				}
 
 			} catch (InvalidRangeException err) {
@@ -539,25 +534,31 @@ public class Place {
 		return true;
 	}
 
-	protected synchronized boolean close( int fd ) {
-		if ( fileTable.containsKey( fd ) ) {
-			Object file = fileTable.get(fd).getFile();
-			if ( file instanceof NetcdfFile ) {
-				try {
-					( ( NetcdfFile ) file ).close( );
-					return true;
-				} catch ( IOException ioe ) {
-					System.err.println( ioe );
-				}
-			}
+	protected boolean close( int fd ) {
+		synchronized (fileTable) {
+			if (fileTable.containsKey(fd) && index[0] == 0 && index[1] == 0 && index[2] == 0) {
+				String fileName = fileTable.get(fd).getFileName();
+				Object file = fileTable.get(fd).getFile();
+				if (file instanceof NetcdfFile) {
+					try {
+						((NetcdfFile) file).close();
+						System.out.println(fileName + " closed");
 
-			else if ( file instanceof FileChannel ) {
-				try {
-					( ( FileChannel ) file ).close( );
-					return true;
-				} catch ( IOException ioe ){
-					System.err.println( ioe );
+						return true;
+					} catch (IOException ioe) {
+						System.err.println(ioe);
+					}
+				} else if (file instanceof FileChannel) {
+					try {
+						((FileChannel) file).close();
+						System.out.println(fileName + " closed");
+
+						return true;
+					} catch (IOException ioe) {
+						System.err.println(ioe);
+					}
 				}
+
 			}
 		}
 		return false;
