@@ -288,7 +288,7 @@ public class Place {
 
 		synchronized (fileTable) {
 			// only the first place opens the file
-			if (!fileTable.containsKey(count) && index[0] == 0 && index[1] == 0 && index[2] == 0) {
+			if (!fileTable.containsKey(count - 1) ) {
 
 				// open the file if the file type is supported, return -1 if not supported
 				if (fileName.toLowerCase().endsWith(".nc")) {
@@ -536,13 +536,14 @@ public class Place {
 
 	protected boolean close( int fd ) {
 		synchronized (fileTable) {
-			if (fileTable.containsKey(fd) && index[0] == 0 && index[1] == 0 && index[2] == 0) {
+			if (fileTable.containsKey(fd)) {
 				String fileName = fileTable.get(fd).getFileName();
 				Object file = fileTable.get(fd).getFile();
 				if (file instanceof NetcdfFile) {
 					try {
 						((NetcdfFile) file).close();
 						System.out.println(fileName + " closed");
+						fileTable.remove(fd);
 
 						return true;
 					} catch (IOException ioe) {
@@ -558,7 +559,6 @@ public class Place {
 						System.err.println(ioe);
 					}
 				}
-
 			}
 		}
 		return false;
