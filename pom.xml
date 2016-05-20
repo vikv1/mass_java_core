@@ -81,60 +81,65 @@
 
 	<dependencies>
 		
+		<!-- Unit Testing -->
 		<dependency>
-			<!-- Unit Testing -->
       		<groupId>junit</groupId>
       		<artifactId>junit</artifactId>
       		<version>4.11</version>
       		<scope>test</scope>
-    		</dependency>
+   		</dependency>
   	
   		<dependency>
-			<!-- Unit Testing -->
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
 			<scope>test</scope>
 		</dependency>
 
+		<!-- For SSH connectivity to remote hosts -->
 		<dependency>
-			<!-- For SSH connectivity to remote hosts -->
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.51</version>
 			<scope>compile</scope>
 		</dependency>
 
+		<!--  For JAXB serialization to/from XML -->
 		<dependency>
-			<!--  For JAXB serialization to/from XML -->
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
 			<version>2.2.11</version>
 			<scope>compile</scope>
 		</dependency>
 
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>${slf4j.version}</version>
-  </dependency>
-  <!-- Binding for Log4J -->
-  <dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-slf4j-impl</artifactId>
-    <version>${log4j.version}</version>
-  </dependency>
-  <!-- Log4j API and Core implementation required for binding -->
-  <dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-api</artifactId>
-    <version>${log4j.version}</version>
-  </dependency>
-  <dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>${log4j.version}</version>
-  </dependency>
+  		<!-- Log4j API and Core implementation required for logging -->
+		<dependency>
+    		<groupId>org.slf4j</groupId>
+    		<artifactId>slf4j-api</artifactId>
+    		<version>${slf4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+    
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-slf4j-impl</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-api</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-core</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
   		
   	</dependencies>
 
