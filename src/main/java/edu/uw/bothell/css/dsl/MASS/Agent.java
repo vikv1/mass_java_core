@@ -75,7 +75,7 @@ public class Agent implements Serializable {
 	private Object[] arguments = null;
 
 	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
+	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	// Async
 	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
