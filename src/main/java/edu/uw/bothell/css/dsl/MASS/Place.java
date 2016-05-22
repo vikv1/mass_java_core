@@ -387,7 +387,7 @@ public class Place {
 		}
 
 		// set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASS_base.getCurrentPlaces().getPlacesSize(), count);
+		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlaces().getPlacesSize(), count);
 
 		// set file attributes for a read operation
 		if (ioType == 0) {
