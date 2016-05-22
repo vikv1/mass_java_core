@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
@@ -72,12 +74,15 @@ public class Agent implements Serializable {
 	 */
 	private Object[] arguments = null;
 
+	// logging
+	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
+	
 	// Async
 	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
 	private Object[] asyncResults;
 	private volatile int asyncResultsIndex = 0; // next index to be inserted
 	private Object asyncArgument;
-	private volatile Agents_base parentAgents;
+	private volatile AgentsBase parentAgents;
 
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
@@ -167,8 +172,8 @@ public class Agent implements Serializable {
 		kill();
 		hasAlreadyRemoteMigrated = true;
 
-		synchronized(Mthread.class){
-			Mthread.setAgentBagSize(Mthread.getAgentBagSize() - 1);
+		synchronized(MThread.class){
+			MThread.setAgentBagSize(MThread.getAgentBagSize() - 1);
 		}
 
 		// remove the agent from this place
@@ -329,11 +334,11 @@ public class Agent implements Serializable {
 		return myAsyncOriginalPid;
 	}
 
-	public void setParentAgents(Agents_base parent) {
+	public void setParentAgents(AgentsBase parent) {
 		parentAgents = parent;
 	}
 
-	public Agents_base getParentAgents() {
+	public AgentsBase getParentAgents() {
 		return parentAgents;
 	}
 
@@ -394,8 +399,7 @@ public class Agent implements Serializable {
 		}
 		result.myAsyncOriginalPid = this.myAsyncOriginalPid;
 		result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-		if(MASS.isConsoleLoggingEnabled())
-			MASS_base.log("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
+		logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
 		return result;
 	}
 

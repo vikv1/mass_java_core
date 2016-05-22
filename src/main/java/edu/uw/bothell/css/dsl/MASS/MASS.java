@@ -48,11 +48,13 @@ import com.jcraft.jsch.Channel;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
  */
-public class MASS extends MASS_base {
+public class MASS extends MASSBase {
 
 	private static boolean printOutput = false;
 
@@ -84,6 +86,8 @@ public class MASS extends MASS_base {
 	private static Places debuggerInstance;
 	public static final int DEBUGGER_HANDLE = 99;
 
+	// Logging
+	private static Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
      * Add a library ("Jar") to be loaded by the classloader on each node
@@ -91,33 +95,38 @@ public class MASS extends MASS_base {
      */
     public static void addLibrary(String libraryName) {
     	
+    	logger.debug("Adding library: " + libraryName);
+    	
     	// add the library to the object factory
     	try {
+    		
     		objectFactory.addLibrary(libraryName);
+
+        	// remember the specified library so it can be set on remote nodes as well
+        	libraries.add(libraryName);
+
     	}
     	catch (Exception e) {
-        MASS.logException(null, e);
+        	logger.error("Exception thrown while adding library!", e);
     	}
-
-    	// remember the specified library so it can be set on remote nodes as well
-    	libraries.add(libraryName);
-    
+    	
+    	logger.debug("Library successfully added!");
+    	
     }
     
-	static void barrier_all_slaves( ) { 
-    	barrier_all_slaves( null, 0,  null ); 
+	static void barrierAllSlaves( ) { 
+    	barrierAllSlaves( null, 0,  null ); 
     }
 
-	static void barrier_all_slaves( int localAgents[] ) { 
-    	barrier_all_slaves( null, 0, localAgents );
+	static void barrierAllSlaves( int localAgents[] ) { 
+    	barrierAllSlaves( null, 0, localAgents );
     }
 
-    static void barrier_all_slaves( Object[] return_values, int stripe ) {
-    	barrier_all_slaves( return_values, stripe, null ); 
+    static void barrierAllSlaves( Object[] returnValues, int stripe ) {
+    	barrierAllSlaves( returnValues, stripe, null ); 
     }
     
- 	static void barrier_all_slaves( Object[] return_values, int stripe,
-    		int localAgents[] ) {
+ 	static void barrierAllSlaves( Object[] returnValues, int stripe, int localAgents[] ) {
 
     	// counts the agent population from each Mprocess
     	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
@@ -146,7 +155,7 @@ public class MASS extends MASS_base {
 
     		// retrieve arguments back from each Mprocess
     		// places.callAll( ) with return values
-    		if ( return_values != null ) {
+    		if ( returnValues != null ) {
     			if ( stripe > 0 && localAgents == null ) {
 
     				// check if the message is from the last mNode as
@@ -162,13 +171,13 @@ public class MASS extends MASS_base {
 
     				// copy the partial array into the return_values array
     				System.arraycopy( m.getArgument( ), 0,
-    								  return_values, stripe * ( i + 1 ),
+    								  returnValues, stripe * ( i + 1 ),
     								  copyLength );
     				}
     				if ( stripe == 0 && localAgents != null ) {
     					// agents.callAll( ) with return values
     					System.arraycopy( m.getArgument( ), 0,
-    									  return_values, nAgentsSoFar,
+    									  returnValues, nAgentsSoFar,
     									  localAgents[i + 1] );
     				}
     			}
@@ -200,10 +209,10 @@ public class MASS extends MASS_base {
  	 */
  	public static void finish( ) {
 
-    	Mthread.resumeThreads( Mthread.STATUS_TYPE.STATUS_TERMINATE );
-    	Mthread.barrierThreads( 0 );
+    	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
+    	MThread.barrierThreads( 0 );
 
-    	if(MASS.isConsoleLoggingEnabled())
+    	if ( MASS.isConsoleLoggingEnabled() )
     		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
@@ -214,12 +223,13 @@ public class MASS extends MASS_base {
     	}
 
     	// Synchronize with all slaves
-    	barrier_all_slaves( );
+    	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
-      MASS_base.getAsyncOutputThread().finish();
-      MASS_base.getAsyncInputThread().finish();
+      
+    	MASSBase.getAsyncOutputThread().finish();
+    	MASSBase.getAsyncInputThread().finish();
 
     	System.err.println( "MASS::finish: done" );
 
@@ -378,7 +388,7 @@ public class MASS extends MASS_base {
     	if (getMasterNode() != null) {
     		
     		// init using Master node config
-    		initMASS_base(getMasterNode());
+    		initMASSBase(getMasterNode());
     		
     	} else {
     	
@@ -404,7 +414,7 @@ public class MASS extends MASS_base {
 
     		catch ( Exception e ) {
 
-    			log( "wrong host name: " + node.getHostName() );
+    			logger.error( "Wrong host name: {}", node.getHostName(), e );
     			System.exit( -1 );
 
     		}
@@ -424,7 +434,6 @@ public class MASS extends MASS_base {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xms2g ");
     		commandBuilder.append("-Xmx9g ");
     		
     		// set location of MASS.jar
@@ -432,8 +441,6 @@ public class MASS extends MASS_base {
     		if (node.getMassHome() != null) commandBuilder.append(node.getMassHome() + "/");
     		commandBuilder.append("MASS.jar");
     		
-    		//= "java -Xms1g -Xmx2g -cp " + CUR_DIR + "/MASS.jar:";
-
     		// add any custom JARs specified
    			for( String customJar : getLibraries() ) {
     				
@@ -451,7 +458,7 @@ public class MASS extends MASS_base {
    			}
 
     		// MProcess and its arguments
-    		commandBuilder.append("edu.uw.bothell.css.dsl.MASS.MProcess ");	// the program
+    		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
     		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
     		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
@@ -665,10 +672,10 @@ public class MASS extends MASS_base {
 	public static void debugInit(int placeHandle, int agentHandle, int portNumber)
 	{
 		int[] handles = new int[]{placeHandle, agentHandle};
-		Places debugger = new Places(DEBUGGER_HANDLE, "edu.uw.bothell.css.dsl.MASS.Debugger", handles, 1);
-		debugger.callAll(Debugger.init_);
+		Places debugger = new Places(DEBUGGER_HANDLE, Debugger.class.getName(), handles, 1);
+		debugger.callAll(Debugger.INIT);
 		MASS.debuggerInstance = debugger;
-		Debugger_base.setPort(portNumber);
+		DebuggerBase.setPort(portNumber);
 	}
 
 	/**
@@ -678,17 +685,17 @@ public class MASS extends MASS_base {
 	 */
 	public static void debugSync() throws InterruptedException
 	{
-		synchronized(Debugger_base.sending_lock){
-			if(Debugger_base.sending_lock[0]){
+		synchronized(DebuggerBase.sending_lock){
+			if(DebuggerBase.sending_lock[0]){
 				try{
-					Debugger_base.sending_lock.wait();
+					DebuggerBase.sending_lock.wait();
 				}catch(Exception e){}
 			}
 		}
-		synchronized(Debugger_base.stop_lock){
-			if(Debugger_base.stop_lock[0]){
+		synchronized(DebuggerBase.stop_lock){
+			if(DebuggerBase.stop_lock[0]){
 				try{
-					Debugger_base.stop_lock.wait();
+					DebuggerBase.stop_lock.wait();
 				}catch(Exception e){}
 			}
 		}
@@ -700,11 +707,19 @@ public class MASS extends MASS_base {
 	 */
 	public static void debugUpdate() throws InterruptedException
 	{
-		MASS.debuggerInstance.callAll(Debugger.fetchDebugData_, new Integer[2]);
+		MASS.debuggerInstance.callAll(Debugger.FETCH_DEBUG_DATA, new Integer[2]);
 		Debugger.sendDataToGUI(1);
 
 		//Debugger.sendDataToGUI(2);
 		//MASS.debuggerInstance.callAll(Debugger.fetchAgentDebugData_, new Integer[2]);
 	}
-
+	
+	/**
+	 * Change logger level
+	 * @param level The logging level
+	 */
+	public static void setLoggingLevel(LogLevel level) {
+		logger.setLogLevel(level);
+	}
+	
 }

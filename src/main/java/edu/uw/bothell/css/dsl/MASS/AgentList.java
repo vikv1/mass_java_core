@@ -30,18 +30,24 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+
 public class AgentList {
 
 	private final int CAPACITY_X = 1000; // max agent population = 1 million
 	private final int CAPACITY_Y = 1000;
-	private int capacity_y = 0;
+	
+	private int capacityY = 0;
 	private Agent[][] array = null;
 	private boolean reduceDone = true;
 
-	private int curr_x = -1;
-	private int next_y = 0;
+	private int currentX = -1;
+	private int nextY = 0;
 	private int iterator = 0;
 	private int estimateSize = 0;
+
+	// logging
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	public AgentList( ) {
 		init( CAPACITY_Y );
@@ -53,12 +59,12 @@ public class AgentList {
 
 	public synchronized void add( Agent item ) {
 		
-		if ( next_y == capacity_y ) {
+		if ( nextY == capacityY ) {
 			increaseX( );
-			next_y = 0;
+			nextY = 0;
 		}
 		
-		array[curr_x][next_y++] = item;
+		array[currentX][nextY++] = item;
 		++estimateSize;
 	}
 		
@@ -81,10 +87,10 @@ public class AgentList {
 	  return estimateSize;
 	}
 
-	public void check_internal( ) {
+	public void checkInternal( ) {
 		
-		for ( int x = 0; x < curr_x * capacity_y + next_y; x++ )
-			MASS_base.log( "AgentList[" + get( x ) + "]" );
+		for ( int x = 0; x < currentX * capacityY + nextY; x++ )
+			logger.debug( "AgentList[{}]", get( x ) );
 	
 	}
 
@@ -92,15 +98,15 @@ public class AgentList {
 		
 		for ( int i = 0; i < size_unreduced( ); i++ )
 			remove( i );
-		reduce_helper( );
+		reduceHelper( );
 
 	}
 
 	public synchronized Agent get( int linear_index ) {
 		
 		if ( linear_index <= size_unreduced( ) ) {
-			int x = linear_index / capacity_y;
-			int y = linear_index % capacity_y;
+			int x = linear_index / capacityY;
+			int y = linear_index % capacityY;
 			return array[x][y];
 		}
 		
@@ -114,11 +120,11 @@ public class AgentList {
 
 	private void increaseX( ) {
 		
-		curr_x++;
-		array[curr_x] = new Agent[capacity_y];
+		currentX++;
+		array[currentX] = new Agent[capacityY];
 		
-		for ( int i = 0; i < capacity_y; i++ )
-			array[curr_x][i] = null;
+		for ( int i = 0; i < capacityY; i++ )
+			array[currentX][i] = null;
 	
 	}
 
@@ -126,12 +132,12 @@ public class AgentList {
 		
 		for ( int i = 0; i < array.length && array[i] != null; i++ ) {
 			
-			int max_j = ( array[i + 1] == null ) ? next_y : capacity_y;
+			int max_j = ( array[i + 1] == null ) ? nextY : capacityY;
 			
 			for ( int j = 0; j < max_j; j++ ) {
 				
 				if ( array[i][j] == item ) {
-					return i * capacity_y + j;
+					return i * capacityY + j;
 				}
 			
 			}
@@ -151,7 +157,7 @@ public class AgentList {
 			array[i] = null;
 
 		// create only array[0][capacity_y]
-		capacity_y = ( init_capacity > CAPACITY_Y ) ? 
+		capacityY = ( init_capacity > CAPACITY_Y ) ? 
 				init_capacity : CAPACITY_Y;
 		
 		increaseX( ); 
@@ -163,32 +169,32 @@ public class AgentList {
 	}
 
 	public synchronized void reduce( ) {
-		reduce_helper( );
+		reduceHelper( );
 	}
 
-	private void reduce_helper( ) {
+	private void reduceHelper( ) {
 		
 		if ( reduceDone )
 			return;
 		
 		int max = size_unreduced( );
-		int cur_null = 0;
+		int currentNull = 0;
 		int cur_full = max - 1;
-		int x_null, y_null, x_full, y_full;
+		int xNull, yNull, x_full, y_full;
 
 		while (true ) {
 			
-			for ( ; cur_null < max && get( cur_null ) != null; cur_null++ );
+			for ( ; currentNull < max && get( currentNull ) != null; currentNull++ );
 			for ( ; cur_full >= 0 && get( cur_full ) == null; cur_full-- );
-			if ( cur_null >= cur_full )
+			if ( currentNull >= cur_full )
 				break;
 
 			// swapping
-			x_null = cur_null / capacity_y;
-			y_null = cur_null % capacity_y;
-			x_full = cur_full / capacity_y;
-			y_full = cur_full % capacity_y;
-			array[x_null][y_null] = array[x_full][y_full];
+			xNull = currentNull / capacityY;
+			yNull = currentNull % capacityY;
+			x_full = cur_full / capacityY;
+			y_full = cur_full % capacityY;
+			array[xNull][yNull] = array[x_full][y_full];
 			array[x_full][y_full] = null;
 
 			/*
@@ -200,17 +206,17 @@ public class AgentList {
 		}
 
 		// reduce
-		x_null = cur_null / capacity_y;
-		y_null = cur_null % capacity_y;	
+		xNull = currentNull / capacityY;
+		yNull = currentNull % capacityY;	
 		
-		for ( int i = x_null + 1; i < array.length && array[i] != null; i++ )
+		for ( int i = xNull + 1; i < array.length && array[i] != null; i++ )
 			array[i] = null;
 		
-		curr_x = x_null;
-		next_y = y_null;
+		currentX = xNull;
+		nextY = yNull;
 		reduceDone = true;
 		estimateSize = this.size_unreduced();
-		MASS.log( "reduce done to " + size_unreduced( ) );
+		logger.debug( "Reduce done to {}", size_unreduced( ) );
 	
 	}
 
@@ -218,7 +224,7 @@ public class AgentList {
 		
 		for ( int i = 0; i < array.length && array[i] != null; i++ ) {
 			
-			int max_j = ( array[i + 1] == null ) ? next_y : capacity_y;
+			int max_j = ( array[i + 1] == null ) ? nextY : capacityY;
 			
 			for ( int j = 0; j < max_j; j++ ) {
 				
@@ -243,8 +249,8 @@ public class AgentList {
 		
 		if ( linear_index <= size_unreduced( ) ) {
 			
-			int x = linear_index / capacity_y;
-			int y = linear_index % capacity_y;
+			int x = linear_index / capacityY;
+			int y = linear_index % capacityY;
 			array[x][y] = null;
 			reduceDone = false;
 			--estimateSize;
@@ -258,17 +264,17 @@ public class AgentList {
 	}
 
 	public synchronized void setIterator( ) {
-		reduce_helper( );
+		reduceHelper( );
 		iterator = 0;
 	}
 
 	public synchronized int size( ) {
-		reduce_helper( );
-		return curr_x * capacity_y + next_y;
+		reduceHelper( );
+		return currentX * capacityY + nextY;
 	}
 
 	public int size_unreduced( ) {
-		return curr_x * capacity_y + next_y;
+		return currentX * capacityY + nextY;
 	}
 	
 	/*public synchronized LinkedList<Agent> getAll() {

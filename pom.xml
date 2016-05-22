@@ -15,6 +15,10 @@
 
 	<properties>
 	
+		<!-- Dependency properties -->
+		<slf4j.version>1.7.13</slf4j.version>
+		<log4j.version>2.4.1</log4j.version>
+	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
 		<java.version>1.7</java.version>
@@ -23,30 +27,30 @@
 	</properties>
   
 	<organization>
-    		<name>University of Washington, Bothell, Computing and Software Systems</name>
+    	<name>University of Washington, Bothell, Computing and Software Systems</name>
   		<url>http://www.bothell.washington.edu/css</url>
   	</organization>
 
 	<developers>
-    		<developer>
-      		<id>mfukuda</id>
-      		<name>Dr. Munehiro Fukuda</name>
-      		<email>mfukuda@u.washington.edu</email>
-			<organization>University of Washington, Bothell, Computing and Software Systems</organization>
-      		<url>http://faculty.washington.edu/mfukuda</url>
-      		<roles>
-        			<role>architect</role>
-        			<role>developer</role>
-      		</roles>
-      		<timezone>-8</timezone>
-      		<properties>
-        			<picUrl>http://faculty.washington.edu/mfukuda/mfukuda.jpg</picUrl>
-      		</properties>
-    		</developer>
+    	<developer>
+      	<id>mfukuda</id>
+      	<name>Dr. Munehiro Fukuda</name>
+      	<email>mfukuda@u.washington.edu</email>
+		<organization>University of Washington, Bothell, Computing and Software Systems</organization>
+      	<url>http://faculty.washington.edu/mfukuda</url>
+      	<roles>
+        	<role>architect</role>
+        	<role>developer</role>
+      	</roles>
+      	<timezone>-8</timezone>
+      	<properties>
+        	<picUrl>http://faculty.washington.edu/mfukuda/mfukuda.jpg</picUrl>
+      	</properties>
+    	</developer>
   	</developers>
 
 	<prerequisites>
-    		<maven>3.1.0</maven>
+    	<maven>3.1.0</maven>
   	</prerequisites>
 
 	<scm>
@@ -55,60 +59,60 @@
 
 	<repositories>
 		<repository>
-    			<id>uwb-css-artifactory-release</id>
-    			<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
-    			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
-    			<snapshots>
-        			<enabled>false</enabled>
-    			</snapshots>
+    		<id>uwb-css-artifactory-release</id>
+    		<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
+    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
+    		<snapshots>
+        		<enabled>false</enabled>
+    		</snapshots>
 		</repository>
 		<repository>
-    			<id>uwb-css-artifactory-snapshot</id>
-    			<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
-    			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
-    			<releases>
-        			<enabled>false</enabled>
-    			</releases>
-    			<snapshots>
-        			<enabled>true</enabled>
-    			</snapshots>
+    		<id>uwb-css-artifactory-snapshot</id>
+    		<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
+    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
+    		<releases>
+        		<enabled>false</enabled>
+    		</releases>
+    		<snapshots>
+        		<enabled>true</enabled>
+    		</snapshots>
 		</repository>  
 	</repositories>
 
 	<dependencies>
 		
+		<!-- Unit Testing -->
 		<dependency>
-			<!-- Unit Testing -->
       		<groupId>junit</groupId>
       		<artifactId>junit</artifactId>
       		<version>4.11</version>
       		<scope>test</scope>
-    		</dependency>
+   		</dependency>
   	
   		<dependency>
-			<!-- Unit Testing -->
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
 			<scope>test</scope>
 		</dependency>
 
+		<!-- For SSH connectivity to remote hosts -->
 		<dependency>
-			<!-- For SSH connectivity to remote hosts -->
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.51</version>
 			<scope>compile</scope>
 		</dependency>
 
+		<!--  For JAXB serialization to/from XML -->
 		<dependency>
-			<!--  For JAXB serialization to/from XML -->
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
 			<version>2.2.11</version>
 			<scope>compile</scope>
 		</dependency>
 
+<<<<<<< HEAD
 		 <dependency>
 			 <!--  For NetcdfFiles -->
 		  	<groupId>edu.ucar</groupId>
@@ -124,6 +128,38 @@
 		</dependency>
 
 	</dependencies>
+=======
+  		<!-- Log4j API and Core implementation required for logging -->
+		<dependency>
+    		<groupId>org.slf4j</groupId>
+    		<artifactId>slf4j-api</artifactId>
+    		<version>${slf4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+    
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-slf4j-impl</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-api</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-core</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  		
+  	</dependencies>
+>>>>>>> 09808b6f8fb6e399e0665e416ec412d78814cf96
 
 	<build>
 		<plugins>

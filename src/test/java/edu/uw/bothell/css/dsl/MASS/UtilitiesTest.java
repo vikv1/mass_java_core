@@ -33,16 +33,20 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.easymock.Capture;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Test;
 
+import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 
@@ -113,4 +117,45 @@ public class UtilitiesTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void handleConnectionException() throws Exception {
+
+		Channel returnChannel = null;
+
+		expect( mockJsch.getSession("username", "host", 22) ).andThrow(new JSchException());
+
+		// put mocks into replay mode
+		replayAll();
+
+		try {
+			
+			returnChannel = utilities.LaunchRemoteProcess("host", 22, null, "username", null);
+			
+		}
+		
+		catch(Exception e) {
+			
+			// we NOT expect an exception
+			fail("Should have swallowed a connection exception!");
+			
+		}
+		
+		assertNull(returnChannel);
+		
+	}
+	
+	@Test
+	public void testHostnameDetect() throws Exception {
+
+		// put mocks into replay mode (even though this method isn't using mock
+		// objects, the ones that exist must be in replay mode for teardown
+		replayAll();
+
+		String hostname = utilities.getLocalHostname();
+		
+		// logging filename should include a real hostname or IP address
+		assertNotNull(hostname);
+		
+	}
+
 }
