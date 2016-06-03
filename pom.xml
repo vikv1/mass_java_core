@@ -77,6 +77,11 @@
         		<enabled>true</enabled>
     		</snapshots>
 		</repository>  
+		<!-- backup repository - in case MASS build server not responding -->
+		<repository>
+     			<id>MVNRepository</id>
+     			<url>http://http://mvnrepository.com</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
