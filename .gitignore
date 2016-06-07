@@ -17,3 +17,10 @@ mass-core.java.list
 *.swo
 *.swp
 *~
+UWCA/UWCA-web/target/
+mass-core/target/
+mass-quickstart/target/
+UWCA/UWCA-ear/target/
+UWCA/UWCA-ejb/target/
+mass_log.log
+logs/

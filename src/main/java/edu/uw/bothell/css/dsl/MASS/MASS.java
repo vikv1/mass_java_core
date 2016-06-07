@@ -93,6 +93,7 @@ public class MASS extends MASSBase {
      * Add a library ("Jar") to be loaded by the classloader on each node
      * @param libraryName The name of the library to load
      */
+	@Deprecated
     public static void addLibrary(String libraryName) {
     	
     	logger.debug("Adding library: " + libraryName);
@@ -436,25 +437,9 @@ public class MASS extends MASSBase {
     		// TODO - add configurable heap memory sizes per node
     		commandBuilder.append("-Xmx9g ");
     		
-    		// set location of MASS.jar
-    		commandBuilder.append("-cp ");
-    		if (node.getMassHome() != null) commandBuilder.append(node.getMassHome() + "/");
-    		commandBuilder.append("MASS.jar");
-    		
-    		// add any custom JARs specified
-   			for( String customJar : getLibraries() ) {
-    				
-   				commandBuilder.append(":");
-   				if (node.getMassHome() != null) commandBuilder.append(node.getMassHome() + "/");
-   				commandBuilder.append(customJar);
-
-   			}
-    		
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
-   				commandBuilder.append(":");
-	    		commandBuilder.append(node.getMassHome());
-	    		commandBuilder.append(" ");
+	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
    			}
 
     		// MProcess and its arguments

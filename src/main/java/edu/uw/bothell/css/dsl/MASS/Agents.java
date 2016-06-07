@@ -48,7 +48,7 @@ public class Agents extends AgentsBase implements Serializable {
   private int total;
 
 	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
+	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
    * Instantiates a set of agents from the "className" class, passes the

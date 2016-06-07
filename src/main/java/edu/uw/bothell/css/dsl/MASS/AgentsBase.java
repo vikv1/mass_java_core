@@ -62,7 +62,7 @@ public class AgentsBase implements Serializable {
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
+	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
     // Async section
     //private volatile LinkedList<Agent> asyncQueue;

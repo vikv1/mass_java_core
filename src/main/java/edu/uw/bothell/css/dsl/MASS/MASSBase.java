@@ -664,5 +664,14 @@ public class MASSBase {
 		return logFilename;
 		
 	}
+	
+	/**
+	 * Get the Logger instance, primarily for MASS applications to record messages to the same
+	 * logger the library is using
+	 * @return The logger
+	 */
+	public static Log4J2Logger getLogger() {
+		return logger;
+	}
 
 }
