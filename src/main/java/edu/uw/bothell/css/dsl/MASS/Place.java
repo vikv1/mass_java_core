@@ -154,7 +154,7 @@ public class Place {
 		return outMessage;
 	}
 
-	protected Object getOutMessage( int handle, int[] offsetIndex ) {
+	public Object getOutMessage( int handle, int[] offsetIndex ) {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
