@@ -76,7 +76,7 @@ public class Places extends PlacesBase {
     
     }
 
-	private Object ca_setup( int functionId, Object argument,
+	private Object[] ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
@@ -190,7 +190,7 @@ public class Places extends PlacesBase {
 	 * @return An Object (actually, an Object[]) with each element set to the return value
 	 * 			supplied by each Place in the cluster
 	 */
-	public Object callAll( int functionId, Object argument[] ) {
+	public Object[] callAll( int functionId, Object argument[] ) {
 	
 	    logger.debug( "callAll return object" );
 		
