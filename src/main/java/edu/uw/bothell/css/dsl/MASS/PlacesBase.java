@@ -702,7 +702,7 @@ public class PlacesBase {
     
     }
 
-    public String getClassName() {
+    protected String getClassName() {
 		return className;
 	}
     
@@ -776,7 +776,7 @@ public class PlacesBase {
     	return handle;
     }
 
-    public Place[] getLeftShadow() {
+    protected Place[] getLeftShadow() {
 		return leftShadow;
 	}
 
@@ -830,15 +830,15 @@ public class PlacesBase {
 
     }
 
-	public int getLowerBoundary() {
+	protected int getLowerBoundary() {
 		return lowerBoundary;
 	}
 
-	public Place[] getPlaces() {
+	protected Place[] getPlaces() {
 		return places;
 	}
 
-	public int getPlacesSize( ) {
+	protected int getPlacesSize( ) {
     	return placesSize;
     }
 
@@ -868,11 +868,11 @@ public class PlacesBase {
     
     }
 
-	public Place[] getRightShadow() {
+	protected Place[] getRightShadow() {
 		return rightShadow;
 	}
 
-	public int getShadowSize() {
+	protected int getShadowSize() {
 		return shadowSize;
 	}
 
@@ -880,11 +880,11 @@ public class PlacesBase {
 		return size;
 	}
 
-	public int getUpperBoundary() {
+	protected int getUpperBoundary() {
 		return upperBoundary;
 	}
 
-    public void init_all( Object argument ) {
+    private void init_all( Object argument ) {
     	
     	// For debugging
     	logger.debug( "init_all handle = " + handle + 
