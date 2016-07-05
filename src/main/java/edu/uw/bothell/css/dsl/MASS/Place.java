@@ -150,7 +150,7 @@ public class Place {
 		this.neighbours = neighbours;
 	}
 
-	public Object getOutMessage() {
+	protected Object getOutMessage() {
 		return outMessage;
 	}
 
@@ -183,7 +183,7 @@ public class Place {
 	
 	}
 
-	public void setIndex(int[] index) {
+	protected void setIndex(int[] index) {
 		this.index = index.clone();
 	}
 
@@ -199,7 +199,7 @@ public class Place {
 		this.outMessage = outMessage;
 	}
 
-	public void setSize(int[] size) {
+	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
 	
