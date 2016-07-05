@@ -36,8 +36,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -60,9 +58,6 @@ public class MASS extends MASSBase {
 	private static final int JschPort = 22;
 
 	private static Utilities util = new Utilities( );  // used for channel creation
-
-	// the list of libraries ("Jars") to load
-    private static Set<String> libraries = new HashSet<String>();
 
 	// the number of threads to spawn on each node (default to 1)
     private static int numThreads = 1;
