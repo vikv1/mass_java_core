@@ -1038,11 +1038,11 @@ public class AgentsBase implements Serializable {
     return completeQueue;
   }
 
-  public boolean getResultRequestFromMaster() {
+  protected boolean getResultRequestFromMaster() {
     return resultRequestFromMaster;
   }
   
-  public void setResultRequestFromMaster(boolean value) {
+  protected void setResultRequestFromMaster(boolean value) {
     resultRequestFromMaster = value;
   }
   
@@ -1051,12 +1051,12 @@ public class AgentsBase implements Serializable {
     return isIdle;
   }
   
-  public void setIsAsyncLoopIdle(boolean value) {
+  protected void setIsAsyncLoopIdle(boolean value) {
     logger.debug("setIsAsyncIdle to {}", value);
     isIdle = value;
   }
   
-  public boolean hasNoInprocessAgents() {
+  protected boolean hasNoInprocessAgents() {
     return inProcessAgentCount.get() == 0;
   }
   
