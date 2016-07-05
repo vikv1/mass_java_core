@@ -76,7 +76,7 @@ public class Places extends PlacesBase {
     
     }
 
-	public Object ca_setup( int functionId, Object argument,
+	private Object ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
@@ -306,7 +306,7 @@ public class Places extends PlacesBase {
      * @param argument
      * @param boundaryWidth
      */
-    public void init_master( Object argument, int boundaryWidth ) {
+    private void init_master( Object argument, int boundaryWidth ) {
 
 		// create a list of all host names;  
 		// the master IP name
