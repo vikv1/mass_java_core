@@ -841,7 +841,11 @@ public class AgentsBase implements Serializable {
     
     }
 
-	protected synchronized void spawnAsync(Agent targetAgent, int numAgents, 
+	public int nLocalAgents( ) { 
+    	return localPopulation; 
+    }
+	
+  public synchronized void spawnAsync(Agent targetAgent, int numAgents, 
       Object[] initializedArguments,
       Object[] arguments) {
     int argumentIndex = 0;
