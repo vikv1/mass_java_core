@@ -175,20 +175,8 @@ public class AgentsBase implements Serializable {
     	}
     }
 
-    public static int getAgentInitAgentId() {
+    protected static int getAgentInitAgentId() {
 		return agentInitAgentId;
-	}
-    
-    public static int getAgentInitAgentsHandle() {
-		return agentInitAgentsHandle;
-	}
-    
-    public static int getAgentInitParentId() {
-		return agentInitParentId;
-	}
-
-    public static int getAgentInitPlacesHandle() {
-		return agentInitPlacesHandle;
 	}
     
     protected static Object processAgentMigrationRequest( Object param ) {
@@ -458,19 +446,19 @@ public class AgentsBase implements Serializable {
 	  return asyncQueue;
 	}
 	
-	public int[] getAsyncFuncList() {
+	protected int[] getAsyncFuncList() {
 	  return asyncFuncList;
 	}
 	
-	public void setAsyncFuncList(int[] value) {
+	protected void setAsyncFuncList(int[] value) {
 	  asyncFuncList = value;
 	}
 	
-	public String getClassName() {
+	protected String getClassName() {
 		return className;
 	}
 
-	public void getGlobalAgentArrayIndex( int[] src_index, int[] dst_size, int[] dest_index ) {
+	private void getGlobalAgentArrayIndex( int[] src_index, int[] dst_size, int[] dest_index ) {
 
     	for (int i = 0; i < dest_index.length; i++ ) {
 
@@ -496,19 +484,19 @@ public class AgentsBase implements Serializable {
 		return handle;
 	}
 
-	public int getInitPopulation() {
+	protected int getInitPopulation() {
 		return initPopulation;
 	}
 
-	public int getLocalPopulation() {
+	protected int getLocalPopulation() {
 		return localPopulation;
 	}
 	
-	public void setLocalPopulation(int population) {
+	protected void setLocalPopulation(int population) {
 	  localPopulation = population;
 	}
 
-	public int getPlacesHandle() {
+	protected int getPlacesHandle() {
 		return placesHandle;
 	}
 
@@ -853,11 +841,7 @@ public class AgentsBase implements Serializable {
     
     }
 
-	public int nLocalAgents( ) { 
-    	return localPopulation; 
-    }
-	
-  public synchronized void spawnAsync(Agent targetAgent, int numAgents, 
+	protected synchronized void spawnAsync(Agent targetAgent, int numAgents, 
       Object[] initializedArguments,
       Object[] arguments) {
     int argumentIndex = 0;
@@ -919,7 +903,7 @@ public class AgentsBase implements Serializable {
 
   }
 
-  public void migrateAsync(Agent targetAgent) {
+  protected void migrateAsync(Agent targetAgent) {
   //Iterate over all dimensions of the agent to check its location
     //against that of its place. If they are the same, return back.
     PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
@@ -1037,7 +1021,7 @@ public class AgentsBase implements Serializable {
     }
   }
 	
-  public void resetChildAsyncIndex() {
+  protected void resetChildAsyncIndex() {
     childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
   }
 
