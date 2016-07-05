@@ -907,7 +907,7 @@ public class AgentsBase implements Serializable {
 
   }
 
-  protected void migrateAsync(Agent targetAgent) {
+  public void migrateAsync(Agent targetAgent) {
   //Iterate over all dimensions of the agent to check its location
     //against that of its place. If they are the same, return back.
     PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
