@@ -38,7 +38,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -89,32 +88,6 @@ public class MASS extends MASSBase {
 	// Logging
 	private static Log4J2Logger logger = Log4J2Logger.getInstance();
 
-	/**
-     * Add a library ("Jar") to be loaded by the classloader on each node
-     * @param libraryName The name of the library to load
-     */
-	@Deprecated
-    public static void addLibrary(String libraryName) {
-    	
-    	logger.debug("Adding library: " + libraryName);
-    	
-    	// add the library to the object factory
-    	try {
-    		
-    		objectFactory.addLibrary(libraryName);
-
-        	// remember the specified library so it can be set on remote nodes as well
-        	libraries.add(libraryName);
-
-    	}
-    	catch (Exception e) {
-        	logger.error("Exception thrown while adding library!", e);
-    	}
-    	
-    	logger.debug("Library successfully added!");
-    	
-    }
-    
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
     }
@@ -240,7 +213,8 @@ public class MASS extends MASSBase {
 	 * Get the default password for connecting to remote nodes
 	 * @return The default login password
 	 */
-	public static String getDefaultPassword() {
+ 	@Deprecated
+	protected static String getDefaultPassword() {
 		return defaultPassword;
 	}
     
@@ -248,18 +222,10 @@ public class MASS extends MASSBase {
 	 * Get the default username for connecting to remote nodes
 	 * @return The default login username
 	 */
-	public static String getDefaultUsername() {
+	protected static String getDefaultUsername() {
 		return defaultUsername;
 	}
     
-    /**
-	 * Get a collection of all library names to be used by the classloaders on each node
-	 * @return The collection of library names
-	 */
-	public static Set<String> getLibraries() {
-		return libraries;
-	}
-
     /**
 	 * Get the filename for the cluster node definition file
 	 * @return The cluster node definition filename
@@ -528,34 +494,6 @@ public class MASS extends MASSBase {
     	setNumThreads(nThr);
 		//MASS.nProc = nProc;
 
-    	try {
-
-    		if ( args.length > 4 ) {
-
-    			String jarList = args[4];
-    			String next;
-    			// args list needs to be a semicolon delimited string
-    			StringTokenizer tokenizer = new StringTokenizer(jarList, ";");
-
-    			while( tokenizer.hasMoreTokens( ) ) {
-
-    				next = tokenizer.nextToken( );
-    				addLibrary( next );
-
-    			}
-
-    		}
-
-    	}
-
-    	catch ( Exception e ) {
-    		System.err.println( "Error during MASS.init() optional argument" +
-    				"parsing " + e.getStackTrace());
-
-    		System.exit( -1 );
-
-    	}
-    
     	// after parameters have been set, perform initialization
     	init();
     	
@@ -565,7 +503,8 @@ public class MASS extends MASSBase {
 	 * Set the default password for connecting to remote nodes
 	 * @param defaultPassword The default password
 	 */
-	public static void setDefaultPassword(String defaultPassword) {
+	@Deprecated
+	protected static void setDefaultPassword(String defaultPassword) {
 		MASS.defaultPassword = defaultPassword;
 	}
 
@@ -573,7 +512,7 @@ public class MASS extends MASSBase {
 	 * Set the default username for connecting to remote nodes
 	 * @param defaultUsername The default login username
 	 */
-	public static void setDefaultUsername(String defaultUsername) {
+	protected static void setDefaultUsername(String defaultUsername) {
 		MASS.defaultUsername = defaultUsername;
 	}
     
@@ -598,11 +537,11 @@ public class MASS extends MASSBase {
 		
 	}
 	
-	public static int[] getLocalAgents() {
+	protected static int[] getLocalAgents() {
 	  return LocalAgents;
 	}
 	
-	public static void setLocalAgents(int[] values) {
+	protected static void setLocalAgents(int[] values) {
 	  LocalAgents = values;
 	}
 	
