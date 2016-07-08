@@ -259,6 +259,7 @@ public class Places extends PlacesBase {
 	 * @param functionId The ID of the function to call
 	 * @param neighbors
 	 */
+	@Deprecated
 	public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors){
 		//Add our neighbours to each place
 		this.setAllPlacesNeighbors(neighbors);
