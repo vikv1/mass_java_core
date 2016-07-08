@@ -540,7 +540,7 @@ public class MASS extends MASSBase {
 	  LocalAgents = values;
 	}
 	
-	/**
+	/*
 	 * ONLY to call by Master node
 	 * @return
 	public static boolean getSlaveNodeAsyncCompleteness() {
