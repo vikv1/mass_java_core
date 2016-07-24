@@ -256,12 +256,10 @@ public class MASS extends MASSBase {
     		
     		// does the file actually exist?
     		if (!machineFile.canRead()) {
-
     			System.err.println( "machine file: " + getNodeFilePath() +
         				" does not exist or is not readable." );
 
         		System.exit( -1 );
-
     		}
     		
         	// is the machine file an XML document? 
@@ -269,7 +267,6 @@ public class MASS extends MASSBase {
     			
     			// yes - filename specified is an XML document - get MNodes directly from the doc
     			try {
-
         			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
             		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
@@ -278,57 +275,40 @@ public class MASS extends MASSBase {
             		for (MNode node : nodeList.getNodes()) {
             			addNode(node);
             		}
-            		
-    			} 
-
-        		catch (JAXBException e) {
+    			} catch (JAXBException e) {
 
         			System.err.println( "Error initializing JAXB parser..." +
 		    				e.getStackTrace());
 
 		    		System.exit( -1 );
-				
 				}
-    			
-    		}
-    		
-    		else {
-    			
+    		} else {   			
     			// no - this machine file is the classic one-line-per-node format
-    			
             	BufferedReader fileReader = null;
 
             	try {
-
             		fileReader = new BufferedReader( new InputStreamReader
             				( new BufferedInputStream( new FileInputStream( 
             						machineFile ) ) ) );
 
-            		while( fileReader.ready( ) ) {
-            			
+            		while( fileReader.ready( ) ) {            			
             			// create a new MNode for each line in the file (these will all be remote nodes)
             			MNode node = new MNode();
             			node.setHostName( fileReader.readLine( ) );
-            			addNode( node );
-            			
+            			addNode( node );           			
             		}
-
             		fileReader.close();
-
-            	} 
-
-            	catch( Exception e ) {
-
+            	} catch( Exception e ) {
             		System.err.println( "machine file: " + getNodeFilePath() +
             				" could not open." );
 
             		System.exit( -1 );
-
             	}
-    			
-    		}
-    		
-    	}
+    		}  		
+    	} else {
+			System.err.println(" No Node File Path Given" );
+			System.exit( -1 );
+		}
     	
     	// For debugging
     	if ( printOutput == true ) {
@@ -343,7 +323,6 @@ public class MASS extends MASSBase {
     		MNode masterNode = new MNode();
     		masterNode.setMaster(true);
     		addNode(masterNode);
-    		
     	}
     	
     	// Initialize MASS_base.constants and identify the CWD.
@@ -351,12 +330,9 @@ public class MASS extends MASSBase {
     		
     		// init using Master node config
     		initMASSBase(getMasterNode());
-    		
     	} else {
-    	
     		// init using "old" method
         	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
-
     	}
 
     	// Launch remote processes
@@ -372,9 +348,7 @@ public class MASS extends MASSBase {
     			InetAddress addr = InetAddress.getByName( node.getHostName() );
     			node.setHostName( addr.getCanonicalHostName( ) );
     			
-    		} 
-
-    		catch ( Exception e ) {
+    		} catch ( Exception e ) {
 
     			logger.error( "Wrong host name: {}", node.getHostName(), e );
     			System.exit( -1 );
@@ -417,9 +391,7 @@ public class MASS extends MASSBase {
     				" run with command: " + commandBuilder );
 
     		try {
-
-    			Channel ssh2connection
-    			= util.LaunchRemoteProcess( node.getHostName(),
+    			Channel ssh2connection = util.LaunchRemoteProcess( node.getHostName(),
     					JschPort,
     					commandBuilder.toString(),
     					node.getUserName(),
@@ -433,17 +405,12 @@ public class MASS extends MASSBase {
     			node.setChannel(ssh2connection);
     			node.initialize();
     			
-    		}
-
-    		catch ( Exception e ) {
-
+    		} catch ( Exception e ) {
     			// connection failure
     			System.err.println( "MASS: error in connection to " + 
     					node.getHostName() + " " + e );
     			System.exit( -1 );
-
     		}
-
     	}
 
     	initializeThreads( getNumThreads() );
@@ -464,13 +431,9 @@ public class MASS extends MASSBase {
     					( node.getPid() ) + " at " +
     					node.getHostName( ) );
     			System.exit( -1 );
-
     		}
-
     	}
-
     	System.err.println( "MASS.init: done" );
-
     }
     
     /**
