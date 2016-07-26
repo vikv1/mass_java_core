@@ -261,21 +261,21 @@ public class Places extends PlacesBase {
 	 */
 	@Deprecated
 	public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors){
-		//Add our neighbours to each place
+		//Add our neighbors to each place
 		this.setAllPlacesNeighbors(neighbors);
-		//Now call exchangeAll to act on those neighbours
+		//Now call exchangeAll to act on those neighbors
 		this.exchangeAll(destinationHandle, functionId);
 	}
 
 	/**
-	 * Sets each place object with a reference to the neighbours Vector.
+	 * Sets each place object with a reference to the neighbors Vector.
 	 *
-	 * @param neighbours The vector to set
+	 * @param neighbors The vector to set
 	 */
-	private void setAllPlacesNeighbors(Vector<int[]> neighbours) {
+	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
 		for(int i = 0; i < this.getPlacesSize(); i++)
 		{
-			this.getPlaces()[i].setNeighbors(neighbours);
+			this.getPlaces()[i].setNeighbors(neighbors);
 		}
 	}
     
