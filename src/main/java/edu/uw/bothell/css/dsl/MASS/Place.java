@@ -73,7 +73,7 @@ public class Place {
 	/** Includes all the agents residing locally on this place. */
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
-	private Vector< int[] > neighbours = null;
+	private Vector< int[] > neighbors = null;
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
@@ -142,12 +142,12 @@ public class Place {
 	}
 
 	public Vector<int[]> getNeighbours() {
-		return neighbours;
+		return neighbors;
 	}
 
-	public void setNeighbours(Vector<int[]> neighbours)
+	public void setNeighbors(Vector<int[]> neighbors)
 	{
-		this.neighbours = neighbours;
+		this.neighbors = neighbors;
 	}
 
 	protected Object getOutMessage() {
