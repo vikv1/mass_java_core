@@ -136,12 +136,13 @@ public class Places extends PlacesBase {
 		// resume threads
 		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_CALLALL );
 		
-		// callall implementation
+		// callAll implementation
 		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT /*|| type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT */)
-		    super.callAll( functionId, argument, 0 ); // 0 = the main tid
+		    super.callAll( functionId, argument, 0 ); // 0 = the main tid\
+		else  if ( argument == null ) 
+			super.callAllReturn( functionId, 0 );
 		else
-		    super.callAll( functionId, (Object[])argument, 
-				   ((Object[])argument).length, 0 );
+		    super.callAll( functionId, (Object[])argument, ((Object[])argument).length, 0 );
 		
 		// confirm all threads are done with callAll.
 		MThread.barrierThreads( 0 );
@@ -198,6 +199,13 @@ public class Places extends PlacesBase {
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
     
     }
+	
+	public Object[] callAllWithReturn( int functionId ) {
+		logger.debug( "callAll return object" );
+		
+		return ca_setup( functionId, null, 
+				Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
+	}
     
 	/**
 	 * Calls from each of all cells to the method specified with functionId of

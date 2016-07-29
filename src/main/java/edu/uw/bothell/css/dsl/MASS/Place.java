@@ -127,6 +127,10 @@ public class Place {
 	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
+	
+	public int getNumAgents() {
+		return agents.size();
+	}
 
 	public Number getDebugData()
 	{

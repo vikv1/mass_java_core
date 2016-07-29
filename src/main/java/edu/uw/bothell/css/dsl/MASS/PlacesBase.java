@@ -443,6 +443,37 @@ public class PlacesBase {
     
     }
     
+    public Object callAllReturn( int functionId, int tid ) {
+
+    	int[] range = new int[2];
+    	getLocalRange( range, tid );
+
+    	// debugging
+    	if ( logger.isDebugEnabled() )
+    		logger.debug( "thread[" + tid + 
+    				"] callAll_with_return object functionId = " + 
+    				functionId + ", range[0] = " + range[0] + 
+    				" range[1] = " + range[1]  );
+
+    	if ( range[0] >= 0 && range[1] >= 0 ) {
+
+    		for ( int i = range[0]; i <= range[1]; i++ ) {
+    			
+    			//if ( logger.isDebugEnabled() )
+    			//	logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
+    			//			places[i] );
+
+    			MASSBase.getCurrentReturns()[i] = 
+    					places[i].callMethod( functionId, null );
+    		
+    		}
+    	
+    	}
+    	
+    	return null;
+    
+    }
+    
     public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
 
     	int[] range = new int[2];
