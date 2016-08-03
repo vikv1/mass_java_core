@@ -136,6 +136,10 @@ public class Place {
 	{
 		return null;
 	}
+	
+	// To be overridden by developer - for debugging
+	public void setDebugData(Number argument) {
+	}
 
 	public int[] getIndex() {
 		return index;

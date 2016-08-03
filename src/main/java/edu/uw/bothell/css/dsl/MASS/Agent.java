@@ -139,9 +139,11 @@ public class Agent implements Serializable {
 	 * Get debug data from the agent 
 	 * @return Debug data
 	 */
-	protected Number getDebugData(){
+	public Number getDebugData(){
 		return null;
 	}
+	
+	public void setDebugData(Number data) {}
 
 	public int[] getIndex() {
 		return index;
