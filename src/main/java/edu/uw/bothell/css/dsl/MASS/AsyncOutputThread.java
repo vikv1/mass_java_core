@@ -379,7 +379,7 @@ public class AsyncOutputThread extends Thread {
 	 * MASS.logException(null, e); } } }
 	 */
 
-	/**
+	/*
 	 * ONLY to be call by Master node
 	 * 
 	 * @return public boolean requestSlaveNodeAsyncCompleteness() {

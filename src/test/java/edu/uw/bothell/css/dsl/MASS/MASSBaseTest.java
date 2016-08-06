@@ -55,19 +55,4 @@ public class MASSBaseTest extends AbstractTest {
 		
 	}
 
-	@Test
-	@SuppressWarnings("static-access")
-	public void noDotsInLogFilename() throws Exception {
-		
-		// set an artificial hostname with a bunch of dots
-		MNode testConfig = new MNode();
-		testConfig.setHostName("masshost.dsl.css.bothell.uw.udu");
-
-		massBase.initMASSBase(testConfig);
-		
-		// logging filename should not contain those dots
-		assertFalse(massBase.getLogFileName().contains("."));
-		
-	}
-	
 }

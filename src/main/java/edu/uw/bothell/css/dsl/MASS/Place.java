@@ -54,6 +54,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
  */
 public class Place {
 
+    
 	/**
 	 * Defines the size of the matrix that consists of application-specific
 	 * places. Intuitively, size[0], size[1], and size[2] correspond to the size
@@ -82,6 +83,11 @@ public class Place {
 	 * Each element size must be specified with inMessage_size.
 	 */
 	private Object[] inMessages = null;
+    
+    /** Includes all the agents residing locally on this place. */
+	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	
+	private Vector< int[] > neighbors = null;
 
 	/**
 	 * Includes all the agents residing locally on this place.
@@ -624,10 +630,18 @@ public class Place {
 	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
+	
+	public int getNumAgents() {
+		return agents.size();
+	}
 
 	public Number getDebugData()
 	{
 		return null;
+	}
+	
+	// To be overridden by developer - for debugging
+	public void setDebugData(Number argument) {
 	}
 
 	public int[] getIndex() {
@@ -639,19 +653,19 @@ public class Place {
 	}
 
 	public Vector<int[]> getNeighbours() {
-		return neighbours;
+		return neighbors;
 	}
 
-	public void setNeighbours(Vector<int[]> neighbours)
+	public void setNeighbors(Vector<int[]> neighbors)
 	{
-		this.neighbours = neighbours;
+		this.neighbors = neighbors;
 	}
 
-	public Object getOutMessage() {
+	protected Object getOutMessage() {
 		return outMessage;
 	}
 
-	protected Object getOutMessage( int handle, int[] offsetIndex ) {
+	public Object getOutMessage( int handle, int[] offsetIndex ) {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
@@ -680,7 +694,7 @@ public class Place {
 	
 	}
 
-	public void setIndex(int[] index) {
+	protected void setIndex(int[] index) {
 		this.index = index.clone();
 	}
 
@@ -696,7 +710,7 @@ public class Place {
 		this.outMessage = outMessage;
 	}
 
-	public void setSize(int[] size) {
+	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
 	

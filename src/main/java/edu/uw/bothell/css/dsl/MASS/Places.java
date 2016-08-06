@@ -76,7 +76,7 @@ public class Places extends PlacesBase {
     
     }
 
-	public Object ca_setup( int functionId, Object argument,
+	private Object[] ca_setup( int functionId, Object argument,
 			    Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
@@ -136,12 +136,13 @@ public class Places extends PlacesBase {
 		// resume threads
 		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_CALLALL );
 		
-		// callall implementation
+		// callAll implementation
 		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT /*|| type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT */)
-		    super.callAll( functionId, argument, 0 ); // 0 = the main tid
+		    super.callAll( functionId, argument, 0 ); // 0 = the main tid\
+		else  if ( argument == null ) 
+			super.callAllReturn( functionId, 0 );
 		else
-		    super.callAll( functionId, (Object[])argument, 
-				   ((Object[])argument).length, 0 );
+		    super.callAll( functionId, (Object[])argument, ((Object[])argument).length, 0 );
 		
 		// confirm all threads are done with callAll.
 		MThread.barrierThreads( 0 );
@@ -190,7 +191,7 @@ public class Places extends PlacesBase {
 	 * @return An Object (actually, an Object[]) with each element set to the return value
 	 * 			supplied by each Place in the cluster
 	 */
-	public Object callAll( int functionId, Object argument[] ) {
+	public Object[] callAll( int functionId, Object argument[] ) {
 	
 	    logger.debug( "callAll return object" );
 		
@@ -198,6 +199,13 @@ public class Places extends PlacesBase {
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
     
     }
+	
+	public Object[] callAllWithReturn( int functionId ) {
+		logger.debug( "callAll return object" );
+		
+		return ca_setup( functionId, null, 
+				Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
+	}
     
 	/**
 	 * Calls from each of all cells to the method specified with functionId of
@@ -259,22 +267,23 @@ public class Places extends PlacesBase {
 	 * @param functionId The ID of the function to call
 	 * @param neighbors
 	 */
+	@Deprecated
 	public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors){
-		//Add our neighbours to each place
+		//Add our neighbors to each place
 		this.setAllPlacesNeighbors(neighbors);
-		//Now call exchangeAll to act on those neighbours
+		//Now call exchangeAll to act on those neighbors
 		this.exchangeAll(destinationHandle, functionId);
 	}
 
 	/**
-	 * Sets each place object with a reference to the neighbours Vector.
+	 * Sets each place object with a reference to the neighbors Vector.
 	 *
-	 * @param neighbours The vector to set
+	 * @param neighbors The vector to set
 	 */
-	private void setAllPlacesNeighbors(Vector<int[]> neighbours) {
+	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
 		for(int i = 0; i < this.getPlacesSize(); i++)
 		{
-			this.getPlaces()[i].setNeighbours(neighbours);
+			this.getPlaces()[i].setNeighbors(neighbors);
 		}
 	}
     
@@ -306,7 +315,7 @@ public class Places extends PlacesBase {
      * @param argument
      * @param boundaryWidth
      */
-    public void init_master( Object argument, int boundaryWidth ) {
+    private void init_master( Object argument, int boundaryWidth ) {
 
 		// create a list of all host names;  
 		// the master IP name

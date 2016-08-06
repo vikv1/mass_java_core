@@ -67,15 +67,21 @@
 			</snapshots>
 		</repository>
 		<repository>
-			<id>uwb-css-artifactory-snapshot</id>
-			<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
-			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+            
+    		<id>uwb-css-artifactory-snapshot</id>
+    		<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
+    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
+    		<releases>
+        		<enabled>false</enabled>
+    		</releases>
+    		<snapshots>
+        		<enabled>true</enabled>
+    		</snapshots>
+		</repository>  
+		<!-- backup repository - in case MASS build server not responding -->
+		<repository>
+     			<id>MVNRepository</id>
+     			<url>http://http://mvnrepository.com</url>
 		</repository>
 	</repositories>
 
@@ -114,43 +120,51 @@
 
 		<!-- Log4j API and Core implementation required for logging -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
+    		<groupId>org.slf4j</groupId>
+    		<artifactId>slf4j-api</artifactId>
+    		<version>${slf4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+    
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-slf4j-impl</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-api</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-core</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
 
+		<!-- For MASS Remote Debugger -->
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
+    		<groupId>com.google.code.gson</groupId>
+    		<artifactId>gson</artifactId>
+    		<version>2.7</version>
+    		<scope>compile</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<!--  For NetcdfFiles -->
+        
+        <!-- For NetCDF Files -->
+        <dependency>
 			<groupId>edu.ucar</groupId>
 			<artifactId>cdm</artifactId>
 			<version>4.5.0</version>
 			<type>jar</type>
 		</dependency>
-
-	</dependencies>
-
+  		
+  	</dependencies>
+    
 	<build>
 		<plugins>
 			<plugin>
@@ -199,15 +213,12 @@
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
-
-	<reporting>
-		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.5.5</version>
+
+				<version>3.0.4</version>
+                
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
@@ -215,6 +226,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</reporting>
+	</build>
 
 </project>

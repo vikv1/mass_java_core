@@ -175,20 +175,8 @@ public class AgentsBase implements Serializable {
     	}
     }
 
-    public static int getAgentInitAgentId() {
+    protected static int getAgentInitAgentId() {
 		return agentInitAgentId;
-	}
-    
-    public static int getAgentInitAgentsHandle() {
-		return agentInitAgentsHandle;
-	}
-    
-    public static int getAgentInitParentId() {
-		return agentInitParentId;
-	}
-
-    public static int getAgentInitPlacesHandle() {
-		return agentInitPlacesHandle;
 	}
     
     protected static Object processAgentMigrationRequest( Object param ) {
@@ -458,19 +446,19 @@ public class AgentsBase implements Serializable {
 	  return asyncQueue;
 	}
 	
-	public int[] getAsyncFuncList() {
+	protected int[] getAsyncFuncList() {
 	  return asyncFuncList;
 	}
 	
-	public void setAsyncFuncList(int[] value) {
+	protected void setAsyncFuncList(int[] value) {
 	  asyncFuncList = value;
 	}
 	
-	public String getClassName() {
+	protected String getClassName() {
 		return className;
 	}
 
-	public void getGlobalAgentArrayIndex( int[] src_index, int[] dst_size, int[] dest_index ) {
+	private void getGlobalAgentArrayIndex( int[] src_index, int[] dst_size, int[] dest_index ) {
 
     	for (int i = 0; i < dest_index.length; i++ ) {
 
@@ -496,19 +484,19 @@ public class AgentsBase implements Serializable {
 		return handle;
 	}
 
-	public int getInitPopulation() {
+	protected int getInitPopulation() {
 		return initPopulation;
 	}
 
-	public int getLocalPopulation() {
+	protected int getLocalPopulation() {
 		return localPopulation;
 	}
 	
-	public void setLocalPopulation(int population) {
+	protected void setLocalPopulation(int population) {
 	  localPopulation = population;
 	}
 
-	public int getPlacesHandle() {
+	protected int getPlacesHandle() {
 		return placesHandle;
 	}
 
@@ -1037,7 +1025,7 @@ public class AgentsBase implements Serializable {
     }
   }
 	
-  public void resetChildAsyncIndex() {
+  protected void resetChildAsyncIndex() {
     childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
   }
 
@@ -1050,11 +1038,11 @@ public class AgentsBase implements Serializable {
     return completeQueue;
   }
 
-  public boolean getResultRequestFromMaster() {
+  protected boolean getResultRequestFromMaster() {
     return resultRequestFromMaster;
   }
   
-  public void setResultRequestFromMaster(boolean value) {
+  protected void setResultRequestFromMaster(boolean value) {
     resultRequestFromMaster = value;
   }
   
@@ -1063,12 +1051,12 @@ public class AgentsBase implements Serializable {
     return isIdle;
   }
   
-  public void setIsAsyncLoopIdle(boolean value) {
+  protected void setIsAsyncLoopIdle(boolean value) {
     logger.debug("setIsAsyncIdle to {}", value);
     isIdle = value;
   }
   
-  public boolean hasNoInprocessAgents() {
+  protected boolean hasNoInprocessAgents() {
     return inProcessAgentCount.get() == 0;
   }
   

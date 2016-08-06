@@ -49,9 +49,8 @@ public class MProcess {
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
-   * main MASS function that launches MProcess
+   * Main MASS function that launches MProcess
    * @param args
-   * @return 
    */
   public static void main(String[] args) throws Exception {
     

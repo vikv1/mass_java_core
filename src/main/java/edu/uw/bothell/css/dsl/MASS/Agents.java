@@ -401,7 +401,7 @@ public class Agents extends AgentsBase implements Serializable {
     return callAllSetupAsync(functionIds, arguments, autoMigration);
   }
 
-  public void initMaster(Object argument) {
+  private void initMaster(Object argument) {
 
     // check if MASS_base.hosts is empty (i.e., Places not yet created)
     if (MASSBase.getHosts().isEmpty()) {
@@ -440,7 +440,7 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
-  public void manageAllSetup() {
+  private void manageAllSetup() {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
