@@ -30,21 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import ucar.ma2.*;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-
-import java.io.IOException;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import java.util.Collections; // for synchronized set
+import java.util.HashSet;     // implementation for Agent bag
+import java.util.Set;         // local Agent bag
+import java.util.Vector;
 
 /**
  *	Place represents a single element from a collection of places distributed
@@ -55,522 +44,36 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class Place {
 
 	/**
-	 * Defines the size of the matrix that consists of application-specific
-	 * places. Intuitively, size[0], size[1], and size[2] correspond to the size
-	 * of x, y, and z, or that of i, j, and k.
-	 */
+	  * Defines the size of the matrix that consists of application-specific
+	  * places. Intuitively, size[0], size[1], and size[2] correspond to the size
+	  * of x, y, and z, or that of i, j, and k.
+	  */
 	private int[] size;
-
-	/**
-	 * Is an array that maintains each place’s coordinates. Intuitively,
-	 * index[0], index[1], and index[2] correspond to coordinates of x, y, and
-	 * z, or those of i, j, and k.
-	 */
+	
+	 /**  
+	  * Is an array that maintains each place’s coordinates. Intuitively,
+	  * index[0], index[1], and index[2] correspond to coordinates of x, y, and
+	  * z, or those of i, j, and k. 
+	  */
 	private int[] index;
-
-	/**
-	 * Stores a set arguments to be passed to a set of remote-cell functions
-	 * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
-	 * nearest future. The argument size must be specified with
-	 * outMessage_size.
-	 */
+	
+	 /** Stores a set arguments to be passed to a set of remote-cell functions
+	  * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
+	  * nearest future. The argument size must be specified with
+	  * outMessage_size. 
+	  */
 	private Object outMessage = null;
-
-	/**
-	 * Receives a return value in inMessages[i] from a function call made to
-	 * the i-th remote cell through exchangeAll( ) and exchangeSome( ).
-	 * Each element size must be specified with inMessage_size.
-	 */
+	
+	 /** Receives a return value in inMessages[i] from a function call made to
+	  * the i-th remote cell through exchangeAll( ) and exchangeSome( ).
+	  * Each element size must be specified with inMessage_size. 
+	  */
 	private Object[] inMessages = null;
-
-	/**
-	 * Includes all the agents residing locally on this place.
-	 */
-	private Set<Agent> agents = Collections.synchronizedSet(new HashSet<Agent>());
-
-	private Vector<int[]> neighbours = null;
-
-	//
-	// Parallel I/O Fields
-	//
-
-	// Stores each file and its attributes
-	protected static Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
-
-	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
-	private static final OpenOption[] OpenOperations = new OpenOption[] {READ, WRITE};
-
-	// Counts the number of files open
-	private static int count = 0;
-
-	// Current file descriptor - used for giving each file a unique descriptor
-	// TODO: Check where used
-	private static int fileDescriptor;
-
-	// Class constant for reading
-	public static final int READ_ = 0;
-
-	// Class constant for writing
-	public static final int WRITE_ = 1;
-
-	//
-	// Private class that stores the file attributes needed for parallel I/O
-	//
-
-	private class FileAttributes {
-
-		// Name of opened file
-		private String fileName;
-
-		// Number of places being used
-		private int numberOfPlaces;
-
-		// Number of read operations remaining (one per place)
-		private int remainingReads;
-
-		// Number of write operations remaining (one per place)
-		private int remainingWrites;
-
-		// File descriptor
-		private int count;
-
-		// Length for reading from the buffer
-		private int readLength;
-
-		// Buffer text files are read to
-		private ByteBuffer buffer;
-
-		// The file
-		private Object file;
-
-		// Variable to read or write (NetCDF)
-		private Hashtable<String, Variable> variables;
-
-		FileAttributes() {
-			this.count = -1;
-		}
-
-		FileAttributes(String fileName, Object file, int numberOfPlaces, int count) {
-
-			this.fileName = fileName;
-			this.numberOfPlaces = numberOfPlaces;
-			remainingReads = numberOfPlaces;
-			remainingWrites = numberOfPlaces;
-			this.file = file;
-			this.count = count;
-			readLength = 0;
-		}
-
-		FileAttributes(String fileName, Object file, int numberOfPlaces,
-					   int count, Hashtable<String, Variable> variables) {
-			this.fileName = fileName;
-			this.numberOfPlaces = numberOfPlaces;
-			remainingReads = numberOfPlaces;
-			remainingWrites = numberOfPlaces;
-			this.file = file;
-			this.count = count;
-			readLength = 0;
-			this.variables = variables;
-		}
-
-		public synchronized int testAndDecrementReads() {
-			int returnValue = remainingReads--;
-			return returnValue;
-		}
-
-		// Decrements the number of remaining writes by 1
-		public synchronized void decrementWrites() {
-			this.remainingWrites -= 1;
-		}
-
-		//
-		// Getter methods
-		//
-
-		public String getFileName() {
-			return fileName;
-		}
-
-		public int getNumberOfPlaces() {
-			return numberOfPlaces;
-		}
-
-		public int getRemainingWrites() {
-			return remainingWrites;
-		}
-
-		public int getRemainingReads() {
-			return remainingReads;
-		}
-
-		public int getCount() {
-			return count;
-		}
-
-		public int getReadLength() {
-			return readLength;
-		}
-
-		public ByteBuffer getBuffer() {
-			return buffer;
-		}
-
-		public Object getFile() {
-			return file;
-		}
-
-		public Hashtable<String, Variable> getVariables() {
-			return variables;
-		}
-
-		public Variable getVariable(String varName) {
-			return variables.get(varName);
-		}
-
-		//
-		// Setter methods
-		//
-
-		public void setFileName(String fileName) {
-			this.fileName = fileName;
-		}
-
-		public void setNumberOfPlaces(int numberOfPlaces) {
-			this.numberOfPlaces = numberOfPlaces;
-		}
-
-		public void setRemainingReads(int remainingReads) {
-			this.remainingReads = remainingReads;
-		}
-
-		public void setRemainingWrites(int remainingWrites) {
-			this.remainingWrites = remainingWrites;
-		}
-
-		public void setCount(int count) {
-			this.count = count;
-		}
-
-		public void setReadLength(int readLength) {
-			this.readLength = readLength;
-		}
-
-		//TODO check for privacy leaks
-		public void setBuffer(ByteBuffer buffer) {
-			this.buffer = buffer;
-		}
-
-		//TODO check for privacy leaks
-		public void setFile(Object file) {
-			this.file = file;
-		}
-
-		public void setVariables(Hashtable<String, Variable> variables) {
-			this.variables = variables;
-		}
-	}
-
-	/**
-	 * The first Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
-	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
-	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
-	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
-	 * file that is opened for writing will be opened on the disk and added to the fileTable so that the file
-	 * can be accessed by all Places. A successfully opened file is given a unique file descriptor (integer)
-	 * and the file descriptor is returned. An unsuccessfully opened file returns a file descriptor of -1.
-	 * An IOException is thrown if the given filePath does not exist.
-	 *
-	 * @param filePath
-	 * @param ioType
-	 * @return fileDescriptor
-	 */
-	protected int open(String filePath, int ioType) throws IOException {
-		if (ioType != 0 && ioType != 1) {
-			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
-		}
-		// Create a path object from the given file path string
-		Path path = Paths.get(filePath);
-
-		// Isolate the file name
-		String fileName = path.getFileName().toString();
-
-		synchronized (fileTable) {
-			// Only the first place opens the file
-			if (!fileTable.containsKey(count - 1) ) {
-
-				// Open the file if the file type is supported, return -1 if not supported
-				if (fileName.toLowerCase().endsWith(".nc")) {
-					fileDescriptor = openNetcdfFile(fileName, ioType);
-				} else if (fileName.toLowerCase().endsWith(".txt")) {
-					fileDescriptor = openTextFile(fileName, ioType, path);
-				} else {
-					System.err.println("File type not supported by MASS parallel I/O");
-					return -1;
-				}
-				System.out.println(fileTable.get(fileDescriptor).getFileName() + " opened");
-			}
-		}
-
-		// Return the file's unique file descriptor
-		return fileDescriptor;
-	}
-
-	/**
-	 * Private helper method that opens the given ncFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-	 *
-	 * @param ncFileName
-	 * @param ioType
-	 * @return fileDescriptor
-	 */
-	private int openNetcdfFile(String ncFileName, int ioType) {
-		NetcdfFile netcdfFile;
-
-		// Read entire file into memory for reading
-		if (ioType == 0) {
-			try {
-				netcdfFile = NetcdfFile.openInMemory(ncFileName);
-			} catch (IOException e) {
-				System.err.println("Exception opening netcdf file in memory: " + e);
-				return -1;
-			}
-		}
-
-		// Open file in disk for writing
-		else {
-			try {
-				netcdfFile = NetcdfFile.open(ncFileName);
-			} catch (IOException e) {
-				System.err.print("Exception opening netcdf file on disk: " + e);
-				return -1;
-			}
-		}
-
-		List<Variable> varList = netcdfFile.getVariables();
-		if (varList.isEmpty()) {
-			System.err.println("No NetCDF variables to read");
-		}
-
-		Hashtable<String, Variable> variables = new Hashtable<String, Variable>();
-
-		for (int i = 0; i < varList.size(); i++) {
-			Variable currVar = varList.get(i);
-			variables.put(currVar.getShortName(), currVar);
-		}
-
-		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlaces().getPlacesSize(), count, variables);
-
-		fileTable.put(count, fileAttributes);
-
-
-		// Increment the file count since a file has been added to the file table
-		count++;
-
-
-		// Return the file's count (which is the file's unique descriptor)
-		return fileAttributes.getCount();
-	}
-
-	/**
-	 * Private helper method that opens the given txtFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-	 *
-	 * @param txtFileName
-	 * @param ioType
-	 * @return fileDescriptor
-	 */
-	private int openTextFile(String txtFileName, int ioType, Path path) throws IOException {
-		FileChannel fileChannel;
-
-		// opens a file, returning a FileChannel to access the supplied file
-		// file is opened with the specified OpenOption of either READ or WRITE
-		try {
-			fileChannel = FileChannel.open(path, OpenOperations[ioType]);
-		} catch (IOException e) {
-			System.err.println("Exception opening text file: " + e);
-			return -1;
-		}
-
-		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlaces().getPlacesSize(), count);
-
-		// Set file attributes for a read operation
-		if (ioType == 0) {
-
-			// create a buffer that has the same space as the file being read
-			fileAttributes.setBuffer(ByteBuffer.allocate((int) fileChannel.size()));
-
-			ByteBuffer buffer = fileAttributes.getBuffer();
-
-			// read the file contents to the buffer
-			fileChannel.read(buffer);
-
-			buffer.flip();
-
-			fileAttributes.setReadLength(buffer.capacity() / fileAttributes.getNumberOfPlaces());
-		}
-
-		fileTable.put(count, fileAttributes);
-
-		// Increment the file count since a file has been added to the file table
-		count++;
-
-		// Return the file's count (which is the file's unique descriptor)
-		return fileAttributes.getCount();
-	}
-
-	// Read function used for text files
-	protected boolean read(int fd, byte[] txtData) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes.getFileName().toLowerCase().endsWith(".txt")) {
-				return readTextFile(fileAttributes, txtData);
-			}
-		}
-		return false;
-	}
-
-	// Read function used for netcdf files
-	protected boolean read(int fd, Hashtable<String, Array> ncData) {
-		synchronized (fileTable) {
-			if (fileTable.containsKey(fd)) {
-
-				FileAttributes fileAttributes = fileTable.get(fd);
-				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
-					return readNetcdfFile(fileAttributes, ncData);
-				} else {
-					System.err.println("Given fd to read is not supported by MASS parallel I/O");
-				}
-			} else {
-				System.err.println("Given fd to read does not exist in the file table (has not been opened)");
-			}
-		}
-		return false;
-	}
-
-	// Assume number of places match the number of NetCDF indexes
-	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
-
-		// Get all variable names
-		Enumeration<String> varNames = varsData.keys();
-
-		// Read one index of each variable
-		while (varNames.hasMoreElements()) {
-
-			String varName = varNames.nextElement();
-			Variable var = fileAttributes.getVariable(varName);
-			if (var == null) {
-				System.err.println("Given varaible: \"" + varName + "\" does not exist in: \"" + fileAttributes.getFileName() + "\"");
-				return false;
-			}
-
-			// Read data and add to place storage
-			try {
-
-				Array userDataset = varsData.get(varName);
-				ArrayFloat.D3 varData;
-
-				// Read for 3D float
-				if (userDataset instanceof ArrayFloat.D3) {
-					// read one element starting at this places index
-					varData = (ArrayFloat.D3) var.read(index, new int[]{1, 1, 1});
-					((ArrayFloat.D3) userDataset).set(index[0], index[1], index[2], varData.get(0, 0, 0));
-				}
-
-			} catch (InvalidRangeException err) {
-				System.err.println("Invalid range: " + err);
-				return false;
-			} catch (IOException err) {
-				System.err.println("Invalid range: " + err);
-				return false;
-			}
-		}
-		return true;
-	}
-
-
-	private boolean readTextFile(FileAttributes fileAttributes, byte[] data) {
-
-		try {
-
-			ByteBuffer buffer = fileAttributes.getBuffer();
-
-			byte[] txtData;
-
-			// Used for determining which part of the file to read
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-			int length = fileAttributes.getReadLength();
-
-			if ( placeOrder != fileAttributes.getNumberOfPlaces() - 1 ) {
-
-				txtData = new byte[ length ];
-
-				//TODO: Ask
-				synchronized (buffer) {
-
-					buffer.position(placeOrder * length);
-
-					buffer.get(data, 0, length);
-				}
-			}
-
-			// Perform final read
-			else {
-				buffer.position(length * placeOrder);
-
-				txtData = new byte[ buffer.remaining( ) ];
-
-				int pos = 0;
-				while(buffer.hasRemaining()) {
-					data[pos] = buffer.get();
-					pos++;
-				}
-			}
-
-			// Copies the Place's data to the correct position in the entire array
-			// of data that is passed by the user
-			System.arraycopy(txtData, 0, data, placeOrder, txtData.length);
-		}
-		catch ( BufferUnderflowException err ) {
-			System.err.println( err );
-			return false;
-		}
-		return true;
-	}
-
-	protected boolean close( int fd ) {
-		synchronized (fileTable) {
-			if (fileTable.containsKey(fd)) {
-				String fileName = fileTable.get(fd).getFileName();
-				Object file = fileTable.get(fd).getFile();
-				if (file instanceof NetcdfFile) {
-					try {
-						((NetcdfFile) file).close();
-						System.out.println(fileName + " closed");
-						fileTable.remove(fd);
-
-						return true;
-					} catch (IOException ioe) {
-						System.err.println(ioe);
-					}
-				} else if (file instanceof FileChannel) {
-					try {
-						((FileChannel) file).close();
-						System.out.println(fileName + " closed");
-
-						return true;
-					} catch (IOException ioe) {
-						System.err.println(ioe);
-					}
-				}
-			}
-		}
-		return false;
-	}
+	
+	/** Includes all the agents residing locally on this place. */
+	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	
+	private Vector< int[] > neighbors = null;
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
@@ -587,7 +90,7 @@ public class Place {
 
 	private Place findDstPlace( int handle, int offset[] ) {
 
-		// Compute the global linear index from offset[]
+		// compute the global linear index from offset[]
 		PlacesBase places = MASSBase.getPlacesMap().get( new Integer( handle ) );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
@@ -599,7 +102,7 @@ public class Place {
 		if ( globalLinearIndex == Integer.MIN_VALUE )
 			return null;
 
-		// Identify the destination place
+		// identify the destination place  
 		int destinationLocalLinearIndex
 		= globalLinearIndex - places.getLowerBoundary();
 
@@ -624,10 +127,18 @@ public class Place {
 	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
+	
+	public int getNumAgents() {
+		return agents.size();
+	}
 
 	public Number getDebugData()
 	{
 		return null;
+	}
+	
+	// To be overridden by developer - for debugging
+	public void setDebugData(Number argument) {
 	}
 
 	public int[] getIndex() {
@@ -639,19 +150,19 @@ public class Place {
 	}
 
 	public Vector<int[]> getNeighbours() {
-		return neighbours;
+		return neighbors;
 	}
 
-	public void setNeighbours(Vector<int[]> neighbours)
+	public void setNeighbors(Vector<int[]> neighbors)
 	{
-		this.neighbours = neighbours;
+		this.neighbors = neighbors;
 	}
 
-	public Object getOutMessage() {
+	protected Object getOutMessage() {
 		return outMessage;
 	}
 
-	protected Object getOutMessage( int handle, int[] offsetIndex ) {
+	public Object getOutMessage( int handle, int[] offsetIndex ) {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
@@ -674,13 +185,13 @@ public class Place {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
-		// Write to the destination inMessage[position]
+		// write to the destination inMessage[position]
 		if ( dstPlace != null && position < dstPlace.inMessages.length )
 			dstPlace.inMessages[position] = value;
 	
 	}
 
-	public void setIndex(int[] index) {
+	protected void setIndex(int[] index) {
 		this.index = index.clone();
 	}
 
@@ -696,7 +207,7 @@ public class Place {
 		this.outMessage = outMessage;
 	}
 
-	public void setSize(int[] size) {
+	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
 	

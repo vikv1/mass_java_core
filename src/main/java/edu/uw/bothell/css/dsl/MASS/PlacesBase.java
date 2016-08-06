@@ -443,6 +443,37 @@ public class PlacesBase {
     
     }
     
+    public Object callAllReturn( int functionId, int tid ) {
+
+    	int[] range = new int[2];
+    	getLocalRange( range, tid );
+
+    	// debugging
+    	if ( logger.isDebugEnabled() )
+    		logger.debug( "thread[" + tid + 
+    				"] callAll_with_return object functionId = " + 
+    				functionId + ", range[0] = " + range[0] + 
+    				" range[1] = " + range[1]  );
+
+    	if ( range[0] >= 0 && range[1] >= 0 ) {
+
+    		for ( int i = range[0]; i <= range[1]; i++ ) {
+    			
+    			//if ( logger.isDebugEnabled() )
+    			//	logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
+    			//			places[i] );
+
+    			MASSBase.getCurrentReturns()[i] = 
+    					places[i].callMethod( functionId, null );
+    		
+    		}
+    	
+    	}
+    	
+    	return null;
+    
+    }
+    
     public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
 
     	int[] range = new int[2];
@@ -702,7 +733,7 @@ public class PlacesBase {
     
     }
 
-    public String getClassName() {
+    protected String getClassName() {
 		return className;
 	}
     
@@ -776,7 +807,7 @@ public class PlacesBase {
     	return handle;
     }
 
-    public Place[] getLeftShadow() {
+    protected Place[] getLeftShadow() {
 		return leftShadow;
 	}
 
@@ -830,15 +861,15 @@ public class PlacesBase {
 
     }
 
-	public int getLowerBoundary() {
+	protected int getLowerBoundary() {
 		return lowerBoundary;
 	}
 
-	public Place[] getPlaces() {
+	protected Place[] getPlaces() {
 		return places;
 	}
 
-	public int getPlacesSize( ) {
+	protected int getPlacesSize( ) {
     	return placesSize;
     }
 
@@ -868,11 +899,11 @@ public class PlacesBase {
     
     }
 
-	public Place[] getRightShadow() {
+	protected Place[] getRightShadow() {
 		return rightShadow;
 	}
 
-	public int getShadowSize() {
+	protected int getShadowSize() {
 		return shadowSize;
 	}
 
@@ -880,11 +911,11 @@ public class PlacesBase {
 		return size;
 	}
 
-	public int getUpperBoundary() {
+	protected int getUpperBoundary() {
 		return upperBoundary;
 	}
 
-    public void init_all( Object argument ) {
+    private void init_all( Object argument ) {
     	
     	// For debugging
     	logger.debug( "init_all handle = " + handle + 

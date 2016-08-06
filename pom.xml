@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+  
 	<modelVersion>4.0.0</modelVersion>
-
+  	
 	<groupId>edu.uw.bothell.css.mass</groupId>
-	<artifactId>mass-core</artifactId>
-	<packaging>jar</packaging>
-	<version>0.9.0-SNAPSHOT</version>
+  	<artifactId>mass-core</artifactId>
+  	<packaging>jar</packaging>
+	<version>0.9.0-SNAPSHOT</version>  	
 
 	<name>MASS Java Core Library</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
@@ -14,44 +14,44 @@
 	<url>http://depts.washington.edu/dslab/MASS/index.html</url>
 
 	<properties>
-
+	
 		<!-- Dependency properties -->
 		<slf4j.version>1.7.13</slf4j.version>
 		<log4j.version>2.4.1</log4j.version>
-
-		<!-- Build properties -->
+	
+		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
 		<java.version>1.7</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+	
 	</properties>
-
+  
 	<organization>
-		<name>University of Washington, Bothell, Computing and Software Systems</name>
-		<url>http://www.bothell.washington.edu/css</url>
-	</organization>
+    	<name>University of Washington, Bothell, Computing and Software Systems</name>
+  		<url>http://www.bothell.washington.edu/css</url>
+  	</organization>
 
 	<developers>
-		<developer>
-			<id>mfukuda</id>
-			<name>Dr. Munehiro Fukuda</name>
-			<email>mfukuda@u.washington.edu</email>
-			<organization>University of Washington, Bothell, Computing and Software Systems</organization>
-			<url>http://faculty.washington.edu/mfukuda</url>
-			<roles>
-				<role>architect</role>
-				<role>developer</role>
-			</roles>
-			<timezone>-8</timezone>
-			<properties>
-				<picUrl>http://faculty.washington.edu/mfukuda/mfukuda.jpg</picUrl>
-			</properties>
-		</developer>
-	</developers>
+    	<developer>
+      	<id>mfukuda</id>
+      	<name>Dr. Munehiro Fukuda</name>
+      	<email>mfukuda@u.washington.edu</email>
+		<organization>University of Washington, Bothell, Computing and Software Systems</organization>
+      	<url>http://faculty.washington.edu/mfukuda</url>
+      	<roles>
+        	<role>architect</role>
+        	<role>developer</role>
+      	</roles>
+      	<timezone>-8</timezone>
+      	<properties>
+        	<picUrl>http://faculty.washington.edu/mfukuda/mfukuda.jpg</picUrl>
+      	</properties>
+    	</developer>
+  	</developers>
 
 	<prerequisites>
-		<maven>3.1.0</maven>
-	</prerequisites>
+    	<maven>3.1.0</maven>
+  	</prerequisites>
 
 	<scm>
 		<developerConnection>https://bitbucket.org/mass_library_developers/mass_java_core.git</developerConnection>
@@ -59,37 +59,42 @@
 
 	<repositories>
 		<repository>
-			<id>uwb-css-artifactory-release</id>
-			<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
-			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
+    		<id>uwb-css-artifactory-release</id>
+    		<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
+    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
+    		<snapshots>
+        		<enabled>false</enabled>
+    		</snapshots>
 		</repository>
 		<repository>
-			<id>uwb-css-artifactory-snapshot</id>
-			<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
-			<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+    		<id>uwb-css-artifactory-snapshot</id>
+    		<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
+    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
+    		<releases>
+        		<enabled>false</enabled>
+    		</releases>
+    		<snapshots>
+        		<enabled>true</enabled>
+    		</snapshots>
+		</repository>  
+		<!-- backup repository - in case MASS build server not responding -->
+		<repository>
+     			<id>MVNRepository</id>
+     			<url>http://http://mvnrepository.com</url>
 		</repository>
 	</repositories>
 
 	<dependencies>
-
+		
 		<!-- Unit Testing -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
+      		<groupId>junit</groupId>
+      		<artifactId>junit</artifactId>
+      		<version>4.11</version>
+      		<scope>test</scope>
+   		</dependency>
+  	
+  		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
@@ -112,44 +117,44 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!-- Log4j API and Core implementation required for logging -->
+  		<!-- Log4j API and Core implementation required for logging -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
+    		<groupId>org.slf4j</groupId>
+    		<artifactId>slf4j-api</artifactId>
+    		<version>${slf4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+    
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-slf4j-impl</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-api</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
+  
+  		<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-core</artifactId>
+    		<version>${log4j.version}</version>
+    		<scope>compile</scope>
+  		</dependency>
 
+		<!-- For MASS Remote Debugger -->
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
+    		<groupId>com.google.code.gson</groupId>
+    		<artifactId>gson</artifactId>
+    		<version>2.7</version>
+    		<scope>compile</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<!--  For NetcdfFiles -->
-			<groupId>edu.ucar</groupId>
-			<artifactId>cdm</artifactId>
-			<version>4.5.0</version>
-			<type>jar</type>
-		</dependency>
-
-	</dependencies>
+  		
+  	</dependencies>
 
 	<build>
 		<plugins>
@@ -196,18 +201,13 @@
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 					<!--finalName>MASS</finalName-->
-					<appendAssemblyId>false</appendAssemblyId>
+        			<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
-
-	<reporting>
-		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.5.5</version>
+				<version>3.0.4</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
@@ -215,6 +215,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</reporting>
+	</build>
 
 </project>

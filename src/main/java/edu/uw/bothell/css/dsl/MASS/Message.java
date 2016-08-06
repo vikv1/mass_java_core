@@ -248,7 +248,6 @@ public class Message implements Serializable {
      * @param handle
      * @param classname
      * @param argument
-     * @param arg_size
      * @param boundaryWidth
      * @param hosts
      */
