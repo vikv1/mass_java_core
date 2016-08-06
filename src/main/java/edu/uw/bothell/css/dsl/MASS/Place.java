@@ -33,7 +33,6 @@ package edu.uw.bothell.css.dsl.MASS;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -83,18 +82,11 @@ public class Place {
 	 * Each element size must be specified with inMessage_size.
 	 */
 	private Object[] inMessages = null;
-    
+
     /** Includes all the agents residing locally on this place. */
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
-	
+
 	private Vector< int[] > neighbors = null;
-
-	/**
-	 * Includes all the agents residing locally on this place.
-	 */
-	private Set<Agent> agents = Collections.synchronizedSet(new HashSet<Agent>());
-
-	private Vector<int[]> neighbours = null;
 
 	//
 	// Parallel I/O Fields
