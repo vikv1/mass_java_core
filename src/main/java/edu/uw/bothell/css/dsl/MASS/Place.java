@@ -90,59 +90,60 @@ public class Place {
 
 	private Vector<int[]> neighbours = null;
 
-	/**
-	 * stores all files that have been opened
-	 * String array stores file name at index 0
-	 * boolean has been read at index 1
-	 * number of places (for write at index 2)
-	 */
+	//
+	// Parallel I/O Fields
+	//
 
-	// stores each file and its attributes
+	// Stores each file and its attributes
 	protected static Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
 
-	// open options, 0 for READ, 1 for WRITE
-	private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
+	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
+	private static final OpenOption[] OpenOperations = new OpenOption[] {READ, WRITE};
 
-	// counts the number of files open
+	// Counts the number of files open
 	private static int count = 0;
 
-	// current file descriptor (for open method)
+	// Current file descriptor - used for giving each file a unique descriptor
 	// TODO: Check where used
 	private static int fileDescriptor;
 
+	// Class constant for reading
 	public static final int READ_ = 0;
 
+	// Class constant for writing
 	public static final int WRITE_ = 1;
 
+	//
+	// Private class that stores the file attributes needed for parallel I/O
+	//
 
-	// private class that stores all of a file's attributes
 	private class FileAttributes {
 
-		// name of opened file
+		// Name of opened file
 		private String fileName;
 
-		// number of places being used
+		// Number of places being used
 		private int numberOfPlaces;
 
-		// number of read operations remaining (one per place)
+		// Number of read operations remaining (one per place)
 		private int remainingReads;
 
-		// number of write operations remaining (one per place)
+		// Number of write operations remaining (one per place)
 		private int remainingWrites;
 
-		// this files count number (unique for each file)
+		// File descriptor
 		private int count;
 
-		// length for reading from the buffer
+		// Length for reading from the buffer
 		private int readLength;
 
-		// buffer text files are read to
+		// Buffer text files are read to
 		private ByteBuffer buffer;
 
-		// file descriptor
+		// The file
 		private Object file;
 
-		// variable to read or write (Netcdf)
+		// Variable to read or write (NetCDF)
 		private Hashtable<String, Variable> variables;
 
 		FileAttributes() {
@@ -160,7 +161,8 @@ public class Place {
 			readLength = 0;
 		}
 
-		FileAttributes(String fileName, Object file, int numberOfPlaces, int count, Hashtable<String, Variable> variables) {
+		FileAttributes(String fileName, Object file, int numberOfPlaces,
+					   int count, Hashtable<String, Variable> variables) {
 			this.fileName = fileName;
 			this.numberOfPlaces = numberOfPlaces;
 			remainingReads = numberOfPlaces;
@@ -176,12 +178,14 @@ public class Place {
 			return returnValue;
 		}
 
-		// decrements the number of remaining writes by 1
+		// Decrements the number of remaining writes by 1
 		public synchronized void decrementWrites() {
 			this.remainingWrites -= 1;
 		}
 
-		// getter methods
+		//
+		// Getter methods
+		//
 
 		public String getFileName() {
 			return fileName;
@@ -223,7 +227,9 @@ public class Place {
 			return variables.get(varName);
 		}
 
-		// setter methods//
+		//
+		// Setter methods
+		//
 
 		public void setFileName(String fileName) {
 			this.fileName = fileName;
@@ -249,10 +255,12 @@ public class Place {
 			this.readLength = readLength;
 		}
 
+		//TODO check for privacy leaks
 		public void setBuffer(ByteBuffer buffer) {
 			this.buffer = buffer;
 		}
 
+		//TODO check for privacy leaks
 		public void setFile(Object file) {
 			this.file = file;
 		}
@@ -280,17 +288,17 @@ public class Place {
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
-		// create a path object from the given file path string
+		// Create a path object from the given file path string
 		Path path = Paths.get(filePath);
 
-		// isolate the file name
+		// Isolate the file name
 		String fileName = path.getFileName().toString();
 
 		synchronized (fileTable) {
-			// only the first place opens the file
+			// Only the first place opens the file
 			if (!fileTable.containsKey(count - 1) ) {
 
-				// open the file if the file type is supported, return -1 if not supported
+				// Open the file if the file type is supported, return -1 if not supported
 				if (fileName.toLowerCase().endsWith(".nc")) {
 					fileDescriptor = openNetcdfFile(fileName, ioType);
 				} else if (fileName.toLowerCase().endsWith(".txt")) {
@@ -303,7 +311,7 @@ public class Place {
 			}
 		}
 
-		// return the file's unique file descriptor
+		// Return the file's unique file descriptor
 		return fileDescriptor;
 	}
 
@@ -319,7 +327,7 @@ public class Place {
 	private int openNetcdfFile(String ncFileName, int ioType) {
 		NetcdfFile netcdfFile;
 
-		// read entire file into memory for reading
+		// Read entire file into memory for reading
 		if (ioType == 0) {
 			try {
 				netcdfFile = NetcdfFile.openInMemory(ncFileName);
@@ -329,7 +337,7 @@ public class Place {
 			}
 		}
 
-		// open file in disk for writing
+		// Open file in disk for writing
 		else {
 			try {
 				netcdfFile = NetcdfFile.open(ncFileName);
@@ -341,7 +349,7 @@ public class Place {
 
 		List<Variable> varList = netcdfFile.getVariables();
 		if (varList.isEmpty()) {
-			System.err.println("No Netcdf variables to read");
+			System.err.println("No NetCDF variables to read");
 		}
 
 		Hashtable<String, Variable> variables = new Hashtable<String, Variable>();
@@ -351,17 +359,17 @@ public class Place {
 			variables.put(currVar.getShortName(), currVar);
 		}
 
-		// set file attributes and add them to the file table
+		// Set file attributes and add them to the file table
 		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlaces().getPlacesSize(), count, variables);
 
 		fileTable.put(count, fileAttributes);
 
 
-		// increment the file count since a file has been added to the file table
+		// Increment the file count since a file has been added to the file table
 		count++;
 
 
-		// return the file's count (which is the file's unique descriptor)
+		// Return the file's count (which is the file's unique descriptor)
 		return fileAttributes.getCount();
 	}
 
@@ -386,10 +394,10 @@ public class Place {
 			return -1;
 		}
 
-		// set file attributes and add them to the file table
+		// Set file attributes and add them to the file table
 		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlaces().getPlacesSize(), count);
 
-		// set file attributes for a read operation
+		// Set file attributes for a read operation
 		if (ioType == 0) {
 
 			// create a buffer that has the same space as the file being read
@@ -407,14 +415,14 @@ public class Place {
 
 		fileTable.put(count, fileAttributes);
 
-		// increment the file count since a file has been added to the file table
+		// Increment the file count since a file has been added to the file table
 		count++;
 
-		// return the file's count (which is the file's unique descriptor)
+		// Return the file's count (which is the file's unique descriptor)
 		return fileAttributes.getCount();
 	}
 
-	// read function used for text files
+	// Read function used for text files
 	protected boolean read(int fd, byte[] txtData) {
 		if (fileTable.containsKey(fd)) {
 			FileAttributes fileAttributes = fileTable.get(fd);
@@ -425,7 +433,7 @@ public class Place {
 		return false;
 	}
 
-	// read function used for netcdf files
+	// Read function used for netcdf files
 	protected boolean read(int fd, Hashtable<String, Array> ncData) {
 		synchronized (fileTable) {
 			if (fileTable.containsKey(fd)) {
@@ -443,13 +451,13 @@ public class Place {
 		return false;
 	}
 
-	// assume number of places match the number of netcdf indexes
+	// Assume number of places match the number of NetCDF indexes
 	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
 
-		// get all variable names
+		// Get all variable names
 		Enumeration<String> varNames = varsData.keys();
 
-		// read one index of each variable
+		// Read one index of each variable
 		while (varNames.hasMoreElements()) {
 
 			String varName = varNames.nextElement();
@@ -459,13 +467,13 @@ public class Place {
 				return false;
 			}
 
-			// read data and add to place storage
+			// Read data and add to place storage
 			try {
 
 				Array userDataset = varsData.get(varName);
 				ArrayFloat.D3 varData;
 
-				// read for 3D float
+				// Read for 3D float
 				if (userDataset instanceof ArrayFloat.D3) {
 					// read one element starting at this places index
 					varData = (ArrayFloat.D3) var.read(index, new int[]{1, 1, 1});
@@ -492,7 +500,7 @@ public class Place {
 
 			byte[] txtData;
 
-			// used for determining which part of the file to read
+			// Used for determining which part of the file to read
 			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
 
 			int length = fileAttributes.getReadLength();
@@ -510,7 +518,7 @@ public class Place {
 				}
 			}
 
-			// perform final read
+			// Perform final read
 			else {
 				buffer.position(length * placeOrder);
 
@@ -523,7 +531,7 @@ public class Place {
 				}
 			}
 
-			// copies the Place's data to the correct position in the entire array
+			// Copies the Place's data to the correct position in the entire array
 			// of data that is passed by the user
 			System.arraycopy(txtData, 0, data, placeOrder, txtData.length);
 		}
@@ -579,7 +587,7 @@ public class Place {
 
 	private Place findDstPlace( int handle, int offset[] ) {
 
-		// compute the global linear index from offset[]
+		// Compute the global linear index from offset[]
 		PlacesBase places = MASSBase.getPlacesMap().get( new Integer( handle ) );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
@@ -591,7 +599,7 @@ public class Place {
 		if ( globalLinearIndex == Integer.MIN_VALUE )
 			return null;
 
-		// identify the destination place  
+		// Identify the destination place
 		int destinationLocalLinearIndex
 		= globalLinearIndex - places.getLowerBoundary();
 
@@ -666,7 +674,7 @@ public class Place {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
-		// write to the destination inMessage[position]
+		// Write to the destination inMessage[position]
 		if ( dstPlace != null && position < dstPlace.inMessages.length )
 			dstPlace.inMessages[position] = value;
 	
