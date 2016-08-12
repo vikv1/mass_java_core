@@ -76,14 +76,15 @@ public class Places extends PlacesBase {
     
     }
 
-	private Object[] ca_setup( int functionId, Object argument,
-			    Message.ACTION_TYPE type ) {
+	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
 		int total = 1; // the total number of place elements
 		for ( int i = 0; i < getSize().length; i++ )
 		    total *= getSize()[i];
 		int stripe = total / MASSBase.getSystemSize();
+		
+
 	
 		// send a PLACES_CALLALL message to each slave
 		Message m = null;
@@ -98,18 +99,21 @@ public class Places extends PlacesBase {
 		    	
 		    	// PLACES_CALL_ALL_RETURN_OBJECT
 		    	
-				int arg_size = ( i == MASS.getRemoteNodes().size( ) - 1 ) ?
-				    total - stripe * ( i + 1 ) : stripe;
+				int arg_size = ( i == MASS.getRemoteNodes().size( ) - 1 ) ? total - stripe * ( i + 1 ) : stripe;
 				
 				Object[] partialArguments = new Object[arg_size];
-				System.arraycopy( (Object[])argument, stripe * ( i + 1 ),
-						  partialArguments, 0, arg_size );
 				
-				m = new Message( type, this.getHandle(), functionId, 
-						 partialArguments );
+				// This is a band-aid If you just pass null into this function this function will throw a null pointer exception. 
+				try {
+					System.arraycopy( (Object[])argument, stripe * ( i + 1 ), partialArguments, 0, arg_size );
+				} catch ( NullPointerException e ) {
+					
+				}
+				
+				m = new Message( type, this.getHandle(), functionId, partialArguments );
 				
 			    logger.debug( "Places.callAll: arg_size = " + 
-						   partialArguments.length +
+						   (partialArguments == null ? 0 : partialArguments.length) +
 						   " stripe = " + stripe + 
 						   " i + 1 = " + (i + 1) );
 		    }
@@ -139,10 +143,10 @@ public class Places extends PlacesBase {
 		// callAll implementation
 		if ( type == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT /*|| type == Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT */)
 		    super.callAll( functionId, argument, 0 ); // 0 = the main tid\
-		else  if ( argument == null ) 
-			super.callAllReturn( functionId, 0 );
-		else
-		    super.callAll( functionId, (Object[])argument, ((Object[])argument).length, 0 );
+		else {
+			int argumentLength = argument == null ? 0 : ((Object[])argument).length;
+		    super.callAll( functionId, (Object[])argument, argumentLength, 0 );
+		}
 		
 		// confirm all threads are done with callAll.
 		MThread.barrierThreads( 0 );
@@ -200,12 +204,6 @@ public class Places extends PlacesBase {
     
     }
 	
-	public Object[] callAllWithReturn( int functionId ) {
-		logger.debug( "callAll return object" );
-		
-		return ca_setup( functionId, null, 
-				Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
-	}
     
 	/**
 	 * Calls from each of all cells to the method specified with functionId of
@@ -223,8 +221,7 @@ public class Places extends PlacesBase {
 	public void exchangeAll( int destinationHandle, int functionId ) {
 	
 		// send a PLACES_EXCHANGE_ALL message to each slave
-		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, 
-					  this.getHandle(), destinationHandle, functionId );
+		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
 		
 	    logger.debug( "dest_handle = {}", destinationHandle );
 		
