@@ -50,6 +50,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 
+import java.util.Properties;
+
 /**
  * Perform a series of unit tests against the Utilities class to verify proper
  * and consistent behavior of the class / methods
@@ -74,7 +76,43 @@ public class UtilitiesTest extends AbstractTest {
 	@Test
 	public void testLaunchRemoteProcess() throws Exception {
 		
-		String command = randomString( 32 );
+		String command = randomString(32);
+		
+		MNode remoteNode = new MNode();
+		remoteNode.setHostName(randomString(32));
+		remoteNode.setUserName(randomString(32));
+		remoteNode.setPrivateKey(randomString(32));
+		
+		// first, the JSCH library will define a session for the remote host
+		expect( mockJsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), 22 ) ).andReturn( mockSession );
+		
+		// should set private key
+		mockJsch.addIdentity(remoteNode.getPrivateKey());
+		
+		// Session will have a configuration property added to disable strict host checking
+		Capture<Properties> capturedProperties = new Capture<Properties>();
+		mockSession.setConfig( capture(capturedProperties) );
+		
+		// connection will be completed, via Session
+		mockSession.connect();
+		
+		// a Channel will be opened, in "exec mode"
+		expect( mockSession.openChannel("exec") ).andReturn(mockChannelExec);
+		
+		// command set within the Channel, but not executed yet
+		mockChannelExec.setCommand(command);
+		
+		// put mocks into replay mode
+		replayAll();
+		
+		// call the method under test
+		utilities.LaunchRemoteProcess(command, remoteNode);
+		
+		// make sure the strict host key check disable property was set
+		capturedProperties.getValue().containsKey("StrictHostKeyChecking");
+		assertEquals("no", (String) capturedProperties.getValue().get("StrictHostKeyChecking"));
+		
+		/*String command = randomString( 32 );
 		String hostName = randomString( 32 );
 		String passWord = randomString( 32 );
 		int portNumber = randomInt();
@@ -113,7 +151,7 @@ public class UtilitiesTest extends AbstractTest {
 		assertTrue( ui.promptYesNo( randomString( 32 ) ) );			// any yes/no prompt returns TRUE
 		
 		// attempting to show a message should NOT result in an Exception
-		ui.showMessage( randomString( 32 ) );
+		ui.showMessage( randomString( 32 ) );*/
 		
 	}
 	
@@ -122,14 +160,22 @@ public class UtilitiesTest extends AbstractTest {
 
 		Channel returnChannel = null;
 
-		expect( mockJsch.getSession("username", "host", 22) ).andThrow(new JSchException());
+		//expect( mockJsch.getSession("username", "host", 22) ).andThrow(new JSchException());
+		MNode remoteNode = new MNode();
+		remoteNode.setHostName(randomString(32));
+		remoteNode.setUserName(randomString(32));
+		remoteNode.setPrivateKey(randomString(32));
+		
+		expect( mockJsch.getSession(remoteNode.getUserName(), remoteNode.getHostName(), 22) ).andThrow(new JSchException());
+		mockJsch.addIdentity(remoteNode.getPrivateKey());
 
 		// put mocks into replay mode
 		replayAll();
 
 		try {
 			
-			returnChannel = utilities.LaunchRemoteProcess("host", 22, null, "username", null);
+			//returnChannel = utilities.LaunchRemoteProcess("host", 22, null, "username", null);
+			returnChannel = utilities.LaunchRemoteProcess("a command", remoteNode);
 			
 		}
 		

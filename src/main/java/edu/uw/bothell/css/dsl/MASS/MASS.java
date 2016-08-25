@@ -336,7 +336,7 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-    		if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
+    		//if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
     		
     		// retrieve each canonical remote machine name
     		try {
@@ -387,11 +387,13 @@ public class MASS extends MASSBase {
     				" run with command: " + commandBuilder );
 
     		try {
-    			Channel ssh2connection = util.LaunchRemoteProcess( node.getHostName(),
-    					JschPort,
-    					commandBuilder.toString(),
-    					node.getUserName(),
-    					node.getPassWord() );
+//    			Channel ssh2connection = util.LaunchRemoteProcess( node.getHostName(),
+//    					JschPort,
+//    					commandBuilder.toString(),
+//    					node.getUserName(),
+//    					node.getPassWord() );
+    			
+    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
     			if ( ssh2connection == null )
     				throw new Exception( "JSCH channel not created" );

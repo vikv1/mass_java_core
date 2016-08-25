@@ -61,19 +61,20 @@ public class MNode {
 
 	private LogLevel logLevel;			// custom logging level for this node
 	private String logFileName;			// custom logging filename for this node
-    private String hostName;			// the host name of this node
-    private String userName;			// for SSH login, the username - optional
-    private String passWord;			// for SSH login, the password - optional
-    private String javaHome;			// where the JVM is installed on this node - optional
-    private String massHome;			// where MASS library is located - optional
-    private boolean isMaster = false;	// is this the master node? - optional
-    private int pid;              		// process ID
-    private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
-    private Channel channel;            // JSCH channel
-    private ObjectInputStream mainIOS;  // from remote to master
-    private ObjectOutputStream mainOOS; // from master to remote
-    private int resetCounter = 0;
-    private Log4J2Logger logger = Log4J2Logger.getInstance();
+	private String hostName;			// the host name of this node
+	private String userName;			// for SSH login, the username - optional
+	//private String passWord;			// for SSH login, the password - optional
+	private String javaHome;			// where the JVM is installed on this node - optional
+	private String massHome;			// where MASS library is located - optional
+	private String privateKey;		 	// path/filename containing the private key used for SSH connection to this node
+	private boolean isMaster = false;	// is this the master node? - optional
+	private int pid;              		// process ID
+	private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
+	private Channel channel;            // JSCH channel
+	private ObjectInputStream mainIOS;  // from remote to master
+	private ObjectOutputStream mainOOS; // from master to remote
+	private int resetCounter = 0;
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
     
 	/**
 	 * Terminate all communications channels to the remote Node
@@ -134,14 +135,15 @@ public class MNode {
 		return massHome;
 	}
 
+	
 	/**
 	 * Get the SSH login password for this node
 	 * @return The SSH login password
-	 */
+	 *//*
 	@XmlElement(name = "password")
 	public String getPassWord() {
 		return passWord;
-	}
+	}*/
 
 	/**
      * Get the process ID (PID) of this Node. The process
@@ -154,6 +156,23 @@ public class MNode {
     public int getPid( ) {
     	return pid;
     }
+	
+	/**
+	 * Set the port number used to communicate with this node, for inter-node socket communications
+	 * @return The port number
+	 */
+	public int getPort() {
+		return port;
+	}
+	
+	/**
+	 * Get the path/filename of the private key used for SSH connections to this node
+	 * @return The private key path/filename
+	 */
+	@XmlElement(name = "privatekey")
+	public String getPrivateKey() {
+		return privateKey;
+	}
 
 	/**
 	 * Get the SSH login username for this node
@@ -224,6 +243,8 @@ public class MNode {
 
 			logger.error( "receivMessage error from rank[" + pid + "] at " +
 					hostName,  e );
+			
+			e.printStackTrace();
 
 			System.exit( -1 );
 
@@ -305,10 +326,10 @@ public class MNode {
 	/**
 	 * Set the SSH login password for this node
 	 * @param passWord The SSH login password
-	 */
+	 *//*
 	public void setPassWord(String passWord) {
 		this.passWord = passWord;
-	}
+	}*/
 
 	/**
 	 * Set the unique ID (process ID) for this Node
@@ -317,6 +338,14 @@ public class MNode {
 	public void setPid(int pid) {
 		this.pid = pid;
 	}
+	
+	/**
+	 * Set the path/filename of the private key to use for SSH connections to this node
+	 * @param privateKey The path/filename of the private key to use when connecting to this node
+	 */
+	public void setPrivateKey(String privateKey) {
+		this.privateKey = privateKey;
+	}
 
 	/**
 	 * Set the SSH login username for this node
@@ -324,14 +353,6 @@ public class MNode {
 	 */
 	public void setUserName(String userName) {
 		this.userName = userName;
-	}
-
-	/**
-	 * Set the port number used to communicate with this node, for inter-node socket communications
-	 * @return The port number
-	 */
-	public int getPort() {
-		return port;
 	}
 
 	/**
