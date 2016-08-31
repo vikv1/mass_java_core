@@ -63,7 +63,6 @@ public class MNode {
 	private String logFileName;			// custom logging filename for this node
 	private String hostName;			// the host name of this node
 	private String userName;			// for SSH login, the username - optional
-	//private String passWord;			// for SSH login, the password - optional
 	private String javaHome;			// where the JVM is installed on this node - optional
 	private String massHome;			// where MASS library is located - optional
 	private String privateKey;		 	// path/filename containing the private key used for SSH connection to this node
@@ -136,15 +135,6 @@ public class MNode {
 	}
 
 	
-	/**
-	 * Get the SSH login password for this node
-	 * @return The SSH login password
-	 *//*
-	@XmlElement(name = "password")
-	public String getPassWord() {
-		return passWord;
-	}*/
-
 	/**
      * Get the process ID (PID) of this Node. The process
      * ID is a number used within MASS to uniquely identify
@@ -322,14 +312,6 @@ public class MNode {
 	public void setMaster(boolean isMaster) {
 		this.isMaster = isMaster;
 	}
-
-	/**
-	 * Set the SSH login password for this node
-	 * @param passWord The SSH login password
-	 *//*
-	public void setPassWord(String passWord) {
-		this.passWord = passWord;
-	}*/
 
 	/**
 	 * Set the unique ID (process ID) for this Node
