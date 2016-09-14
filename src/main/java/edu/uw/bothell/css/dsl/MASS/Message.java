@@ -148,6 +148,13 @@ public class Message implements Serializable {
     	this.destinationHandle = handle;
     
     }	
+    
+    public Message( ACTION_TYPE action, int handle, int destHandle, int funcID ) {
+    	this.action = action;
+    	this.handle = handle;
+    	this.destinationHandle = destHandle;
+    	this.functionId = funcID;
+    }
 
     /**
      * AGENTS_INITIALIZE

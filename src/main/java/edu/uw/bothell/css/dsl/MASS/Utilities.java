@@ -32,12 +32,15 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Properties;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
+
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 /**
  * MASS Utilities
@@ -48,13 +51,15 @@ import com.jcraft.jsch.UserInfo;
  *
  */
 class Utilities {
+	
+	private static final int SSH_PORT = 22;
 
 	// reference to the SSH library - not initialized by default so it can be
 	// replaced by a mock object for testing
 	private JSch jsch = null;
 	
 	// logging
-	//private Log4J2Logger logger = Log4J2Logger.getInstance();
+	private Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	/**
 	 * Obtain a communications channel with a remote host and execute a command.
@@ -71,6 +76,7 @@ class Utilities {
 	 * @param Password When connecting to the remote host, use the supplied password
 	 * @return An open communications channel with the remote host
 	 */
+	@Deprecated
     protected Channel LaunchRemoteProcess( String Host, int PortNumber, 
 					   String Command, String UserName, 
 					   String Password ) {
@@ -110,6 +116,58 @@ class Utilities {
         
         return channel;
 
+    }
+    
+    protected Channel LaunchRemoteProcess( String Command, MNode remoteNode ) {
+    	
+    	// must provide required parameters
+    	// TODO - should throw IllegalArgumentException instead of returning NULL
+    	if ( Command == null || Command.length() == 0 ) //return null;
+    		throw new IllegalArgumentException( "Command is empty or equal to null" );
+    	if ( remoteNode == null ) //return null;
+    		throw new IllegalArgumentException( "remoteNode is equal to null" );
+    	
+    	ChannelExec channel = null;
+    	Properties config = new Properties();
+    	
+    	try {
+    		// instantiate the SSH library if necessary (might be replaced
+    		// by a mock object during unit testing)
+    		if ( jsch == null ) jsch = new JSch( );
+    		
+    		// add reference to SSH key
+    		logger.debug( "Adding private key: {}", remoteNode.getPrivateKey() );
+    		jsch.addIdentity( remoteNode.getPrivateKey() );
+    		
+            // set SSH connection properties
+    		logger.debug( "Setting hostname to {}", remoteNode.getHostName() );
+    		logger.debug( "Setting username to {}", remoteNode.getUserName() );
+    		logger.debug( "Connecting to port {}", SSH_PORT );
+            Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
+            
+            logger.debug( "Disabling string host key checking" );
+            config.put( "StrictHostKeyChecking", "no" );  
+            session.setConfig( config );
+            
+            // authenticate and complete connection sequence to the remote host
+            logger.debug( "Attempting to connect and authenticate..." );
+            session.connect( );
+            logger.debug( "Connected!" );
+
+            // set the command to be executed upon channel connection
+            logger.debug( "Executing remote command: {}", Command );
+            channel = ( ChannelExec ) session.openChannel( "exec" );
+            channel.setCommand( Command );
+            logger.debug( "Command executed!");
+    	} catch ( Exception e ) {
+    		// log the error message
+    		logger.error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
+    		
+    		// TODO - should we return NULL here to prevent the return of a partially connected channel?
+    		return null;
+    	}
+    	
+    	return channel;
     }
   
     /**

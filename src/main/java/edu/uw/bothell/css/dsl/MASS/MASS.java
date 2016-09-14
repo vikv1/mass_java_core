@@ -51,8 +51,8 @@ import edu.uw.bothell.css.dsl.MASS.MassData.*;
  */
 public class MASS extends MASSBase {
 
-	//private static boolean printOutput = false;
-	private static boolean printOutput = true;
+	private static boolean printOutput = false;
+	//private static boolean printOutput = true;
 
 	private static final int JschPort = 22;
 
@@ -336,7 +336,7 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-    		if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
+    		//if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
     		
     		// retrieve each canonical remote machine name
     		try {
@@ -387,11 +387,13 @@ public class MASS extends MASSBase {
     				" run with command: " + commandBuilder );
 
     		try {
-    			Channel ssh2connection = util.LaunchRemoteProcess( node.getHostName(),
-    					JschPort,
-    					commandBuilder.toString(),
-    					node.getUserName(),
-    					node.getPassWord() );
+//    			Channel ssh2connection = util.LaunchRemoteProcess( node.getHostName(),
+//    					JschPort,
+//    					commandBuilder.toString(),
+//    					node.getUserName(),
+//    					node.getPassWord() );
+    			
+    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
     			if ( ssh2connection == null )
     				throw new Exception( "JSCH channel not created" );
@@ -540,12 +542,11 @@ public class MASS extends MASSBase {
 	private static ServerSocket socket;
 	private static Socket client;
 	private static int placesHandle = 0;
+	static int agentsHandle = 0;
 	
-	
-	static int handle;
-	public static void debugInit( int pHandle, int agentsHandle, int port ) throws IOException {
+	public static void debugInit( int pHandle, int aHandle, int port ) throws IOException {
 		//TODO - get rid of all params
-		handle = agentsHandle;
+		agentsHandle = aHandle;
 		placesHandle = pHandle;
 
 		//connect to GUI
@@ -585,12 +586,12 @@ public class MASS extends MASSBase {
 			}
 		}
 		
-		if( getAgents( agentsHandle ) != null ) {
-			numberOfAgents =  MASS.getAgents( agentsHandle ).getInitPopulation();
-			agentsName = MASS.getAgents( agentsHandle ).getAgents().get(0).getClass().getSimpleName();
-			overloadsAgentData = ( MASS.getAgents( agentsHandle ).getAgents().get(0).getDebugData() != null );
+		if( getAgents( aHandle ) != null ) {
+			numberOfAgents =  MASS.getAgents( aHandle ).getInitPopulation();
+			agentsName = MASS.getAgents( aHandle ).getAgents().get(0).getClass().getSimpleName();
+			overloadsAgentData = ( MASS.getAgents( aHandle ).getAgents().get(0).getDebugData() != null );
 			if( overloadsAgentData ) {
-				agentDataType = MASS.getAgents( agentsHandle ).getAgents().get(0).getDebugData().getClass();
+				agentDataType = MASS.getAgents( aHandle ).getAgents().get(0).getDebugData().getClass();
 			}
 		}
 
@@ -616,7 +617,6 @@ public class MASS extends MASSBase {
 		MASSRequest request = null;
 
 		try {
-			//request = ( MASSRequest ) (( ObjectInputStream )inputStream ).readObject();
 			request = ( MASSRequest ) inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
 			e.printStackTrace();
@@ -648,7 +648,6 @@ public class MASS extends MASSBase {
 		place.setDebugData( updates.getThisPlaceData() );
 
 		try {
-			//( ( ObjectOutputStream )outputStream ).writeObject( new UpdatePackage() );
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {

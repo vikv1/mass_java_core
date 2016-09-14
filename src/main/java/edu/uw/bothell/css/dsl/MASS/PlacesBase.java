@@ -218,8 +218,7 @@ public class PlacesBase {
 
     		// for debugging
     		if ( logger.isDebugEnabled() ) {
-    		synchronized( orgRequest ) {
-    			
+    			synchronized( orgRequest ) {
     				logger.debug( "tid[" + destRank + 
     						"] sends an exhange request to rank: " +
     						destRank + " size() = " + 
@@ -232,38 +231,32 @@ public class PlacesBase {
     							orgRequest.get(i).
     							getDestGlobalLinearIndex() + " at " +
     							orgRequest.get(i).getInMessageIndex() );
-    			
     			}
-    		
     		}
     	
     		// now compose and send a message by a child
-    		Message messageToDest = new
-    				Message( Message.ACTION_TYPE.
+    		Message messageToDest = 
+    				new Message( Message.ACTION_TYPE.
     						PLACES_EXCHANGE_ALL_REMOTE_REQUEST,
     						srcHandle, destHandle_at_src, functionId, 
     						orgRequest, 0 ); // 0 = dummy
 
-    		SendMessageByChild thread_ref = new 
-    				SendMessageByChild( destRank, messageToDest );
+    		SendMessageByChild thread_ref = new SendMessageByChild( destRank, messageToDest );
     		thread_ref.start( );
 
     		// receive a message by myself
-    		Message messageFromSrc = 
-    				MASSBase.getExchange().receiveMessage( destRank );
+    		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
     		// at this point, the message must be exchanged.
     		try {
     			thread_ref.join( );
-    		} 
-    		catch ( Exception e ) {
+    		} catch ( Exception e ) {
     			// TODO - should do something when this exception is caught - not just swallow it
     			logger.error("Exception during message exchanging in PlacesBase", e);
     		}
 
     		// process a message
-    		Vector<RemoteExchangeRequest> receivedRequest 
-    		= messageFromSrc.getExchangeReqList( );
+    		Vector<RemoteExchangeRequest> receivedRequest = messageFromSrc.getExchangeReqList( );
 
     		int destHandle_at_dst = messageFromSrc.getDestHandle( );
     		PlacesBase dstPlaces = 
@@ -299,8 +292,8 @@ public class PlacesBase {
     			if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
     					globalLinearIndex <= dstPlaces.upperBoundary ) {
     				// local destination
-    				int destinationLocalLinearIndex 
-    				= globalLinearIndex - dstPlaces.lowerBoundary;
+    				int destinationLocalLinearIndex = 
+    						globalLinearIndex - dstPlaces.lowerBoundary;
 
     				logger.debug( " dstLocal = ", destinationLocalLinearIndex );
 
@@ -308,9 +301,7 @@ public class PlacesBase {
 
     				// call the destination function
     				retVals[i] = dstPlace.callMethod( functionId, outMessage );
-    			
     			}
-    		
     		}
 
     		// send return values by a child thread
@@ -322,14 +313,13 @@ public class PlacesBase {
     		thread_ref.start( );
 
     		// receive return values by myself in parallel
-    		Message messageFromDest 
-    		= MASSBase.getExchange().receiveMessage( destRank );
+    		Message messageFromDest = 
+    				MASSBase.getExchange().receiveMessage( destRank );
 
     		// at this point, the message must be exchanged.
     		try {
     			thread_ref.join( );
-    		} 
-    		catch ( Exception e ) {
+    		} catch ( Exception e ) {
     			// TODO - need to so something once this exception is thrown
     			logger.debug("Exception thrown while exchanging messages in PlacesBase", e);
     		}
@@ -340,33 +330,30 @@ public class PlacesBase {
     		for ( int i = 0; i < orgRequest.size( ); i++ ) {
     			
     			// local source
-    			int orgLocalLinearIndex
-    			= orgRequest.get(i).getOrgGlobalLinearIndex() - 
-    			my_lower_boundary;
+    			int orgLocalLinearIndex = 
+    					orgRequest.get(i).getOrgGlobalLinearIndex() - my_lower_boundary;
 
     			// locate a local place
-    			PlacesBase srcPlaces 
-    			= MASSBase.getPlacesMap().get( new Integer( srcHandle ) );
+    			PlacesBase srcPlaces = 
+    					MASSBase.getPlacesMap().get( new Integer( srcHandle ) );
     			Place srcPlace = srcPlaces.places[orgLocalLinearIndex];
 
     			// store a return value to it
     			Object inMessage = argument[i];
 
     			// insert an item at inMessageIndex or just append it.
-    			srcPlace.getInMessages()[orgRequest.get(i).getInMessageIndex()]
-    					= inMessage;
+    			srcPlace.getInMessages()[orgRequest.get(i).getInMessageIndex()] = 
+    					inMessage;
 
     			if ( logger.isDebugEnabled() )
     				logger.debug( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
     						+ srcPlace.getIndex()[1] + "] inserted " 
     						+ "at " 
     						+ orgRequest.get(i).getInMessageIndex() );
-    		
     		}
-    	
     	}
-    
     }
+    
     private class SendMessageByChild extends Thread {
 
     	int rank;
@@ -432,42 +419,12 @@ public class PlacesBase {
     				logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
     						places[i] );
 
-    			MASSBase.getCurrentReturns()[i] = 
-    					places[i].callMethod( functionId, arguments[i] );
-    		
+    			// this fix is kind of a band aid too.
+    			if ( arguments == null ) 
+    				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, null );
+    			else
+    				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, arguments[i] );
     		}
-    	
-    	}
-    	
-    	return null;
-    
-    }
-    
-    public Object callAllReturn( int functionId, int tid ) {
-
-    	int[] range = new int[2];
-    	getLocalRange( range, tid );
-
-    	// debugging
-    	if ( logger.isDebugEnabled() )
-    		logger.debug( "thread[" + tid + 
-    				"] callAll_with_return object functionId = " + 
-    				functionId + ", range[0] = " + range[0] + 
-    				" range[1] = " + range[1]  );
-
-    	if ( range[0] >= 0 && range[1] >= 0 ) {
-
-    		for ( int i = range[0]; i <= range[1]; i++ ) {
-    			
-    			//if ( logger.isDebugEnabled() )
-    			//	logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
-    			//			places[i] );
-
-    			MASSBase.getCurrentReturns()[i] = 
-    					places[i].callMethod( functionId, null );
-    		
-    		}
-    	
     	}
     	
     	return null;
@@ -475,7 +432,6 @@ public class PlacesBase {
     }
     
     public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
-
     	int[] range = new int[2];
     	getLocalRange( range, tid );
 
@@ -505,25 +461,22 @@ public class PlacesBase {
     				int[] neighborCoord = new int[dstPlaces.size.length];
 
     				// compute its coordinate
-    				getGlobalNeighborArrayIndex( srcPlace.getIndex(), offset, 
-    						dstPlaces.size,
-    						neighborCoord );
+    				getGlobalNeighborArrayIndex( srcPlace.getIndex(), offset, dstPlaces.size, neighborCoord );
     				
     				if ( logger.isDebugEnabled() )
     					logger.debug( "tid[" + tid + "]: calls from"
     							+ "[" + srcPlace.getIndex()[0]
-    									+ "][" + srcPlace.getIndex()[1] + "]"
-    									+ " (neighborCord[" + neighborCoord[0]
-    											+ "][" + neighborCoord[1] + "]"
-    											+ " dstPlaces.size[" 
-    											+ dstPlaces.size[0] 
-    													+ "][" + dstPlaces.size[1] + "]" );
+    							+ "][" + srcPlace.getIndex()[1] + "]"
+    							+ " (neighborCord[" + neighborCoord[0]
+    							+ "][" + neighborCoord[1] + "]"
+    							+ " dstPlaces.size[" 
+    							+ dstPlaces.size[0] 
+    							+ "][" + dstPlaces.size[1] + "]" );
 
     				if ( neighborCoord[0] != -1 ) { 
     					
     					// destination valid
-    					int globalLinearIndex = 
-    							getGlobalLinearIndexFromGlobalArrayIndex( 
+    					int globalLinearIndex = getGlobalLinearIndexFromGlobalArrayIndex( 
     									neighborCoord,
     									dstPlaces.size );
 
@@ -537,19 +490,15 @@ public class PlacesBase {
     					if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
     							globalLinearIndex <= dstPlaces.upperBoundary ) {
     						// local destination
-    						int destinationLocalLinearIndex 
-    						= globalLinearIndex - dstPlaces.lowerBoundary;
-    						Place dstPlace = 
-    								dstPlaces.places[destinationLocalLinearIndex];
+    						int destinationLocalLinearIndex = globalLinearIndex - dstPlaces.lowerBoundary;
+    						Place dstPlace = dstPlaces.places[destinationLocalLinearIndex];
 
     						if ( logger.isDebugEnabled() )
     							logger.debug( " to [" + dstPlace.getIndex()[0] +
     									"][" + dstPlace.getIndex()[1] + "]");
 
     						// call the destination function
-    						Object inMessage =
-    								dstPlace.callMethod( functionId, 
-    										srcPlace.getOutMessage() );
+    						Object inMessage = dstPlace.callMethod( functionId, srcPlace.getOutMessage() );
 
     						// store this inMessage: 
     						srcPlace.getInMessages()[j] = inMessage;
@@ -557,20 +506,15 @@ public class PlacesBase {
     						// for debug
     						logger.debug( " inMessage = {}",srcPlace.getInMessages()[j] );
     					
-    					} 
-    					
-    					else {
-    						
+    					} else {
     						// remote destination
 
     						// find the destination node
-    						int destRank = getRankFromGlobalLinearIndex( 
-    								globalLinearIndex );
+    						int destRank = getRankFromGlobalLinearIndex( globalLinearIndex );
 
     						// create a request
     						int orgGlobalLinearIndex =
-    								getGlobalLinearIndexFromGlobalArrayIndex( 
-    										srcPlace.getIndex(), size );
+    								getGlobalLinearIndexFromGlobalArrayIndex( srcPlace.getIndex(), size );
     						RemoteExchangeRequest request = new
     								RemoteExchangeRequest( globalLinearIndex,
     										orgGlobalLinearIndex,
@@ -582,9 +526,7 @@ public class PlacesBase {
     								MASSBase.getRemoteRequests().get( destRank );
     						
     						synchronized( remoteRequests ) {
-    							
     							remoteRequests.add( request );
-    							
     							if ( logger.isDebugEnabled() )
     								logger.debug( "remoteRequest[" + 
     										destRank + "].add:" +
@@ -594,30 +536,20 @@ public class PlacesBase {
     										globalLinearIndex +
     										" size( ) = " +
     										remoteRequests.size( ) );
-    						
     						}
-    					
     					}
-    				
-    				} 
-    				
-    				else {
-    					
-    					logger.error( " to destination invalid" );
-    				
+    				} else {
+    					//This just fills the log with junk
+    					// logger.error( " to destination invalid" );
     				}
-    			
     			}
-    		
     		}
-    	
     	}
 
     	// all threads must barrier synchronize here.
     	MThread.barrierThreads( tid );
     	
     	if ( tid == 0 ) {
-
     		logger.debug( "tid[{}] now enters processRemoteExchangeRequest", tid );
 
     		// the main thread spawns as many communication threads as 
@@ -627,10 +559,8 @@ public class PlacesBase {
     		// args to threads: 
     		// rank, srcHandle, dstHandle, functionId, lower_boundary
     		int[][] comThrArgs = new int[MASSBase.getSystemSize()][5];
-    		ProcessRemoteExchangeRequest[] thread_ref
-    		= new ProcessRemoteExchangeRequest[MASSBase.getSystemSize()]; 
+    		ProcessRemoteExchangeRequest[] thread_ref = new ProcessRemoteExchangeRequest[MASSBase.getSystemSize()]; 
     		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
-
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;
 
@@ -642,39 +572,27 @@ public class PlacesBase {
     			comThrArgs[rank][4] = lowerBoundary;
 
     			// start a communication thread
-    			thread_ref[rank] = 
-    					new ProcessRemoteExchangeRequest( comThrArgs[rank] );
+    			thread_ref[rank] = new ProcessRemoteExchangeRequest( comThrArgs[rank] );
     			thread_ref[rank].start( );
-    		
     		}
 
     		// wait for all the communication threads to be terminated
     		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
-    			
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;      
-    			
     			try {
     				thread_ref[rank].join( );
     			}
     			
     			// TODO - should something be done here on exception?
     			catch ( Exception e ) {
-    				
     				logger.error("Exception thrown in PlacesBase while attempting to join rank {}", rank, e);
-
+    				e.printStackTrace();
     			}
-    		
     		}
-    	
-    	}
-    	
-    	else {
-    		
+    	} else {
     		logger.debug( "tid[{}] skips processRemoteExchangeRequest", tid );
-    	
     	}
-    
     }
 
     public void exchangeBoundary( ) {
@@ -831,14 +749,12 @@ public class PlacesBase {
     		if ( remainder > tid ) {
     			range[0] = tid;
     			range[1] = tid;
-    		}
-    		else {
+    		} else {
     			range[0] = -1;
     			range[1] = -1;
     		}
 
-    	}
-    	else {
+    	} else {
 
     		// there are more MASS.Places than threads
     		int first = tid * portion;

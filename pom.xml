@@ -186,7 +186,7 @@
 				<configuration>
 					<source>${java.version}</source>
 					<bottom>
-						"Copyright 2010-2015 University of Washington. All rights reserved."
+						"Copyright 2010-2016 University of Washington. All rights reserved."
 					</bottom>
 					<!--author>false</author-->
 					<!--excludePackageNames>
