@@ -221,7 +221,7 @@
                 
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
-					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+					<!-- findbugsXmlWithMessages>true</findbugsXmlWithMessages -->
 					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>

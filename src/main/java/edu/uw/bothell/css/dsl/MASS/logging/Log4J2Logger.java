@@ -18,7 +18,7 @@ import edu.uw.bothell.css.dsl.MASS.MASSBase;
 public class Log4J2Logger {
 
 	private static final String DEFAULT_LOG_FILENAME = "mass_log.log";
-	private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.ERROR;
+	private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.DEBUG;
 	
 	// this is the SLF4J facade for the Apache Log4J2 logger
     private Logger logger;

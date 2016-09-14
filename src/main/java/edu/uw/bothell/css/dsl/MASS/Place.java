@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -87,6 +88,8 @@ public class Place {
 	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 
 	private Vector< int[] > neighbors = null;
+
+	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	//
 	// Parallel I/O Fields
@@ -302,10 +305,10 @@ public class Place {
 				} else if (fileName.toLowerCase().endsWith(".txt")) {
 					fileDescriptor = openTextFile(fileName, ioType, path);
 				} else {
-					System.err.println("File type not supported by MASS parallel I/O");
+					logger.debug("File type not supported by MASS parallel I/O");
 					return -1;
 				}
-				System.out.println(fileTable.get(fileDescriptor).getFileName() + " opened");
+				logger.debug(fileTable.get(fileDescriptor).getFileName() + " opened");
 			}
 		}
 
@@ -330,7 +333,7 @@ public class Place {
 			try {
 				netcdfFile = NetcdfFile.openInMemory(ncFileName);
 			} catch (IOException e) {
-				System.err.println("Exception opening netcdf file in memory: " + e);
+				logger.debug("Exception opening netcdf file in memory: " + e);
 				return -1;
 			}
 		}
@@ -340,14 +343,14 @@ public class Place {
 			try {
 				netcdfFile = NetcdfFile.open(ncFileName);
 			} catch (IOException e) {
-				System.err.print("Exception opening netcdf file on disk: " + e);
+				logger.debug("Exception opening netcdf file on disk: " + e);
 				return -1;
 			}
 		}
 
 		List<Variable> varList = netcdfFile.getVariables();
 		if (varList.isEmpty()) {
-			System.err.println("No NetCDF variables to read");
+			logger.debug("No NetCDF variables to read");
 		}
 
 		Hashtable<String, Variable> variables = new Hashtable<String, Variable>();
@@ -388,7 +391,7 @@ public class Place {
 		try {
 			fileChannel = FileChannel.open(path, OpenOperations[ioType]);
 		} catch (IOException e) {
-			System.err.println("Exception opening text file: " + e);
+			logger.debug("Exception opening text file: " + e);
 			return -1;
 		}
 
@@ -440,10 +443,10 @@ public class Place {
 				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
 					return readNetcdfFile(fileAttributes, ncData);
 				} else {
-					System.err.println("Given fd to read is not supported by MASS parallel I/O");
+					logger.debug("Given fd to read is not supported by MASS parallel I/O");
 				}
 			} else {
-				System.err.println("Given fd to read does not exist in the file table (has not been opened)");
+				logger.debug("Given fd to read does not exist in the file table (has not been opened)");
 			}
 		}
 		return false;
@@ -461,7 +464,7 @@ public class Place {
 			String varName = varNames.nextElement();
 			Variable var = fileAttributes.getVariable(varName);
 			if (var == null) {
-				System.err.println("Given varaible: \"" + varName + "\" does not exist in: \"" + fileAttributes.getFileName() + "\"");
+				logger.debug("Given variable: \"" + varName + "\" does not exist in: \"" + fileAttributes.getFileName() + "\"");
 				return false;
 			}
 
@@ -479,10 +482,10 @@ public class Place {
 				}
 
 			} catch (InvalidRangeException err) {
-				System.err.println("Invalid range: " + err);
+				logger.debug("Invalid range: " + err);
 				return false;
 			} catch (IOException err) {
-				System.err.println("Invalid range: " + err);
+				logger.debug("Invalid range: " + err);
 				return false;
 			}
 		}
@@ -534,7 +537,7 @@ public class Place {
 			System.arraycopy(txtData, 0, data, placeOrder, txtData.length);
 		}
 		catch ( BufferUnderflowException err ) {
-			System.err.println( err );
+			logger.debug( err.toString() );
 			return false;
 		}
 		return true;
@@ -553,7 +556,7 @@ public class Place {
 
 						return true;
 					} catch (IOException ioe) {
-						System.err.println(ioe);
+						logger.debug(ioe.toString());
 					}
 				} else if (file instanceof FileChannel) {
 					try {
@@ -562,7 +565,7 @@ public class Place {
 
 						return true;
 					} catch (IOException ioe) {
-						System.err.println(ioe);
+						logger.debug(ioe.toString());
 					}
 				}
 			}
