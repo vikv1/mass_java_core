@@ -30,9 +30,18 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.net.*;
-import java.util.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -40,11 +49,15 @@ import javax.xml.bind.Unmarshaller;
 
 import com.jcraft.jsch.Channel;
 
+import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
+import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
+import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
+import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
+import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
-import edu.uw.bothell.css.dsl.MASS.MassData.*;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -53,8 +66,6 @@ public class MASS extends MASSBase {
 
 	private static boolean printOutput = false;
 	//private static boolean printOutput = true;
-
-	private static final int JschPort = 22;
 
 	private static Utilities util = new Utilities( );  // used for channel creation
 
@@ -69,11 +80,13 @@ public class MASS extends MASSBase {
     private static String nodeFilePath = "nodes.xml";
 
 	// object factories are singletons, so we'll use this opportunity to initialize it
-    private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    // yes - unused at this point right now...
+    @SuppressWarnings("unused")
+	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
     
     // Async
-    // number of node that return async result
-    private static int LocalAgents[];
+    // number of agents at rank i that returns async results
+    private static int[] LocalAgents;
 
 	// Logging
 	private static Log4J2Logger logger = Log4J2Logger.getInstance();
@@ -328,7 +341,7 @@ public class MASS extends MASSBase {
     		initMASSBase(getMasterNode());
     	} else {
     		// init using "old" method
-        	initMASS_base( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
+        	initMASSBase( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
     	}
 
     	// Launch remote processes
@@ -435,7 +448,7 @@ public class MASS extends MASSBase {
     }
     
     /**
-     * Initialize the MASS library using arguments. Calling this method effectively begins computation.
+     * IniNBA LIVE 2003 Soundtracktialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
      * @param nThr The number of threads to spawn on each node
@@ -485,11 +498,11 @@ public class MASS extends MASSBase {
 	 * @param numThreads The number of threads to spawn
 	 */
 	public static void setNumThreads(int numThreads) {
-		
-		// can't set number of threads < 1
-		if (numThreads < 1) return;
-		
-		MASS.numThreads = numThreads;
+
+		if (numThreads >= 1)
+		{
+			MASS.numThreads = numThreads;
+		}
 		
 	}
 	
@@ -500,28 +513,15 @@ public class MASS extends MASSBase {
 	protected static void setLocalAgents(int[] values) {
 	  LocalAgents = values;
 	}
-	
-	/*
-	 * ONLY to call by Master node
-	 * @return
-	public static boolean getSlaveNodeAsyncCompleteness() {
-	  if(MASS.isConsoleLoggingEnabled()) {
-	    MASS.log("getEsimateSlaveNodeComplete() = " + getEsimateSlaveNodeComplete());
-	  }
-	  
-	  if(getEsimateSlaveNodeComplete() >= getRemoteNodes().size()) {
-	    MASS_base.setCachedSlaveNodeAsyncCompleteness(getAsyncOutputThread().requestSlaveNodeAsyncCompleteness());
-	  }
-	  return MASS_base.getCachedSlaveNodeAsyncCompleteness();
-	}
-   */
 
-  public static void getRemoteAsyncResults() {
-    if(!getRemoteNodes().isEmpty()) {
-      LocalAgents = new int[getRemoteNodes().size()];
-      getAsyncOutputThread().requestAsyncResults();
-    }
-  }
+  	public static void getRemoteAsyncResults() {
+  		
+  		if (!getRemoteNodes().isEmpty()) {
+  			LocalAgents = new int[getRemoteNodes().size()];
+  			getAsyncOutputThread().requestAsyncResults();
+  		}
+
+  	}
   
   /**
 	 * Change logger level
@@ -556,6 +556,7 @@ public class MASS extends MASSBase {
 		inputStream = new ObjectInputStream( client.getInputStream() );
 
 		//completely unnecessary, don't remove though!
+		@SuppressWarnings("unused")
 		MASSRequest request;
 
 		try {
@@ -641,27 +642,28 @@ public class MASS extends MASSBase {
 		}
 	}
 
-	private static void injectPlace( MASSRequest request ) {
-		PlaceData updates = ( PlaceData )request.getPacket();
-		Place place = MASS.getCurrentPlaces().getPlaces()[updates.getIndex()];
+	private static void injectPlace(MASSRequest request) {
+		PlaceData updates = (PlaceData) request.getPacket();
+		Place place = MASS.getCurrentPlacesBase().getPlaces()[updates.getIndex()];
 
-		place.setDebugData( updates.getThisPlaceData() );
+		place.setDebugData(updates.getThisPlaceData());
 
 		try {
-			outputStream.writeObject( new UpdatePackage() );
+			outputStream.writeObject(new UpdatePackage());
 			outputStream.flush();
-		} catch ( IOException e ) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private static void injectAgent( MASSRequest request ) {
+		
 		AgentData updates = ( AgentData )request.getPacket();
 
 		//fantastic complexity...
-		for( int i = 0; i < MASS.getCurrentPlaces().getPlaces().length; i++ ) {
-			for( int j = 0; j < MASS.getCurrentPlaces().getPlaces()[i].getAgents().size(); j++ ) {
-				Set<Agent> agents = MASS.getCurrentPlaces().getPlaces()[i].getAgents();
+		for( int i = 0; i < MASS.getCurrentPlacesBase().getPlaces().length; i++ ) {
+			for( int j = 0; j < MASS.getCurrentPlacesBase().getPlaces()[i].getAgents().size(); j++ ) {
+				Set<Agent> agents = MASS.getCurrentPlacesBase().getPlaces()[i].getAgents();
 				for(Agent agent : agents) {
 					if( updates.getId() == agent.getAgentId() ) {
 						agent.setDebugData( updates.getDebugData() );
@@ -700,7 +702,7 @@ public class MASS extends MASSBase {
 	}
 
 	private static void sendUpdate() {
-		Place[] places = MASS.getCurrentPlaces().getPlaces();
+		Place[] places = MASS.getCurrentPlacesBase().getPlaces();
 		//Place[] places = MASSBase.getPlaces(placesHandle).getPlaces();
 		//System.out.println(places.length);
 		PlaceData[] updatedPlaces = new PlaceData[places.length];

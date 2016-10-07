@@ -103,7 +103,7 @@ public class AsyncInputThread extends Thread {
    * @return
    */
   public boolean isIdle(boolean completeReqFromMaster) {
-    synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+    synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
         logger.debug(completeReqFromMaster
             + " Asyncinput running child thread count = "
             + runningChildThreadCount.get());
@@ -125,7 +125,7 @@ public class AsyncInputThread extends Thread {
     }
 
     public void run() {
-      if (MASSBase.getCurrentAgents() == null) {
+      if (MASSBase.getCurrentAgentsBase() == null) {
         logger.error("MASS is not ready " + socket.getRemoteSocketAddress());
         return;
       }
@@ -147,7 +147,7 @@ public class AsyncInputThread extends Thread {
           PlacesBase dstPlaces = MASSBase.getPlacesMap().get(
               new Integer(m.getDestHandle()));
           boolean chosen = false;
-          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+          synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
             if (MASSBase.getMyPid() != 0 // Master doesn't need source ever
                // && MASS_base.getCurrentAgents().getAgents().estimateSize() == 0
                 && MASSBase.getSourceAgentPid() == -1) {
@@ -161,12 +161,12 @@ public class AsyncInputThread extends Thread {
           oos.writeObject(new AgentMigrationResponse(receivedRequests.size(), chosen));
           oos.flush();
           // retrieve agents from receiveRequest
-          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+          synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
             for (AgentMigrationRequest request : receivedRequests) {
               int globalLinearIndex = request.destGlobalLinearIndex;
               Agent agent = request.agent;
-              agent.setHasAlreadyRemoteMigrated(false);
-              agent.setPutBackToAsyncQueue(false);
+              agent.setHasAlreadyGone(false);
+              agent.setNeedsToGoBackToAsyncQueue(false);
               // local destination
               int destinationLocalLinearIndex = globalLinearIndex
                   - dstPlaces.getLowerBoundary();
@@ -178,44 +178,44 @@ public class AsyncInputThread extends Thread {
               // push this agent into the place and the entire agent bag.
               agent.setPlace(dstPlace);
               dstPlace.getAgents().add(agent); // auto sync
-              agent.setCurrentIndex(MASSBase.getCurrentAgents().getAgents()
+              agent.setCurrentIndex(MASSBase.getCurrentAgentsBase().getAgents()
                   .size_unreduced());
-              agent.setParentAgents(MASSBase.getCurrentAgents());
-              MASSBase.getCurrentAgents().getAgents().add(agent);
-              MASSBase.getCurrentAgents().asyncQueueAdd(agent.getCurrentIndex());
-              logger.debug("migrate agent added to async queue, new size = {}", MASSBase.getCurrentAgents().asyncQueueSize());
+              agent.setMyAgentsBase(MASSBase.getCurrentAgentsBase());
+              MASSBase.getCurrentAgentsBase().getAgents().add(agent);
+              MASSBase.getCurrentAgentsBase().asyncAgentIdListAdd(agent.getCurrentIndex());
+              logger.debug("migrate agent added to async queue, new size = {}", MASSBase.getCurrentAgentsBase().asyncAgentIdListSize());
             }
             MASSBase.getInAsyncAgents()[m.getSourcePid()] += receivedRequests.size();
               logger.debug("InAsync[" + m.getSourcePid() + "] is now " + MASSBase.getInAsyncAgents()[m.getSourcePid()]);
-            MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
+            MASSBase.getCurrentAgentsBase().getAsyncAgentIdList().notifyAll();
           }
 
           oos.close();
           os.close();
           break;
         case AGENT_ASYNC_RESULT:
-          MASSBase.getCurrentAgents().setResultRequestFromMaster(true);
-          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
-            MASSBase.getCurrentAgents().setLocalPopulation(
-                MASSBase.getCurrentAgents().getAgents().size());
-            MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
+          MASSBase.getCurrentAgentsBase().setResultRequestFromMaster(true);
+          synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
+            MASSBase.getCurrentAgentsBase().setLocalPopulation(
+                MASSBase.getCurrentAgentsBase().getAgents().size());
+            MASSBase.getCurrentAgentsBase().getAsyncAgentIdList().notifyAll();
           }
           os = socket.getOutputStream();
           oos = new ObjectOutputStream(os);
             
           if (logger.isDebugEnabled()) {
 
-        	  logger.debug("Return to master completeQueue of size {}", MASSBase.getCurrentAgents().getCompleteQueue().size());
+        	  logger.debug("Return to master completeQueue of size {}", MASSBase.getCurrentAgentsBase().getAsyncCompletedAgentList().size());
 	            
-        	  for (Agent a : MASSBase.getCurrentAgents().getCompleteQueue()) {
+        	  for (Agent a : MASSBase.getCurrentAgentsBase().getAsyncCompletedAgentList()) {
 	              logger.debug("agent result size = {}", a.asyncResultsSize());
 	            }
         	  
 	          }
     	  
           Message result = new Message(Message.ACTION_TYPE.AGENT_ASYNC_RESULT,
-              MASSBase.getCurrentAgents().getCompleteQueue(), MASSBase
-                  .getCurrentAgents().getLocalPopulation());
+              MASSBase.getCurrentAgentsBase().getAsyncCompletedAgentList(), MASSBase
+                  .getCurrentAgentsBase().getLocalPopulation());
           result.setSourcePid(MASSBase.getMyPid());
           oos.writeObject(result);
           oos.flush();
@@ -242,7 +242,7 @@ public class AsyncInputThread extends Thread {
          * MASS_base.getCurrentAgents().getAsyncQueue().notifyAll(); } } break;
          */
         case NODE_COMPLETE_NOTIFY_SOURCE:
-          synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+          synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
             if (MASSBase.getOutAsyncAgents()[m.getSourcePid()] == m.getAgentPopulation()) {
               MASSBase.getChildAgentPids().remove(m.getSourcePid());
             }
@@ -252,12 +252,12 @@ public class AsyncInputThread extends Thread {
           break;
         }
         socket.close();
-        synchronized (MASSBase.getCurrentAgents().getAsyncQueue()) {
+        synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
           if (runningChildThreadCount.decrementAndGet() == 0
               && m.getAction() != Message.ACTION_TYPE.AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST) {
             // Order is important here, always have to decrement
             // Already notify for remote migrate message
-            MASSBase.getCurrentAgents().getAsyncQueue().notifyAll();
+            MASSBase.getCurrentAgentsBase().getAsyncAgentIdList().notifyAll();
           }
           // MASS.log("runningChildThreadCount = " +
           // runningChildThreadCount.get());
