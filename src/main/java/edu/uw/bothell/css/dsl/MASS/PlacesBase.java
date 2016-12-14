@@ -781,7 +781,7 @@ public class PlacesBase {
 		return lowerBoundary;
 	}
 
-	protected Place[] getPlaces() {
+	public Place[] getPlaces() {
 		return places;
 	}
 

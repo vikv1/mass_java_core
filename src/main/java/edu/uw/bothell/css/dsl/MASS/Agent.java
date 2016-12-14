@@ -127,11 +127,11 @@ public class Agent implements Serializable {
 		 return null;
 	 }
 
-	protected int getAgentId() {
+	public int getAgentId() {
 		return agentId;
 	}
 
-	protected Object[] getArguments() {
+	public Object[] getArguments() {
 		return arguments;
 	}
 
@@ -149,7 +149,7 @@ public class Agent implements Serializable {
 		return index;
 	}
 
-	protected int getNewChildren() {
+	public int getNewChildren() {
 		return newChildren;
 	}
 
@@ -157,7 +157,7 @@ public class Agent implements Serializable {
 		return place;
 	}
 
-	protected boolean isAlive() {
+	public boolean isAlive() {
 		return alive;
 	}
 
@@ -273,7 +273,7 @@ public class Agent implements Serializable {
 		this.place = place;
 	}
 
-	protected int getAsyncFuncListIndex() {
+	public int getAsyncFuncListIndex() {
 		return asyncFuncListIndex;
 	}
 
@@ -300,7 +300,7 @@ public class Agent implements Serializable {
 		asyncResultsIndex = 0;
 	}
 
-	protected int asyncResultsSize() {
+	public int asyncResultsSize() {
 		return asyncResultsIndex;
 	}
 
@@ -308,7 +308,7 @@ public class Agent implements Serializable {
 		asyncArgument = newArg;
 	}
 
-	protected Object getAsyncArgument(){
+	public Object getAsyncArgument(){
 		return asyncArgument;
 	}
 
@@ -316,7 +316,7 @@ public class Agent implements Serializable {
 		myOriginalAsyncIndex = newIndex;
 	}
 
-	protected int getMyOriginalAsyncIndex() {
+	public int getMyOriginalAsyncIndex() {
 		return myOriginalAsyncIndex;
 	}
 
@@ -324,7 +324,7 @@ public class Agent implements Serializable {
 		myCurrentIndex = newIndex;
 	}
 
-	protected int getCurrentIndex() {
+	public int getCurrentIndex() {
 		return myCurrentIndex;
 	}
 
@@ -332,7 +332,7 @@ public class Agent implements Serializable {
 		myAsyncOriginalPid = pid;
 	}
 
-	protected int getMyAsyncOriginalPid() {
+	public int getMyAsyncOriginalPid() {
 		return myAsyncOriginalPid;
 	}
 

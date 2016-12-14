@@ -75,6 +75,9 @@ public class Place {
 	
 	private Vector< int[] > neighbors = null;
 
+	/** Specifies if this place is already visited */
+	private boolean visited;
+
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
 	 * exchangeSome( ), and invoke the function specified with functionId as
@@ -181,6 +184,11 @@ public class Place {
 		return size;
 	}
 
+	public boolean getVisited()
+	{
+		return visited;
+	}
+
 	protected void putInMessage( int handle, int[] offsetIndex, int position, Object value ) {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
@@ -210,5 +218,9 @@ public class Place {
 	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
-	
+
+	public void setVisited(boolean visited)
+	{
+		this.visited = visited;
+	}
 }

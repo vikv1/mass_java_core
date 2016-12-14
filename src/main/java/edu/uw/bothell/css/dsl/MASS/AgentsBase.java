@@ -147,7 +147,7 @@ public class AgentsBase implements Serializable {
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
 
-   			logger.debug( "Agent_base constructor place[{}]", i );
+   			// logger.debug( "Agent_base constructor place[{}]", i );
     		
     		// create as many new agents as nColonists
     		for ( int nColonists =
