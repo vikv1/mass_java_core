@@ -34,10 +34,13 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
+import ucar.nc2.util.IO;
+
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,7 +99,7 @@ public class Place {
 	//
 
 	// Stores each file and its attributes
-	protected static Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
+	protected static final Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
 
 	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
 	private static final OpenOption[] OpenOperations = new OpenOption[] {READ, WRITE};
@@ -105,14 +108,7 @@ public class Place {
 	private static int count = 0;
 
 	// Current file descriptor - used for giving each file a unique descriptor
-	// TODO: Check where used
 	private static int fileDescriptor;
-
-	// Class constant for reading
-	public static final int READ_ = 0;
-
-	// Class constant for writing
-	public static final int WRITE_ = 1;
 
 	//
 	// Private class that stores the file attributes needed for parallel I/O
@@ -266,6 +262,7 @@ public class Place {
 			this.file = file;
 		}
 
+		//TODO check for privacy leaks
 		public void setVariables(Hashtable<String, Variable> variables) {
 			this.variables = variables;
 		}
@@ -279,23 +276,30 @@ public class Place {
 	 * file that is opened for writing will be opened on the disk and added to the fileTable so that the file
 	 * can be accessed by all Places. A successfully opened file is given a unique file descriptor (integer)
 	 * and the file descriptor is returned. An unsuccessfully opened file returns a file descriptor of -1.
-	 * An IOException is thrown if the given filePath does not exist.
 	 *
 	 * @param filePath
 	 * @param ioType
-	 * @return fileDescriptor
+	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
-	protected int open(String filePath, int ioType) throws IOException {
+	protected int open(String filePath, int ioType) {
+
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
+
 		// Create a path object from the given file path string
 		Path path = Paths.get(filePath);
+
+		// Ensure the file exists at the specified path
+		if (!Files.exists(path)) {
+			logger.error("The given file path does not exist");
+		}
 
 		// Isolate the file name
 		String fileName = path.getFileName().toString();
 
-		synchronized (fileTable) {
+		synchronized (fileTable) {    // TODO: 1/13/17 I believe Hashtables in Java are always synchronized, thus is this redundant?
+
 			// Only the first place opens the file
 			if (!fileTable.containsKey(count - 1) ) {
 
@@ -383,7 +387,7 @@ public class Place {
 	 * @param ioType
 	 * @return fileDescriptor
 	 */
-	private int openTextFile(String txtFileName, int ioType, Path path) throws IOException {
+	private int openTextFile(String txtFileName, int ioType, Path path) {
 		FileChannel fileChannel;
 
 		// opens a file, returning a FileChannel to access the supplied file
@@ -402,12 +406,22 @@ public class Place {
 		if (ioType == 0) {
 
 			// create a buffer that has the same space as the file being read
-			fileAttributes.setBuffer(ByteBuffer.allocate((int) fileChannel.size()));
+			try {
+				fileAttributes.setBuffer(ByteBuffer.allocate((int) fileChannel.size()));
+			} catch (IOException ioe) {
+				logger.error("Could not create a buffer for the given text file: " + ioe);
+				return -1;
+			}
 
 			ByteBuffer buffer = fileAttributes.getBuffer();
 
 			// read the file contents to the buffer
-			fileChannel.read(buffer);
+			try {
+				fileChannel.read(buffer);
+			} catch (IOException ioe) {
+				logger.error("Could not read the text file into the buffer: " + ioe);
+				return -1;
+			}
 
 			buffer.flip();
 
@@ -423,22 +437,19 @@ public class Place {
 		return fileAttributes.getCount();
 	}
 
-	// Read function used for text files
-	protected boolean read(int fd, byte[] txtData) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes.getFileName().toLowerCase().endsWith(".txt")) {
-				return readTextFile(fileAttributes, txtData);
-			}
-		}
-		return false;
-	}
-
-	// Read function used for netcdf files
+	/**
+	 * The read function used for Netcdf files
+	 *
+	 * Reads from the specified file descriptor into the given Hashtable of buffers
+	 * @param fd specifies the file to read from
+	 * @param ncData should contain the variable names to read, and their corresponding
+	 *               array buffers (this is a UCAR array, the dimensions and data type must
+	 *               match those of the Netcdf file being read)
+     * @return true on a successful read; otherwise false
+     */
 	protected boolean read(int fd, Hashtable<String, Array> ncData) {
 		synchronized (fileTable) {
 			if (fileTable.containsKey(fd)) {
-
 				FileAttributes fileAttributes = fileTable.get(fd);
 				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
 					return readNetcdfFile(fileAttributes, ncData);
@@ -452,7 +463,15 @@ public class Place {
 		return false;
 	}
 
-	// Assume number of places match the number of NetCDF indexes
+	/**
+	 * Private method that implements reading for Netcdf files
+	 * @param fileAttributes the file attributes of the file to be read
+	 * @param varsData the buffers to read into - variable name (key), data array (value)
+     * @return true on success; otherwise false
+     */
+	// TODO currently each place reads a single index, each place should determine how much to read
+	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
+	// (matches the dimensions of places)
 	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
 
 		// Get all variable names
@@ -464,7 +483,8 @@ public class Place {
 			String varName = varNames.nextElement();
 			Variable var = fileAttributes.getVariable(varName);
 			if (var == null) {
-				logger.debug("Given variable: \"" + varName + "\" does not exist in: \"" + fileAttributes.getFileName() + "\"");
+				logger.debug("Given variable: \"" + varName + "\" does not exist in: \""
+						+ fileAttributes.getFileName() + "\"");
 				return false;
 			}
 
@@ -475,30 +495,55 @@ public class Place {
 				ArrayFloat.D3 varData;
 
 				// Read for 3D float
+				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
+				// without having to write a separate implementation for each data type
+				// (You will have to have separate implementations for each dimension if we want to support that)
 				if (userDataset instanceof ArrayFloat.D3) {
 					// read one element starting at this places index
 					varData = (ArrayFloat.D3) var.read(index, new int[]{1, 1, 1});
 					((ArrayFloat.D3) userDataset).set(index[0], index[1], index[2], varData.get(0, 0, 0));
 				}
 
-			} catch (InvalidRangeException err) {
-				logger.debug("Invalid range: " + err);
+			} catch (InvalidRangeException ire) {
+				logger.debug("Invalid range: " + ire);
 				return false;
-			} catch (IOException err) {
-				logger.debug("Invalid range: " + err);
+			} catch (IOException ioe) {
+				logger.debug("Invalid range: " + ioe);
 				return false;
 			}
 		}
 		return true;
 	}
 
+	/**
+	 * The read function used for text files
+	 *
+	 * Reads from the specified file descriptor into the given byte buffer
+	 * @param fd specifies the file to read from
+	 * @param txtData the byte buffer to read into
+	 * @return true on a successful read; otherwise false
+	 */
+	// TODO: 1/13/17 I don't believe the size of the given byte array is checked -
+	// currently the implementation reads the whole specified text file and assumes the byte array is large
+	// enough to store the data, this must be changed.
+	protected boolean read(int fd, byte[] txtData) {
+		if (fileTable.containsKey(fd)) {
+			FileAttributes fileAttributes = fileTable.get(fd);
+			if (fileAttributes.getFileName().toLowerCase().endsWith(".txt")) {
+				return readTextFile(fileAttributes, txtData);
+			}
+		}
+		return false;
+	}
 
 	private boolean readTextFile(FileAttributes fileAttributes, byte[] data) {
 
 		try {
 
+			// Get the buffer to read from
 			ByteBuffer buffer = fileAttributes.getBuffer();
 
+			// Temporary storage
 			byte[] txtData;
 
 			// Used for determining which part of the file to read
@@ -506,12 +551,14 @@ public class Place {
 
 			int length = fileAttributes.getReadLength();
 
-			if ( placeOrder != fileAttributes.getNumberOfPlaces() - 1 ) {
+			// Determine if this place should read to the end of the file
+			if (placeOrder != fileAttributes.getNumberOfPlaces() - 1) {		// No, read predetermined amount
+																			// (currently 1 index)
 
 				txtData = new byte[ length ];
 
-				//TODO: Ask
-				synchronized (buffer) {
+				// Read from the file into the temp buffer
+				synchronized (buffer) {        // TODO: test
 
 					buffer.position(placeOrder * length);
 
@@ -520,10 +567,11 @@ public class Place {
 			}
 
 			// Perform final read
+			// Read the remaining bytes of the file (this should be done by only the last Place)
 			else {
 				buffer.position(length * placeOrder);
 
-				txtData = new byte[ buffer.remaining( ) ];
+				txtData = new byte[buffer.remaining()];
 
 				int pos = 0;
 				while(buffer.hasRemaining()) {
@@ -532,22 +580,34 @@ public class Place {
 				}
 			}
 
-			// Copies the Place's data to the correct position in the entire array
+			// Copies the Place's temp buffer to the correct position in the entire array
 			// of data that is passed by the user
 			System.arraycopy(txtData, 0, data, placeOrder, txtData.length);
 		}
-		catch ( BufferUnderflowException err ) {
-			logger.debug( err.toString() );
+		catch (BufferUnderflowException bue) {
+			logger.debug(bue.toString());
 			return false;
 		}
 		return true;
 	}
 
+	/**
+	 * Closes the specified file descriptor and removes it from the file table
+	 * @param fd the file descriptor to close
+	 * @return true if the file is successfully found in the file table, closed, and removed; otherwise false
+     */
 	protected boolean close( int fd ) {
+
 		synchronized (fileTable) {
+
+			// Check if the file exists in the file table
 			if (fileTable.containsKey(fd)) {
+
+				// Get the file
 				String fileName = fileTable.get(fd).getFileName();
 				Object file = fileTable.get(fd).getFile();
+
+				// Closes Netcdf files
 				if (file instanceof NetcdfFile) {
 					try {
 						((NetcdfFile) file).close();
@@ -558,10 +618,14 @@ public class Place {
 					} catch (IOException ioe) {
 						logger.debug(ioe.toString());
 					}
-				} else if (file instanceof FileChannel) {
+				}
+
+				// Closes text files
+				else if (file instanceof FileChannel) {
 					try {
 						((FileChannel) file).close();
 						System.out.println(fileName + " closed");
+						fileTable.remove(fd);
 
 						return true;
 					} catch (IOException ioe) {
