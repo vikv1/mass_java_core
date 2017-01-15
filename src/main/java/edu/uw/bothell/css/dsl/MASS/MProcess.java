@@ -441,8 +441,8 @@ public class MProcess {
 
     	  logger.debug("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT received");
 
-        MASSBase.prepareAsyncExecution(MASSBase.getAgentsMap().get(
-            new Integer(m.getHandle())), m.getFunctionIds());
+        //MASSBase.prepareAsyncExecution(MASSBase.getAgentsMap().get(
+          //  new Integer(m.getHandle())), m.getFunctionIds());
         Object[] arguments = (Object[]) argument;
         int[] autoMigrationStartIndices = m.getAutoMigrationStartingIndex();
 

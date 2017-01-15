@@ -106,7 +106,6 @@ public class Message implements Serializable {
     private int sourcePid = -1;
     
     // Async vars
-    private int[] functionIds = null;
     private int[] autoMigrateStartingIndex = null;
 
     // EMPTY
@@ -409,21 +408,6 @@ public class Message implements Serializable {
      */
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
-    }
-    
-    // Async methods
-    // AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
-    public Message( ACTION_TYPE action, int handle, int[] functionIds, Object argument ) {
-
-      this.action = action;
-      this.handle = handle;
-      this.functionIds = functionIds;
-      this.argument = argument;
-
-    }
-    
-    public int[] getFunctionIds() {
-      return functionIds;
     }
     
     public int getSourcePid() {
