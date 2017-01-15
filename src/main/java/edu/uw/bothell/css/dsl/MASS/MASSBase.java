@@ -530,41 +530,6 @@ public class MASSBase {
     	}
     
     }
-
-	/*
-		1) Called from callAllSetupAsync method in Agents.java
-		2) In MProcess.java upon receiving the message AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
-	* */
-    public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
-		setCurrentAgentsBase(agents);
-      MThread.setAgentBagSize(currentAgentsBase.getAgents().size()); // number of agents that are going to be executed
-
-		currentAgentsBase.setAsyncFuncList(fIds);
-		//currentAgentsBase.resetChildAsyncIndex(); // queue for maintaining agents created
-		//currentAgentsBase.resetAsyncCompletedAgentList(); // queue for maintaining agents that completed the function
-
-		currentAgentsBase.asyncAgentIdListClear(); // agents to be executed
-      for(int i = 0; i < currentAgentsBase.getAgents().size_unreduced(); i++) {
-		  currentAgentsBase.asyncAgentIdListAdd(i);
-		  //currentAgentsBase.getAgents().get(i).setMyAgentsBase(currentAgentsBase);
-		  //currentAgentsBase.getAgents().get(i).setAsyncFuncListIndex(0);
-		  //currentAgentsBase.getAgents().get(i).resetAsyncResults();
-		  //currentAgentsBase.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
-		  //currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
-		  currentAgentsBase.getAgents().get(i).setCurrentIndex(i);
-      }
-      //outputThread.setAgentHandle(agents.getHandle());
-      //outputThread.setPlaceHandle(agents.getPlacesHandle());
-      outAgents = new int[getSystemSize()];
-      inAgents = new int[getSystemSize()];
-      for(int i = 0; i < outAgents.length; i++) {
-        outAgents[i] = 0;
-        inAgents[i] = 0;
-      }
-		currentAgentsBase.setResultRequestFromMaster(false);
-      sourceAgentPid = -1;
-      childAgentPids.clear();
-    }
     
     public static Set<Integer> getChildAgentPids() {
       return childAgentPids;
