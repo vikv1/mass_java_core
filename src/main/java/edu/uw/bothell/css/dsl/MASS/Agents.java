@@ -31,8 +31,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
