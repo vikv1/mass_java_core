@@ -86,17 +86,6 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
-
-	/**
-	 * utku_cleaning
-	 */
-    /**
-     * BEGIN ASync vars section
-     */
-	/*
-    private static AsyncInputThread inputThread = null;
-    private static AsyncOutputThread outputThread = null;
-    */
     
     /**
      *  Estimated number of completed slave node in order to
@@ -544,28 +533,6 @@ public class MASSBase {
     	}
     
     }
-    
-    /**
-     * BEGIN Async methods
-     */
-	/**
-	 * utku_cleaning
-	 */
-	/*
-    public static AsyncInputThread getAsyncInputThread()
-    {
-      return inputThread;
-    }
-    */
-	/**
-	 * utku_cleaning
-	 */
-	/*
-    public static AsyncOutputThread getAsyncOutputThread()
-    {
-      return outputThread;
-    }
-    */
 
     public static void initAsyncCommunicationThreads() {
       logger.debug("Init Async Communication Threads");
