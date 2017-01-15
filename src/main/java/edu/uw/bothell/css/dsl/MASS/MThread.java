@@ -146,11 +146,7 @@ public class MThread extends Thread {
    				logger.debug( "Mthread[" + tid + "] woken up " + status );
     		
     		}
-    		if(status == MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC) {
-          agents = MASSBase.getCurrentAgentsBase( );
-          agents.callAllAsync(tid);
-    		  }
-    		else {
+
     		// perform each task
     		switch( status ) {
     		
@@ -248,7 +244,6 @@ public class MThread extends Thread {
     		}
     		// barrier
     		barrierThreads( tid );
-    	}
     	}
       }catch(Exception e) {
         logger.error("Thread {} fails", tid, e);

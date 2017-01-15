@@ -205,8 +205,6 @@ public class MProcess {
         // confirm all threads are done with finish
         MThread.barrierThreads(0);
         MASSBase.getExchange().terminateConnection(this.myPid);
-        MASSBase.getAsyncOutputThread().finish();
-        MASSBase.getAsyncInputThread().finish();
         sendAck();
         alive = false;
         // if( printOutput )
@@ -481,7 +479,7 @@ public class MProcess {
           // resume threads to work on call all
           MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
           try {
-            MASSBase.getCurrentAgentsBase().callAllAsync(0);
+            //MASSBase.getCurrentAgentsBase().callAllAsync(0);
           } catch(Exception e) {
             logger.error("Unknown exception sending async callAll", e);
           }
@@ -489,12 +487,15 @@ public class MProcess {
           // confirm all threads are done with agents.callAllAsync
           // tell master that I'm done
           synchronized (MASSBase.getCurrentAgentsBase().getAsyncAgentIdList()) {
+              /*
               logger.debug("output idle = "
                   + MASSBase.getAsyncOutputThread().isIdle()
                   + ", input idle = "
                   + MASSBase.getAsyncInputThread().isIdle(false)
                   + ", output migrate set is empty = "
                   + MASSBase.getChildAgentPids().isEmpty());
+                */
+            /*
             while ( (MASSBase.getCurrentAgentsBase().asyncAgentIdListIsEmpty() && MASSBase
                 .getCurrentAgentsBase().hasNoInprocessAgents())
                 && (!MASSBase.getAsyncOutputThread().isIdle()
@@ -505,6 +506,7 @@ public class MProcess {
               } catch (InterruptedException e) {
               }
             }
+            */
 
             // I'm done with my async queue and agents migration
             MASSBase.getCurrentAgentsBase().setIsAsyncLoopIdle(true);
@@ -522,10 +524,11 @@ public class MProcess {
                 && MASSBase.getChildAgentPids().isEmpty()
                 && MASSBase.getSourceAgentPid() > -1)
             {
+              /*
                 MASSBase.getAsyncOutputThread()
                     .notifySourceOfCompleteness(
                         MASSBase.getInAsyncAgents()[MASSBase
-                            .getSourceAgentPid()]);
+                            .getSourceAgentPid()]);*/
             }
 
             while ((!MASSBase.getCurrentAgentsBase().getResultRequestFromMaster()
