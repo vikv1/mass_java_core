@@ -365,9 +365,6 @@ public class MASSBase {
 		} catch (Exception e) {
 			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
-		
-		// Async section
-		initAsyncCommunicationThreads();
     
 		logger.debug("MASSBase initialization complete");
 	
@@ -532,14 +529,6 @@ public class MASSBase {
     	
     	}
     
-    }
-
-    public static void initAsyncCommunicationThreads() {
-      logger.debug("Init Async Communication Threads");
-      //inputThread = new AsyncInputThread(thisNode.getPort() + 1);
-      //outputThread = new AsyncOutputThread(thisNode.getPort() + 1);
-      //inputThread.start();
-      //outputThread.start();
     }
 
 	/*
