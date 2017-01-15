@@ -276,21 +276,5 @@ public class AgentList {
 	public int size_unreduced( ) {
 		return currentX * capacityY + nextY;
 	}
-	
-	/*public synchronized LinkedList<Agent> getAll() {
-	  reduce_helper();
-	  LinkedList<Agent> result = new LinkedList<Agent>();
-	  int x = 0, y = 0;
-	  for(int i = 0; i < size_unreduced(); i++)
-	  {
-	    result.add(array[x][y]);
-	    ++y;
-	    if(y == capacity_y)
-	    {
-	      y = 0;
-	      ++x;
-	    }
-	  }
-	  return result;
-	} */
+
 }

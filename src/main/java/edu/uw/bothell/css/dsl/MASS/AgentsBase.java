@@ -75,7 +75,7 @@ public class AgentsBase implements Serializable {
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
     // Async section
-    //private volatile LinkedList<Agent> asyncQueue;
+
     private volatile int[] asyncAgentIdList; // indices of agents in the bag - list of agent ids for callAllAsync
     private volatile int asyncAgentIdListHead = 0; // next location in the queue to poll index
     private volatile int asyncAgentIdListTail = 0; // next location in the queue to insert index
@@ -105,10 +105,6 @@ public class AgentsBase implements Serializable {
     	this.placesHandle = placesHandle;
     	this.initPopulation = initPopulation;
     	this.agents = new AgentList( );
-    	
-    	// Async handling
-    	//this.asyncQueue = new LinkedList<Agent>();
-    	//this.asyncQueue = new ConcurrentLinkedQueue<Agent>();
 
     	// For debugging
   		logger.debug( "handle = " + handle
@@ -341,7 +337,6 @@ public class AgentsBase implements Serializable {
 	}
 	
 	public int[] getAsyncAgentIdList() {
-	//public LinkedList<Agent> getAsyncQueue() {
 	  return asyncAgentIdList;
 	}
 	
@@ -743,198 +738,6 @@ public class AgentsBase implements Serializable {
 	public int nLocalAgents( ) {
     	return localPopulation; 
     }
-	
-  	public synchronized void spawnAsync(Agent targetAgent, int numAgents,
-									  	Object[] initializedArguments,
-									  	Object[] arguments)
-  	{
-		int argumentIndex = 0;
-
-	  	for (int i = numAgents; i > 0; i--)
-	  	{
-
-        	logger.debug( "Agent_base.spawnAsync will spawn a child of agent " +
-            	targetAgent.getAgentId() +
-            	"...arguments index = " + argumentIndex);
-
-      		Agent addAgent = null;
-      		Object dummyArgument = new Object( );
-
-			try {
-				agentInitAgentsHandle = handle;
-				agentInitPlacesHandle = placesHandle;
-				agentInitParentId = targetAgent.getAgentId();
-				agentInitAgentId = currentAgentId++;
-
-				addAgent = (Agent) // validate the correspondance of arguments and
-						   (
-						  		// argumentcounter
-						  		( initializedArguments != null ) ?
-							  	// yes: this child agent should recieve an argument.
-							  	//                      ( Agent )agentConstructor.
-							  	//                      newInstance( evaluationAgent.
-							  	//                          getArguments()[argumentcounter++] )
-							  	objectFactory.getInstance(className, initializedArguments[argumentIndex])
-							  	: objectFactory.getInstance(className, dummyArgument)
-						   );
-				  // TODO auto migration somewhere in here?
-
-				addAgent.setIndex(targetAgent.getIndex());
-				addAgent.setPlace(targetAgent.getPlace());
-				//addAgent.setAsyncFuncListIndex(0);
-				//addAgent.setMyAgentsBase(this);
-				//addAgent.resetAsyncResults();
-
-				//if(arguments != null) {
-				//	addAgent.setAsyncArgument(arguments[argumentIndex]);
-				//}
-
-				//addAgent.setMyAsyncOriginalPid(MASSBase.getMyPid());
-				//addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
-				childAsyncIndex++;
-				argumentIndex++;
-      		}
-      
-			// TODO - now what? An exception was thrown - what to do next?
-			catch ( Exception e ) {
-				logger.error("spawn async", e);
-			}
-
-			// Push the created agent into our bag for returns and
-			// update the counter needed to keep track of our agents.
-			addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-			synchronized(asyncAgentIdList) {
-				addAgent.setCurrentIndex(this.agents.size_unreduced());
-				this.agents.add( addAgent );           // auto syn
-					asyncAgentIdListAdd(addAgent.getCurrentIndex());
-					asyncAgentIdList.notifyAll();
-			}
-      //numAgents--;
-    	}
-
-  	}
-
-  public void migrateAsync(Agent targetAgent) {
-	  //Iterate over all dimensions of the agent to check its location
-	  // against that of its place. If they are the same, return back.
-	  PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
-	  int[] destCoord = new int[targetAgent.getIndex().length];
-
-	  // compute its coordinate
-	  getGlobalAgentArrayIndex(targetAgent.getIndex(),
-			  				   evaluatedPlaces.getSize(),
-			  			       destCoord);
-
-	  // debugging message
-	  if (MASS.isConsoleLoggingEnabled())
-	  {
-		  StringBuilder targetCoordStr = new StringBuilder();
-		  StringBuilder destCoordStr = new StringBuilder();
-		  for(int i = 0; i < destCoord.length; i++) {
-			  targetCoordStr.append("[" + targetAgent.getIndex()[i] + "]");
-				destCoordStr.append("[" + destCoord[i] + "]");
-		  }
-
-		  logger.debug( "migrate async from " + targetCoordStr.toString() + " (destCoord" + destCoordStr.toString() );
-	  }
-
-	// check if the destination is valid
-    if( destCoord[0] != -1 ) {      
-
-      int globalLinearIndex = 
-          evaluatedPlaces.
-          getGlobalLinearIndexFromGlobalArrayIndex( destCoord,
-              evaluatedPlaces.getSize() );
-
-       logger.debug( " linear = " + globalLinearIndex +
-            " lower = " + evaluatedPlaces.getLowerBoundary()
-            + " upper = " + 
-            evaluatedPlaces.getUpperBoundary() + ")" );
-
-      if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
-          globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
-        
-        // local destination
-
-        // Should remove the pointer object in the place that 
-        // points to the migrating Agent
-        Place oldPlace = targetAgent.getPlace();
-        if ( oldPlace.getAgents().remove( targetAgent ) == false ) {          
-
-        	// should not happen
-            logger.error( "evaluationAgent " + targetAgent.getAgentId() + " couldn't been found in the old place!" );
-            System.exit( -1 );        
-        }
-
-        logger.debug( "evaluationAgent " + 
-              targetAgent.getAgentId() 
-              + " was removed from the oldPlace["
-              + oldPlace.getIndex()[0] + "].." );
-
-        // insert the migration Agent to a local destination place
-        int destinationLocalLinearIndex 
-        = globalLinearIndex - evaluatedPlaces.getLowerBoundary();
-
-        logger.debug( "destinationLocalLinerIndex = {}",               + destinationLocalLinearIndex );
-
-		  // Let this agent memorize where it has migrated to
-		  targetAgent.setPlace(MASSBase.getPlacesMap()
-            					.get( new Integer( placesHandle ) )
-            					.getPlaces()[destinationLocalLinearIndex]);
-
-        logger.debug( "evaluationAgent.place = {}", targetAgent.getPlace() );
-
-		  // Now put the agent into its new place
-		  targetAgent.getPlace().getAgents().add( targetAgent );
-
-          logger.debug( "evaluationAgent " + 
-              targetAgent.getAgentId() +
-              " was inserted into the destPlace[" +
-              targetAgent.getPlace().getIndex()[0] + "].." );
-
-          synchronized(asyncAgentIdList)
-		  {
-			  // Since the agent stays in local, we need to put back into async queue
-			  if(!asyncAgentIdListIsEmpty()) {
-				  //targetAgent.setNeedsToGoBackToAsyncQueue(true);
-			  }
-		  }
-      }      
-      else {       
-        // remote destination
-        //targetAgent.setHasAlreadyGone(true);
-
-        /* remove evaluationAgent from AgentList
-         * DO NOT REMOVE, to remove in callAllAsync loop only
-        synchronized(agents) {
-          agents.remove( targetAgent.getCurrentIndex() );
-        }*/
-
-        // find the destination node
-        int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
-
-        logger.debug( "AgentMigrationRequest request from to dest rank " + 
-              destRank + ", globalLinearIndex " + globalLinearIndex );
-
-        // relinquish the old place
-        targetAgent.setPlace(null);
-        /* relinquish the parent too, for async purpose
-         * DO NOT REMOVE to remove in callAllAsync loop only
-        targetAgent.setCurrentIndex(-1);*/
-        //targetAgent.setMyAgentsBase(null);
-        // create a request
-        AgentMigrationRequest request = new AgentMigrationRequest( globalLinearIndex, targetAgent );
-
-        logger.debug("remoteRequest[" + destRank + 
-                "].add:" + " globalLinearIndex = " + 
-                globalLinearIndex );
-
-      }
-    }    
-    else {      
-        logger.error( " to destination invalid" );
-    }
-  }
 	
   protected void resetChildAsyncIndex() {
     childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
