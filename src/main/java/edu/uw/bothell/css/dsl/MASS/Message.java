@@ -65,7 +65,6 @@ public class Message implements Serializable {
 	    /** Async section **/
 	    //AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT"),      // 17
 	    NODE_MASTER_ASYNC_COMPLETE_REQUEST("NODE_MASTER_ASYNC_COMPLETE_REQUEST"),        //18 check if all slaves are completed
-	    AGENT_ASYNC_RESULT("AGENT_ASYNC_RESULT"),                       // 20
 	   // NODE_SLAVE_ASYNC_COMPLETE_NOTIFY("NODE_SLAVE_ASYNC_COMPLETE_NOTIFY"),          
     	// 21 tell master that I'm done
 	    NODE_COMPLETE_NOTIFY_SOURCE("NODE_COMPLETE_NOTIFY_SOURCE");
@@ -100,9 +99,6 @@ public class Message implements Serializable {
     private int boundaryWidth = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
-    // Pid of the source when sending back result in
-    // callAllAsync
-    private int sourcePid = -1;
     
     // Async vars
     private int[] autoMigrateStartingIndex = null;
@@ -296,11 +292,6 @@ public class Message implements Serializable {
 
     }
     
-    // AGENT_ASYNC_RESULT
-    public void setSourcePid(int pid) {
-      sourcePid = pid;
-    }
-    
     /**
      * Get the action
      * @return action
@@ -407,10 +398,6 @@ public class Message implements Serializable {
      */
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
-    }
-    
-    public int getSourcePid() {
-      return sourcePid;
     }
 
     public String getActionString() {
