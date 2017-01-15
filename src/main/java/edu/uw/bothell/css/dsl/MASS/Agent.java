@@ -77,21 +77,6 @@ public class Agent implements Serializable {
 	// logging
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
-	/**
-	 *  backward compatibility with agentbag,
-	 *  together with myAsyncPid keep track of
-	 *  the original position of the agent,
-	 *  set at the beginning of callAllAsync and not changed
-	 *  throughout execution
-	 */
-	private int myOriginalAsyncIndex;
-
-	/**
-	 * The current index of this agent in agent list
-	 * change when remote migrate, used for killing, async queue access
-	 */
-	private volatile int myCurrentIndex;
-
 	private int autoMigrationStartingIndex;
 
 	public Agent ( ) {
@@ -227,15 +212,6 @@ public class Agent implements Serializable {
 		this.place = place;
 	}
 
-
-	protected void setCurrentIndex(int newIndex) {
-		myCurrentIndex = newIndex;
-	}
-
-	public int getCurrentIndex() {
-		return myCurrentIndex;
-	}
-
 	/**
 	 * Spawns a “numAgents’ of new agents, as passing arguments[i] (with arg_size) 
 	 * to the i-th new agent upon a next call to Agents.manageAll( ).
@@ -264,7 +240,7 @@ public class Agent implements Serializable {
 		//	result.asyncResults[i] = this.asyncResults[i];
 		//}
 		//result.myAsyncOriginalPid = this.myAsyncOriginalPid;
-		result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
+		//result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
 		//logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
 		return result;
 	}

@@ -340,29 +340,4 @@ public class Agents extends AgentsBase implements Serializable {
     return nAgents;
 
   }
-
-  private void collectAsyncResult() {
-    // TODO Auto Migration somewhere?
-
-    // in case of killing agent, backward compatibility
-    getAgents().reduce();
-    setLocalPopulation(getAgents().size_unreduced());
-    localAgents[0] = getLocalPopulation();
-
-    //MASS.getRemoteAsyncResults();
-    //Collections.sort(getAsyncCompletedAgentList(), new AgentAsyncComparator());
-    //MASSBase.setCurrentReturns(getAsyncCompletedAgentList().toArray());
-    for (int i = 1; i < MASSBase.getSystemSize(); i++) {
-      //localAgents[i] = MASS.getLocalAgents()[i - 1];
-    }
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-      total += localAgents[i];
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled()) {
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-      }
-    }
-  }
 }
