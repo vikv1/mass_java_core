@@ -92,11 +92,6 @@ public class Agent implements Serializable {
 	 */
 	private volatile int myCurrentIndex;
 
-	/**
-	 * Original Pid before execution
-	 */
-	private int myAsyncOriginalPid;
-
 	private int autoMigrationStartingIndex;
 
 	public Agent ( ) {
@@ -268,7 +263,7 @@ public class Agent implements Serializable {
 		//for(int i = 0; i < asyncResultsIndex; i++) {
 		//	result.asyncResults[i] = this.asyncResults[i];
 		//}
-		result.myAsyncOriginalPid = this.myAsyncOriginalPid;
+		//result.myAsyncOriginalPid = this.myAsyncOriginalPid;
 		result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
 		//logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
 		return result;

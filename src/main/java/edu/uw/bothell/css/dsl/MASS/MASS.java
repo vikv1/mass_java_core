@@ -83,10 +83,6 @@ public class MASS extends MASSBase {
     // yes - unused at this point right now...
     @SuppressWarnings("unused")
 	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-    
-    // Async
-    // number of agents at rank i that returns async results
-    private static int[] LocalAgents;
 
 	// Logging
 	private static Log4J2Logger logger = Log4J2Logger.getInstance();
@@ -502,23 +498,7 @@ public class MASS extends MASSBase {
 		}
 		
 	}
-	
-	protected static int[] getLocalAgents() {
-	  return LocalAgents;
-	}
-	
-	protected static void setLocalAgents(int[] values) {
-	  LocalAgents = values;
-	}
 
-  	public static void getRemoteAsyncResults() {
-  		
-  		if (!getRemoteNodes().isEmpty()) {
-  			LocalAgents = new int[getRemoteNodes().size()];
-  		}
-
-  	}
-  
   /**
 	 * Change logger level
 	 * @param level The logging level

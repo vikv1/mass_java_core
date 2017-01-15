@@ -349,11 +349,11 @@ public class Agents extends AgentsBase implements Serializable {
     setLocalPopulation(getAgents().size_unreduced());
     localAgents[0] = getLocalPopulation();
 
-    MASS.getRemoteAsyncResults();
-    Collections.sort(getAsyncCompletedAgentList(), new AgentAsyncComparator());
-    MASSBase.setCurrentReturns(getAsyncCompletedAgentList().toArray());
+    //MASS.getRemoteAsyncResults();
+    //Collections.sort(getAsyncCompletedAgentList(), new AgentAsyncComparator());
+    //MASSBase.setCurrentReturns(getAsyncCompletedAgentList().toArray());
     for (int i = 1; i < MASSBase.getSystemSize(); i++) {
-      localAgents[i] = MASS.getLocalAgents()[i - 1];
+      //localAgents[i] = MASS.getLocalAgents()[i - 1];
     }
     total = 0;
     for (int i = 0; i < MASSBase.getSystemSize(); i++) {

@@ -54,7 +54,7 @@ public class AgentsBase implements Serializable {
 		 we are supposed to use currentAgentId.
 	*/
     public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million 
-    public static final int STARTING_CHILD_ASYNC_INDEX = 1000000; // 1 million
+
 
 
     private final int handle;
@@ -90,13 +90,6 @@ public class AgentsBase implements Serializable {
      * for result from master
      */
     private boolean resultRequestFromMaster = false;
-    
-    /**
-     * to avoid unnecessary synchronization
-     * use this index to assign to spawned agents' asyncIndex
-     * during callAllAsync 
-     */
-    private int childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
     
     public AgentsBase( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
     	
@@ -738,19 +731,6 @@ public class AgentsBase implements Serializable {
 	public int nLocalAgents( ) {
     	return localPopulation; 
     }
-	
-  protected void resetChildAsyncIndex() {
-    childAsyncIndex = STARTING_CHILD_ASYNC_INDEX;
-  }
-
-  public void resetAsyncCompletedAgentList() {
-    int estFinalSize = (int)(1.2 * agents.size_unreduced());
-	  asyncCompletedAgentList = Collections.synchronizedList(new ArrayList<Agent>(estFinalSize));
-  }
-  
-  public List<Agent> getAsyncCompletedAgentList() {
-    return asyncCompletedAgentList;
-  }
 
   protected boolean getResultRequestFromMaster() {
     return resultRequestFromMaster;
