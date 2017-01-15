@@ -191,6 +191,10 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
+  /**
+   * utku_cleaning
+   */
+  /*
   // The master program needs to inform processes that callAllAsync is about to start
   List<Agent> callAllSetupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
     // FOR auto migration
@@ -215,6 +219,7 @@ public class Agents extends AgentsBase implements Serializable {
         }
       }
     }
+
     
     // Preparing this node for callAllAsync
     MASSBase.prepareAsyncExecution(this, functionIds);
@@ -301,11 +306,11 @@ public class Agents extends AgentsBase implements Serializable {
     // TODO What is share here?
 
     // We need this so AsyncInputThread can quickly pass the migration request
-    /*
-     * MASS_base.setCurrentFunctionId(functionId);
-     * MASS_base.setCurrentArgument(argument);
-     * MASS_base.setCurrentMsgType(type);
-     */
+    /
+     // MASS_base.setCurrentFunctionId(functionId);
+     // MASS_base.setCurrentArgument(argument);
+     // MASS_base.setCurrentMsgType(type);
+     /
 
     // resume threads
     logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
@@ -363,6 +368,7 @@ public class Agents extends AgentsBase implements Serializable {
     collectAsyncResult();
     return getAsyncCompletedAgentList();
   }
+  */
 
   /**
    * Calls the method specified with functionId of all agents. Done in
@@ -401,19 +407,29 @@ public class Agents extends AgentsBase implements Serializable {
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
   }
 
+  /**
+   * utku_cleaning
+   */
   // user program calls this method
   // Arguments are delivered to all agents but should be given to only first function
+  /*
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments) throws Exception {
     return callAllSetupAsync(functionIds, arguments, false);
   }
+  */
 
+  /**
+   * utku_cleaning
+   */
   // user program calls this method
   // Arguments are delivered to all agents but should be given to only first function
+  /*
   public List<Agent> callAllAsync(int[] functionIds,
       Object[] arguments, boolean autoMigration) throws Exception {
     return callAllSetupAsync(functionIds, arguments, autoMigration);
   }
+  */
 
   private void initMaster(Object argument) {
 

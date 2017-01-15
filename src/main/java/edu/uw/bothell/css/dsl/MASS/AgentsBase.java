@@ -336,6 +336,10 @@ public class AgentsBase implements Serializable {
     
     }
 
+	/**
+	 * utku_cleaning
+	 */
+	/*
   public void callAllAsync(int tid ) throws Exception {	 
 	  int executedAgentIndex = -1; 	// next agent id in the list to be executed
 	  int inProcessCount = 0;		// thread local variable copied from inProcessAgentCount
@@ -364,10 +368,10 @@ public class AgentsBase implements Serializable {
 			  while((asyncFuncIndex = MASSBase.getCurrentAgentsBase().getAgents()
 				.get(executedAgentIndex).nextAsyncFuncListIndex()) < asyncFuncList.length)
 			  {
-					/*
-					int asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
+					/
+					//int asyncFuncIndex = MASSBase.getCurrentAgents().getAgents()
 					  .get(executedAgentIndex).nextAsyncFuncListIndex();
-					*/
+					/
 					//
 					switch(asyncFuncList[asyncFuncIndex]) {
 						case -2:
@@ -385,9 +389,9 @@ public class AgentsBase implements Serializable {
 					}
 
 					// only the first method has arg
-					/*
-						* In future development, we need to pass argumentList and setAsyncArgument from this list.
-					* */
+					/
+					//In future development, we need to pass argumentList and setAsyncArgument from this list.
+					/
 					MASSBase.getCurrentAgentsBase().getAgents().get(executedAgentIndex).setAsyncArgument(null);
 
 					// If this agent has been terminated, we should make sure to kill it from our local process too
@@ -446,19 +450,19 @@ public class AgentsBase implements Serializable {
 
 	  while(executedAgentIndex != -1 && inProcessCount > 0);
     
-	  /**
-	   * How to collect results?
-	   * We need to mark each agents index before the
-	   * These agents' results will be kept in order
-	   * Spawned agents result order is not guarantee
-	   * How master thread know it's done?
-	   * when all the slave thread (KEEP TRACK of thread count somewhere?) has pass the result
-	   * (in Agents_base?) in 
-	   * master thread consolidate and
-	   * send the result to master node (in Agents)
-	   * Master thread in master node wait for all results from slave
-	   * nodes and return to caller
-	   */
+	  //
+	   // How to collect results?
+	   // We need to mark each agents index before the
+	   // These agents' results will be kept in order
+	   // Spawned agents result order is not guarantee
+	   // How master thread know it's done?
+	   // when all the slave thread (KEEP TRACK of thread count somewhere?) has pass the result
+	   // (in Agents_base?) in
+	   // master thread consolidate and
+	   // send the result to master node (in Agents)
+	   // Master thread in master node wait for all results from slave
+	   // nodes and return to caller
+	   //
 	  // TODO Keep track of slave thread pass result
 	  // TODO Keep track of slave node pass result
 	  // TODO sorting agent result
@@ -470,6 +474,7 @@ public class AgentsBase implements Serializable {
 	  	// Ready
 	   MThread.barrierThreads( tid );
 	}
+	*/
 	
 	public AgentList getAgents() {
 		return agents;

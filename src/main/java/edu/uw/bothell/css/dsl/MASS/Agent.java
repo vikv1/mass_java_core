@@ -254,12 +254,17 @@ public class Agent implements Serializable {
 
 	}
 
+	/**
+	 * utku_cleaning
+	 */
+	/*
 	protected boolean migrateAsync(int... index) {
 		boolean result = migrate(index);
 		//stopProcessAsyncFuncList = true;
 		myAgentsBase.migrateAsync(this);
 		return result;
 	}
+	*/
 
 	protected void setIndex(int[] index) {
 		this.index = index;
@@ -413,13 +418,13 @@ public class Agent implements Serializable {
 			index[i] = this.autoMigrationStartingIndex % size[i];
 			this.autoMigrationStartingIndex = autoMigrationStartingIndex / size[i];
 		}
-		migrateAsync(index);
+		//migrateAsync(index);
 	}
 
 	void autoMigrateNext() {
 		int[] index = this.getPlace().getIndex().clone();
 		++index[index.length - 1];
-		migrateAsync(index);
+		//migrateAsync(index);
 	}
 
 	protected void setAutoMigrationStartingIndex(int i) {
