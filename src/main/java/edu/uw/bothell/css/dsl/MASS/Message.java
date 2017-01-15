@@ -63,12 +63,8 @@ public class Message implements Serializable {
 	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16  
 	    
 	    /** Async section **/
-	    //AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT"),      // 17
-	    NODE_MASTER_ASYNC_COMPLETE_REQUEST("NODE_MASTER_ASYNC_COMPLETE_REQUEST"),        //18 check if all slaves are completed
-	   // NODE_SLAVE_ASYNC_COMPLETE_NOTIFY("NODE_SLAVE_ASYNC_COMPLETE_NOTIFY"),          
     	// 21 tell master that I'm done
 	    NODE_COMPLETE_NOTIFY_SOURCE("NODE_COMPLETE_NOTIFY_SOURCE");
-    	// 22
     	
     	private final String value;
     	
