@@ -205,8 +205,8 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		node.closeMainConnection( );
       
-    	MASSBase.getAsyncOutputThread().finish();
-    	MASSBase.getAsyncInputThread().finish();
+    	//MASSBase.getAsyncOutputThread().finish();
+    	//MASSBase.getAsyncInputThread().finish();
 
     	System.err.println( "MASS::finish: done" );
 
@@ -518,7 +518,7 @@ public class MASS extends MASSBase {
   		
   		if (!getRemoteNodes().isEmpty()) {
   			LocalAgents = new int[getRemoteNodes().size()];
-  			getAsyncOutputThread().requestAsyncResults();
+  			//getAsyncOutputThread().requestAsyncResults();
   		}
 
   	}
