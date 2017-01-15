@@ -1065,7 +1065,7 @@ public class AgentsBase implements Serializable {
         // create a request
         AgentMigrationRequest request = new AgentMigrationRequest( globalLinearIndex, targetAgent );
         
-        MASS.getAsyncOutputThread().requestMigration(destRank, request);
+        //MASS.getAsyncOutputThread().requestMigration(destRank, request);
 
         logger.debug("remoteRequest[" + destRank + 
                 "].add:" + " globalLinearIndex = " + 

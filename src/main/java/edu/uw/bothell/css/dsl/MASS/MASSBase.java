@@ -87,11 +87,16 @@ public class MASSBase {
     // helper classes
     private static Utilities utilities = new Utilities();
 
+	/**
+	 * utku_cleaning
+	 */
     /**
      * BEGIN ASync vars section
      */
+	/*
     private static AsyncInputThread inputThread = null;
     private static AsyncOutputThread outputThread = null;
+    */
     
     /**
      *  Estimated number of completed slave node in order to
@@ -543,23 +548,31 @@ public class MASSBase {
     /**
      * BEGIN Async methods
      */
-    
+	/**
+	 * utku_cleaning
+	 */
+	/*
     public static AsyncInputThread getAsyncInputThread()
     {
       return inputThread;
     }
-    
+    */
+	/**
+	 * utku_cleaning
+	 */
+	/*
     public static AsyncOutputThread getAsyncOutputThread()
     {
       return outputThread;
     }
-    
+    */
+
     public static void initAsyncCommunicationThreads() {
       logger.debug("Init Async Communication Threads");
-      inputThread = new AsyncInputThread(thisNode.getPort() + 1);
-      outputThread = new AsyncOutputThread(thisNode.getPort() + 1);
-      inputThread.start();
-      outputThread.start();
+      //inputThread = new AsyncInputThread(thisNode.getPort() + 1);
+      //outputThread = new AsyncOutputThread(thisNode.getPort() + 1);
+      //inputThread.start();
+      //outputThread.start();
     }
 
 	/*
@@ -584,8 +597,8 @@ public class MASSBase {
 		  currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
 		  currentAgentsBase.getAgents().get(i).setCurrentIndex(i);
       }
-      outputThread.setAgentHandle(agents.getHandle());
-      outputThread.setPlaceHandle(agents.getPlacesHandle());
+      //outputThread.setAgentHandle(agents.getHandle());
+      //outputThread.setPlaceHandle(agents.getPlacesHandle());
       outAgents = new int[getSystemSize()];
       inAgents = new int[getSystemSize()];
       for(int i = 0; i < outAgents.length; i++) {
