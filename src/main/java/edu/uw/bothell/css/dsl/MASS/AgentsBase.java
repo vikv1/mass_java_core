@@ -81,7 +81,6 @@ public class AgentsBase implements Serializable {
     private volatile int asyncAgentIdListTail = 0; // next location in the queue to insert index
     //private volatile List<Agent> asyncCompletedAgentList; // agents that have been completed from callAllAsync
     private volatile int[] asyncFuncList; // list of function ids to be executed asynchronously
-    private volatile boolean isIdle = true; // whether this node is processing async queue or not
     private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0); // the number of agents in process
     
     public AgentsBase( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
@@ -724,17 +723,7 @@ public class AgentsBase implements Serializable {
 	public int nLocalAgents( ) {
     	return localPopulation; 
     }
-  
-  public boolean getIsAsyncLoopIdle() {
-    logger.debug("getIsAsyncIdle return {}", isIdle);
-    return isIdle;
-  }
-  
-  protected void setIsAsyncLoopIdle(boolean value) {
-    logger.debug("setIsAsyncIdle to {}", value);
-    isIdle = value;
-  }
-  
+
   protected boolean hasNoInprocessAgents() {
     return inProcessAgentCount.get() == 0;
   }

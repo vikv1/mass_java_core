@@ -232,18 +232,7 @@ public class Agent implements Serializable {
 	/**
 	 * Only FOR ASYNC
 	 */
-	protected Agent cloneForAsyncResult() {
-		Agent result = new Agent();
-		result.alive = this.alive;
-		//result.asyncResults = new Object[asyncResultsIndex];
-		//for(int i = 0; i < asyncResultsIndex; i++) {
-		//	result.asyncResults[i] = this.asyncResults[i];
-		//}
-		//result.myAsyncOriginalPid = this.myAsyncOriginalPid;
-		//result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-		//logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
-		return result;
-	}
+
 
 	void autoMigrateStart() {
 		int[] size = place.getSize();

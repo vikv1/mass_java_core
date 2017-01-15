@@ -86,13 +86,7 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
-    
-    /**
-     *  Estimated number of completed slave node in order to
-     *  reduce number of complete check in case master finish 
-     * too early, issue check IFF this >= # of slaves
-     */
-    //private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
+	
     /**
      *  Agents async migrate out and into this node
      */
