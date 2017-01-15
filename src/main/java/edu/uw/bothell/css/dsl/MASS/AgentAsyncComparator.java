@@ -38,6 +38,7 @@ public class AgentAsyncComparator implements Comparator<Agent> {
   public int compare(Agent o1, Agent o2) {
     if (o1 != null && o2 != null) {
       // original agents
+      /*
       if ((o1.getMyOriginalAsyncIndex() < AgentsBase.STARTING_CHILD_ASYNC_INDEX
           && o2.getMyOriginalAsyncIndex() < AgentsBase.STARTING_CHILD_ASYNC_INDEX) ||
           (o1.getMyOriginalAsyncIndex() >= AgentsBase.STARTING_CHILD_ASYNC_INDEX
@@ -55,7 +56,9 @@ public class AgentAsyncComparator implements Comparator<Agent> {
       }
       else {
         return 1;
-      } 
+      }
+      */
+      return 0;
     } else {
       if (o2 != null) {
         return -1;

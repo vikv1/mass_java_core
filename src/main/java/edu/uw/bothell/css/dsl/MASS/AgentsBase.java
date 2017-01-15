@@ -781,16 +781,16 @@ public class AgentsBase implements Serializable {
 
 				addAgent.setIndex(targetAgent.getIndex());
 				addAgent.setPlace(targetAgent.getPlace());
-				addAgent.setAsyncFuncListIndex(0);
-				addAgent.setMyAgentsBase(this);
-				addAgent.resetAsyncResults();
+				//addAgent.setAsyncFuncListIndex(0);
+				//addAgent.setMyAgentsBase(this);
+				//addAgent.resetAsyncResults();
 
-				if(arguments != null) {
-					addAgent.setAsyncArgument(arguments[argumentIndex]);
-				}
+				//if(arguments != null) {
+				//	addAgent.setAsyncArgument(arguments[argumentIndex]);
+				//}
 
-				addAgent.setMyAsyncOriginalPid(MASSBase.getMyPid());
-				addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
+				//addAgent.setMyAsyncOriginalPid(MASSBase.getMyPid());
+				//addAgent.setMyOriginalAsyncIndex(childAsyncIndex);
 				childAsyncIndex++;
 				argumentIndex++;
       		}
@@ -896,13 +896,13 @@ public class AgentsBase implements Serializable {
 		  {
 			  // Since the agent stays in local, we need to put back into async queue
 			  if(!asyncAgentIdListIsEmpty()) {
-				  targetAgent.setNeedsToGoBackToAsyncQueue(true);
+				  //targetAgent.setNeedsToGoBackToAsyncQueue(true);
 			  }
 		  }
       }      
       else {       
         // remote destination
-        targetAgent.setHasAlreadyGone(true);
+        //targetAgent.setHasAlreadyGone(true);
 
         /* remove evaluationAgent from AgentList
          * DO NOT REMOVE, to remove in callAllAsync loop only
@@ -921,7 +921,7 @@ public class AgentsBase implements Serializable {
         /* relinquish the parent too, for async purpose
          * DO NOT REMOVE to remove in callAllAsync loop only
         targetAgent.setCurrentIndex(-1);*/
-        targetAgent.setMyAgentsBase(null);
+        //targetAgent.setMyAgentsBase(null);
         // create a request
         AgentMigrationRequest request = new AgentMigrationRequest( globalLinearIndex, targetAgent );
 

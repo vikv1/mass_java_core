@@ -557,11 +557,11 @@ public class MASSBase {
 		currentAgentsBase.asyncAgentIdListClear(); // agents to be executed
       for(int i = 0; i < currentAgentsBase.getAgents().size_unreduced(); i++) {
 		  currentAgentsBase.asyncAgentIdListAdd(i);
-		  currentAgentsBase.getAgents().get(i).setMyAgentsBase(currentAgentsBase);
-		  currentAgentsBase.getAgents().get(i).setAsyncFuncListIndex(0);
-		  currentAgentsBase.getAgents().get(i).resetAsyncResults();
-		  currentAgentsBase.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
-		  currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
+		  //currentAgentsBase.getAgents().get(i).setMyAgentsBase(currentAgentsBase);
+		  //currentAgentsBase.getAgents().get(i).setAsyncFuncListIndex(0);
+		  //currentAgentsBase.getAgents().get(i).resetAsyncResults();
+		  //currentAgentsBase.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
+		  //currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
 		  currentAgentsBase.getAgents().get(i).setCurrentIndex(i);
       }
       //outputThread.setAgentHandle(agents.getHandle());
