@@ -80,7 +80,6 @@ public class AgentsBase implements Serializable {
     private volatile int asyncAgentIdListHead = 0; // next location in the queue to poll index
     private volatile int asyncAgentIdListTail = 0; // next location in the queue to insert index
     //private volatile List<Agent> asyncCompletedAgentList; // agents that have been completed from callAllAsync
-    private volatile int[] asyncFuncList; // list of function ids to be executed asynchronously
     private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0); // the number of agents in process
     
     public AgentsBase( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
@@ -323,14 +322,6 @@ public class AgentsBase implements Serializable {
 	
 	public int[] getAsyncAgentIdList() {
 	  return asyncAgentIdList;
-	}
-	
-	protected int[] getAsyncFuncList() {
-	  return asyncFuncList;
-	}
-	
-	protected void setAsyncFuncList(int[] value) {
-	  asyncFuncList = value;
 	}
 	
 	protected String getClassName() {
