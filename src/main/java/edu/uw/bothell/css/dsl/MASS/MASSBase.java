@@ -86,13 +86,11 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
-	
+
     /**
      *  Agents async migrate out and into this node
      */
     private static volatile int[] outAgents, inAgents;
-    private static volatile int sourceAgentPid = -1;
-    private static volatile Set<Integer> childAgentPids = new HashSet<Integer>();
     
     /**
      * END Async vars section
@@ -523,18 +521,6 @@ public class MASSBase {
     	
     	}
     
-    }
-    
-    public static Set<Integer> getChildAgentPids() {
-      return childAgentPids;
-    }
-    
-    public static int getSourceAgentPid() {
-      return sourceAgentPid;
-    }
-    
-    public static void setSourceAgentPid(int value) {
-      sourceAgentPid = value;
     }
     
     public static int[] getOutAsyncAgents() {

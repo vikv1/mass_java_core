@@ -44,7 +44,6 @@ public class AgentList {
 	private int currentX = -1;
 	private int nextY = 0;
 	private int iterator = 0;
-	private int estimateSize = 0;
 
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
@@ -65,7 +64,6 @@ public class AgentList {
 		}
 		
 		array[currentX][nextY++] = item;
-		++estimateSize;
 	}
 		
 	/**
@@ -80,11 +78,6 @@ public class AgentList {
 	    array[xindex] = new Agent[CAPACITY_Y];	    
 	  }
 	  array[xindex][yindex] = item;
-	  ++estimateSize;
-	}
-	
-	public int estimateSize() {
-	  return estimateSize;
 	}
 
 	public void checkInternal( ) {
@@ -160,8 +153,7 @@ public class AgentList {
 		capacityY = ( init_capacity > CAPACITY_Y ) ? 
 				init_capacity : CAPACITY_Y;
 		
-		increaseX( ); 
-		estimateSize = 0;
+		increaseX( );
 	}
 
 	public synchronized Agent next( ) {
@@ -215,7 +207,6 @@ public class AgentList {
 		currentX = xNull;
 		nextY = yNull;
 		reduceDone = true;
-		estimateSize = this.size_unreduced();
 		logger.debug( "Reduce done to {}", size_unreduced( ) );
 	
 	}
@@ -232,7 +223,6 @@ public class AgentList {
 					
 					array[i][j] = null;
 					reduceDone = false;
-					--estimateSize;
 					return;
 				
 				}
@@ -253,7 +243,6 @@ public class AgentList {
 			int y = linear_index % capacityY;
 			array[x][y] = null;
 			reduceDone = false;
-			--estimateSize;
 			/*
 	    	System.out.println( "AgentList.remove: " +
 				"linear_index = " + linear_index +
