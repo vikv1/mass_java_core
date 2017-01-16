@@ -77,8 +77,6 @@ public class Agent implements Serializable {
 	// logging
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
-	private int autoMigrationStartingIndex;
-
 	public Agent ( ) {
 		agentId = Agents.getAgentInitAgentId();
 	}
@@ -228,29 +226,4 @@ public class Agent implements Serializable {
 		}
 
 	}
-
-	/**
-	 * Only FOR ASYNC
-	 */
-
-
-	void autoMigrateStart() {
-		int[] size = place.getSize();
-		int[] index = size.clone();
-		for(int i = size.length - 1; i >= 0; i--) {
-			// autoMigrationStartingIndex value is altered after this
-			index[i] = this.autoMigrationStartingIndex % size[i];
-			this.autoMigrationStartingIndex = autoMigrationStartingIndex / size[i];
-		}
-	}
-
-	void autoMigrateNext() {
-		int[] index = this.getPlace().getIndex().clone();
-		++index[index.length - 1];
-	}
-
-	protected void setAutoMigrationStartingIndex(int i) {
-		this.autoMigrationStartingIndex = i;
-	}
-
 }
