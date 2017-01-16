@@ -73,14 +73,6 @@ public class AgentsBase implements Serializable {
 
 	// logging
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
-
-    // Async section
-
-    private volatile int[] asyncAgentIdList; // indices of agents in the bag - list of agent ids for callAllAsync
-    private volatile int asyncAgentIdListHead = 0; // next location in the queue to poll index
-    private volatile int asyncAgentIdListTail = 0; // next location in the queue to insert index
-    //private volatile List<Agent> asyncCompletedAgentList; // agents that have been completed from callAllAsync
-    private volatile AtomicInteger inProcessAgentCount = new AtomicInteger(0); // the number of agents in process
     
     public AgentsBase( int handle, String className, Object argument, int placesHandle, int initPopulation ) {
     	
@@ -318,10 +310,6 @@ public class AgentsBase implements Serializable {
 
 	public AgentList getAgents() {
 		return agents;
-	}
-	
-	public int[] getAsyncAgentIdList() {
-	  return asyncAgentIdList;
 	}
 	
 	protected String getClassName() {
@@ -714,52 +702,6 @@ public class AgentsBase implements Serializable {
 	public int nLocalAgents( ) {
     	return localPopulation; 
     }
-
-  protected boolean hasNoInprocessAgents() {
-    return inProcessAgentCount.get() == 0;
-  }
-  
-  /**
-   * AsyncQueue functions only to be called when asyncQueue is synchronized
-   * @return
-   */
-  public int asyncAgentIdListSize() {
-    if(asyncAgentIdListTail < asyncAgentIdListHead) {
-      return asyncAgentIdListTail - asyncAgentIdListHead + asyncAgentIdList.length;
-    }
-    else {
-      return asyncAgentIdListTail - asyncAgentIdListHead;
-    }
-  }
-  
-  public int asyncAgentIdListGetNextId() {
-    if(asyncAgentIdListSize() == 0) {
-      return -1;
-    } else {
-      int index = asyncAgentIdListHead;
-		asyncAgentIdListHead = (asyncAgentIdListHead + 1) % asyncAgentIdList.length;
-      return asyncAgentIdList[index];
-    }
-  }
-
-  public void asyncAgentIdListClear() {
-	  asyncAgentIdList = new int[1000000];
-	  asyncAgentIdListHead = 0;
-	  asyncAgentIdListTail = 0;
-  }
-  
-  public void asyncAgentIdListAdd(int value) {
-	  asyncAgentIdList[asyncAgentIdListTail] = value;
-	  asyncAgentIdListTail = (asyncAgentIdListTail + 1)% asyncAgentIdList.length;
-  }
-  
-  public boolean asyncAgentIdListIsEmpty() {
-    return asyncAgentIdListTail == asyncAgentIdListHead;
-  }
-  
-  public int asyncAgentIdListGet(int index) {
-    return asyncAgentIdList[(index + asyncAgentIdListHead) % asyncAgentIdList.length];
-  }
 
   private class ProcessAgentMigrationRequest extends Thread {
     	
