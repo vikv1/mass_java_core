@@ -522,18 +522,6 @@ public class MASSBase {
     	}
     
     }
-    
-    public static int[] getOutAsyncAgents() {
-      return outAgents;
-    }
-    
-    public static int[] getInAsyncAgents() {
-      return inAgents;
-    }
-
-    /**
-     * END Async methods
-     */
 
     /**
 	 * Get the port number used for inter-node communications
