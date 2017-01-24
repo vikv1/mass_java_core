@@ -144,13 +144,16 @@ class Utilities {
     		logger.debug( "Setting username to {}", remoteNode.getUserName() );
     		logger.debug( "Connecting to port {}", SSH_PORT );
             Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
-            
-            logger.debug( "Disabling string host key checking" );
+
+            logger.debug( "Setting preferred authentication method");
+            config.put("PreferredAuthentications", "publickey");
+
+            logger.debug( "Disabling strict host key checking" );
             config.put( "StrictHostKeyChecking", "no" );  
-            session.setConfig( config );
             
             // authenticate and complete connection sequence to the remote host
             logger.debug( "Attempting to connect and authenticate..." );
+            session.setConfig( config );
             session.connect( );
             logger.debug( "Connected!" );
 
@@ -159,12 +162,15 @@ class Utilities {
             channel = ( ChannelExec ) session.openChannel( "exec" );
             channel.setCommand( Command );
             logger.debug( "Command executed!");
+    	
     	} catch ( Exception e ) {
+    		
     		// log the error message
     		logger.error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
     		
     		// TODO - should we return NULL here to prevent the return of a partially connected channel?
     		return null;
+    	
     	}
     	
     	return channel;
