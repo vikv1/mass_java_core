@@ -293,12 +293,13 @@ public class Place {
 		// Ensure the file exists at the specified path
 		if (!Files.exists(path)) {
 			logger.error("The given file path does not exist");
+			return -1;
 		}
 
 		// Isolate the file name
 		String fileName = path.getFileName().toString();
 
-		synchronized (fileTable) {    // TODO: 1/13/17 I believe Hashtables in Java are always synchronized, thus is this redundant?
+		synchronized (fileTable) {
 
 			// Only the first place opens the file
 			if (!fileTable.containsKey(count - 1) ) {
@@ -590,6 +591,10 @@ public class Place {
 		}
 		return true;
 	}
+
+
+	// TODO: 1/13/17 Once finished implementing and testing read() (including on mutliple nodes) add write() functionality
+
 
 	/**
 	 * Closes the specified file descriptor and removes it from the file table
