@@ -41,7 +41,7 @@ public class AgentSpawnRequestManager
      * Returns true if max agent size is not yet reached and spawned agent
      *  should run in the system. Serializes the agent and returns false, otherwise.
     * */
-    protected boolean shouldAgentRunInTheSystem(Agent agent, int currentActiveAgentSize)
+    protected boolean shouldAgentRunInTheSystem(Agent agent, int x, int y, int currentActiveAgentSize)
     {
         // let it run in the system
         if ((currentActiveAgentSize + 1) <= MAX_ACTIVE_AGENT_SIZE)
@@ -52,6 +52,14 @@ public class AgentSpawnRequestManager
         else
         {
             // serialization
+            AgentSerializer agentSerializer = new AgentSerializer();
+            String serializedAgentIdentifier = agentSerializer.serializeAgent(agent);
+            // setup spawn request object
+            AgentSpawnRequest agentSpawnRequest = new AgentSpawnRequest();
+            agentSpawnRequest.setSerializedAgentIdentifier(serializedAgentIdentifier);
+            agentSpawnRequest.setX(x);
+            agentSpawnRequest.setY(y);
+            agentSpawnRequestQueue.add(agentSpawnRequest);
             return false;
         }
     }
