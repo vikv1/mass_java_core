@@ -8,13 +8,15 @@ package edu.uw.bothell.css.dsl.MASS;
  */
 public class AgentSpawnRequest
 {
-    // Serialized agent object
-    // private KRYOOBJECT serializedAgent;
+    // Serialized agent identifier
+    private String serializedAgentIdentifier;
 
     // Coordinates
     private int x, y;
 
     // Getters
+    public String getSerializedAgentIdentifier() { return serializedAgentIdentifier; }
+
     public int getX() {
         return x;
     }
@@ -24,6 +26,8 @@ public class AgentSpawnRequest
     }
 
     // Setters
+    public void setSerializedAgentIdentifier(String serializedAgentIdentifier) { this.serializedAgentIdentifier = serializedAgentIdentifier; }
+
     public void setX(int x) {
         this.x = x;
     }

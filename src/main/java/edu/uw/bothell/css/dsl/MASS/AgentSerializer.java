@@ -43,12 +43,12 @@ public class AgentSerializer
     {
         try
         {
-            String uniqueIdentifier = agent.getAgentId() + KRYO_SERIALIZATION_EXTENSION;
-            fileOutputStream = new FileOutputStream(uniqueIdentifier);
+            String serializedAgentIdentifier = agent.getAgentId() + KRYO_SERIALIZATION_EXTENSION;
+            fileOutputStream = new FileOutputStream(serializedAgentIdentifier);
             Output output = new Output(fileOutputStream);
             kryo.writeObject(output, agent);
             output.close();
-            return uniqueIdentifier;
+            return serializedAgentIdentifier;
 
         }
         catch (java.io.IOException exx)
@@ -62,8 +62,7 @@ public class AgentSerializer
     {
         try
         {
-            String uniqueIdentifier = serializedAgentIdentifier;
-            fileInputStream = new FileInputStream(uniqueIdentifier);
+            fileInputStream = new FileInputStream(serializedAgentIdentifier);
             Input input = new Input(fileInputStream);
             Agent deserializedAgent = (Agent)kryo.readObject(input, Agent.class);
             return deserializedAgent;
