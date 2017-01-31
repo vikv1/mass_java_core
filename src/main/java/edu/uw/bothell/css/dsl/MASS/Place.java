@@ -32,6 +32,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.ma2.*;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.util.IO;
@@ -489,11 +490,27 @@ public class Place {
 				return false;
 			}
 
+			// TODO: 1/30/17 test bellow
+			List<Dimension> dimensions = var.getDimensions();
+
+			int[] readDim = new int[dimensions.size()];
+
+			for (int i = 0; i < dimensions.size(); i++) {
+				readDim[i] = dimensions.get(i).getLength();
+				logger.debug(i + "dimension size: " + readDim[i]);
+			}
+
+			// Split along x axis
+			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
+
+			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+			logger.debug("x dimension: " + readDim[0] + ", for place: " + placeOrder);
+
 			// Read data and add to place storage
 			try {
 
 				Array userDataset = varsData.get(varName);
-				ArrayFloat.D3 varData;
+				ArrayFloat.D3 currVarData;
 
 				// Read for 3D float
 				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
@@ -501,8 +518,18 @@ public class Place {
 				// (You will have to have separate implementations for each dimension if we want to support that)
 				if (userDataset instanceof ArrayFloat.D3) {
 					// read one element starting at this places index
-					varData = (ArrayFloat.D3) var.read(index, new int[]{1, 1, 1});
-					((ArrayFloat.D3) userDataset).set(index[0], index[1], index[2], varData.get(0, 0, 0));
+					currVarData = (ArrayFloat.D3) var.read(new int[] { placeOrder, 0, 0}, readDim);
+
+					logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
+
+					//((ArrayFloat.D3) userDataset).set(placeOrder, 0, 0, ??);
+					for (int x = 0; x < readDim[0]; x++) {
+						for (int y = 0; y < readDim[1]; y++) {
+							for (int z = 0; z < readDim[2]; z++) {
+								((ArrayFloat.D3) userDataset).set(x + placeOrder, y, z, currVarData.get(x, y, z));
+							}
+						}
+					}
 				}
 
 			} catch (InvalidRangeException ire) {
