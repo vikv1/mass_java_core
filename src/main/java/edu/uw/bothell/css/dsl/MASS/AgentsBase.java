@@ -71,7 +71,9 @@ public class AgentsBase implements Serializable {
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-	// agent population control
+	/***** Agent population control *****/
+
+	// the manager that takes care of excessive agent problem
 	private AgentSpawnRequestManager agentSpawnRequestManager;
 
 	// logging
@@ -425,7 +427,17 @@ public class AgentsBase implements Serializable {
 
     				synchronized( this ) {
 
-    					agentInitAgentId = this.currentAgentId++;
+						// check if there is available agent id
+						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+						if (availableAgentId > -1)
+						{
+							agentInitAgentId = availableAgentId;
+						}
+						// assign a never used id
+						else
+						{
+							agentInitAgentId = this.currentAgentId++;
+						}
     					addAgent =
     							(Agent) (// validate the correspondance of arguments and
     									// argumentcounter
