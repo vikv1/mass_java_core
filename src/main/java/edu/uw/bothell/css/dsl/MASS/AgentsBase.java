@@ -71,6 +71,9 @@ public class AgentsBase implements Serializable {
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
+	// agent population control
+	private AgentSpawnRequestManager agentSpawnRequestManager;
+
 	// logging
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
     
@@ -81,6 +84,7 @@ public class AgentsBase implements Serializable {
     	this.placesHandle = placesHandle;
     	this.initPopulation = initPopulation;
     	this.agents = new AgentList( );
+		this.agentSpawnRequestManager = new AgentSpawnRequestManager();
 
     	// For debugging
   		logger.debug( "handle = " + handle
@@ -395,7 +399,7 @@ public class AgentsBase implements Serializable {
     		// zero, we need to create newChildren's worth of Agents in the 
     		// current location.
 
-    		// Spawn() Check
+			/******* SPAWN() CHECK *******/
     		int childrenCounter = evaluationAgent.getNewChildren();
 
    			logger.debug( "agent " + evaluationAgent.getAgentId() +
@@ -466,8 +470,9 @@ public class AgentsBase implements Serializable {
     						" child into retBag." );
     		
     		}
+			/*****************************/
 
-    		// Kill() Check
+			/******* KILL() CHECK *******/
    			logger.debug( "Agent_base.manageALL: Thread " + tid +
     					" check " + evaluationAgent.getAgentId() + 
     					"'s alive = " + evaluationAgent.isAlive() );
@@ -487,9 +492,9 @@ public class AgentsBase implements Serializable {
     			continue;
     		
     		}
+			/****************************/
 
-    		//Migrate() check
-
+			/******* MIGRATE() CHECK *******/
     		//Iterate over all dimensions of the agent to check its location
     		//against that of its place. If they are the same, return back.
     		int agentIndex = evaluationAgent.getIndex().length;
@@ -609,7 +614,7 @@ public class AgentsBase implements Serializable {
     			logger.error( " to destination invalid" );
     		
     		}
-    	
+			/*******************************/
     	} // end of while( true )
 
     	// When while loop finishes, all threads must barrier and tid = 0
