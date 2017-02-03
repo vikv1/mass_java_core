@@ -1,7 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  * Created by utku on 1/24/17.
@@ -14,6 +16,9 @@ public class AgentSpawnRequestManager
 {
     // Queue for agent spawn requests
     Queue<AgentSpawnRequest> agentSpawnRequestQueue = new LinkedList<AgentSpawnRequest>();
+
+    // Set for available agent ids for new agents to be spawned
+    Queue<Integer> availableAgentIdsQueue = new LinkedList<>();
 
     // Max active agents allowed in the node
     private final int MAX_ACTIVE_AGENT_SIZE;
@@ -62,5 +67,32 @@ public class AgentSpawnRequestManager
             agentSpawnRequestQueue.add(agentSpawnRequest);
             return false;
         }
+    }
+
+    /**
+     * Returns next available agent id in the queue, -1 otherwise.
+     * */
+    protected Integer getNextAvailableAgentId()
+    {
+        // check if there is an element in the queue
+        if (availableAgentIdsQueue.size() > 0)
+        {
+            return availableAgentIdsQueue.poll();
+        }
+        // no available index
+        else
+        {
+            return -1;
+        }
+    }
+
+    /**
+     * Adds available agent id to the queue.
+     *
+     * @param availableAgentId agent id to be added.
+     */
+    protected void addAvailabeAgentId(Integer availableAgentId)
+    {
+        availableAgentIdsQueue.add(availableAgentId);
     }
 }

@@ -468,6 +468,10 @@ public class AgentsBase implements Serializable {
     						evaluationAgent.getAgentId() +
     						" and put the child " + addAgent.getAgentId() +
     						" child into retBag." );
+
+				/**
+				 * every time we spawn a new agent, we should check if there is available index first!!!
+				 * */
     		
     		}
 			/*****************************/
@@ -487,6 +491,9 @@ public class AgentsBase implements Serializable {
 
     			// remove from AgentList, too!
     			agents.remove( myIndex - 1 );
+
+				// every time we kill an agent, we should add its id to the available ids queue
+				agentSpawnRequestManager.addAvailabeAgentId(evaluationAgent.getAgentId());
 
     			// don't go down to migrate
     			continue;
