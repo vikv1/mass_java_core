@@ -78,6 +78,7 @@ public class Agent implements Serializable {
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	public Agent ( ) {
+		//super();
 		//agentId = Agents.getAgentInitAgentId();
 	}
 

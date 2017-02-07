@@ -18,6 +18,9 @@ public class AgentSpawnRequestManager
     // Set for available agent ids for new agents to be spawned
     Queue<Integer> availableAgentIdsQueue = new LinkedList<>();
 
+    // Agent serializer
+    AgentSerializer agentSerializer = new AgentSerializer();
+
     // Max active agents allowed in the node
     private final int MAX_ACTIVE_AGENT_SIZE;
     private final int MAX_ACTIVE_AGENT_SIZE_DEFAULT_VALUE = 64;
@@ -46,16 +49,18 @@ public class AgentSpawnRequestManager
     * */
     protected boolean shouldAgentRunInTheSystem(Agent agent, int currentActiveAgentSize)
     {
+        System.out.println("shouldAgentRunInTheSystem - currentActiveAgentSize: " + currentActiveAgentSize);
         // let it run in the system
         if ((currentActiveAgentSize + 1) <= MAX_ACTIVE_AGENT_SIZE)
         {
+            System.out.println("YES - agent is let run");
             return true;
         }
         // serialize the agent object
         else
         {
+            System.out.println("NO - agent is serialized");
             // serialization
-            AgentSerializer agentSerializer = new AgentSerializer();
             String serializedAgentIdentifier = agentSerializer.serializeAgent(agent);
             // setup spawn request object
             AgentSpawnRequest agentSpawnRequest = new AgentSpawnRequest();
@@ -72,16 +77,18 @@ public class AgentSpawnRequestManager
      * */
     protected Agent getNextAgentSpawnRequest()
     {
+        System.out.println("getNextAgentSpawnRequest");
         // check if there is an element in the queue
         if (agentSpawnRequestQueue.size() > 0)
         {
+            System.out.println("agent is de-serialized");
             // deserialization
-            AgentSerializer agentSerializer = new AgentSerializer();
             return agentSerializer.deserializeAgent(agentSpawnRequestQueue.poll().getSerializedAgentIdentifier());
         }
         // no agent spawn request
         else
         {
+            System.out.println("returning null");
             return null;
         }
     }
