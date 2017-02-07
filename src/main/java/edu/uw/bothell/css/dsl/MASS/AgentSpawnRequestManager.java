@@ -44,7 +44,7 @@ public class AgentSpawnRequestManager
      * Returns true if max agent size is not yet reached and spawned agent
      *  should run in the system. Serializes the agent and returns false, otherwise.
     * */
-    protected boolean shouldAgentRunInTheSystem(Agent agent, int x, int y, int currentActiveAgentSize)
+    protected boolean shouldAgentRunInTheSystem(Agent agent, int currentActiveAgentSize)
     {
         // let it run in the system
         if ((currentActiveAgentSize + 1) <= MAX_ACTIVE_AGENT_SIZE)
@@ -60,15 +60,34 @@ public class AgentSpawnRequestManager
             // setup spawn request object
             AgentSpawnRequest agentSpawnRequest = new AgentSpawnRequest();
             agentSpawnRequest.setSerializedAgentIdentifier(serializedAgentIdentifier);
-            agentSpawnRequest.setX(x);
-            agentSpawnRequest.setY(y);
+            // TODO index storing might be unnecessary
+            //agentSpawnRequest.setIndex(agent.getIndex());
             agentSpawnRequestQueue.add(agentSpawnRequest);
             return false;
         }
     }
 
     /**
-     * Returns next available agent id in the queue, -1 otherwise.
+     * Returns next agent spawn request in the queue, null if there is none.
+     * */
+    protected Agent getNextAgentSpawnRequest()
+    {
+        // check if there is an element in the queue
+        if (agentSpawnRequestQueue.size() > 0)
+        {
+            // deserialization
+            AgentSerializer agentSerializer = new AgentSerializer();
+            return agentSerializer.deserializeAgent(agentSpawnRequestQueue.poll().getSerializedAgentIdentifier());
+        }
+        // no agent spawn request
+        else
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Returns next available agent id in the queue, -1 if there is none.
      * */
     protected Integer getNextAvailableAgentId()
     {
@@ -77,7 +96,7 @@ public class AgentSpawnRequestManager
         {
             return availableAgentIdsQueue.poll();
         }
-        // no available index
+        // no available agent id
         else
         {
             return -1;

@@ -78,7 +78,7 @@ public class Agent implements Serializable {
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	public Agent ( ) {
-		agentId = Agents.getAgentInitAgentId();
+		//agentId = Agents.getAgentInitAgentId();
 	}
 
 	/**
@@ -196,6 +196,10 @@ public class Agent implements Serializable {
 		this.index = index.clone( ); // assign the new index
 		return true;
 
+	}
+
+	protected void setAgentId(Integer agentId) {
+		this.agentId = agentId;
 	}
 
 	protected void setIndex(int[] index) {
