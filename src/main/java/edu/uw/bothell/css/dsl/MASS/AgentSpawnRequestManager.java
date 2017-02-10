@@ -19,7 +19,7 @@ public class AgentSpawnRequestManager
     Queue<Integer> availableAgentIdsQueue = new LinkedList<>();
 
     // Agent serializer
-    AgentSerializer agentSerializer = new AgentSerializer();
+    AgentSerializer agentSerializer;
 
     // Max active agents allowed in the node
     private final int MAX_ACTIVE_AGENT_SIZE;
@@ -27,11 +27,13 @@ public class AgentSpawnRequestManager
 
     public AgentSpawnRequestManager()
     {
+        agentSerializer = AgentSerializer.getInstance();
         MAX_ACTIVE_AGENT_SIZE = MAX_ACTIVE_AGENT_SIZE_DEFAULT_VALUE;
     }
 
     public AgentSpawnRequestManager(int maxActiveAgentSize)
     {
+        agentSerializer = AgentSerializer.getInstance();
         // check if max active agent size is legit
         if (maxActiveAgentSize > 0)
         {
@@ -68,6 +70,13 @@ public class AgentSpawnRequestManager
             // TODO index storing might be unnecessary
             //agentSpawnRequest.setIndex(agent.getIndex());
             agentSpawnRequestQueue.add(agentSpawnRequest);
+            System.out.println("serialization done.. added to the queue with id: " + serializedAgentIdentifier);
+            System.out.print("in queue: ");
+            for (AgentSpawnRequest asr : agentSpawnRequestQueue)
+            {
+                System.out.print(asr.getSerializedAgentIdentifier());
+            }
+            System.out.println();
             return false;
         }
     }
