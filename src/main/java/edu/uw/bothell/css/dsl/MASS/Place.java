@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.Serializable;
 import java.util.Collections; // for synchronized set
 import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
@@ -41,7 +42,7 @@ import java.util.Vector;
  *	perform operations on objects contained within the Place. 
  *
  */
-public class Place {
+public class Place implements Serializable {
 
 	/**
 	  * Defines the size of the matrix that consists of application-specific
@@ -70,8 +71,11 @@ public class Place {
 	  */
 	private Object[] inMessages = null;
 	
-	/** Includes all the agents residing locally on this place. */
-	private Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
+	/**
+	 *  Includes all the agents residing locally on this place.
+	 *  Synchronized set is NOT serializable !
+	 *  */
+	private transient Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
 	private Vector< int[] > neighbors = null;
 
@@ -127,6 +131,11 @@ public class Place {
 	
 	}
 
+	/**
+	 * Important: Synchronized set is NOT serializable. Therefore when agent is de-serialized
+	 * 	the place field of agent must be re-assigned. Otherwise you will get an exception when you
+	 * 	call <agent_instance>.getPlace().getAgents()
+	 * */
 	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
