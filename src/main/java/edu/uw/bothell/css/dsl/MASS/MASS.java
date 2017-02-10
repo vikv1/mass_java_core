@@ -439,7 +439,21 @@ public class MASS extends MASSBase {
     	}
     	System.err.println( "MASS.init: done" );
     }
-    
+
+    /**
+	 * Initialize the MASS library using arguments. Calling this method lets MASS use Kryo serialization.
+	 * @param classes An array of class definitions that need to be registered by Kryo serializer.
+	 */
+	public static void init( Class[] classes )
+	{
+		// store class definitions
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+		agentSerializer.setRegisteredClasses(classes);
+
+		// after classes have been stored, perform initialization
+		init();
+	}
+
     /**
      * Initialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
