@@ -71,12 +71,14 @@ public class AgentSpawnRequestManager
             //agentSpawnRequest.setIndex(agent.getIndex());
             agentSpawnRequestQueue.add(agentSpawnRequest);
             System.out.println("serialization done.. added to the queue with id: " + serializedAgentIdentifier);
+            /*
             System.out.print("in queue: ");
             for (AgentSpawnRequest asr : agentSpawnRequestQueue)
             {
                 System.out.print(asr.getSerializedAgentIdentifier());
             }
             System.out.println();
+            */
             return false;
         }
     }

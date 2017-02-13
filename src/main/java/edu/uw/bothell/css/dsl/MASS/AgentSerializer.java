@@ -6,8 +6,6 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.*;
 import com.esotericsoftware.minlog.Log;
 
-import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
-
 import org.objenesis.strategy.*;
 
 import java.io.FileInputStream;
@@ -104,15 +102,16 @@ public class AgentSerializer
 
         try
         {
+            System.out.println("----");
             String serializedAgentIdentifier =  System.currentTimeMillis() + KRYO_SERIALIZATION_EXTENSION;
             System.out.println("serializing agent with id: " + serializedAgentIdentifier);
-            System.out.println("serialized agent's index is: " + agent.getIndex()[0] + " " + agent.getIndex()[1]);
+            //System.out.println("serialized agent's index is: " + agent.getIndex()[0] + " " + agent.getIndex()[1]);
             FileOutputStream fileOutputStream = new FileOutputStream(serializedAgentIdentifier);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(agent);
             objectOutputStream.close();
             fileOutputStream.close();
-            System.out.println("returning id: " + serializedAgentIdentifier);
+            //System.out.println("returning id: " + serializedAgentIdentifier);
             return serializedAgentIdentifier;
         }
         catch (java.io.IOException ex)
@@ -158,6 +157,7 @@ public class AgentSerializer
 
         try
         {
+            System.out.println("----");
             System.out.println("de-serializing agent with id: " + serializedAgentIdentifier);
             FileInputStream fileInputStream = new FileInputStream(serializedAgentIdentifier);
             ObjectInputStream objectInputStream= new ObjectInputStream(fileInputStream);
