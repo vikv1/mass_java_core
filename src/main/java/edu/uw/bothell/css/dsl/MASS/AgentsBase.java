@@ -53,8 +53,8 @@ public class AgentsBase implements Serializable {
 		Currently we are using STARTING_CHILD_ASYNC_INDEX, however in the future
 		 we are supposed to use currentAgentId.
 	*/
-    // public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million
-	public static final int MAX_AGENTS_PER_NODE = 20;
+	//public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million
+	public static final int MAX_AGENTS_PER_NODE = 30;
 
 
     private final int handle;
@@ -459,8 +459,12 @@ public class AgentsBase implements Serializable {
 
 					}
 
-    				addAgent.setIndex(evaluationAgent.getIndex());
+					// Index SHOULD be set using getplace not agent.getindex()
+    				//addAgent.setIndex(evaluationAgent.getIndex());
+					addAgent.setIndex(evaluationAgent.getPlace().getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
+					//System.out.println("agent is about to be spawned and its index: " + addAgent.getIndex()[0] + " " + addAgent.getIndex()[1]);
+					//System.out.println("agent is about to be spawned and place index: " + addAgent.getPlace().getIndex()[0] + " " + addAgent.getPlace().getIndex()[1]);
 
 					/** Agent population control work begins, execution order is important! **/
 
@@ -472,6 +476,7 @@ public class AgentsBase implements Serializable {
 						if (availableAgentId > -1)
 						{
 							addAgent.setAgentId(availableAgentId);
+							//addAgent.setAgentId(this.currentAgentId++);
 						}
 						// assign a never used id
 						else
@@ -549,6 +554,7 @@ public class AgentsBase implements Serializable {
 					if (availableAgentId > -1)
 					{
 						agentSpawnRequest.setAgentId(availableAgentId);
+						//agentSpawnRequest.setAgentId(this.currentAgentId++);
 					}
 					// assign a never used id
 					else
@@ -557,11 +563,27 @@ public class AgentsBase implements Serializable {
 					}
 
 					System.out.println("agent spawn request's new agent id is: " + agentSpawnRequest.getAgentId());
-					System.out.println("----");
 					System.out.println("agent spawn request's index is: " + agentSpawnRequest.getIndex()[0] + " " + agentSpawnRequest.getIndex()[1]);
-					agentSpawnRequest.setPlace(evaluationPlace);
+					// retrieve the corresponding places
+					PlacesBase curPlaces =
+							MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+					int globalLinearIndex = curPlaces.getGlobalLinearIndexFromGlobalArrayIndex(agentSpawnRequest.getIndex(), curPlaces.getSize());
+					// local destination
+					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
+
+					Place curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+
+					// push this agent into the place and the entire agent bag.
+					agentSpawnRequest.setPlace(curPlace);
 					System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
-					System.out.println("agent spawn request's place's agents are: " + agentSpawnRequest.getPlace().getAgents().toString());
+					System.out.println("agent spawn request's place's index is: " + curPlace.getIndex()[0] + " " + curPlace.getIndex()[1]);
+
+					//agent.setIndex(dstPlace.getIndex());
+					//dstPlace.getAgents().add( agent ); // auto sync
+					//agents.add( agent );          // auto sync
+					//agentSpawnRequest.setPlace(evaluationPlace);
+					//System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
+					//System.out.println("agent spawn request's place's agents are: " + agentSpawnRequest.getPlace().getAgents().toString());
 
 					// Push the created agent into our bag for returns and
 					// update the counter needed to keep track of our agents.
