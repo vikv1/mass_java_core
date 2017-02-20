@@ -47,8 +47,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import com.jcraft.jsch.Channel;
-
 import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
 import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
@@ -406,14 +404,15 @@ public class MASS extends MASSBase {
 //    					node.getUserName(),
 //    					node.getPassWord() );
     			
-    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
+//    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
+    			util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
-    			if ( ssh2connection == null )
-    				throw new Exception( "JSCH channel not created" );
+//    			if ( ssh2connection == null )
+//    				throw new Exception( "JSCH channel not created" );
 
     			// A new remote process launched. 
     			// The corresponding Mnode created
-    			node.setChannel(ssh2connection);
+//    			node.setChannel(ssh2connection);
     			node.initialize();
     			
     		} catch ( Exception e ) {

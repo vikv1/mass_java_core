@@ -102,13 +102,22 @@
 		</dependency>
 
 		<!-- For SSH connectivity to remote hosts -->
+		<!-- 
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-			<version>0.1.51</version>
+			<version>0.1.53</version>
 			<scope>compile</scope>
 		</dependency>
-
+		-->
+		
+		<dependency>
+  			<groupId>com.hierynomus</groupId>
+  			<artifactId>sshj</artifactId>
+  			<version>0.20.0</version>
+			<scope>compile</scope>
+		</dependency>
+	
 		<!--  For JAXB serialization to/from XML -->
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>

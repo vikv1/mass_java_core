@@ -126,5 +126,16 @@ public class Log4J2Logger {
 	public boolean isDebugEnabled() {
 		return logger.isDebugEnabled();
 	}
+
+//	@Override
+//	public boolean isEnabled(int arg0) {
+//		// TODO Auto-generated method stub
+//		return true;
+//	}
+//
+//	@Override
+//	public void log(int arg0, String arg1) {
+//		System.out.println(arg1);
+//	}
 	
 }

@@ -42,9 +42,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jcraft.jsch.Channel;  // Jsch used for Node connections
-import com.jcraft.jsch.Session;
-
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
@@ -69,12 +66,42 @@ public class MNode {
 	private boolean isMaster = false;	// is this the master node? - optional
 	private int pid;              		// process ID
 	private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
-	private Channel channel;            // JSCH channel
+//	private Channel channel;            // JSCH channel
 	private ObjectInputStream mainIOS;  // from remote to master
 	private ObjectOutputStream mainOOS; // from master to remote
 	private int resetCounter = 0;
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
+//    private Session session;
+    private InputStream inputStream;
     
+    @XmlTransient
+    public InputStream getInputStream() {
+		return inputStream;
+	}
+
+	public void setInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
+	}
+
+	@XmlTransient
+	public OutputStream getOutputStream() {
+		return outputStream;
+	}
+
+	public void setOutputStream(OutputStream outputStream) {
+		this.outputStream = outputStream;
+	}
+
+	private OutputStream outputStream;
+	
+//	public Session getSession() {
+//		return session;
+//	}
+//
+//	public void setSession(Session session) {
+//		this.session = session;
+//	}
+
 	/**
 	 * Terminate all communications channels to the remote Node
 	 */
@@ -84,9 +111,11 @@ public class MNode {
 
 			mainIOS.close( );
 			mainOOS.close( );
-			Session session = channel.getSession( );
-			channel.disconnect( );
-			session.disconnect( );
+			inputStream.close();
+			outputStream.close();
+//			Session session = channel.getSession( );
+//			channel.disconnect( );
+//			session.disconnect( );
 
 		} catch( Exception e ) {
 
@@ -102,10 +131,10 @@ public class MNode {
 	 * Get the JSCH communications channel connected to the node
 	 * @return The JSCH communications channel
 	 */
-	@XmlTransient
-	public Channel getChannel() {
-		return channel;
-	}
+//	@XmlTransient
+//	public Channel getChannel() {
+//		return channel;
+//	}
 
 	/**
      * Return the Hostname or IP address of this Node
@@ -180,18 +209,24 @@ public class MNode {
 		
 		try {
 
+			// log error if streams not initialized
+			
+			
 			// hostname should have been set already, if not, set to default
 			if (getHostName() == null) setHostName(InetAddress.getLocalHost( ).getCanonicalHostName( ));
 			
 			// set input/output streams, then execute the command to start MProcess on the remote node
-			InputStream is = channel.getInputStream();
-			OutputStream os = channel.getOutputStream();
-			channel.connect();
+//			InputStream is = channel.getInputStream();
+//			OutputStream os = channel.getOutputStream();
+//			channel.connect();
+			
 			
 			// with input/output channels established, set object streams
-			mainOOS = new ObjectOutputStream( os );
+//			mainOOS = new ObjectOutputStream( os );
+			mainOOS = new ObjectOutputStream( outputStream );
 			mainOOS.flush( );
-			mainIOS = new ObjectInputStream( is );
+//			mainIOS = new ObjectInputStream( is );
+			mainIOS = new ObjectInputStream( inputStream );
 		
 		}
 		
@@ -277,9 +312,9 @@ public class MNode {
 	 * Set the JSCH channel (already established) with the remote Node
 	 * @param channel The initialized JSCH channel connected to the remote Node
 	 */
-	public void setChannel(Channel channel) {
-		this.channel = channel;
-	}
+//	public void setChannel(Channel channel) {
+//		this.channel = channel;
+//	}
 
 	/**
 	 * Set the Hostname or IP address of this Node

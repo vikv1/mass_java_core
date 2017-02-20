@@ -34,13 +34,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
-
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.connection.channel.direct.Session.Command;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
 /**
  * MASS Utilities
@@ -56,7 +54,7 @@ class Utilities {
 
 	// reference to the SSH library - not initialized by default so it can be
 	// replaced by a mock object for testing
-	private JSch jsch = null;
+//	private JSch jsch = null;
 	
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
@@ -76,49 +74,49 @@ class Utilities {
 	 * @param Password When connecting to the remote host, use the supplied password
 	 * @return An open communications channel with the remote host
 	 */
-	@Deprecated
-    protected Channel LaunchRemoteProcess( String Host, int PortNumber, 
-					   String Command, String UserName, 
-					   String Password ) {
-        
-    	ChannelExec channel = null;
-        
-    	try {
-            
-    		// instantiate the SSH library if necessary (might be replaced
-    		// by a mock object during unit testing)
-    		if (jsch == null) jsch = new JSch( );
-
-            // initiate SSH connection to the remote host
-            Session session = jsch.getSession( UserName, Host, PortNumber );
-
-            // username and password will be given via UserInfo interface.
-            UserInfo ui = new MyUserInfo( Password );
-            session.setUserInfo( ui );
-            
-            // authenticate and complete connection sequence to the remote host
-            session.connect( );
-
-            // set the command to be executed upon channel connection
-            channel = (ChannelExec) session.openChannel( "exec" );
-            channel.setCommand( Command );
-            
-    	}
-        
-    	catch ( Exception e ) {
-            
-    		// "display" the error message
-    		System.err.println( e );
-    		
-    		// TODO - should we return NULL here to prevent the return of a partially connected channel?
-
-        }
-        
-        return channel;
-
-    }
+//	@Deprecated
+//    protected Channel LaunchRemoteProcess( String Host, int PortNumber, 
+//					   String Command, String UserName, 
+//					   String Password ) {
+//        
+//    	ChannelExec channel = null;
+//        
+//    	try {
+//            
+//    		// instantiate the SSH library if necessary (might be replaced
+//    		// by a mock object during unit testing)
+//    		if (jsch == null) jsch = new JSch( );
+//
+//            // initiate SSH connection to the remote host
+//            Session session = jsch.getSession( UserName, Host, PortNumber );
+//
+//            // username and password will be given via UserInfo interface.
+//            UserInfo ui = new MyUserInfo( Password );
+//            session.setUserInfo( ui );
+//            
+//            // authenticate and complete connection sequence to the remote host
+//            session.connect( );
+//
+//            // set the command to be executed upon channel connection
+//            channel = (ChannelExec) session.openChannel( "exec" );
+//            channel.setCommand( Command );
+//            
+//    	}
+//        
+//    	catch ( Exception e ) {
+//            
+//    		// "display" the error message
+//    		System.err.println( e );
+//    		
+//    		// TODO - should we return NULL here to prevent the return of a partially connected channel?
+//
+//        }
+//        
+//        return channel;
+//
+//    }
     
-    protected Channel LaunchRemoteProcess( String Command, MNode remoteNode ) {
+    protected void LaunchRemoteProcess( String Command, MNode remoteNode ) {
     	
     	// must provide required parameters
     	// TODO - should throw IllegalArgumentException instead of returning NULL
@@ -127,86 +125,122 @@ class Utilities {
     	if ( remoteNode == null ) //return null;
     		throw new IllegalArgumentException( "remoteNode is equal to null" );
     	
-    	ChannelExec channel = null;
+//    	ChannelExec channel = null;
     	Properties config = new Properties();
+    	net.schmizz.sshj.connection.channel.direct.Session newsession = null;
     	
     	try {
-    		// instantiate the SSH library if necessary (might be replaced
-    		// by a mock object during unit testing)
-    		if ( jsch == null ) jsch = new JSch( );
     		
-    		// add reference to SSH key
-    		logger.debug( "Adding private key: {}", remoteNode.getPrivateKey() );
-    		jsch.addIdentity( remoteNode.getPrivateKey() );
+//    		// instantiate the SSH library if necessary (might be replaced
+//    		// by a mock object during unit testing)
+//    		if ( jsch == null ) jsch = new JSch( );
+//    		jsch.setLogger(logger);
+//    		
+//    		// add reference to SSH key
+//    		logger.debug( "Adding private key: {}", remoteNode.getPrivateKey() );
+//    		jsch.addIdentity( remoteNode.getPrivateKey() );
+//    		
+//            // set SSH connection properties
+//    		logger.debug( "Setting hostname to {}", remoteNode.getHostName() );
+//    		logger.debug( "Setting username to {}", remoteNode.getUserName() );
+//    		logger.debug( "Connecting to port {}", SSH_PORT );
+//            Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
+//
+//            logger.debug( "Setting preferred authentication method");
+//            config.put("PreferredAuthentications", "publickey");
+//
+//            logger.debug( "Disabling strict host key checking" );
+//            config.put( "StrictHostKeyChecking", "no" );  
+//            
+//            // authenticate and complete connection sequence to the remote host
+//            logger.debug( "Attempting to connect and authenticate..." );
+//            session.setConfig( config );
+//            session.connect( );
+//            logger.debug( "Connected!" );
+//
+//            // set the command to be executed upon channel connection
+//            logger.debug( "Executing remote command: {}", Command );
+//            channel = ( ChannelExec ) session.openChannel( "exec" );
+//            channel.setCommand( Command );
+//            logger.debug( "Command executed!");
+
+    		 // hack for JCE Unlimited Strength
+//    	    Field field = Class.forName("javax.crypto.JceSecurity").getDeclaredField("isRestricted");
+//    	    field.setAccessible(true);
+//    	    Field modifiersField = Field.class.getDeclaredField("modifiers");
+//    	    modifiersField.setAccessible(true);
+//    	    modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+//    	    field.set(null, false);
+    	    
+    		SSHClient sshClient= new SSHClient();
     		
-            // set SSH connection properties
-    		logger.debug( "Setting hostname to {}", remoteNode.getHostName() );
-    		logger.debug( "Setting username to {}", remoteNode.getUserName() );
-    		logger.debug( "Connecting to port {}", SSH_PORT );
-            Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
-
-            logger.debug( "Setting preferred authentication method");
-            config.put("PreferredAuthentications", "publickey");
-
-            logger.debug( "Disabling strict host key checking" );
-            config.put( "StrictHostKeyChecking", "no" );  
-            
-            // authenticate and complete connection sequence to the remote host
-            logger.debug( "Attempting to connect and authenticate..." );
-            session.setConfig( config );
-            session.connect( );
-            logger.debug( "Connected!" );
-
-            // set the command to be executed upon channel connection
-            logger.debug( "Executing remote command: {}", Command );
-            channel = ( ChannelExec ) session.openChannel( "exec" );
-            channel.setCommand( Command );
-            logger.debug( "Command executed!");
-    	
+    		sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+//    		sshClient.addHostKeyVerifier("d5:ac:ad:1f:19:2c:4d:be:92:10:45:65:0a:d2:81:1b");
+//    		sshClient.loadKnownHosts();
+    		
+    		sshClient.connect(remoteNode.getHostName());
+    		
+    		// only for public key authentication
+    		sshClient.authPublickey(remoteNode.getUserName());
+//    		sshClient.authPublickey(remoteNode.getUserName(), remoteNode.getPrivateKey());
+    		//sshClient.authPassword(remoteNode.getUserName(), "decPDP11");
+    		
+    		Session shellSession = sshClient.startSession();
+    		shellSession.startShell();
+    		
+    		newsession = sshClient.startSession();
+    		Command command = newsession.exec( Command );
+    		remoteNode.setInputStream( command.getInputStream() );
+    		remoteNode.setOutputStream( command.getOutputStream() );
+    		// error stream?
+    		
+    		
     	} catch ( Exception e ) {
     		
     		// log the error message
     		logger.error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
     		
     		// TODO - should we return NULL here to prevent the return of a partially connected channel?
-    		return null;
+//    		return null;
     	
     	}
     	
-    	return channel;
+//    	return channel;
+//    	return newsession;
+    	
     }
   
     /**
      * User credentials for initiating remote connections using SSH
      * @author Dr. Munehiro Fukuda
      */
-    private class MyUserInfo implements UserInfo {
-	
-    	// Private data members
-    	private String _passwd = null;	// Users password
-	
-    	// Constructor sets up password
-    	public MyUserInfo( String passwd ) {
-            this._passwd = passwd;
-    	}
-
-    	// Because passphrase does not apply use null
-    	public String getPassphrase( ) { return null; };
-	
-    	// Returns the password of the user
-    	public String getPassword( ) { return _passwd; };
-	
-    	// You may only set password during construction of UserInfo
-    	public boolean promptPassword( String Message ) { return true; };
-	
-    	// Because passphrase does not apply this function simply returns true
-    	public boolean promptPassphrase( String message ) { return true; };
-	
-    	// Because the program is run remotely we don't want to prompt the user
-    	public boolean promptYesNo( String message ) { return true; };
-    	public void showMessage( String message ) { };
-    
-    }
+//    private class MyUserInfo implements UserInfo {
+//	
+//    	// Private data members
+//    	private String _passwd = null;	// Users password
+//	
+//    	// Constructor sets up password
+//    	public MyUserInfo( String passwd ) {
+//            this._passwd = passwd;
+//    	}
+//
+//    	// Because passphrase does not apply use null
+//    	public String getPassphrase( ) { return null; };
+//	
+//    	// Returns the password of the user
+//    	public String getPassword( ) { return _passwd; };
+//	
+//    	// You may only set password during construction of UserInfo
+//    	public boolean promptPassword( String Message ) { return true; };
+//	
+//    	// Because passphrase does not apply this function simply returns true
+//    	public boolean promptPassphrase( String message ) { return true; };
+//	
+//    	// Because the program is run remotely we don't want to prompt the user
+//    	public boolean promptYesNo( String message ) { return true; };
+//    	public void showMessage( String message ) { };
+//    
+//    }
 
     /**
      * Get the hostname or IP address of this node
