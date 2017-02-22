@@ -441,7 +441,7 @@ public class MASS extends MASSBase {
     }
     
     /**
-     * IniNBA LIVE 2003 Soundtracktialize the MASS library using arguments. Calling this method effectively begins computation.
+     * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
      * @param nThr The number of threads to spawn on each node

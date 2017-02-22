@@ -326,6 +326,23 @@ public class Agents extends AgentsBase implements Serializable {
   }
 
   /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed
+   * @param argument the argument to pass to each Agent
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll(int functionId, Object argument, int numberOfIterations)
+  {
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+          manageAllSetup();
+      }
+  }
+
+  /**
    * Returns the current number of agents.
    * @return nAgents
    */
