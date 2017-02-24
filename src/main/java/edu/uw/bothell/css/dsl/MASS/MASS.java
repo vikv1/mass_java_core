@@ -440,15 +440,31 @@ public class MASS extends MASSBase {
     	System.err.println( "MASS.init: done" );
     }
 
+	/**
+	 * Initialize the MASS library using arguments. Calling this method lets MASS use JAVA serialization.
+	 * @param maxNumberOfAgents max number of agents that can actively run within a node.
+	 */
+	public static void init(int maxNumberOfAgents )
+	{
+		// store class definitions
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
+
+		// after classes have been stored, perform initialization
+		init();
+	}
+
     /**
 	 * Initialize the MASS library using arguments. Calling this method lets MASS use Kryo serialization.
 	 * @param classes An array of class definitions that need to be registered by Kryo serializer.
+	 * @param maxNumberOfAgents max number of agents that can actively run within a node.
 	 */
-	public static void init( Class[] classes )
+	public static void init( Class[] classes, int maxNumberOfAgents )
 	{
 		// store class definitions
 		AgentSerializer agentSerializer = AgentSerializer.getInstance();
 		agentSerializer.setRegisteredClasses(classes);
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
 		// after classes have been stored, perform initialization
 		init();

@@ -54,7 +54,8 @@ public class AgentsBase implements Serializable {
 		 we are supposed to use currentAgentId.
 	*/
 	//public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million
-	public static final int MAX_AGENTS_PER_NODE = 30;
+	//public static final int MAX_AGENTS_PER_NODE = 40;
+	public static final int MAX_AGENTS_PER_NODE = AgentSerializer.getInstance().getMaxNumberOfAgents();
 
 
     private final int handle;
@@ -547,7 +548,7 @@ public class AgentsBase implements Serializable {
 				{
 					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
 
-					System.out.println("agent spawn request became to an agent and is added to the agent bag");
+					//System.out.println("agent spawn request became to an agent and is added to the agent bag");
 
 					// check if there is available agent id
 					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
@@ -562,8 +563,8 @@ public class AgentsBase implements Serializable {
 						agentSpawnRequest.setAgentId(this.currentAgentId++);
 					}
 
-					System.out.println("agent spawn request's new agent id is: " + agentSpawnRequest.getAgentId());
-					System.out.println("agent spawn request's index is: " + agentSpawnRequest.getIndex()[0] + " " + agentSpawnRequest.getIndex()[1]);
+					//System.out.println("agent spawn request's new agent id is: " + agentSpawnRequest.getAgentId());
+					//System.out.println("agent spawn request's index is: " + agentSpawnRequest.getIndex()[0] + " " + agentSpawnRequest.getIndex()[1]);
 					// retrieve the corresponding places
 					PlacesBase curPlaces =
 							MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
@@ -575,8 +576,8 @@ public class AgentsBase implements Serializable {
 
 					// push this agent into the place and the entire agent bag.
 					agentSpawnRequest.setPlace(curPlace);
-					System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
-					System.out.println("agent spawn request's place's index is: " + curPlace.getIndex()[0] + " " + curPlace.getIndex()[1]);
+					//System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
+					//System.out.println("agent spawn request's place's index is: " + curPlace.getIndex()[0] + " " + curPlace.getIndex()[1]);
 
 					//agent.setIndex(dstPlace.getIndex());
 					//dstPlace.getAgents().add( agent ); // auto sync

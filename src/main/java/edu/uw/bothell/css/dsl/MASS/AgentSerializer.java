@@ -27,11 +27,14 @@ public class AgentSerializer
     // Serialized object extension (must be unique)
     private static final String KRYO_SERIALIZATION_EXTENSION = "kryo.ser";
 
-    // kryo
+    // Classes to be registered (Kryo-only)
     private Class[] classes;
 
     // Class registration base id - important: 0-9 are used by Kryo
     private static final int KRYO_SERIALIZATION_CLASS_REG_BASE_ID = 10;
+
+    // Max number of agent (default 40)
+    private int maxNumberOfAgents = 40;
 
     // Serializer
     //private Kryo kryo;
@@ -102,9 +105,9 @@ public class AgentSerializer
 
         try
         {
-            System.out.println("----");
+            //System.out.println("----");
             String serializedAgentIdentifier =  System.currentTimeMillis() + KRYO_SERIALIZATION_EXTENSION;
-            System.out.println("serializing agent with id: " + serializedAgentIdentifier);
+            //System.out.println("serializing agent with id: " + serializedAgentIdentifier);
             //System.out.println("serialized agent's index is: " + agent.getIndex()[0] + " " + agent.getIndex()[1]);
             FileOutputStream fileOutputStream = new FileOutputStream(serializedAgentIdentifier);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
@@ -157,8 +160,8 @@ public class AgentSerializer
 
         try
         {
-            System.out.println("----");
-            System.out.println("de-serializing agent with id: " + serializedAgentIdentifier);
+            //System.out.println("----");
+            //System.out.println("de-serializing agent with id: " + serializedAgentIdentifier);
             FileInputStream fileInputStream = new FileInputStream(serializedAgentIdentifier);
             ObjectInputStream objectInputStream= new ObjectInputStream(fileInputStream);
             Agent deserializedAgent = (Agent) objectInputStream.readObject();
@@ -187,8 +190,12 @@ public class AgentSerializer
         return this.classes;
     }
 
+    protected int getMaxNumberOfAgents() { return this.maxNumberOfAgents; }
+
     protected void setRegisteredClasses(Class[] classes)
     {
         this.classes = classes;
     }
+
+    protected void setMaxNumberOfAgents(int maxNumberOfAgents) { if (maxNumberOfAgents > 0) this.maxNumberOfAgents = maxNumberOfAgents; }
 }

@@ -51,17 +51,17 @@ public class AgentSpawnRequestManager
     * */
     protected boolean shouldAgentRunInTheSystem(Agent agent, int currentActiveAgentSize)
     {
-        System.out.println("shouldAgentRunInTheSystem - currentActiveAgentSize: " + currentActiveAgentSize);
+        //System.out.println("shouldAgentRunInTheSystem - currentActiveAgentSize: " + currentActiveAgentSize);
         // let it run in the system
         if ((currentActiveAgentSize + 1) <= MAX_ACTIVE_AGENT_SIZE)
         {
-            System.out.println("YES - agent is let run");
+            //System.out.println("YES - agent is let run");
             return true;
         }
         // serialize the agent object
         else
         {
-            System.out.println("NO - agent is serialized");
+            //System.out.println("NO - agent is serialized");
             // serialization
             String serializedAgentIdentifier = agentSerializer.serializeAgent(agent);
             // setup spawn request object
@@ -70,7 +70,7 @@ public class AgentSpawnRequestManager
             // TODO index storing might be unnecessary
             //agentSpawnRequest.setIndex(agent.getIndex());
             agentSpawnRequestQueue.add(agentSpawnRequest);
-            System.out.println("serialization done.. added to the queue with id: " + serializedAgentIdentifier);
+            //System.out.println("serialization done.. added to the queue with id: " + serializedAgentIdentifier);
             /*
             System.out.print("in queue: ");
             for (AgentSpawnRequest asr : agentSpawnRequestQueue)
@@ -88,18 +88,18 @@ public class AgentSpawnRequestManager
      * */
     protected Agent getNextAgentSpawnRequest()
     {
-        System.out.println("getNextAgentSpawnRequest");
+        //System.out.println("getNextAgentSpawnRequest");
         // check if there is an element in the queue
         if (agentSpawnRequestQueue.size() > 0)
         {
-            System.out.println("agent is de-serialized");
+            //System.out.println("agent is de-serialized");
             // deserialization
             return agentSerializer.deserializeAgent(agentSpawnRequestQueue.poll().getSerializedAgentIdentifier());
         }
         // no agent spawn request
         else
         {
-            System.out.println("returning null");
+            //System.out.println("returning null");
             return null;
         }
     }
