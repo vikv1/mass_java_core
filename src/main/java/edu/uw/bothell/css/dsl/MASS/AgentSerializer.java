@@ -18,6 +18,7 @@ import java.util.ArrayList;
  * Created by utku on 1/25/17.
  *
  * Responsible for serializing and de-serializing agent object
+ * Singleton instance is thread-safe !
  */
 public class AgentSerializer
 {
@@ -51,18 +52,25 @@ public class AgentSerializer
     // FileStream for output
     // private FileOutputStream fileOutputStream;
 
-
-
     protected AgentSerializer()
     {
 
     }
 
-    public static AgentSerializer getInstance() {
+    private static class LazyHolder
+    {
+        private static final AgentSerializer INSTANCE = new AgentSerializer();
+    }
+
+    public static AgentSerializer getInstance()
+    {
+        /*
         if(instance == null) {
             instance = new AgentSerializer();
         }
         return instance;
+        */
+        return LazyHolder.INSTANCE;
     }
 
     public String serializeAgent(Agent agent)
