@@ -187,8 +187,7 @@ public class MASS extends MASSBase {
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		System.err.println( "MASS::finish: all MASS threads terminated" );
+    	logger.debug( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
@@ -201,12 +200,12 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-    		node.closeMainConnection( );
+    		util.disconnectRemoteNode( node );
       
     	MASSBase.getAsyncOutputThread().finish();
     	MASSBase.getAsyncInputThread().finish();
 
-    	System.err.println( "MASS::finish: done" );
+    	logger.debug( "MASS::finish: done" );
 
     }
     
