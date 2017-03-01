@@ -6,7 +6,7 @@
 	<groupId>edu.uw.bothell.css.mass</groupId>
   	<artifactId>mass-core</artifactId>
   	<packaging>jar</packaging>
-	<version>0.9.4-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<name>MASS Java Core Library</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
@@ -21,7 +21,7 @@
 	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-		<java.version>1.7</java.version>
+		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	
 	</properties>
@@ -192,7 +192,7 @@
 				<configuration>
 					<source>${java.version}</source>
 					<bottom>
-						"Copyright 2010-2016 University of Washington. All rights reserved."
+						"Copyright 2010-2017 University of Washington. All rights reserved."
 					</bottom>
 					<!--author>false</author-->
 					<!--excludePackageNames>
