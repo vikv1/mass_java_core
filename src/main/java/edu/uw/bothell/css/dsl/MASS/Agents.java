@@ -334,7 +334,7 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public void doAll(int functionId, int numberOfIterations)
   {
-      System.out.println("public void doAll(int functionId, int numberOfIterations)");
+      //System.out.println("public void doAll(int functionId, int numberOfIterations)");
       // consecutive calls for n-1 times
       for (int i=0; i<numberOfIterations; i++)
       {
@@ -353,7 +353,7 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public void doAll(int functionId, Object argument, int numberOfIterations)
   {
-      System.out.println("public void doAll(int functionId, Object argument, int numberOfIterations)");
+      //System.out.println("public void doAll(int functionId, Object argument, int numberOfIterations)");
       // consecutive calls for n times
       for (int i=0; i<numberOfIterations; i++)
       {
@@ -372,7 +372,7 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public Object doAll(int functionId, Object[] argument, int numberOfIterations)
   {
-      System.out.println("public Object doAll(int functionId, Object[] argument, int numberOfIterations)");
+      //System.out.println("public Object doAll(int functionId, Object[] argument, int numberOfIterations)");
       Object returnObject = null;
       for (int i=0; i<numberOfIterations; i++)
       {
