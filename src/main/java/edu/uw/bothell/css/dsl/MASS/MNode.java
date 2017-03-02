@@ -201,7 +201,9 @@ public class MNode {
 
 		try {
 
+			logger.debug("Awaiting receipt of message...");
 			m = ( Message ) mainIOS.readObject( );
+			logger.debug("Message received!");
 
 		}
 
@@ -228,13 +230,19 @@ public class MNode {
 
 		try {
 
+			logger.debug("Sending message to {}", getHostName());
 			mainOOS.writeObject( m );
+			logger.debug("Message sent!");
 			mainOOS.flush( );
-                        resetCounter++;
-                        if(resetCounter == 5){
-                            mainOOS.reset();
-                            resetCounter = 0;
-                        }
+			logger.debug("Object outputstream flushed");
+                        
+			resetCounter++;
+			if(resetCounter == 5){
+				logger.debug("Resetting object outputstream...");
+				mainOOS.reset();
+				logger.debug("Stream reset!");
+				resetCounter = 0;
+			}
 
 		}
 

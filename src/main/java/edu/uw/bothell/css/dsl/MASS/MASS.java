@@ -375,7 +375,7 @@ public class MASS extends MASSBase {
     		
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
-	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
+	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar:. ");
    			}
 
     		// MProcess and its arguments
