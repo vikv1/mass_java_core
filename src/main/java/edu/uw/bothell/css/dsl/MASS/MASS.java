@@ -108,20 +108,18 @@ public class MASS extends MASSBase {
 
     	// Synchronize with all slave processes
     	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		if( printOutput == true )
-    			System.err.println( "barrier waits for ack from " +
+    		logger.debug( "barrier waits for ack from {}",
     					getRemoteNodes().get(i).getHostName( ) );
 
     		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    		if( printOutput == true )
-    			System.err.println( "barrier received a message from " +
+    		logger.debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
+    					"...message = {}", m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " +
+    			logger.debug( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
@@ -158,19 +156,16 @@ public class MASS extends MASSBase {
     			}
 
     		// retrieve agent population from each Mprocess
-    		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) +
+    		logger.debug( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
-    		}
 
     		if ( localAgents != null ) {
     			localAgents[i + 1] = m.getAgentPopulation( );
     			nAgentsSoFar += localAgents[i + 1];
     		}
 
-    		if ( printOutput == true )
-    			System.err.println( "message deleted" );
+    		logger.debug( "message deleted" );
 
     	}
 

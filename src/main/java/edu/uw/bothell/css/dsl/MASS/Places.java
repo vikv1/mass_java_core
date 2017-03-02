@@ -122,7 +122,8 @@ public class Places extends PlacesBase {
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
 		    logger.debug( "PLACES_CALL_ALL " + m.getAction( ) +
-				       " sent to " + i );
+				       " sent to {}", MASS.getRemoteNodes().get(i).getHostName() );
+		
 		}
 	
 		// retrieve the corresponding places
@@ -152,7 +153,9 @@ public class Places extends PlacesBase {
 		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
+		logger.debug("Attempting to barrierAllSlaves...");
 		MASS.barrierAllSlaves( MASSBase.getCurrentReturns(), stripe );
+		logger.debug("barrierAllSlaves completed!");
 		
 		return MASSBase.getCurrentReturns();
     
