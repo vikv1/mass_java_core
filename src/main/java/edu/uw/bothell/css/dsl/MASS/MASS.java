@@ -439,8 +439,21 @@ public class MASS extends MASSBase {
     	}
     	System.err.println( "MASS.init: done" );
     }
-    
-    /**
+
+	/**
+	 * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
+	 * @param nThr The number of threads to spawn on each node
+	 * */
+	public static void init( int nThr )
+	{
+		setNumThreads(nThr);
+
+		// after parameters have been set, perform initialization
+		init();
+	}
+
+
+	/**
      * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
