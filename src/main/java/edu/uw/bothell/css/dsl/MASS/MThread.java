@@ -85,7 +85,9 @@ public class MThread extends Thread {
     			status = STATUS_TYPE.STATUS_READY;
    				logger.debug( "tid[" + tid + "] woke up all: barrier = " + barrierPhases );
     			barrierPhases++;
+    			logger.debug("Attempting to notifyAll...");
     			lock.notifyAll( );
+    			logger.debug("notifyAll success!");
     		
     		}
     	

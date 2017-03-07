@@ -32,13 +32,15 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
@@ -53,76 +55,33 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 class Utilities {
 	
 	private static final int SSH_PORT = 22;
+	private static final int CONNECT_TIMEOUT_MILLISECONDS = 30000;
 
 	// reference to the SSH library - not initialized by default so it can be
 	// replaced by a mock object for testing
 	private JSch jsch = null;
+	
+	// keep track of all remote sessions, so that MNode does not need library-specific references
+	private Map<MNode, Channel> remoteSessions = new HashMap<MNode, Channel>();
 	
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	/**
 	 * Obtain a communications channel with a remote host and execute a command.
-	 * This method returns a channel, so that consumers will have access to Input
-	 * and Outputstream (for interacting with the host). Also note that the
+	 * This method sets Input and Output streams in the supplied MNode, so that 
+	 * consumers will have access to the host. Also note that the
 	 * consumers need to explicitly call the channel.disconnect(); & 
 	 * channel.getSession().disconnect(); when communications with the remote host
 	 * are no longer required.
 	 *
-	 * @param Host The hostname or IP address of the remote host
-	 * @param PortNumber The port number of the listener on the remote host
-	 * @param Command The "exec" command to execute upon connection
-	 * @param UserName When connecting to the remote host, use the supplied username
-	 * @param Password When connecting to the remote host, use the supplied password
-	 * @return An open communications channel with the remote host
+	 * @param command The "exec" command to execute upon connection
+	 * @param remoteNode An MNode instance representing the remote host
 	 */
-	@Deprecated
-    protected Channel LaunchRemoteProcess( String Host, int PortNumber, 
-					   String Command, String UserName, 
-					   String Password ) {
-        
-    	ChannelExec channel = null;
-        
-    	try {
-            
-    		// instantiate the SSH library if necessary (might be replaced
-    		// by a mock object during unit testing)
-    		if (jsch == null) jsch = new JSch( );
-
-            // initiate SSH connection to the remote host
-            Session session = jsch.getSession( UserName, Host, PortNumber );
-
-            // username and password will be given via UserInfo interface.
-            UserInfo ui = new MyUserInfo( Password );
-            session.setUserInfo( ui );
-            
-            // authenticate and complete connection sequence to the remote host
-            session.connect( );
-
-            // set the command to be executed upon channel connection
-            channel = (ChannelExec) session.openChannel( "exec" );
-            channel.setCommand( Command );
-            
-    	}
-        
-    	catch ( Exception e ) {
-            
-    		// "display" the error message
-    		System.err.println( e );
-    		
-    		// TODO - should we return NULL here to prevent the return of a partially connected channel?
-
-        }
-        
-        return channel;
-
-    }
-    
-    protected Channel LaunchRemoteProcess( String Command, MNode remoteNode ) {
+    protected void LaunchRemoteProcess( String command, MNode remoteNode ) {
     	
     	// must provide required parameters
-    	// TODO - should throw IllegalArgumentException instead of returning NULL
-    	if ( Command == null || Command.length() == 0 ) //return null;
+    	if ( command == null || command.length() == 0 )
     		throw new IllegalArgumentException( "Command is empty or equal to null" );
     	if ( remoteNode == null ) //return null;
     		throw new IllegalArgumentException( "remoteNode is equal to null" );
@@ -131,6 +90,7 @@ class Utilities {
     	Properties config = new Properties();
     	
     	try {
+    		
     		// instantiate the SSH library if necessary (might be replaced
     		// by a mock object during unit testing)
     		if ( jsch == null ) jsch = new JSch( );
@@ -158,56 +118,69 @@ class Utilities {
             logger.debug( "Connected!" );
 
             // set the command to be executed upon channel connection
-            logger.debug( "Executing remote command: {}", Command );
+            logger.debug( "Executing remote command: {}", command );
             channel = ( ChannelExec ) session.openChannel( "exec" );
-            channel.setCommand( Command );
-            logger.debug( "Command executed!");
-    	
+            channel.setCommand( command );
+            logger.debug( "Command executed!" );
+
+            logger.debug( "Setting object input/output streams with remote node..." );
+    		channel.connect( CONNECT_TIMEOUT_MILLISECONDS );
+    		remoteNode.setOutputStream( channel.getOutputStream() );
+    		remoteNode.setInputStream( channel.getInputStream() );
+    		// TODO - error stream?
+    		logger.debug( "Streams set!" );
+    		
+    		// keep track of this session for orderly disconnect later
+    		remoteSessions.put( remoteNode, channel );
+    		logger.debug( "Communications established with remote node" );
+
+    		
     	} catch ( Exception e ) {
     		
     		// log the error message
     		logger.error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
     		
-    		// TODO - should we return NULL here to prevent the return of a partially connected channel?
-    		return null;
-    	
     	}
     	
-    	return channel;
     }
-  
+
     /**
-     * User credentials for initiating remote connections using SSH
-     * @author Dr. Munehiro Fukuda
+     * Disconnect from a remote node
+     * @param remoteNode The node from which to terminate communications
      */
-    private class MyUserInfo implements UserInfo {
-	
-    	// Private data members
-    	private String _passwd = null;	// Users password
-	
-    	// Constructor sets up password
-    	public MyUserInfo( String passwd ) {
-            this._passwd = passwd;
+    protected void disconnectRemoteNode(MNode remoteNode) {
+    	
+    	if ( remoteNode == null ) return;
+    	
+    	logger.debug( "Attempting to terminate communcations with node PID: {}", remoteNode.getPid() );
+    	
+    	// close streams in use by MNode
+    	remoteNode.closeMainConnection();
+    	
+    	Channel channel = remoteSessions.get(remoteNode);
+    	if ( channel != null ) {
+    		
+    		Session session = null;
+
+    		try {
+				
+    			session = channel.getSession();
+                channel.disconnect();
+                session.disconnect();
+
+            	logger.debug( "Communcations terminated!" );
+            	
+    		} catch (JSchException e) {
+
+        		// log the error message
+        		logger.error("Caught exception while attempting to disconnect from remote node", e);
+
+    		}
+    		
     	}
-
-    	// Because passphrase does not apply use null
-    	public String getPassphrase( ) { return null; };
-	
-    	// Returns the password of the user
-    	public String getPassword( ) { return _passwd; };
-	
-    	// You may only set password during construction of UserInfo
-    	public boolean promptPassword( String Message ) { return true; };
-	
-    	// Because passphrase does not apply this function simply returns true
-    	public boolean promptPassphrase( String message ) { return true; };
-	
-    	// Because the program is run remotely we don't want to prompt the user
-    	public boolean promptYesNo( String message ) { return true; };
-    	public void showMessage( String message ) { };
-    
+    	
     }
-
+    
     /**
      * Get the hostname or IP address of this node
      * @return The network address of this node

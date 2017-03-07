@@ -105,10 +105,10 @@
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-			<version>0.1.51</version>
+			<version>0.1.54</version>
 			<scope>compile</scope>
 		</dependency>
-
+	
 		<!--  For JAXB serialization to/from XML -->
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>

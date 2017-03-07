@@ -47,8 +47,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import com.jcraft.jsch.Channel;
-
 import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
 import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
@@ -110,20 +108,18 @@ public class MASS extends MASSBase {
 
     	// Synchronize with all slave processes
     	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		if( printOutput == true )
-    			System.err.println( "barrier waits for ack from " +
+    		logger.debug( "barrier waits for ack from {}",
     					getRemoteNodes().get(i).getHostName( ) );
 
     		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    		if( printOutput == true )
-    			System.err.println( "barrier received a message from " +
+    		logger.debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
+    					"...message = {}", m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " +
+    			logger.debug( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
@@ -160,19 +156,16 @@ public class MASS extends MASSBase {
     			}
 
     		// retrieve agent population from each Mprocess
-    		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) +
+    		logger.debug( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
-    		}
 
     		if ( localAgents != null ) {
     			localAgents[i + 1] = m.getAgentPopulation( );
     			nAgentsSoFar += localAgents[i + 1];
     		}
 
-    		if ( printOutput == true )
-    			System.err.println( "message deleted" );
+    		logger.debug( "message deleted" );
 
     	}
 
@@ -189,8 +182,7 @@ public class MASS extends MASSBase {
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		System.err.println( "MASS::finish: all MASS threads terminated" );
+    	logger.debug( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
@@ -203,12 +195,12 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-    		node.closeMainConnection( );
+    		util.disconnectRemoteNode( node );
       
     	MASSBase.getAsyncOutputThread().finish();
     	MASSBase.getAsyncInputThread().finish();
 
-    	System.err.println( "MASS::finish: done" );
+    	logger.debug( "MASS::finish: done" );
 
     }
     
@@ -406,14 +398,15 @@ public class MASS extends MASSBase {
 //    					node.getUserName(),
 //    					node.getPassWord() );
     			
-    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
+//    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
+    			util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
-    			if ( ssh2connection == null )
-    				throw new Exception( "JSCH channel not created" );
+//    			if ( ssh2connection == null )
+//    				throw new Exception( "JSCH channel not created" );
 
     			// A new remote process launched. 
     			// The corresponding Mnode created
-    			node.setChannel(ssh2connection);
+//    			node.setChannel(ssh2connection);
     			node.initialize();
     			
     		} catch ( Exception e ) {

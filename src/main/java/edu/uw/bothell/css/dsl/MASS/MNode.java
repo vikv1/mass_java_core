@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
@@ -41,9 +42,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-
-import com.jcraft.jsch.Channel;  // Jsch used for Node connections
-import com.jcraft.jsch.Session;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
@@ -69,13 +67,12 @@ public class MNode {
 	private boolean isMaster = false;	// is this the master node? - optional
 	private int pid;              		// process ID
 	private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
-	private Channel channel;            // JSCH channel
 	private ObjectInputStream mainIOS;  // from remote to master
 	private ObjectOutputStream mainOOS; // from master to remote
 	private int resetCounter = 0;
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
     
-	/**
+    /**
 	 * Terminate all communications channels to the remote Node
 	 */
 	public void closeMainConnection( ) {
@@ -84,9 +81,6 @@ public class MNode {
 
 			mainIOS.close( );
 			mainOOS.close( );
-			Session session = channel.getSession( );
-			channel.disconnect( );
-			session.disconnect( );
 
 		} catch( Exception e ) {
 
@@ -96,15 +90,6 @@ public class MNode {
 
 		}
 
-	}
-	
-	/**
-	 * Get the JSCH communications channel connected to the node
-	 * @return The JSCH communications channel
-	 */
-	@XmlTransient
-	public Channel getChannel() {
-		return channel;
 	}
 
 	/**
@@ -124,8 +109,8 @@ public class MNode {
     public String getJavaHome() {
 		return javaHome;
 	}
-
-    /**
+	
+	/**
 	 * Get the location where MASS (MASS.jar) resides on this node
 	 * @return The location of MASS.jar
 	 */
@@ -133,7 +118,6 @@ public class MNode {
 	public String getMassHome() {
 		return massHome;
 	}
-
 	
 	/**
      * Get the process ID (PID) of this Node. The process
@@ -146,15 +130,15 @@ public class MNode {
     public int getPid( ) {
     	return pid;
     }
-	
-	/**
+
+    /**
 	 * Set the port number used to communicate with this node, for inter-node socket communications
 	 * @return The port number
 	 */
 	public int getPort() {
 		return port;
 	}
-	
+
 	/**
 	 * Get the path/filename of the private key used for SSH connections to this node
 	 * @return The private key path/filename
@@ -163,7 +147,7 @@ public class MNode {
 	public String getPrivateKey() {
 		return privateKey;
 	}
-
+	
 	/**
 	 * Get the SSH login username for this node
 	 * @return The login username
@@ -172,7 +156,7 @@ public class MNode {
 	public String getUserName() {
 		return userName;
 	}
-
+	
 	/**
 	 * Perform actions necessary to initialize communications with this node
 	 */
@@ -180,19 +164,11 @@ public class MNode {
 		
 		try {
 
+			// TODO - log error if streams not initialized
+			
 			// hostname should have been set already, if not, set to default
 			if (getHostName() == null) setHostName(InetAddress.getLocalHost( ).getCanonicalHostName( ));
 			
-			// set input/output streams, then execute the command to start MProcess on the remote node
-			InputStream is = channel.getInputStream();
-			OutputStream os = channel.getOutputStream();
-			channel.connect();
-			
-			// with input/output channels established, set object streams
-			mainOOS = new ObjectOutputStream( os );
-			mainOOS.flush( );
-			mainIOS = new ObjectInputStream( is );
-		
 		}
 		
 		// TODO - need better method of handling errors here rather than terminating application
@@ -225,7 +201,9 @@ public class MNode {
 
 		try {
 
+			logger.debug("Awaiting receipt of message...");
 			m = ( Message ) mainIOS.readObject( );
+			logger.debug("Message received!");
 
 		}
 
@@ -252,13 +230,19 @@ public class MNode {
 
 		try {
 
+			logger.debug("Sending message to {}", getHostName());
 			mainOOS.writeObject( m );
+			logger.debug("Message sent!");
 			mainOOS.flush( );
-                        resetCounter++;
-                        if(resetCounter == 5){
-                            mainOOS.reset();
-                            resetCounter = 0;
-                        }
+			logger.debug("Object outputstream flushed");
+                        
+			resetCounter++;
+			if(resetCounter == 5){
+				logger.debug("Resetting object outputstream...");
+				mainOOS.reset();
+				logger.debug("Stream reset!");
+				resetCounter = 0;
+			}
 
 		}
 
@@ -274,19 +258,21 @@ public class MNode {
 	}
 
 	/**
-	 * Set the JSCH channel (already established) with the remote Node
-	 * @param channel The initialized JSCH channel connected to the remote Node
-	 */
-	public void setChannel(Channel channel) {
-		this.channel = channel;
-	}
-
-	/**
 	 * Set the Hostname or IP address of this Node
 	 * @param hostName The Hostname/IP address
 	 */
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
+	}
+
+	/**
+	 * Once communications have been established with the remote node, set the
+	 * InputStream used for receiving messages from the remote node
+	 * @param inputStream InputStream established by SSH channel during INIT
+	 * @throws IOException
+	 */
+	public void setInputStream(InputStream inputStream) throws IOException {
+		mainIOS = new ObjectInputStream( inputStream );
 	}
 
 	/**
@@ -314,6 +300,19 @@ public class MNode {
 	}
 
 	/**
+	 * Once communications have been established with the remote node, set the
+	 * OutputStream used for sending messages to the remote node
+	 * @param outputStream OutputStream established by SSH channel during INIT
+	 * @throws IOException
+	 */
+	public void setOutputStream(OutputStream outputStream) throws IOException {
+
+		mainOOS = new ObjectOutputStream( outputStream );
+		mainOOS.flush( );
+	
+	}
+
+	/**
 	 * Set the unique ID (process ID) for this Node
 	 * @param pid The unique process ID number
 	 */
@@ -321,6 +320,14 @@ public class MNode {
 		this.pid = pid;
 	}
 	
+	/**
+	 * Set the port number used to communicate with this node, for inter-node socket communications
+	 * @param port The port number to use
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+
 	/**
 	 * Set the path/filename of the private key to use for SSH connections to this node
 	 * @param privateKey The path/filename of the private key to use when connecting to this node
@@ -335,14 +342,6 @@ public class MNode {
 	 */
 	public void setUserName(String userName) {
 		this.userName = userName;
-	}
-
-	/**
-	 * Set the port number used to communicate with this node, for inter-node socket communications
-	 * @param port The port number to use
-	 */
-	public void setPort(int port) {
-		this.port = port;
 	}
 
 }
