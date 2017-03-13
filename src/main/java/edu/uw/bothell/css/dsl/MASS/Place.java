@@ -111,6 +111,8 @@ public class Place {
 	// Current file descriptor - used for giving each file a unique descriptor
 	private static int fileDescriptor;
 
+	private static long totalReadTime = 0;
+
 	//
 	// Private class that stores the file attributes needed for parallel I/O
 	//
@@ -299,7 +301,6 @@ public class Place {
 
 		// Isolate the file name
 		String fileName = path.getFileName().toString();
-
 		synchronized (fileTable) {
 
 			// Only the first place opens the file
@@ -465,6 +466,10 @@ public class Place {
 		return false;
 	}
 
+/*	private synchronized void addToReadTime(long amount) {
+		totalReadTime += amount;
+	}*/
+
 	/**
 	 * Private method that implements reading for Netcdf files
 	 * @param fileAttributes the file attributes of the file to be read
@@ -475,6 +480,7 @@ public class Place {
 	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
 	// (matches the dimensions of places)
 	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
+		long start = System.currentTimeMillis();
 
 		// Get all variable names
 		Enumeration<String> varNames = varsData.keys();
@@ -497,14 +503,14 @@ public class Place {
 
 			for (int i = 0; i < dimensions.size(); i++) {
 				readDim[i] = dimensions.get(i).getLength();
-				logger.debug(i + "dimension size: " + readDim[i]);
+				//logger.debug(i + "dimension size: " + readDim[i]);
 			}
 
 			// Split along x axis
 			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
 
 			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-			logger.debug("x dimension: " + readDim[0] + ", for place: " + placeOrder);
+			//logger.debug("x dimension: " + readDim[0] + ", for place: " + placeOrder);
 
 			// Read data and add to place storage
 			try {
@@ -518,18 +524,18 @@ public class Place {
 				// (You will have to have separate implementations for each dimension if we want to support that)
 				if (userDataset instanceof ArrayFloat.D3) {
 					// read one element starting at this places index
-					currVarData = (ArrayFloat.D3) var.read(new int[] { placeOrder, 0, 0}, readDim);
+					currVarData = (ArrayFloat.D3) var.read(new int[] { placeOrder, 0, 0 }, readDim);
 
-					logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
+					//logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
 
 					//((ArrayFloat.D3) userDataset).set(placeOrder, 0, 0, ??);
-					for (int x = 0; x < readDim[0]; x++) {
+					/*for (int x = 0; x < readDim[0]; x++) {
 						for (int y = 0; y < readDim[1]; y++) {
 							for (int z = 0; z < readDim[2]; z++) {
 								((ArrayFloat.D3) userDataset).set(x + placeOrder, y, z, currVarData.get(x, y, z));
 							}
 						}
-					}
+					}*/
 				}
 
 			} catch (InvalidRangeException ire) {
@@ -540,6 +546,9 @@ public class Place {
 				return false;
 			}
 		}
+
+		long end = System.currentTimeMillis();
+		//addToReadTime(end - start);
 		return true;
 	}
 
@@ -643,7 +652,7 @@ public class Place {
 				if (file instanceof NetcdfFile) {
 					try {
 						((NetcdfFile) file).close();
-						System.out.println(fileName + " closed");
+						System.out.println(fileName + " closed.");
 						fileTable.remove(fd);
 
 						return true;
