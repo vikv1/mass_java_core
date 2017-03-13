@@ -82,12 +82,12 @@ public class Agent implements Serializable {
 	private Object[] asyncResults;
 	private volatile int asyncResultsIndex = 0; // next index to be inserted
 	private Object asyncArgument;
-	private volatile AgentsBase parentAgents;
+	private volatile AgentsBase myAgentsBase; // myAGentsBase is necessary to spawn a new instance from current agent's AgentsBase
 
 	// true to signal a thread to stop processing this Agent's asyncFuncList
 	// this happens in kill & migrate case
-	private volatile boolean hasAlreadyRemoteMigrated = false;
-	private volatile boolean putBackToAsyncQueue = false;
+	private volatile boolean hasAlreadyGone= false;
+	private volatile boolean needsToGoBackToAsyncQueue = false;
 
 	/**
 	 *  backward compatibility with agentbag,
@@ -127,11 +127,11 @@ public class Agent implements Serializable {
 		 return null;
 	 }
 
-	protected int getAgentId() {
+	public int getAgentId() {
 		return agentId;
 	}
 
-	protected Object[] getArguments() {
+	public Object[] getArguments() {
 		return arguments;
 	}
 
@@ -149,7 +149,7 @@ public class Agent implements Serializable {
 		return index;
 	}
 
-	protected int getNewChildren() {
+	public int getNewChildren() {
 		return newChildren;
 	}
 
@@ -157,7 +157,7 @@ public class Agent implements Serializable {
 		return place;
 	}
 
-	protected boolean isAlive() {
+	public boolean isAlive() {
 		return alive;
 	}
 
@@ -172,7 +172,7 @@ public class Agent implements Serializable {
 	public void killAsync() {
 
 		kill();
-		hasAlreadyRemoteMigrated = true;
+		hasAlreadyGone = true;
 
 		synchronized(MThread.class){
 			MThread.setAgentBagSize(MThread.getAgentBagSize() - 1);
@@ -184,10 +184,10 @@ public class Agent implements Serializable {
 		// remove from AgentList, too!
 		// unlike sync myAsyncIndex start from 0
 		/** TO DO IN callAllAsyncLoop only
-	  	parentAgents.getAgents().remove( myCurrentIndex );*/
+		 myAgentsBase.getAgents().remove( myCurrentIndex );*/
 		// So Agents_base put the result into completeQueue
 		asyncFuncListIndex = -1;
-		parentAgents = null;
+		myAgentsBase = null;
 
 	}
 
@@ -257,7 +257,7 @@ public class Agent implements Serializable {
 	protected boolean migrateAsync(int... index) {
 		boolean result = migrate(index);
 		//stopProcessAsyncFuncList = true;
-		parentAgents.migrateAsync(this);
+		myAgentsBase.migrateAsync(this);
 		return result;
 	}
 
@@ -273,11 +273,11 @@ public class Agent implements Serializable {
 		this.place = place;
 	}
 
-	protected int getAsyncFuncListIndex() {
+	public int getAsyncFuncListIndex() {
 		return asyncFuncListIndex;
 	}
 
-	public int pollAsyncFuncListIndex() {
+	public int nextAsyncFuncListIndex() {
 		++asyncFuncListIndex;
 		return asyncFuncListIndex - 1;
 	}
@@ -295,12 +295,12 @@ public class Agent implements Serializable {
 		++asyncResultsIndex;
 	}
 
-	protected void resetAsyncResults() {
-		asyncResults = new Object[parentAgents.getAsyncFuncList().length];
+	public void resetAsyncResults() {
+		asyncResults = new Object[myAgentsBase.getAsyncFuncList().length];
 		asyncResultsIndex = 0;
 	}
 
-	protected int asyncResultsSize() {
+	public int asyncResultsSize() {
 		return asyncResultsIndex;
 	}
 
@@ -308,7 +308,7 @@ public class Agent implements Serializable {
 		asyncArgument = newArg;
 	}
 
-	protected Object getAsyncArgument(){
+	public Object getAsyncArgument(){
 		return asyncArgument;
 	}
 
@@ -316,7 +316,7 @@ public class Agent implements Serializable {
 		myOriginalAsyncIndex = newIndex;
 	}
 
-	protected int getMyOriginalAsyncIndex() {
+	public int getMyOriginalAsyncIndex() {
 		return myOriginalAsyncIndex;
 	}
 
@@ -324,7 +324,7 @@ public class Agent implements Serializable {
 		myCurrentIndex = newIndex;
 	}
 
-	protected int getCurrentIndex() {
+	public int getCurrentIndex() {
 		return myCurrentIndex;
 	}
 
@@ -332,32 +332,32 @@ public class Agent implements Serializable {
 		myAsyncOriginalPid = pid;
 	}
 
-	protected int getMyAsyncOriginalPid() {
+	public int getMyAsyncOriginalPid() {
 		return myAsyncOriginalPid;
 	}
 
-	public void setParentAgents(AgentsBase parent) {
-		parentAgents = parent;
+	public void setMyAgentsBase(AgentsBase parent) {
+		myAgentsBase = parent;
 	}
 
-	public AgentsBase getParentAgents() {
-		return parentAgents;
+	public AgentsBase getMyAgentsBase() {
+		return myAgentsBase;
 	}
 
-	public boolean hasAlreadyRemoteMigrate() {
-		return hasAlreadyRemoteMigrated;
+	public boolean isHasAlreadyGone() {
+		return hasAlreadyGone;
 	}
 
-	public void setHasAlreadyRemoteMigrated(boolean value) {
-		hasAlreadyRemoteMigrated = value;
+	public void setHasAlreadyGone(boolean value) {
+		hasAlreadyGone = value;
 	}
 
-	public boolean shouldPutBackToAsyncQueue() {
-		return putBackToAsyncQueue;
+	public boolean isNeedsToGoBackToAsyncQueue() {
+		return needsToGoBackToAsyncQueue;
 	}
 
-	public void setPutBackToAsyncQueue(boolean value) {
-		putBackToAsyncQueue = value;
+	public void setNeedsToGoBackToAsyncQueue(boolean value) {
+		needsToGoBackToAsyncQueue = value;
 	}
 
 	/**
@@ -385,7 +385,7 @@ public class Agent implements Serializable {
 	 */
 	protected void spawnAsync(int numAgents, Object[] initializedArguments, Object[] arguments) {
 		if(numAgents > 0) {
-			parentAgents.spawnAsync(this, numAgents, initializedArguments, arguments);
+			myAgentsBase.spawnAsync(this, numAgents, initializedArguments, arguments);
 		}
 	}
 

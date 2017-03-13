@@ -368,7 +368,7 @@ public class Place {
 		}
 
 		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlaces().getPlacesSize(), count, variables);
+		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlacesBase().getPlacesSize(), count, variables);
 
 		fileTable.put(count, fileAttributes);
 
@@ -403,7 +403,7 @@ public class Place {
 		}
 
 		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlaces().getPlacesSize(), count);
+		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlacesBase().getPlacesSize(), count);
 
 		// Set file attributes for a read operation
 		if (ioType == 0) {
@@ -526,16 +526,17 @@ public class Place {
 					// read one element starting at this places index
 					currVarData = (ArrayFloat.D3) var.read(new int[] { placeOrder, 0, 0 }, readDim);
 
-					//logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
+					// logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
 
 					//((ArrayFloat.D3) userDataset).set(placeOrder, 0, 0, ??);
-					/*for (int x = 0; x < readDim[0]; x++) {
+
+					for (int x = 0; x < readDim[0]; x++) {
 						for (int y = 0; y < readDim[1]; y++) {
 							for (int z = 0; z < readDim[2]; z++) {
 								((ArrayFloat.D3) userDataset).set(x + placeOrder, y, z, currVarData.get(x, y, z));
 							}
 						}
-					}*/
+					}
 				}
 
 			} catch (InvalidRangeException ire) {

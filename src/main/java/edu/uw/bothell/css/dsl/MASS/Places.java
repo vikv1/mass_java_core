@@ -122,11 +122,12 @@ public class Places extends PlacesBase {
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
 		    logger.debug( "PLACES_CALL_ALL " + m.getAction( ) +
-				       " sent to " + i );
+				       " sent to {}", MASS.getRemoteNodes().get(i).getHostName() );
+		
 		}
 	
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		MASSBase.setCurrentFunctionId(functionId);
 		MASSBase.setCurrentArgument(argument);
 		MASSBase.setCurrentMsgType(type);
@@ -152,7 +153,9 @@ public class Places extends PlacesBase {
 		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
+		logger.debug("Attempting to barrierAllSlaves...");
 		MASS.barrierAllSlaves( MASSBase.getCurrentReturns(), stripe );
+		logger.debug("barrierAllSlaves completed!");
 		
 		return MASSBase.getCurrentReturns();
     
@@ -229,7 +232,7 @@ public class Places extends PlacesBase {
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get( new Integer( destinationHandle ) ));
 		MASSBase.setCurrentFunctionId(functionId);
 		//MASS_base.currentDestinations = destinations;
@@ -294,7 +297,7 @@ public class Places extends PlacesBase {
 		    node.sendMessage( m );
 	
 		// retrieve the corresponding places
-		MASSBase.setCurrentPlaces(this);
+		MASSBase.setCurrentPlacesBase(this);
 		
 		// for debug
 		MASSBase.showHosts( );
