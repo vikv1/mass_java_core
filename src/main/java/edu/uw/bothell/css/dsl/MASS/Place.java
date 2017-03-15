@@ -451,7 +451,7 @@ public class Place {
      * @return true on a successful read; otherwise false
      */
 	protected boolean read(int fd, Hashtable<String, Array> ncData) {
-		synchronized (fileTable) {
+		//synchronized (fileTable) {
 			if (fileTable.containsKey(fd)) {
 				FileAttributes fileAttributes = fileTable.get(fd);
 				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
@@ -462,13 +462,10 @@ public class Place {
 			} else {
 				logger.debug("Given fd to read does not exist in the file table (has not been opened)");
 			}
-		}
+		//}
 		return false;
 	}
 
-/*	private synchronized void addToReadTime(long amount) {
-		totalReadTime += amount;
-	}*/
 
 	/**
 	 * Private method that implements reading for Netcdf files
@@ -480,7 +477,6 @@ public class Place {
 	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
 	// (matches the dimensions of places)
 	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
-		long start = System.currentTimeMillis();
 
 		// Get all variable names
 		Enumeration<String> varNames = varsData.keys();
@@ -496,21 +492,21 @@ public class Place {
 				return false;
 			}
 
-			// TODO: 1/30/17 test bellow
 			List<Dimension> dimensions = var.getDimensions();
 
 			int[] readDim = new int[dimensions.size()];
 
 			for (int i = 0; i < dimensions.size(); i++) {
 				readDim[i] = dimensions.get(i).getLength();
-				//logger.debug(i + "dimension size: " + readDim[i]);
 			}
 
 			// Split along x axis
 			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
 
 			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-			//logger.debug("x dimension: " + readDim[0] + ", for place: " + placeOrder);
+
+			/*logger.debug("PLACE: " + placeOrder);
+			logger.debug("READ DIM: " + Arrays.toString(readDim));*/
 
 			// Read data and add to place storage
 			try {
@@ -523,20 +519,27 @@ public class Place {
 				// without having to write a separate implementation for each data type
 				// (You will have to have separate implementations for each dimension if we want to support that)
 				if (userDataset instanceof ArrayFloat.D3) {
-					// read one element starting at this places index
-					currVarData = (ArrayFloat.D3) var.read(new int[] { placeOrder, 0, 0 }, readDim);
 
-					// logger.debug("Place Number: " + placeOrder + ", and read data: " + currVarData.toString());
+					// Netcdf is not thread-safe
+					synchronized (var) {
+						// read section of file
+						currVarData = (ArrayFloat.D3) var.read(new int[]{ placeOrder * readDim[0], 0, 0}, readDim);
+					}
+					var.
 
-					//((ArrayFloat.D3) userDataset).set(placeOrder, 0, 0, ??);
+					/*logger.debug("Place: " + placeOrder);
+					logger.debug(currVarData.toString());*/
 
-					for (int x = 0; x < readDim[0]; x++) {
-						for (int y = 0; y < readDim[1]; y++) {
-							for (int z = 0; z < readDim[2]; z++) {
-								((ArrayFloat.D3) userDataset).set(x + placeOrder, y, z, currVarData.get(x, y, z));
+					//synchronized (userDataset) {
+						// Write the read data to the user's buffer
+						for (int x = 0; x < readDim[0]; x++) {
+							for (int y = 0; y < readDim[1]; y++) {
+								for (int z = 0; z < readDim[2]; z++) {
+									((ArrayFloat.D3) userDataset).set(x + (placeOrder * readDim[0]), y, z, currVarData.get(x, y, z));
+								}
 							}
 						}
-					}
+					//}
 				}
 
 			} catch (InvalidRangeException ire) {
@@ -547,11 +550,16 @@ public class Place {
 				return false;
 			}
 		}
-
-		long end = System.currentTimeMillis();
-		//addToReadTime(end - start);
 		return true;
 	}
+
+
+
+
+
+
+
+
 
 	/**
 	 * The read function used for text files
