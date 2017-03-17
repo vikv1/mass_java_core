@@ -63,10 +63,10 @@ public class AgentSpawnRequestManager
         {
             //System.out.println("NO - agent is serialized");
             // serialization
-            String serializedAgentIdentifier = agentSerializer.serializeAgent(agent);
+            byte[] serializedAgent = agentSerializer.serializeAgent(agent);
             // setup spawn request object
             AgentSpawnRequest agentSpawnRequest = new AgentSpawnRequest();
-            agentSpawnRequest.setSerializedAgentIdentifier(serializedAgentIdentifier);
+            agentSpawnRequest.setSerializedAgent(serializedAgent);
             // TODO index storing might be unnecessary
             //agentSpawnRequest.setIndex(agent.getIndex());
             agentSpawnRequestQueue.add(agentSpawnRequest);
@@ -94,7 +94,7 @@ public class AgentSpawnRequestManager
         {
             //System.out.println("agent is de-serialized");
             // deserialization
-            return agentSerializer.deserializeAgent(agentSpawnRequestQueue.poll().getSerializedAgentIdentifier());
+            return agentSerializer.deserializeAgent(agentSpawnRequestQueue.poll().getSerializedAgent());
         }
         // no agent spawn request
         else

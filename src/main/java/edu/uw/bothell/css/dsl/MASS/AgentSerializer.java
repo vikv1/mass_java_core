@@ -8,6 +8,8 @@ import com.esotericsoftware.minlog.Log;
 
 import org.objenesis.strategy.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -26,7 +28,7 @@ public class AgentSerializer
     private static AgentSerializer instance = null;
 
     // Serialized object extension (must be unique)
-    private static final String KRYO_SERIALIZATION_EXTENSION = "kryo.ser";
+    // private static final String KRYO_SERIALIZATION_EXTENSION = "kryo.ser";
 
     // Classes to be registered (Kryo-only)
     private Class[] classes;
@@ -73,7 +75,7 @@ public class AgentSerializer
         return LazyHolder.INSTANCE;
     }
 
-    public String serializeAgent(Agent agent)
+    public byte[] serializeAgent(Agent agent)
     {
         /*
         Kryo kryo = new Kryo();
@@ -114,16 +116,16 @@ public class AgentSerializer
         try
         {
             //System.out.println("----");
-            String serializedAgentIdentifier =  System.currentTimeMillis() + KRYO_SERIALIZATION_EXTENSION;
             //System.out.println("serializing agent with id: " + serializedAgentIdentifier);
             //System.out.println("serialized agent's index is: " + agent.getIndex()[0] + " " + agent.getIndex()[1]);
-            FileOutputStream fileOutputStream = new FileOutputStream(serializedAgentIdentifier);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
             objectOutputStream.writeObject(agent);
+            objectOutputStream.flush();
             objectOutputStream.close();
-            fileOutputStream.close();
+            byte[] serializedAgent = byteArrayOutputStream.toByteArray();
             //System.out.println("returning id: " + serializedAgentIdentifier);
-            return serializedAgentIdentifier;
+            return serializedAgent;
         }
         catch (java.io.IOException ex)
         {
@@ -133,7 +135,7 @@ public class AgentSerializer
 
     }
 
-    public Agent deserializeAgent(String serializedAgentIdentifier)
+    public Agent deserializeAgent(byte[] serializedAgent)
     {
         /*
         Kryo kryo = new Kryo();
@@ -170,11 +172,10 @@ public class AgentSerializer
         {
             //System.out.println("----");
             //System.out.println("de-serializing agent with id: " + serializedAgentIdentifier);
-            FileInputStream fileInputStream = new FileInputStream(serializedAgentIdentifier);
-            ObjectInputStream objectInputStream= new ObjectInputStream(fileInputStream);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedAgent);
+            ObjectInputStream objectInputStream= new ObjectInputStream(byteArrayInputStream);
             Agent deserializedAgent = (Agent) objectInputStream.readObject();
             objectInputStream.close();
-            fileInputStream.close();
             return deserializedAgent;
         }
         catch(java.io.IOException ex)
