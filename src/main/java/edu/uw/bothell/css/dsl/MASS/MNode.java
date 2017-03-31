@@ -36,6 +36,8 @@ import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import ucar.ma2.Array.*;
+import ucar.ma2.ArrayFloat;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -210,7 +212,7 @@ public class MNode {
 		catch ( Exception e ) {
 
 			logger.error( "receivMessage error from rank[" + pid + "] at " +
-					hostName,  e );
+					hostName + ", message: " + e.getMessage(),  e );
 			
 			e.printStackTrace();
 
@@ -249,13 +251,22 @@ public class MNode {
 		catch ( Exception e ) {
 
 			logger.error( "sendMessage error to rank[" + pid + "] at " +
-					hostName );
+					hostName + ", Exception: " + e.getMessage());
+
+			logStackTrace(e.getStackTrace());
 
 			System.exit( -1 );
 
 		}
 
 	}
+
+	private void logStackTrace(StackTraceElement[] elements) {
+		for (StackTraceElement element : elements) {
+			logger.error(element.toString());
+		}
+	}
+
 
 	/**
 	 * Set the Hostname or IP address of this Node

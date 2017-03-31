@@ -38,6 +38,7 @@ import ucar.nc2.Variable;
 import ucar.nc2.util.IO;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -103,7 +104,7 @@ public class Place {
 	protected static final Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
 
 	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
-	private static final OpenOption[] OpenOperations = new OpenOption[] {READ, WRITE};
+	private static final OpenOption[] OpenOperations = new OpenOption[] { READ, WRITE };
 
 	// Counts the number of files open
 	private static int count = 0;
@@ -138,13 +139,13 @@ public class Place {
 		private int readLength;
 
 		// Buffer text files are read to
-		private ByteBuffer buffer;
+		private byte[] buffer;
 
 		// The file
 		private Object file;
 
 		// Variable to read or write (NetCDF)
-		private Hashtable<String, Variable> variables;
+		private Hashtable<String, Object> variables;
 
 		FileAttributes() {
 			this.count = -1;
@@ -162,7 +163,7 @@ public class Place {
 		}
 
 		FileAttributes(String fileName, Object file, int numberOfPlaces,
-					   int count, Hashtable<String, Variable> variables) {
+					   int count, Hashtable<String, Object> variables) {
 			this.fileName = fileName;
 			this.numberOfPlaces = numberOfPlaces;
 			remainingReads = numberOfPlaces;
@@ -211,7 +212,7 @@ public class Place {
 			return readLength;
 		}
 
-		public ByteBuffer getBuffer() {
+		public byte[] getBuffer() {
 			return buffer;
 		}
 
@@ -219,11 +220,11 @@ public class Place {
 			return file;
 		}
 
-		public Hashtable<String, Variable> getVariables() {
+		public Hashtable<String, Object> getVariables() {
 			return variables;
 		}
 
-		public Variable getVariable(String varName) {
+		public Object getVariable(String varName) {
 			return variables.get(varName);
 		}
 
@@ -256,7 +257,7 @@ public class Place {
 		}
 
 		//TODO check for privacy leaks
-		public void setBuffer(ByteBuffer buffer) {
+		public void setBuffer(byte[] buffer) {
 			this.buffer = buffer;
 		}
 
@@ -266,7 +267,7 @@ public class Place {
 		}
 
 		//TODO check for privacy leaks
-		public void setVariables(Hashtable<String, Variable> variables) {
+		public void setVariables(Hashtable<String, Object> variables) {
 			this.variables = variables;
 		}
 	}
@@ -285,6 +286,8 @@ public class Place {
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
 	protected int open(String filePath, int ioType) {
+
+		logger.debug("PARALLEL IO: open called on PID" + MASSBase.getMyPid());
 
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
@@ -360,11 +363,26 @@ public class Place {
 			logger.debug("No NetCDF variables to read");
 		}
 
-		Hashtable<String, Variable> variables = new Hashtable<String, Variable>();
+		Hashtable<String, Object> variables = new Hashtable<String, Object>();
 
 		for (int i = 0; i < varList.size(); i++) {
 			Variable currVar = varList.get(i);
-			variables.put(currVar.getShortName(), currVar);
+
+			// read
+			try {
+				Array varData = currVar.read(new int[currVar.getShape().length], currVar.getShape());
+
+				variables.put(currVar.getShortName(), varData.copyTo1DJavaArray());
+
+				/*if (varData.getElementType() == Float.class) {
+					float[] floatData = (float[]) varData.copyTo1DJavaArray();
+				}*/
+
+			} catch (IOException ioe) {
+				logger.error("An IOException occurred while reading the NetCDF file into memory: " + ioe.getMessage());
+			} catch (InvalidRangeException ire) {
+				logger.error("An InvalidRangeException occurred while reading the NetCDF file into memory: " + ire.getMessage());
+			}
 		}
 
 		// Set file attributes and add them to the file table
@@ -408,27 +426,18 @@ public class Place {
 		// Set file attributes for a read operation
 		if (ioType == 0) {
 
+			ByteBuffer buffer = null;
+
 			// create a buffer that has the same space as the file being read
 			try {
-				fileAttributes.setBuffer(ByteBuffer.allocate((int) fileChannel.size()));
-			} catch (IOException ioe) {
-				logger.error("Could not create a buffer for the given text file: " + ioe);
-				return -1;
-			}
-
-			ByteBuffer buffer = fileAttributes.getBuffer();
-
-			// read the file contents to the buffer
-			try {
+				buffer = ByteBuffer.allocate((int) fileChannel.size());
 				fileChannel.read(buffer);
+				fileAttributes.setBuffer(buffer.array());
+				fileAttributes.setReadLength(buffer.capacity() / fileAttributes.getNumberOfPlaces());
 			} catch (IOException ioe) {
-				logger.error("Could not read the text file into the buffer: " + ioe);
+				logger.error("Could not create a buffer for the given text file: " + ioe.getMessage());
 				return -1;
 			}
-
-			buffer.flip();
-
-			fileAttributes.setReadLength(buffer.capacity() / fileAttributes.getNumberOfPlaces());
 		}
 
 		fileTable.put(count, fileAttributes);
@@ -450,7 +459,8 @@ public class Place {
 	 *               match those of the Netcdf file being read)
      * @return true on a successful read; otherwise false
      */
-	protected boolean read(int fd, Hashtable<String, Array> ncData) {
+	protected boolean read(int fd, Hashtable<String, Object> ncData) {
+		logger.debug("PARALLEL IO: Read started.");
 		//synchronized (fileTable) {
 			if (fileTable.containsKey(fd)) {
 				FileAttributes fileAttributes = fileTable.get(fd);
@@ -476,7 +486,7 @@ public class Place {
 	// TODO currently each place reads a single index, each place should determine how much to read
 	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
 	// (matches the dimensions of places)
-	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Array> varsData) {
+	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Object> varsData) {
 
 		// Get all variable names
 		Enumeration<String> varNames = varsData.keys();
@@ -485,81 +495,56 @@ public class Place {
 		while (varNames.hasMoreElements()) {
 
 			String varName = varNames.nextElement();
-			Variable var = fileAttributes.getVariable(varName);
-			if (var == null) {
+			Object varData = fileAttributes.getVariable(varName);
+			if (varData == null) {
 				logger.debug("Given variable: \"" + varName + "\" does not exist in: \""
 						+ fileAttributes.getFileName() + "\"");
 				return false;
 			}
 
-			List<Dimension> dimensions = var.getDimensions();
-
-			int[] readDim = new int[dimensions.size()];
-
-			for (int i = 0; i < dimensions.size(); i++) {
-				readDim[i] = dimensions.get(i).getLength();
-			}
-
-			// Split along x axis
-			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
-
 			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
 
-			/*logger.debug("PLACE: " + placeOrder);
-			logger.debug("READ DIM: " + Arrays.toString(readDim));*/
+			Object userBuffer = varsData.get(varName);
 
-			// Read data and add to place storage
-			try {
+			if (userBuffer instanceof float[]) {
+				try {
+					float[] userFloatBuffer = (float[]) userBuffer;
+					float[] varFloatData = (float[]) varData;
 
-				Array userDataset = varsData.get(varName);
-				ArrayFloat.D3 currVarData;
+					int placeReadLength = varFloatData.length / fileAttributes.getNumberOfPlaces();
 
-				// Read for 3D float
-				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
-				// without having to write a separate implementation for each data type
-				// (You will have to have separate implementations for each dimension if we want to support that)
-				if (userDataset instanceof ArrayFloat.D3) {
-
-					// Netcdf is not thread-safe
-					synchronized (var) {
-						// read section of file
-						currVarData = (ArrayFloat.D3) var.read(new int[]{ placeOrder * readDim[0], 0, 0}, readDim);
+					if (placeReadLength < 1) {
+						logger.debug("Too many places attempting to read a NetCDF file.");
+						return false;
 					}
-					var.
 
-					/*logger.debug("Place: " + placeOrder);
-					logger.debug(currVarData.toString());*/
-
-					//synchronized (userDataset) {
-						// Write the read data to the user's buffer
-						for (int x = 0; x < readDim[0]; x++) {
-							for (int y = 0; y < readDim[1]; y++) {
-								for (int z = 0; z < readDim[2]; z++) {
-									((ArrayFloat.D3) userDataset).set(x + (placeOrder * readDim[0]), y, z, currVarData.get(x, y, z));
-								}
-							}
+					if (placeOrder < fileAttributes.getNumberOfPlaces() - 1) {
+						for (int i = placeOrder * placeReadLength; i < placeReadLength * (placeOrder + 1); i++) {
+							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
 						}
-					//}
-				}
+					} else {
+						for (int i = placeOrder * placeReadLength; i < varFloatData.length; i++) {
+							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
+						}
+					}
 
-			} catch (InvalidRangeException ire) {
-				logger.debug("Invalid range: " + ire);
-				return false;
-			} catch (IOException ioe) {
-				logger.debug("Invalid range: " + ioe);
+				} catch (ClassCastException cce) {
+					logger.error("Given buffer to read into does not match the NetCDF file data to read.");
+					return false;
+				} catch (ArrayIndexOutOfBoundsException oob) {
+					logger.error("Given buffer to read into is not large enough to hold the NetCDF file data to read.");
+					return false;
+				}
+			} else {
+				logger.error("Given buffer to read into is not a supported data type.");
 				return false;
 			}
 		}
+
+		logger.debug("PARALLEL IO: NetCDF Read finished successfully.");
+
 		return true;
 	}
-
-
-
-
-
-
-
-
 
 	/**
 	 * The read function used for text files
@@ -587,10 +572,7 @@ public class Place {
 		try {
 
 			// Get the buffer to read from
-			ByteBuffer buffer = fileAttributes.getBuffer();
-
-			// Temporary storage
-			byte[] txtData;
+			byte[] buffer = fileAttributes.getBuffer();
 
 			// Used for determining which part of the file to read
 			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
@@ -601,37 +583,23 @@ public class Place {
 			if (placeOrder != fileAttributes.getNumberOfPlaces() - 1) {		// No, read predetermined amount
 																			// (currently 1 index)
 
-				txtData = new byte[ length ];
-
 				// Read from the file into the temp buffer
-				synchronized (buffer) {        // TODO: test
 
-					buffer.position(placeOrder * length);
-
-					buffer.get(data, 0, length);
+				for (int i = placeOrder * length; i < length * (placeOrder + 1); i++) {
+					data[i - (length * MASS.getMyPid())] = buffer[i];
 				}
 			}
 
 			// Perform final read
 			// Read the remaining bytes of the file (this should be done by only the last Place)
 			else {
-				buffer.position(length * placeOrder);
-
-				txtData = new byte[buffer.remaining()];
-
-				int pos = 0;
-				while(buffer.hasRemaining()) {
-					data[pos] = buffer.get();
-					pos++;
+				for (int i = placeOrder * length; i < buffer.length; i++) {
+					data[i - (length * MASS.getMyPid())] = buffer[i];
 				}
 			}
-
-			// Copies the Place's temp buffer to the correct position in the entire array
-			// of data that is passed by the user
-			System.arraycopy(txtData, 0, data, placeOrder, txtData.length);
 		}
-		catch (BufferUnderflowException bue) {
-			logger.debug(bue.toString());
+		catch (ArrayIndexOutOfBoundsException oob) {
+			logger.error("Given buffer to read into is not large enough to hold the TXT file data to read.");
 			return false;
 		}
 		return true;
@@ -822,5 +790,61 @@ public class Place {
 	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
+
+	// TODO: 3/31/17  Old netcdf read - remove when no longer needed
+	/*List<Dimension> dimensions = var.getDimensions();
+
+			int[] readDim = new int[dimensions.size()];
+
+			for (int i = 0; i < dimensions.size(); i++) {
+				readDim[i] = dimensions.get(i).getLength();
+			}
+
+			// Split along x axis
+			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
+
+			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+
+			logger.debug("PLACE: " + placeOrder);
+			logger.debug("READ DIM: " + Arrays.toString(readDim));
+
+			// Read data and add to place storage
+			try {
+
+				Number[][][] userDataset = varsData.get(varName);
+				ArrayFloat.D3 currVarData;
+
+				// Read for 3D float
+				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
+				// without having to write a separate implementation for each data type
+				// (You will have to have separate implementations for each dimension if we want to support that)
+				if (userDataset instanceof Float[][][]) {
+
+					// Netcdf is not thread-safe
+					// synchronized (var) {
+						// read section of file
+						currVarData = (ArrayFloat.D3) var.read(new int[]{ placeOrder * readDim[0], 0, 0}, readDim);
+					// }
+
+					synchronized (userDataset) {
+						// Write the read data to the user's buffer
+						for (int x = 0; x < readDim[0]; x++) {
+							for (int y = 0; y < readDim[1]; y++) {
+								for (int z = 0; z < readDim[2]; z++) {
+									((ArrayFloat.D3) userDataset).set(x + (placeOrder * readDim[0]), y, z, currVarData.get(x, y, z));
+								}
+							}
+						}
+					}
+				}
+
+			} catch (InvalidRangeException ire) {
+				logger.debug("Invalid range: " + ire);
+				return false;
+			} catch (IOException ioe) {
+				logger.debug("Invalid range: " + ioe);
+				return false;
+			}
+		}*/
 	
 }

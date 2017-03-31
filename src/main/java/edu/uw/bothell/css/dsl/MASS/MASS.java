@@ -411,7 +411,7 @@ public class MASS extends MASSBase {
     			
     		} catch ( Exception e ) {
     			// connection failure
-    			System.err.println( "MASS: error in connection to " + 
+    			System.err.println( "MASS: error in connection to " +
     					node.getHostName() + " " + e );
     			System.exit( -1 );
     		}
