@@ -871,9 +871,7 @@ public class PlacesBase {
 				newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
 				newPlace.setSize(size);
 				places[i] = newPlace;
-
     		}
-    	
     	} 
     	
     	// TODO - what to do when this exception is caught?
@@ -936,8 +934,10 @@ public class PlacesBase {
     	// TODO - what to do if this is caught?
     	catch ( Exception e ) {
         	logger.error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
-    	} 
-    
+    	}
     }
 
+	public int getTotalPlaces() {
+		return total;
+	}
 }

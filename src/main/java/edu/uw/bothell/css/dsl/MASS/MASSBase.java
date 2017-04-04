@@ -31,10 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -677,5 +674,4 @@ public class MASSBase {
 	public static Log4J2Logger getLogger() {
 		return logger;
 	}
-
 }

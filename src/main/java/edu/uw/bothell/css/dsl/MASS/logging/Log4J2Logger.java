@@ -34,7 +34,6 @@ public class Log4J2Logger {
     	
     	// initialize logger with default properties 
     	initLogger();
-    	
     }
 
     /**

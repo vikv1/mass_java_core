@@ -370,6 +370,7 @@ public class Place {
 
 			// read
 			try {
+				// TODO: 3/31/17 read only what is needed for this node 
 				Array varData = currVar.read(new int[currVar.getShape().length], currVar.getShape());
 
 				variables.put(currVar.getShortName(), varData.copyTo1DJavaArray());
@@ -384,9 +385,9 @@ public class Place {
 				logger.error("An InvalidRangeException occurred while reading the NetCDF file into memory: " + ire.getMessage());
 			}
 		}
-
+		logger.debug("Total num places: " +  MASSBase.getCurrentPlacesBase().getTotalPlaces());
 		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASS.getCurrentPlacesBase().getPlacesSize(), count, variables);
+		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASSBase.getCurrentPlacesBase().getTotalPlaces(), count, variables);
 
 		fileTable.put(count, fileAttributes);
 
@@ -421,7 +422,7 @@ public class Place {
 		}
 
 		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlacesBase().getPlacesSize(), count);
+		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlacesBase().getTotalPlaces(), count);
 
 		// Set file attributes for a read operation
 		if (ioType == 0) {
@@ -522,11 +523,19 @@ public class Place {
 						for (int i = placeOrder * placeReadLength; i < placeReadLength * (placeOrder + 1); i++) {
 							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
 						}
+						logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
+								placeReadLength * (placeOrder + 1));
 					} else {
 						for (int i = placeOrder * placeReadLength; i < varFloatData.length; i++) {
 							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
 						}
+						logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
+								varFloatData.length);
 					}
+
+					logger.debug("PARALLEL IO: NetCDF Read finished successfully for Place: " + placeOrder + ", " +
+							"running on Machine: " + MASS.getMyPid());
+
 
 				} catch (ClassCastException cce) {
 					logger.error("Given buffer to read into does not match the NetCDF file data to read.");
@@ -540,9 +549,6 @@ public class Place {
 				return false;
 			}
 		}
-
-		logger.debug("PARALLEL IO: NetCDF Read finished successfully.");
-
 		return true;
 	}
 

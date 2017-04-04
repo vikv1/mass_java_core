@@ -41,7 +41,7 @@ public class Places extends PlacesBase {
 
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
-
+	private int total = 1;
 	/**
 	 * Places constructor that creates places with a given dimension.
 	 * @param handle	A unique identifier that designates a group of places.
@@ -51,8 +51,12 @@ public class Places extends PlacesBase {
 	 * @param argument
 	 * @param size
 	 */	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
-    	
 		super( handle, className, boundaryWidth, argument, size );
+
+		for (int i : size) {
+	 		total *= i;
+		}
+
 		init_master( argument, boundaryWidth );
     
     }
