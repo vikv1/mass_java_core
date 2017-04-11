@@ -460,13 +460,13 @@ public class Place {
 	 *               match those of the Netcdf file being read)
      * @return true on a successful read; otherwise false
      */
-	protected boolean read(int fd, Hashtable<String, Object> ncData) {
+	protected boolean read(int fd, String variableToRead, Object variableBuffer) {
 		logger.debug("PARALLEL IO: Read started.");
 		//synchronized (fileTable) {
 			if (fileTable.containsKey(fd)) {
 				FileAttributes fileAttributes = fileTable.get(fd);
 				if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
-					return readNetcdfFile(fileAttributes, ncData);
+					return readNetcdfFile(fileAttributes, variableToRead, variableBuffer);
 				} else {
 					logger.debug("Given fd to read is not supported by MASS parallel I/O");
 				}
@@ -487,67 +487,58 @@ public class Place {
 	// TODO currently each place reads a single index, each place should determine how much to read
 	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
 	// (matches the dimensions of places)
-	private boolean readNetcdfFile(FileAttributes fileAttributes, Hashtable<String, Object> varsData) {
+	private boolean readNetcdfFile(FileAttributes fileAttributes, String variableToRead, Object userVariableBuffer) {
 
-		// Get all variable names
-		Enumeration<String> varNames = varsData.keys();
+		Object variable = fileAttributes.getVariable(variableToRead);
+		if (variable == null) {
+			logger.debug("Given variable: \"" + variableToRead + "\" does not exist in: \""
+					+ fileAttributes.getFileName() + "\"");
+			return false;
+		}
 
-		// Read one index of each variable
-		while (varNames.hasMoreElements()) {
+		int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
 
-			String varName = varNames.nextElement();
-			Object varData = fileAttributes.getVariable(varName);
-			if (varData == null) {
-				logger.debug("Given variable: \"" + varName + "\" does not exist in: \""
-						+ fileAttributes.getFileName() + "\"");
-				return false;
-			}
+		if (userVariableBuffer instanceof float[]) {
 
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+			try {
+				float[] userFloatBuffer = (float[]) userVariableBuffer;
+				float[] varFloatData = (float[]) variable;
 
-			Object userBuffer = varsData.get(varName);
+				int placeReadLength = varFloatData.length / fileAttributes.getNumberOfPlaces();
 
-			if (userBuffer instanceof float[]) {
-				try {
-					float[] userFloatBuffer = (float[]) userBuffer;
-					float[] varFloatData = (float[]) varData;
-
-					int placeReadLength = varFloatData.length / fileAttributes.getNumberOfPlaces();
-
-					if (placeReadLength < 1) {
-						logger.debug("Too many places attempting to read a NetCDF file.");
-						return false;
-					}
-
-					if (placeOrder < fileAttributes.getNumberOfPlaces() - 1) {
-						for (int i = placeOrder * placeReadLength; i < placeReadLength * (placeOrder + 1); i++) {
-							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
-						}
-						logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-								placeReadLength * (placeOrder + 1));
-					} else {
-						for (int i = placeOrder * placeReadLength; i < varFloatData.length; i++) {
-							userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
-						}
-						logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-								varFloatData.length);
-					}
-
-					logger.debug("PARALLEL IO: NetCDF Read finished successfully for Place: " + placeOrder + ", " +
-							"running on Machine: " + MASS.getMyPid());
-
-
-				} catch (ClassCastException cce) {
-					logger.error("Given buffer to read into does not match the NetCDF file data to read.");
-					return false;
-				} catch (ArrayIndexOutOfBoundsException oob) {
-					logger.error("Given buffer to read into is not large enough to hold the NetCDF file data to read.");
+				if (placeReadLength < 1) {
+					logger.debug("Too many places attempting to read a NetCDF file.");
 					return false;
 				}
-			} else {
-				logger.error("Given buffer to read into is not a supported data type.");
+
+				if (placeOrder < fileAttributes.getNumberOfPlaces() - 1) {
+					for (int i = placeOrder * placeReadLength; i < placeReadLength * (placeOrder + 1); i++) {
+						userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
+					}
+					logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
+							placeReadLength * (placeOrder + 1));
+				} else {
+					for (int i = placeOrder * placeReadLength; i < varFloatData.length; i++) {
+						userFloatBuffer[i - (placeReadLength * MASS.getMyPid())] = varFloatData[i];
+					}
+					logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
+							varFloatData.length);
+				}
+
+				logger.debug("PARALLEL IO: NetCDF Read finished successfully for Place: " + placeOrder + ", " +
+						"running on Machine: " + MASS.getMyPid());
+
+
+			} catch (ClassCastException cce) {
+				logger.error("Given buffer to read into does not match the NetCDF file data to read.");
+				return false;
+			} catch (ArrayIndexOutOfBoundsException oob) {
+				logger.error("Given buffer to read into is not large enough to hold the NetCDF file data to read.");
 				return false;
 			}
+		} else {
+			logger.error("Given buffer to read into is not a supported data type.");
+			return false;
 		}
 		return true;
 	}
