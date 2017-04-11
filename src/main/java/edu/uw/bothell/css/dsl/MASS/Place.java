@@ -291,7 +291,7 @@ public class Place {
 	 */
 	protected int open(String filePath, int ioType) {
 
-		logger.debug("PARALLEL IO: open called on PID" + MASSBase.getMyPid());
+		//logger.debug("PARALLEL IO: open called on PID" + MASSBase.getMyPid());
 
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
@@ -319,7 +319,7 @@ public class Place {
 				} else if (fileName.toLowerCase().endsWith(".txt")) {
 					fileDescriptor = openTextFile(fileName, ioType, path);
 				} else {
-					logger.debug("File type not supported by MASS parallel I/O");
+					logger.error("File type not supported by MASS parallel I/O");
 					return -1;
 				}
 				logger.debug(fileTable.get(fileDescriptor).getFileName() + " opened");
@@ -347,7 +347,7 @@ public class Place {
 			try {
 				netcdfFile = NetcdfFile.openInMemory(ncFileName);
 			} catch (IOException e) {
-				logger.debug("Exception opening netcdf file in memory: " + e);
+				logger.error("Exception opening netcdf file in memory: " + e);
 				return -1;
 			}
 		}
@@ -357,14 +357,14 @@ public class Place {
 			try {
 				netcdfFile = NetcdfFile.open(ncFileName);
 			} catch (IOException e) {
-				logger.debug("Exception opening netcdf file on disk: " + e);
+				logger.error("Exception opening netcdf file on disk: " + e);
 				return -1;
 			}
 		}
 
 		List<Variable> varList = netcdfFile.getVariables();
 		if (varList.isEmpty()) {
-			logger.debug("No NetCDF variables to read");
+			logger.error("No NetCDF variables to read");
 		}
 
 		Hashtable<String, Object> variables = new Hashtable<String, Object>();
@@ -466,7 +466,7 @@ public class Place {
 	 * @return true on a successful read; otherwise false
 	 */
 	protected boolean read(int fd, String variableToRead, Object variableBuffer) {
-		logger.debug("PARALLEL IO: Read started.");
+		//logger.debug("PARALLEL IO: Read started.");
 		//synchronized (fileTable) {
 		if (fileTable.containsKey(fd)) {
 			FileAttributes fileAttributes = fileTable.get(fd);
