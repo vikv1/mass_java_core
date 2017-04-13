@@ -47,6 +47,25 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
+
 
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -448,6 +467,39 @@ public class Place {
 
 		// Return the file's count (which is the file's unique descriptor)
 		return fileAttributes.getCount();
+	}
+
+	public void readFilefromHDFS(String file) throws IOException {
+		Configuration conf = new Configuration();
+		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/core-site.xml"));
+		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/hdfs-site.xml"));
+		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/mapred-site.xml"));
+
+		FileSystem fileSystem = FileSystem.get(conf);
+
+		org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(file);
+		if (!fileSystem.exists(path)) {
+			System.out.println("File " + file + " does not exists");
+			return;
+		}
+
+		FSDataInputStream in = fileSystem.open(path);
+
+		String filename = file.substring(file.lastIndexOf('/') + 1,
+				file.length());
+
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(
+				new File(filename)));
+
+		byte[] b = new byte[1024];
+		int numBytes = 0;
+		while ((numBytes = in.read(b)) > 0) {
+			out.write(b, 0, numBytes);
+		}
+
+		in.close();
+		out.close();
+		fileSystem.close();
 	}
 
 	/**
