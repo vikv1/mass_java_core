@@ -315,7 +315,7 @@ public class Place {
 
 				// Open the file if the file type is supported, return -1 if not supported
 				if (fileName.toLowerCase().endsWith(".nc")) {
-					fileDescriptor = openNetcdfFile(fileName, ioType);
+					fileDescriptor = openNetcdfFile(fileName, ioType, path);
 				} else if (fileName.toLowerCase().endsWith(".txt")) {
 					fileDescriptor = openTextFile(fileName, ioType, path);
 				} else {
@@ -339,13 +339,13 @@ public class Place {
 	 * @param ioType
 	 * @return fileDescriptor
 	 */
-	private int openNetcdfFile(String ncFileName, int ioType) {
+	private int openNetcdfFile(String ncFileName, int ioType, Path path) {
 		NetcdfFile netcdfFile;
 
 		// Read entire file into memory for reading
 		if (ioType == 0) {
 			try {
-				netcdfFile = NetcdfFile.openInMemory(ncFileName);
+				netcdfFile = NetcdfFile.openInMemory(path.toString());
 			} catch (IOException e) {
 				logger.error("Exception opening netcdf file in memory: " + e);
 				return -1;
@@ -355,7 +355,7 @@ public class Place {
 		// Open file in disk for writing
 		else {
 			try {
-				netcdfFile = NetcdfFile.open(ncFileName);
+				netcdfFile = NetcdfFile.open(path.toString());
 			} catch (IOException e) {
 				logger.error("Exception opening netcdf file on disk: " + e);
 				return -1;
