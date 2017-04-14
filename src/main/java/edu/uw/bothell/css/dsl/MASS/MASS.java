@@ -441,19 +441,37 @@ public class MASS extends MASSBase {
     }
 
 	/**
-	 * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
-	 * @param nThr The number of threads to spawn on each node
-	* */
-	public static void init( int nThr )
+	 * Initialize the MASS library using arguments. Calling this method lets MASS use JAVA serialization.
+	 * @param maxNumberOfAgents max number of agents that can actively run within a node.
+	 */
+	public static void init(int maxNumberOfAgents )
 	{
-		setNumThreads(nThr);
+		// store class definitions
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
-		// after parameters have been set, perform initialization
+		// after classes have been stored, perform initialization
 		init();
 	}
 
     /**
-     * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
+	 * Initialize the MASS library using arguments. Calling this method lets MASS use Kryo serialization.
+	 * @param classes An array of class definitions that need to be registered by Kryo serializer.
+	 * @param maxNumberOfAgents max number of agents that can actively run within a node.
+	 */
+	public static void init( Class[] classes, int maxNumberOfAgents )
+	{
+		// store class definitions
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+		agentSerializer.setRegisteredClasses(classes);
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
+
+		// after classes have been stored, perform initialization
+		init();
+	}
+
+    /**
+     * Initialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
      * @param nThr The number of threads to spawn on each node
