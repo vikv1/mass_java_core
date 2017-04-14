@@ -326,6 +326,63 @@ public class Agents extends AgentsBase implements Serializable {
   }
 
   /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll(int functionId, int numberOfIterations)
+  {
+      //System.out.println("public void doAll(int functionId, int numberOfIterations)");
+      // consecutive calls for n-1 times
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+          manageAllSetup();
+      }
+  }
+
+  /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed
+   * @param argument the argument to pass to each Agent
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll(int functionId, Object argument, int numberOfIterations)
+  {
+      //System.out.println("public void doAll(int functionId, Object argument, int numberOfIterations)");
+      // consecutive calls for n times
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+          manageAllSetup();
+      }
+  }
+
+  /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed
+   * @param argument the argument to pass to each Agent
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public Object doAll(int functionId, Object[] argument, int numberOfIterations)
+  {
+      //System.out.println("public Object doAll(int functionId, Object[] argument, int numberOfIterations)");
+      Object returnObject = null;
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          returnObject = callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+          manageAllSetup();
+      }
+      return returnObject;
+  }
+
+  /**
    * Returns the current number of agents.
    * @return nAgents
    */
