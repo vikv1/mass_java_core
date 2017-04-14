@@ -31,8 +31,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
@@ -191,179 +189,6 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
-  // The master program needs to inform processes that callAllAsync is about to start
-  List<Agent> callAllSetupAsync(int[] functionIds, Object[] arguments, boolean autoMigration) throws Exception {
-    // FOR auto migration
-    Places places = MASSBase.getPlaces(this.getPlacesHandle());
-    int lastDimensionLength = places.getSize()
-        [places.getSize().length - 1];
-
-    // The functionality is not checked yet
-    if(autoMigration) {
-      // if user supplies funcs a b c then the func list
-      // become -2 a b c -1 a b c -1 a b c .. -1 a b c
-      int[] tempFuncIds = functionIds;
-      functionIds = new int[lastDimensionLength * (1 + tempFuncIds.length)];
-      functionIds[0] = -2;
-      for(int i = 0; i < tempFuncIds.length; i++) {
-        functionIds[i + 1] = tempFuncIds[i];
-      }
-      for(int i = 1; i < lastDimensionLength; i++) {
-        functionIds[i*(tempFuncIds.length + 1)] = -1;
-        for(int j = 0; j < tempFuncIds.length; j++) {
-          functionIds[i*(tempFuncIds.length + 1) + j + 1] = tempFuncIds[j];
-        }
-      }
-    }
-    
-    // Preparing this node for callAllAsync
-    MASSBase.prepareAsyncExecution(this, functionIds);
-
-    // calculate the total number of agents
-    // i is the indicator of MNode at ith position of the MNode vector
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-      total += localAgents[i];
-      if(i!=0 && localAgents[i] != 0) {
-        // Node started with zero agent won't send completeness notification
-        MASS.getChildAgentPids().add(i);
-        MASS.getOutAsyncAgents()[i] += localAgents[i]; // a way for master to keep track
-          logger.debug("Node {} has master as originator", i);
-      }
-    }
-    
-    if(autoMigration) {
-      int expectedAgentSize = 1;
-      // if dimension is a1 * a2 * ... an then there need to be
-      // a1*a2*..*a(n-1) agents
-      for(int i = 0; i < places.getSize().length - 1; i++) {
-        expectedAgentSize *= places.getSize()[i];
-      }
-      if(total != expectedAgentSize) {
-        logger.debug("Need " + expectedAgentSize + " for automigration. There are " + total + " agents total");
-        return null;
-      }
-    }
-
-    // send a AGENTS_CALL_ALL_ASYNC message to each slave
-    // i is the indicator of MNode at ith position of the MNode vector
-    Message m = null;
-    for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
-      // calculate argument position
-      int argumentPosition = 0;
-      for (int dest = 0; dest <= i; dest++) {
-        argumentPosition += localAgents[dest];
-        if(MASS.isConsoleLoggingEnabled()) 
-          System.err.println("Agents.callAll: calc arg_pos = " + argumentPosition
-              + " localAgents[" + (dest + 1) + "] = " + localAgents[dest + 1]);        
-      }
-
-      // localAgents[0] indicates the agents in the master node, slaves start from the index 1
-      // in order to avoid getting an exception partitionedArgument is used. If arguments is null
-      //  we are going to have any empty object.
-      Object[] partitionedArgument = new Object[localAgents[i + 1]];
-      if(arguments != null) {
-        System.arraycopy((Object[]) arguments, argumentPosition, partitionedArgument, 0,
-            localAgents[i + 1]);
-      }
-      // create message that is going to be sent to remote MNodes
-      m = new Message(Message.ACTION_TYPE.AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT,
-          this.getHandle(), functionIds, partitionedArgument);
-      if(autoMigration) {
-        int[] startingPlaceGlobalIndex = new int[localAgents[i + 1]];
-        for(int j = 0; j < startingPlaceGlobalIndex.length; j++) {
-          startingPlaceGlobalIndex[j] = (argumentPosition + j) * lastDimensionLength;
-        }
-        m.setAutoMigrationStartingIndex(startingPlaceGlobalIndex);
-      }
-      if(MASS.isConsoleLoggingEnabled())
-        System.err.println("Agents.callAll: to rank[" + (i + 1)
-            + "] arg_pos = " + argumentPosition);
-
-      // send callAllAsync to remote MNodes
-      MASS.getRemoteNodes().get(i).sendMessage(m);
-      if (MASS.isConsoleLoggingEnabled()) {
-        System.err.println("AGENTS_CALL_ALL_ASYNC " + m.getAction()
-            + " sent to " + i);
-        System.err.println("Bag Size is: "
-            + MASSBase.getAgentsMap().get(new Integer(getHandle()))
-                .getAgents().size_unreduced());
-      }
-    }
-
-    for (int i = 0; i < asyncAgentIdListSize(); i++) {
-      if(arguments != null) {
-        getAgents().get(asyncAgentIdListGet(i)).setAsyncArgument(arguments[i]);
-      }
-      getAgents().get(asyncAgentIdListGet(i)).setAutoMigrationStartingIndex(i * lastDimensionLength);
-    }
-    // shared between agents
-    // TODO What is share here?
-
-    // We need this so AsyncInputThread can quickly pass the migration request
-    /*
-     * MASS_base.setCurrentFunctionId(functionId);
-     * MASS_base.setCurrentArgument(argument);
-     * MASS_base.setCurrentMsgType(type);
-     */
-
-    // resume threads
-    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
-
-    boolean asyncQueueComplete = false;
-    do {
-
-      logger.debug("Begin callAllAsync loop");
-      
-      // Mark myself as busy executing my async queue
-      setIsAsyncLoopIdle(false);
-      // callAllAsync to all slave threads
-      MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL_ASYNC);
-
-      // callAllAsync in my own thread
-      super.callAllAsync(0);
-
-      // Done with processing my async queue
-      setIsAsyncLoopIdle(true);
-			synchronized (getAsyncAgentIdList()) {
-				
-				asyncQueueComplete = asyncAgentIdListIsEmpty() && hasNoInprocessAgents();
-				
-				logger.debug("getAsyncQueue().isEmpty() && hasNoInprocessAgents() = " + asyncAgentIdListIsEmpty() + " && "
-						+ hasNoInprocessAgents() + "; MASS.getChildAgentPids().isEmpty() = "
-						+ MASS.getChildAgentPids().isEmpty());
-			
-			}
-			
-			while ((!MASS.getChildAgentPids().isEmpty() || !MASS.getAsyncOutputThread().isIdle()
-					|| !MASS.getAsyncInputThread().isIdle(false)) && asyncQueueComplete) {
-				
-				logger.debug(MASS.getChildAgentPids().isEmpty() + " && " + MASS.getAsyncOutputThread().isIdle() + " && "
-						+ MASS.getAsyncInputThread().isIdle(false) + " getAsyncQueue().size() = " + asyncAgentIdListSize());
-				
-				try {
-                  getAsyncAgentIdList().wait();
-				} catch (InterruptedException e) {
-					logger.error("Caught exception while processing async queue", e);
-				}
-				
-				asyncQueueComplete = asyncAgentIdListIsEmpty() && hasNoInprocessAgents();
-			
-			}
-      
-      // confirm all threads are done with agents.callAllAsync
-      // backward compatibility barrier twice,
-      // once in callAllAsync in each thread, but then slave thread
-      // enter another barrier at the end of Mthread.run() while() loop
-      // so master thread has to barrier here again to get every one back onto
-      // the top
-      //Mthread.barrierThreads(0);
-    } while (!asyncQueueComplete);
-    
-    collectAsyncResult();
-    return getAsyncCompletedAgentList();
-  }
-
   /**
    * Calls the method specified with functionId of all agents. Done in
    * parallel among multi-processes/threads
@@ -399,20 +224,6 @@ public class Agents extends AgentsBase implements Serializable {
   public Object callAll(int functionId, Object[] argument) {
     return callAllSetup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
-  }
-
-  // user program calls this method
-  // Arguments are delivered to all agents but should be given to only first function
-  public List<Agent> callAllAsync(int[] functionIds,
-      Object[] arguments) throws Exception {
-    return callAllSetupAsync(functionIds, arguments, false);
-  }
-
-  // user program calls this method
-  // Arguments are delivered to all agents but should be given to only first function
-  public List<Agent> callAllAsync(int[] functionIds,
-      Object[] arguments, boolean autoMigration) throws Exception {
-    return callAllSetupAsync(functionIds, arguments, autoMigration);
   }
 
   private void initMaster(Object argument) {
@@ -526,30 +337,5 @@ public class Agents extends AgentsBase implements Serializable {
 
     return nAgents;
 
-  }
-
-  private void collectAsyncResult() {
-    // TODO Auto Migration somewhere?
-
-    // in case of killing agent, backward compatibility
-    getAgents().reduce();
-    setLocalPopulation(getAgents().size_unreduced());
-    localAgents[0] = getLocalPopulation();
-
-    MASS.getRemoteAsyncResults();
-    Collections.sort(getAsyncCompletedAgentList(), new AgentAsyncComparator());
-    MASSBase.setCurrentReturns(getAsyncCompletedAgentList().toArray());
-    for (int i = 1; i < MASSBase.getSystemSize(); i++) {
-      localAgents[i] = MASS.getLocalAgents()[i - 1];
-    }
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-      total += localAgents[i];
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled()) {
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-      }
-    }
   }
 }

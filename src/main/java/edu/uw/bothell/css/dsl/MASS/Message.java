@@ -60,17 +60,7 @@ public class Message implements Serializable {
 	    AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
 	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
 	    AGENTS_MANAGE_ALL,                        // 15            
-	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16  
-	    
-	    /** Async section **/
-	    AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT("AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT"),      // 17
-	    NODE_MASTER_ASYNC_COMPLETE_REQUEST("NODE_MASTER_ASYNC_COMPLETE_REQUEST"),        //18 check if all slaves are completed
-	    AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST("AGENTS_ASYNC_MIGRATION_REMOTE_REQUEST"),    // 19
-	    AGENT_ASYNC_RESULT("AGENT_ASYNC_RESULT"),                       // 20
-	   // NODE_SLAVE_ASYNC_COMPLETE_NOTIFY("NODE_SLAVE_ASYNC_COMPLETE_NOTIFY"),          
-    	// 21 tell master that I'm done
-	    NODE_COMPLETE_NOTIFY_SOURCE("NODE_COMPLETE_NOTIFY_SOURCE");
-    	// 22
+	    AGENTS_MIGRATION_REMOTE_REQUEST;          // 16
     	
     	private final String value;
     	
@@ -101,13 +91,6 @@ public class Message implements Serializable {
     private int boundaryWidth = 0;
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
-    // Pid of the source when sending back result in
-    // callAllAsync
-    private int sourcePid = -1;
-    
-    // Async vars
-    private int[] functionIds = null;
-    private int[] autoMigrateStartingIndex = null;
 
     // EMPTY
     public Message( ) { }
@@ -298,11 +281,6 @@ public class Message implements Serializable {
 
     }
     
-    // AGENT_ASYNC_RESULT
-    public void setSourcePid(int pid) {
-      sourcePid = pid;
-    }
-    
     /**
      * Get the action
      * @return action
@@ -410,35 +388,8 @@ public class Message implements Serializable {
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
     }
-    
-    // Async methods
-    // AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
-    public Message( ACTION_TYPE action, int handle, int[] functionIds, Object argument ) {
-
-      this.action = action;
-      this.handle = handle;
-      this.functionIds = functionIds;
-      this.argument = argument;
-
-    }
-    
-    public int[] getFunctionIds() {
-      return functionIds;
-    }
-    
-    public int getSourcePid() {
-      return sourcePid;
-    }
 
     public String getActionString() {
       return action.getValue();
-    }
-
-    public void setAutoMigrationStartingIndex(int[] startingPlaceGlobalIndex) {
-      this.autoMigrateStartingIndex  = startingPlaceGlobalIndex;
-    }
-    
-    public int[] getAutoMigrationStartingIndex() {
-      return this.autoMigrateStartingIndex;
     }
 }

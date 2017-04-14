@@ -88,23 +88,9 @@ public class MASSBase {
     private static Utilities utilities = new Utilities();
 
     /**
-     * BEGIN ASync vars section
-     */
-    private static AsyncInputThread inputThread = null;
-    private static AsyncOutputThread outputThread = null;
-    
-    /**
-     *  Estimated number of completed slave node in order to
-     *  reduce number of complete check in case master finish 
-     * too early, issue check IFF this >= # of slaves
-     */
-    //private static AtomicInteger estimateSlaveNodeComplete = new AtomicInteger(0);
-    /**
      *  Agents async migrate out and into this node
      */
     private static volatile int[] outAgents, inAgents;
-    private static volatile int sourceAgentPid = -1;
-    private static volatile Set<Integer> childAgentPids = new HashSet<Integer>();
     
     /**
      * END Async vars section
@@ -371,9 +357,6 @@ public class MASSBase {
 		} catch (Exception e) {
 			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
-		
-		// Async section
-		initAsyncCommunicationThreads();
     
 		logger.debug("MASSBase initialization complete");
 	
@@ -539,87 +522,6 @@ public class MASSBase {
     	}
     
     }
-    
-    /**
-     * BEGIN Async methods
-     */
-    
-    public static AsyncInputThread getAsyncInputThread()
-    {
-      return inputThread;
-    }
-    
-    public static AsyncOutputThread getAsyncOutputThread()
-    {
-      return outputThread;
-    }
-    
-    public static void initAsyncCommunicationThreads() {
-      logger.debug("Init Async Communication Threads");
-      inputThread = new AsyncInputThread(thisNode.getPort() + 1);
-      outputThread = new AsyncOutputThread(thisNode.getPort() + 1);
-      inputThread.start();
-      outputThread.start();
-    }
-
-	/*
-		1) Called from callAllSetupAsync method in Agents.java
-		2) In MProcess.java upon receiving the message AGENTS_CALL_ALL_ASYNC_RETURN_OBJECT
-	* */
-    public static void prepareAsyncExecution(AgentsBase agents, int[] fIds) {
-		setCurrentAgentsBase(agents);
-      MThread.setAgentBagSize(currentAgentsBase.getAgents().size()); // number of agents that are going to be executed
-
-		currentAgentsBase.setAsyncFuncList(fIds);
-		currentAgentsBase.resetChildAsyncIndex(); // queue for maintaining agents created
-		currentAgentsBase.resetAsyncCompletedAgentList(); // queue for maintaining agents that completed the function
-
-		currentAgentsBase.asyncAgentIdListClear(); // agents to be executed
-      for(int i = 0; i < currentAgentsBase.getAgents().size_unreduced(); i++) {
-		  currentAgentsBase.asyncAgentIdListAdd(i);
-		  currentAgentsBase.getAgents().get(i).setMyAgentsBase(currentAgentsBase);
-		  currentAgentsBase.getAgents().get(i).setAsyncFuncListIndex(0);
-		  currentAgentsBase.getAgents().get(i).resetAsyncResults();
-		  currentAgentsBase.getAgents().get(i).setMyAsyncOriginalPid(getMyPid());
-		  currentAgentsBase.getAgents().get(i).setMyOriginalAsyncIndex(i);
-		  currentAgentsBase.getAgents().get(i).setCurrentIndex(i);
-      }
-      outputThread.setAgentHandle(agents.getHandle());
-      outputThread.setPlaceHandle(agents.getPlacesHandle());
-      outAgents = new int[getSystemSize()];
-      inAgents = new int[getSystemSize()];
-      for(int i = 0; i < outAgents.length; i++) {
-        outAgents[i] = 0;
-        inAgents[i] = 0;
-      }
-		currentAgentsBase.setResultRequestFromMaster(false);
-      sourceAgentPid = -1;
-      childAgentPids.clear();
-    }
-    
-    public static Set<Integer> getChildAgentPids() {
-      return childAgentPids;
-    }
-    
-    public static int getSourceAgentPid() {
-      return sourceAgentPid;
-    }
-    
-    public static void setSourceAgentPid(int value) {
-      sourceAgentPid = value;
-    }
-    
-    public static int[] getOutAsyncAgents() {
-      return outAgents;
-    }
-    
-    public static int[] getInAsyncAgents() {
-      return inAgents;
-    }
-
-    /**
-     * END Async methods
-     */
 
     /**
 	 * Get the port number used for inter-node communications

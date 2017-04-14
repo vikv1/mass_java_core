@@ -47,6 +47,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.jcraft.jsch.Channel;
+
 import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
 import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
@@ -81,10 +83,6 @@ public class MASS extends MASSBase {
     // yes - unused at this point right now...
     @SuppressWarnings("unused")
 	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-    
-    // Async
-    // number of agents at rank i that returns async results
-    private static int[] LocalAgents;
 
 	// Logging
 	private static Log4J2Logger logger = Log4J2Logger.getInstance();
@@ -108,18 +106,20 @@ public class MASS extends MASSBase {
 
     	// Synchronize with all slave processes
     	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		logger.debug( "barrier waits for ack from {}",
+    		if( printOutput == true )
+    			System.err.println( "barrier waits for ack from " +
     					getRemoteNodes().get(i).getHostName( ) );
 
     		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    		logger.debug( "barrier received a message from " +
+    		if( printOutput == true )
+    			System.err.println( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = {}", m );
+    					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			logger.debug( "barrier didn't receive ack from rank " +
+    			System.err.println( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
@@ -156,16 +156,19 @@ public class MASS extends MASSBase {
     			}
 
     		// retrieve agent population from each Mprocess
-    		logger.debug( "localAgents[" + (i + 1) +
+    		if( printOutput == true ) {
+    			System.err.println( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
+    		}
 
     		if ( localAgents != null ) {
     			localAgents[i + 1] = m.getAgentPopulation( );
     			nAgentsSoFar += localAgents[i + 1];
     		}
 
-    		logger.debug( "message deleted" );
+    		if ( printOutput == true )
+    			System.err.println( "message deleted" );
 
     	}
 
@@ -182,7 +185,8 @@ public class MASS extends MASSBase {
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
-    	logger.debug( "MASS::finish: all MASS threads terminated" );
+    	if ( MASS.isConsoleLoggingEnabled() )
+    		System.err.println( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
@@ -195,12 +199,9 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-    		util.disconnectRemoteNode( node );
-      
-    	MASSBase.getAsyncOutputThread().finish();
-    	MASSBase.getAsyncInputThread().finish();
+    		node.closeMainConnection( );
 
-    	logger.debug( "MASS::finish: done" );
+    	System.err.println( "MASS::finish: done" );
 
     }
     
@@ -398,15 +399,14 @@ public class MASS extends MASSBase {
 //    					node.getUserName(),
 //    					node.getPassWord() );
     			
-//    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
-    			util.LaunchRemoteProcess( commandBuilder.toString(), node );
+    			Channel ssh2connection = util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
-//    			if ( ssh2connection == null )
-//    				throw new Exception( "JSCH channel not created" );
+    			if ( ssh2connection == null )
+    				throw new Exception( "JSCH channel not created" );
 
     			// A new remote process launched. 
     			// The corresponding Mnode created
-//    			node.setChannel(ssh2connection);
+    			node.setChannel(ssh2connection);
     			node.initialize();
     			
     		} catch ( Exception e ) {
@@ -439,9 +439,21 @@ public class MASS extends MASSBase {
     	}
     	System.err.println( "MASS.init: done" );
     }
-    
+
+	/**
+	 * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
+	 * @param nThr The number of threads to spawn on each node
+	* */
+	public static void init( int nThr )
+	{
+		setNumThreads(nThr);
+
+		// after parameters have been set, perform initialization
+		init();
+	}
+
     /**
-     * IniNBA LIVE 2003 Soundtracktialize the MASS library using arguments. Calling this method effectively begins computation.
+     * Iniialize the MASS library using arguments. Calling this method effectively begins computation.
      * @param args An array of command-line style arguments
      * @param nProc Unused - maintained only for compatibility with previous versions. Now calculated from number of defined nodes.
      * @param nThr The number of threads to spawn on each node
@@ -498,24 +510,7 @@ public class MASS extends MASSBase {
 		}
 		
 	}
-	
-	protected static int[] getLocalAgents() {
-	  return LocalAgents;
-	}
-	
-	protected static void setLocalAgents(int[] values) {
-	  LocalAgents = values;
-	}
 
-  	public static void getRemoteAsyncResults() {
-  		
-  		if (!getRemoteNodes().isEmpty()) {
-  			LocalAgents = new int[getRemoteNodes().size()];
-  			getAsyncOutputThread().requestAsyncResults();
-  		}
-
-  	}
-  
   /**
 	 * Change logger level
 	 * @param level The logging level

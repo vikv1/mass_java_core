@@ -76,40 +76,6 @@ public class Agent implements Serializable {
 
 	// logging
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
-	
-	// Async
-	private volatile int asyncFuncListIndex = 0; // next func in the async func list to execute
-	private Object[] asyncResults;
-	private volatile int asyncResultsIndex = 0; // next index to be inserted
-	private Object asyncArgument;
-	private volatile AgentsBase myAgentsBase; // myAGentsBase is necessary to spawn a new instance from current agent's AgentsBase
-
-	// true to signal a thread to stop processing this Agent's asyncFuncList
-	// this happens in kill & migrate case
-	private volatile boolean hasAlreadyGone= false;
-	private volatile boolean needsToGoBackToAsyncQueue = false;
-
-	/**
-	 *  backward compatibility with agentbag,
-	 *  together with myAsyncPid keep track of
-	 *  the original position of the agent,
-	 *  set at the beginning of callAllAsync and not changed
-	 *  throughout execution
-	 */
-	private int myOriginalAsyncIndex;
-
-	/**
-	 * The current index of this agent in agent list
-	 * change when remote migrate, used for killing, async queue access
-	 */
-	private volatile int myCurrentIndex;
-
-	/**
-	 * Original Pid before execution
-	 */
-	private int myAsyncOriginalPid;
-
-	private int autoMigrationStartingIndex;
 
 	public Agent ( ) {
 		agentId = Agents.getAgentInitAgentId();
@@ -167,28 +133,6 @@ public class Agent implements Serializable {
 	 */
 	public void kill( ) {
 		alive = false;
-	}
-
-	public void killAsync() {
-
-		kill();
-		hasAlreadyGone = true;
-
-		synchronized(MThread.class){
-			MThread.setAgentBagSize(MThread.getAgentBagSize() - 1);
-		}
-
-		// remove the agent from this place
-		getPlace().getAgents().remove( this );
-
-		// remove from AgentList, too!
-		// unlike sync myAsyncIndex start from 0
-		/** TO DO IN callAllAsyncLoop only
-		 myAgentsBase.getAgents().remove( myCurrentIndex );*/
-		// So Agents_base put the result into completeQueue
-		asyncFuncListIndex = -1;
-		myAgentsBase = null;
-
 	}
 
 	 /**
@@ -254,13 +198,6 @@ public class Agent implements Serializable {
 
 	}
 
-	protected boolean migrateAsync(int... index) {
-		boolean result = migrate(index);
-		//stopProcessAsyncFuncList = true;
-		myAgentsBase.migrateAsync(this);
-		return result;
-	}
-
 	protected void setIndex(int[] index) {
 		this.index = index;
 	}
@@ -271,93 +208,6 @@ public class Agent implements Serializable {
 
 	protected void setPlace(Place place) {
 		this.place = place;
-	}
-
-	public int getAsyncFuncListIndex() {
-		return asyncFuncListIndex;
-	}
-
-	public int nextAsyncFuncListIndex() {
-		++asyncFuncListIndex;
-		return asyncFuncListIndex - 1;
-	}
-
-	protected void setAsyncFuncListIndex(int index) {
-		asyncFuncListIndex = index;
-	}
-
-	public Object[] getAsyncResults() {
-		return asyncResults;
-	}
-
-	protected void appendAsyncResult(Object newResult) {
-		asyncResults[asyncResultsIndex] = newResult;
-		++asyncResultsIndex;
-	}
-
-	public void resetAsyncResults() {
-		asyncResults = new Object[myAgentsBase.getAsyncFuncList().length];
-		asyncResultsIndex = 0;
-	}
-
-	public int asyncResultsSize() {
-		return asyncResultsIndex;
-	}
-
-	protected void setAsyncArgument(Object newArg) {
-		asyncArgument = newArg;
-	}
-
-	public Object getAsyncArgument(){
-		return asyncArgument;
-	}
-
-	protected void setMyOriginalAsyncIndex(int newIndex) {
-		myOriginalAsyncIndex = newIndex;
-	}
-
-	public int getMyOriginalAsyncIndex() {
-		return myOriginalAsyncIndex;
-	}
-
-	protected void setCurrentIndex(int newIndex) {
-		myCurrentIndex = newIndex;
-	}
-
-	public int getCurrentIndex() {
-		return myCurrentIndex;
-	}
-
-	protected void setMyAsyncOriginalPid(int pid) {
-		myAsyncOriginalPid = pid;
-	}
-
-	public int getMyAsyncOriginalPid() {
-		return myAsyncOriginalPid;
-	}
-
-	public void setMyAgentsBase(AgentsBase parent) {
-		myAgentsBase = parent;
-	}
-
-	public AgentsBase getMyAgentsBase() {
-		return myAgentsBase;
-	}
-
-	public boolean isHasAlreadyGone() {
-		return hasAlreadyGone;
-	}
-
-	public void setHasAlreadyGone(boolean value) {
-		hasAlreadyGone = value;
-	}
-
-	public boolean isNeedsToGoBackToAsyncQueue() {
-		return needsToGoBackToAsyncQueue;
-	}
-
-	public void setNeedsToGoBackToAsyncQueue(boolean value) {
-		needsToGoBackToAsyncQueue = value;
 	}
 
 	/**
@@ -376,54 +226,4 @@ public class Agent implements Serializable {
 		}
 
 	}
-
-	/**
-	 * Spawn new children async and supply them with the arguments and functionIds
-	 * @param numAgents
-	 * @param initializedArguments
-	 * @param arguments
-	 */
-	protected void spawnAsync(int numAgents, Object[] initializedArguments, Object[] arguments) {
-		if(numAgents > 0) {
-			myAgentsBase.spawnAsync(this, numAgents, initializedArguments, arguments);
-		}
-	}
-
-	/**
-	 * Only FOR ASYNC
-	 */
-	protected Agent cloneForAsyncResult() {
-		Agent result = new Agent();
-		result.alive = this.alive;
-		result.asyncResults = new Object[asyncResultsIndex];
-		for(int i = 0; i < asyncResultsIndex; i++) {
-			result.asyncResults[i] = this.asyncResults[i];
-		}
-		result.myAsyncOriginalPid = this.myAsyncOriginalPid;
-		result.myOriginalAsyncIndex = this.myOriginalAsyncIndex;
-		logger.debug("cloneForAsyncResult asyncResults size = " + result.asyncResultsSize() + " original idx " + result.myOriginalAsyncIndex);
-		return result;
-	}
-
-	void autoMigrateStart() {
-		int[] size = place.getSize();
-		int[] index = size.clone();
-		for(int i = size.length - 1; i >= 0; i--) {
-			// autoMigrationStartingIndex value is altered after this
-			index[i] = this.autoMigrationStartingIndex % size[i];
-			this.autoMigrationStartingIndex = autoMigrationStartingIndex / size[i];
-		}
-		migrateAsync(index);
-	}
-
-	void autoMigrateNext() {
-		int[] index = this.getPlace().getIndex().clone();
-		++index[index.length - 1];
-		migrateAsync(index);
-	}
-
-	protected void setAutoMigrationStartingIndex(int i) {
-		this.autoMigrationStartingIndex = i;
-	}
-
 }
