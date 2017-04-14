@@ -291,27 +291,26 @@ public class Place {
 	 */
 	protected int open(String filePath, int ioType) {
 
-		//logger.debug("PARALLEL IO: open called on PID" + MASSBase.getMyPid());
-
-		if (ioType != 0 && ioType != 1) {
-			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
-		}
-
-		// Create a path object from the given file path string
-		Path path = Paths.get(filePath);
-
-		// Ensure the file exists at the specified path
-		if (!Files.exists(path)) {
-			logger.error("The given file path does not exist");
-			return -1;
-		}
-
-		// Isolate the file name
-		String fileName = path.getFileName().toString();
 		synchronized (fileTable) {
 
 			// Only the first place opens the file
 			if (!fileTable.containsKey(count - 1)) {
+
+				if (ioType != 0 && ioType != 1) {
+					throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
+				}
+
+				// Create a path object from the given file path string
+				Path path = Paths.get(filePath);
+
+				// Ensure the file exists at the specified path
+				if (!Files.exists(path)) {
+					logger.error("The given file to open does not exist: " + path);
+					return -1;
+				}
+
+				// Isolate the file name
+				String fileName = path.getFileName().toString();
 
 				// Open the file if the file type is supported, return -1 if not supported
 				if (fileName.toLowerCase().endsWith(".nc")) {
@@ -319,10 +318,10 @@ public class Place {
 				} else if (fileName.toLowerCase().endsWith(".txt")) {
 					fileDescriptor = openTextFile(fileName, ioType, path);
 				} else {
-					logger.error("File type not supported by MASS parallel I/O");
+					logger.error("File type to open is not supported by MASS parallel I/O: " + fileName);
 					return -1;
 				}
-				logger.debug(fileTable.get(fileDescriptor).getFileName() + " opened");
+				logger.debug(fileName + " opened on Node " + MASSBase.getMyPid());
 			}
 		}
 
