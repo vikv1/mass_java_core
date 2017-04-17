@@ -25,6 +25,10 @@ public abstract class FileAttributes {
 
     protected final int totalPlaces;
 
+    protected final int totalNodes;
+
+    protected final int myNodeId;
+
     public enum FileType {
         NETCDF,
         TXT;
@@ -35,6 +39,8 @@ public abstract class FileAttributes {
         this.fileName = filepath.getFileName().toString();
         this.fileType = fileType;
         totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces();
+        totalNodes = MASSBase.getAllNodes().size();
+        myNodeId = MASSBase.getMyPid();
     }
 
 

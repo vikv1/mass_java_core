@@ -77,7 +77,14 @@ public class TxtFileAttributes extends FileAttributes {
     }
 
     private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
+        int bytesPerNode = (int) fileChannel.size() / totalNodes;
+
+        if (myNodeId == totalNodes - 1) {
+            int remainingBytes = (int) fileChannel.size() % totalNodes;
+            bytesPerNode = remainingBytes > 0 ? remainingBytes : bytesPerNode;
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(bytesPerNode);
         fileChannel.read(buffer);
         return buffer.array();
     }

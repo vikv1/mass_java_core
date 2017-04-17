@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
@@ -19,9 +20,11 @@ public class NetcdfFileAttributes extends FileAttributes {
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
     private NetcdfFile netcdfFile;
+    private Log4J2Logger logger;
 
     public NetcdfFileAttributes(Path filepath) {
         super(filepath, FileType.NETCDF);
+        logger = Log4J2Logger.getInstance();
     }
 
     public void openForRead() throws IOException, InvalidRangeException {
@@ -58,11 +61,42 @@ public class NetcdfFileAttributes extends FileAttributes {
 
         for (int i = 0; i < unReadVariables.size(); i++) {
             Variable currentUnreadVariable = unReadVariables.get(i);
-            // TODO: 3/31/17 read only what is needed for this node
-            Array varData = currentUnreadVariable.read(new int[currentUnreadVariable.getShape().length], currentUnreadVariable.getShape());
-            readVariables.put(currentUnreadVariable.getShortName(), varData.copyTo1DJavaArray());
+
+            // TODO: 4/17/17 Read only the portion of the array needed - difficult because of multi dimensions and limited NetCDF Array API 
+            Array variableArray = currentUnreadVariable.read(new int[currentUnreadVariable.getShape().length], currentUnreadVariable.getShape());
+
+            if (float.class == variableArray.getElementType()) {
+                float[] allVariableData = (float[]) variableArray.copyTo1DJavaArray();
+                float[] thisNodesVariableData = getIndividualNodeVariableData(allVariableData);
+                readVariables.put(currentUnreadVariable.getShortName(), thisNodesVariableData);
+            }
+            // TODO: 4/17/17 add more supported variable data types 
+            else {
+                logger.debug(String.format(
+                        "The variable %s for NetCDF file %s could not be read (data type %s not supported).",
+                        currentUnreadVariable.getShortName(),
+                        fileName, variableArray.getElementType()
+                ));
+            }
         }
         return readVariables;
+    }
+
+    private float[] getIndividualNodeVariableData(float[] allVariableData) {
+        int indexesPerNode = allVariableData.length / totalNodes;
+
+        float[] nodeVariableData;
+        if (myNodeId == totalNodes - 1) {
+            int remainingIndexes = allVariableData.length % totalNodes;
+            remainingIndexes = remainingIndexes > 0 ? remainingIndexes : indexesPerNode;
+            nodeVariableData = new float[remainingIndexes];
+        } else {
+            nodeVariableData = new float[indexesPerNode];
+        }
+        for (int allIndex = indexesPerNode * myNodeId, nodeIndex = 0; nodeIndex < nodeVariableData.length; allIndex++, nodeIndex++) {
+            nodeVariableData[nodeIndex] = allVariableData[allIndex];
+        }
+        return nodeVariableData;
     }
 
     private void readIntoProperVariableBuffer(String variableToRead, Object userVariableBuffer, int placeOrder) {

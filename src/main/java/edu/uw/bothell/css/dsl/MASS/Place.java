@@ -30,16 +30,12 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import com.sun.tools.example.debug.tty.TTY;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.FileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import ucar.nc2.NetcdfFile;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
