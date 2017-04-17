@@ -25,9 +25,6 @@ public abstract class FileAttributes {
 
     protected final int totalPlaces;
 
-    // The file
-    protected Object file;
-
     public enum FileType {
         NETCDF,
         TXT;
@@ -43,10 +40,6 @@ public abstract class FileAttributes {
 
     public String getFileName() {
         return fileName;
-    }
-
-    public Object getFile() {
-        return file;
     }
 
     public FileType getFileType() {
@@ -71,5 +64,7 @@ public abstract class FileAttributes {
     public abstract void openForRead() throws Exception;
 
     public abstract void openForWrite() throws Exception;
+
+    public abstract void close() throws IOException;
 
 }

@@ -18,16 +18,15 @@ public class NetcdfFileAttributes extends FileAttributes {
     
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
+    private NetcdfFile netcdfFile;
 
     public NetcdfFileAttributes(Path filepath) {
         super(filepath, FileType.NETCDF);
     }
 
     public void openForRead() throws IOException, InvalidRangeException {
-            NetcdfFile netcdfFile;
             netcdfFile = NetcdfFile.openInMemory(filepath.toString());
             variables = readNetcdfVariables(netcdfFile);
-            file = netcdfFile;
     }
 
     public void openForWrite() {
@@ -46,6 +45,10 @@ public class NetcdfFileAttributes extends FileAttributes {
     // (matches the dimensions of places)
     public void read(String variableToRead, Object userVariableBuffer, int placeOrder) {
         readIntoProperVariableBuffer(variableToRead, userVariableBuffer, placeOrder);
+    }
+
+    public void close() throws IOException {
+        netcdfFile.close();
     }
 
     private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile) throws InvalidRangeException, IOException {

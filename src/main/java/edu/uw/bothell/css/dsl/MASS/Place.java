@@ -253,56 +253,31 @@ public class Place {
 	/**
 	 * Closes the specified file descriptor and removes it from the file table
 	 *
-	 * @param fd the file descriptor to close
+	 * @param fileDescriptor the file descriptor to close
 	 * @return true if the file is successfully found in the file table, closed, and removed; otherwise false
 	 */
-	protected synchronized boolean close(int fd) {
-
-		// Check if the file exists in the file table
-		if (fileTable.containsKey(fd)) {
-
-			FileAttributes fileAttributes = fileTable.get(fd);
-
-			// Get the file
-			Object file = fileAttributes.getFile();
-
-			// Closes Netcdf files
-			if (file instanceof NetcdfFile) {
-				try {
-					((NetcdfFile) file).close();
-					fileTable.remove(fd);
-					filesAttemptedToClose.put(fd, true);
-					logger.debug("CLOSE SUCCESS");
-					return true;
-				} catch (IOException ioe) {
-					logger.error("An IO Exception occurred while attempting to close a NetCDF file: "
-							+ ioe.toString());
-					filesAttemptedToClose.put(fd, false);
-					return false;
-				}
-			}
-
-			// Closes text files
-			else if (file instanceof FileChannel) {
-				try {
-					((FileChannel) file).close();
-					fileTable.remove(fd);
-					filesAttemptedToClose.put(fd, true);
-					return true;
-				} catch (IOException ioe) {
-					logger.error("An IO Exception occurred while attempting to close a TXT file: "
-							+ ioe.toString());
-					filesAttemptedToClose.put(fd, false);
-					return false;
-				}
-			}
-		} else if (filesAttemptedToClose.containsKey(fd)) {
-			return filesAttemptedToClose.get(fd);
+	protected synchronized boolean close(int fileDescriptor) {
+		try {
+			return attemptToCloseFile(fileDescriptor);
+		} catch (Exception e) {
+			logFormattedError("An exception occurred while closing the file with the file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			return false;
 		}
-
-		return false;
 	}
 
+	private boolean attemptToCloseFile(int fileDescriptor) throws Exception {
+		if (fileTable.containsKey(fileDescriptor)) {
+			FileAttributes fileAttributes = fileTable.remove(fileDescriptor);
+			filesAttemptedToClose.put(fileDescriptor, false);
+			fileAttributes.close();
+			filesAttemptedToClose.put(fileDescriptor, true);
+			return true;
+		} else if (filesAttemptedToClose.containsKey(fileDescriptor)) {
+			return filesAttemptedToClose.get(fileDescriptor);
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and

@@ -19,6 +19,8 @@ public class TxtFileAttributes extends FileAttributes {
     // Buffer text files are read to
     private byte[] entireTxtFileBuffer;
 
+    private FileChannel fileChannel;
+
     // Open options, 0 for READ, 1 for WRITE (used for opening file channels)
     private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
 
@@ -37,10 +39,8 @@ public class TxtFileAttributes extends FileAttributes {
     }
 
     public void openForRead() throws Exception {
-        FileChannel fileChannel;
         fileChannel = FileChannel.open(filepath, OpenOperations[0]);
         entireTxtFileBuffer = readTextFileInMemory(fileChannel);
-        file = fileChannel;
         bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
 
         if (bytesPerPlace < 1) {
@@ -70,6 +70,10 @@ public class TxtFileAttributes extends FileAttributes {
                 userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
             }
         }
+    }
+
+    public void close() throws IOException {
+        fileChannel.close();
     }
 
     private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
