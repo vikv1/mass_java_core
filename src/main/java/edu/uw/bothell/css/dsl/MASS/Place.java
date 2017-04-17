@@ -30,28 +30,20 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.FileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  *	Place represents a single element from a collection of places distributed
@@ -132,22 +124,21 @@ public class Place {
 	 */
 	protected int open(String filepath, int ioType) {
 		try {
-			openFileUsingOnePlace(filepath, ioType);
-			fileDescriptor = fileDescriptorIndex;
-			printFormattedDebug("%s opened on Node %d with the file descriptor %d", filepath, MASSBase.getMyPid(), fileDescriptor);
-			return fileDescriptorIndex++;
+			synchronized (fileTable) {
+				openFileUsingOnePlace(filepath, ioType);
+				return fileDescriptor;
+			}
 		} catch (Exception e) {
-			printFormattedError("An exception occurred while opening the file: %s, exception: %s", filepath, e.getMessage());
+			logFormattedError("An exception occurred while opening the file: %s, exception: %s", filepath, e.getMessage());
 			return -1;
 		}
 	}
 
 	private void openFileUsingOnePlace(String filepath, int ioType) throws Exception {
-		synchronized (fileTable) {
-			if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
-				openFileForReadOrWrite(filepath, ioType);
-			}
+		if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
+			openFileForReadOrWrite(filepath, ioType);
 		}
+		fileDescriptor = fileDescriptorIndex;
 	}
 
 	private void openFileForReadOrWrite(String filepath, int ioType) throws Exception {
@@ -167,8 +158,7 @@ public class Place {
 		} else {
 			fileAttributes.openForWrite();
 		}
-
-		fileTable.put(fileDescriptorIndex, fileAttributes);
+		fileTable.put(fileDescriptorIndex++, fileAttributes);
 	}
 
 	/**
@@ -176,94 +166,43 @@ public class Place {
 	 * <p>
 	 * Reads from the specified file descriptor into the given Hashtable of buffers
 	 *
-	 * @param fd             specifies the file to read from
+	 * @param fileDescriptor             specifies the file to read from
 	 * @param variableToRead should contain the variable names to read, and their corresponding
 	 *                       array buffers (this is a UCAR array, the dimensions and data type must
 	 *                       match those of the Netcdf file being read)
 	 * @return true on a successful read; otherwise false
 	 */
-	protected boolean read(int fd, String variableToRead, Object variableBuffer) {
-		//logger.debug("PARALLEL IO: Read started.");
-		//synchronized (fileTable) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes instanceof NetcdfFileAttributes) {
-				return readNetcdfFile((NetcdfFileAttributes) fileAttributes, variableToRead, variableBuffer);
-			} else {
-				logger.debug("Given fd to read is not supported by MASS parallel I/O");
-			}
-		} else {
-			logger.debug("Given fd to read does not exist in the file table (has not been opened)");
+	protected boolean read(int fileDescriptor, String variableToRead, Object variableBuffer) {
+		try {
+			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
+			NetcdfFileAttributes netcdfFileAttributes = convertToNetcdFileAttribute(fileAttributes);
+			readNetcdfFile(netcdfFileAttributes, variableToRead, variableBuffer);
+			return true;
+		} catch (Exception e) {
+			logFormattedDebug("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			return false;
 		}
-		//}
-		return false;
 	}
 
-
-	/**
-	 * Private method that implements reading for Netcdf files
-	 *
-	 * @param fileAttributes the file attributes of the file to be read
-	 * @param variableToRead the buffers to read into - variable name (key), data array (value)
-	 * @return true on success; otherwise false
-	 */
-	// TODO currently each place reads a single index, each place should determine how much to read
-	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
-	// (matches the dimensions of places)
-	private boolean readNetcdfFile(NetcdfFileAttributes fileAttributes, String variableToRead, Object userVariableBuffer) {
-
-		Object allVariableData = fileAttributes.getVariable(variableToRead);
-		if (allVariableData == null) {
-			logger.error("Given variable: \"" + variableToRead + "\" does not exist in: \""
-					+ fileAttributes.getFileName() + "\"");
-			return false;
-		}
-
+	private void readNetcdfFile(NetcdfFileAttributes netcdfFileAttributes, String variableToRead, Object variableBuffer) {
 		int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+		netcdfFileAttributes.read(variableToRead, variableBuffer, placeOrder);
+	}
 
-		if (userVariableBuffer instanceof float[]) {
-
-			try {
-				float[] userFloatBuffer = (float[]) userVariableBuffer;
-				float[] allVariableFloatData = (float[]) allVariableData;
-
-				int placeReadLength = allVariableFloatData.length / MASSBase.getCurrentPlacesBase().getTotalPlaces();
-
-				if (placeReadLength < 1) {
-					logger.debug("Too many places attempting to read a NetCDF file.");
-					return false;
-				}
-
-				if (placeOrder <  MASSBase.getCurrentPlacesBase().getTotalPlaces() - 1) {
-					for (int i = placeOrder * placeReadLength, j = 0; i < placeReadLength * (placeOrder + 1); i++, j++) {
-						userFloatBuffer[j] = allVariableFloatData[i];
-					}
-					/*logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-							placeReadLength * (placeOrder + 1));*/
-				} else {
-					for (int i = placeOrder * placeReadLength, j = 0; i < allVariableFloatData.length; i++, j++) {
-						userFloatBuffer[j] = allVariableFloatData[i];
-					}
-					/*logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-							allVariableFloatData.length);*/
-				}
-
-				/*logger.debug("PARALLEL IO: NetCDF Read finished successfully for Place: " + placeOrder + ", " +
-						"running on Machine: " + MASS.getMyPid());*/
-
-
-			} catch (ClassCastException cce) {
-				logger.error("Given buffer to read into does not match the NetCDF file data to read.");
-				return false;
-			} catch (ArrayIndexOutOfBoundsException oob) {
-				logger.error("Given buffer to read into is not large enough to hold the NetCDF file data to read.");
-				return false;
-			}
+	private FileAttributes getFileAttribute(int fileDescriptor) {
+		if (fileTable.containsKey(fileDescriptor)) {
+			return fileTable.get(fileDescriptor);
 		} else {
-			logger.error("Given buffer to read into is not a supported data type.");
-			return false;
+			throw new IllegalArgumentException(String.format("File descriptor does not exist in the file table: %d", fileDescriptor));
 		}
-		return true;
+	}
+
+	private NetcdfFileAttributes convertToNetcdFileAttribute(FileAttributes fileAttributes) {
+		if (fileAttributes instanceof NetcdfFileAttributes) {
+			return (NetcdfFileAttributes) fileAttributes;
+		} else {
+			throw new ClassCastException(String.format("The given file is not a valid NetCDF file: %s", fileAttributes.getFilepath()));
+		}
 	}
 
 	/**
@@ -519,11 +458,11 @@ public class Place {
 		this.size = size.clone();
 	}
 
-	private void printFormattedDebug(String formattedLog, Object... args) {
+	private void logFormattedDebug(String formattedLog, Object... args) {
 		logger.debug(String.format(formattedLog, args));
 	}
 
-	private void printFormattedError(String formattedLog, Object... args) {
+	private void logFormattedError(String formattedLog, Object... args) {
 		logger.error(String.format(formattedLog, args));
 	}
 }

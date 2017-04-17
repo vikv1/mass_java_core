@@ -29,12 +29,6 @@ public class TxtFileAttributes extends FileAttributes {
         super(filepath, FileType.TXT);
     }
 
-/*    public TxtFileAttributes(int fileDescriptor, Path filepath, FileChannel txtFile, byte[] buffer) {
-        super(fileDescriptor, filepath, txtFile, FileType.TXT);
-        this.buffer = Arrays.copyOf(buffer, buffer.length);
-        this.bytesPerPlace = buffer.length / MASSBase.getCurrentPlacesBase().getTotalPlaces();
-    }*/
-
     public byte[] getBuffer() {
         return buffer;
     }
@@ -51,18 +45,6 @@ public class TxtFileAttributes extends FileAttributes {
     }
 
     public void openForWrite() {
-
-    }
-
-    /**
-     * Private helper method that opens the given txtFileName (throws an IOException if the file does
-     * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-     * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-     *
-     * @param
-     * @return fileDescriptor
-     */
-    private void openTextFileInMemory(Path path) throws IOException {
 
     }
 

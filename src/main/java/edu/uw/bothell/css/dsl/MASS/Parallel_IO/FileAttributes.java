@@ -23,6 +23,8 @@ public abstract class FileAttributes {
 
     protected final FileType fileType;
 
+    protected final int totalPlaces;
+
     // The file
     protected Object file;
 
@@ -35,6 +37,7 @@ public abstract class FileAttributes {
         this.filepath = filepath;
         this.fileName = filepath.getFileName().toString();
         this.fileType = fileType;
+        totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces();
     }
 
 
