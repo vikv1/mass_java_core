@@ -27,7 +27,7 @@ public abstract class FileAttributes {
     // The file
     private final Object file;
 
-    enum FileType {
+    public enum FileType {
         NETCDF,
         TXT;
     }

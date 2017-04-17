@@ -30,16 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.FileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFileAttributes;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import sun.nio.ch.Net;
 import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import ucar.nc2.util.IO;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -133,51 +134,67 @@ public class Place {
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
 	protected int open(String filepath, int ioType) {
-		synchronized (fileTable) {
-			if (!fileTable.containsKey(fileDescriptorIndex - 1)) {	// Only one place should open the file
-				try {
-
-					if (ioType != 0 && ioType != 1) {
-						throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
-					}
-					Path path = Paths.get(filepath);
-
-					if (!Files.exists(path)) {
-						throw new IllegalArgumentException("The given file to open does not exist: " + path);
-					}
-
-					if (ioType == 0) {
-						fileDescriptor = openFileForRead(path);
-					} else {
-						fileDescriptor = openFileForWrite(path);
-					}
-				} catch (Exception e) {
-					logger.debug(String.format("An exception occurred while opening the file: %s, exception: %s", filepath, e.getMessage()));
-					return -1;
-				}
-				logger.debug(filepath + " opened on Node " + MASSBase.getMyPid());
-			}
-		}
-		return fileDescriptor;
-	}
-
-
-	private int openFileForRead(Path filepath) throws IOException, InvalidRangeException {
-		String fileName = filepath.getFileName().toString();
-
-		if (fileName.toLowerCase().endsWith(".nc")) {
-			fileDescriptor = openNetcdfFileInMemory(fileName, filepath);
-		} else if (fileName.toLowerCase().endsWith(".txt")) {
-			fileDescriptor = openTextFileInMemory(fileName, filepath);
-		} else {
-			logger.error("File type to open is not supported by MASS parallel I/O: " + fileName);
+		try {
+			openFileUsingOnePlace(filepath, ioType);
+			fileDescriptor = fileDescriptorIndex;
+			printFormattedDebug("%s opened on Node %d with the file descriptor %d", filepath, MASSBase.getMyPid(), fileDescriptor);
+			return fileDescriptorIndex++;
+		} catch (Exception e) {
+			printFormattedError("An exception occurred while opening the file: %s, exception: %s", filepath, e.getMessage());
 			return -1;
 		}
-		return fileDescriptor;
 	}
 
-	private int openFileForWrite(Path filepath) {
-		return -1;
+	private void openFileUsingOnePlace(String filepath, int ioType) throws IOException, InvalidRangeException {
+		synchronized (fileTable) {
+			if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
+				openFileForReadOrWrite(filepath, ioType);
+			}
+		}
+	}
+
+	private void openFileForReadOrWrite(String filepath, int ioType) throws IOException, InvalidRangeException {
+		if (ioType != 0 && ioType != 1) {
+			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
+		}
+
+		Path path = Paths.get(filepath);
+		if (!Files.exists(path)) {
+			throw new FileNotFoundException("The given file to open does not exist: " + path);
+		}
+
+		FileAttributes.FileType fileType = getFileType(path.getFileName().toString());
+
+		if (ioType == 0) {
+			openFileTypeForRead(path, fileType);
+		} else {
+			openFileTypeForWrite(path, fileType);
+		}
+	}
+
+	private FileAttributes.FileType getFileType(String fileName) {
+		if (fileName.toLowerCase().endsWith(".nc")) {
+			return FileAttributes.FileType.NETCDF;
+		} else if (fileName.toLowerCase().endsWith(".txt")) {
+			return FileAttributes.FileType.TXT;
+		} else {
+			throw new UnsupportedFileTypeException(String.format("File type to open is not supported by MASS parallel I/O: %s", fileName));
+		}
+	}
+
+
+	private void openFileTypeForRead(Path filepath, FileAttributes.FileType fileType) throws IOException, InvalidRangeException {
+		if (fileType.equals(FileAttributes.FileType.NETCDF)) {
+			openNetcdfFileInMemory(filepath);
+		} else if (fileType.equals(FileAttributes.FileType.TXT)) {
+			openTextFileInMemory(filepath);
+		} else {
+			throw new IllegalArgumentException("File type given to openFileTypeForRead() is not supported (programmer error).");
+		}
+	}
+
+	private void openFileTypeForWrite(Path filepath, FileAttributes.FileType fileType) {
+
 	}
 
 	/**
@@ -185,16 +202,13 @@ public class Place {
 	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
 	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
 	 *
-	 * @param ncFileName
-	 * @return fileDescriptor
 	 */
-	private int openNetcdfFileInMemory(String ncFileName, Path path) throws IOException, InvalidRangeException {
+	private void openNetcdfFileInMemory(Path path) throws IOException, InvalidRangeException {
 		NetcdfFile netcdfFile;
 		netcdfFile = NetcdfFile.openInMemory(path.toString());
-		Hashtable<String, Object> netcdfVariables = readNetcdfVariables(netcdfFile);
-		FileAttributes fileAttributes = new NetcdfFileAttributes(fileDescriptorIndex, path, netcdfFile, netcdfVariables);
+		Hashtable<String, Object> netcdfVariablesBuffer = readNetcdfVariables(netcdfFile);
+		FileAttributes fileAttributes = new NetcdfFileAttributes(fileDescriptorIndex, path, netcdfFile, netcdfVariablesBuffer);
 		fileTable.put(fileDescriptorIndex, fileAttributes);
-		return fileDescriptorIndex++;
 	}
 
 	private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile) throws InvalidRangeException, IOException {
@@ -220,23 +234,15 @@ public class Place {
 	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
 	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
 	 *
-	 * @param txtFileName
 	 * @param
 	 * @return fileDescriptor
 	 */
-	private int openTextFileInMemory(String txtFileName, Path path) throws IOException {
+	private void openTextFileInMemory(Path path) throws IOException {
 		FileChannel fileChannel;
-
 		fileChannel = FileChannel.open(path, OpenOperations[0]);
-
-		byte[] txtFile = readTextFileInMemory(fileChannel);
-
-		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new TxtFileAttributes(fileDescriptorIndex, path, fileChannel, txtFile);
-
+		byte[] textFileBuffer = readTextFileInMemory(fileChannel);
+		FileAttributes fileAttributes = new TxtFileAttributes(fileDescriptorIndex, path, fileChannel, textFileBuffer);
 		fileTable.put(fileDescriptorIndex, fileAttributes);
-
-		return fileDescriptorIndex++;
 	}
 
 	private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException{
@@ -593,60 +599,11 @@ public class Place {
 		this.size = size.clone();
 	}
 
-	// TODO: 3/31/17  Old netcdf read - remove when no longer needed
-	/*List<Dimension> dimensions = var.getDimensions();
+	private void printFormattedDebug(String formattedLog, Object... args) {
+		logger.debug(String.format(formattedLog, args));
+	}
 
-			int[] readDim = new int[dimensions.size()];
-
-			for (int i = 0; i < dimensions.size(); i++) {
-				readDim[i] = dimensions.get(i).getLength();
-			}
-
-			// Split along x axis
-			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
-
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-			logger.debug("PLACE: " + placeOrder);
-			logger.debug("READ DIM: " + Arrays.toString(readDim));
-
-			// Read data and add to place storage
-			try {
-
-				Number[][][] userDataset = varsData.get(varName);
-				ArrayFloat.D3 currVarData;
-
-				// Read for 3D float
-				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
-				// without having to write a separate implementation for each data type
-				// (You will have to have separate implementations for each dimension if we want to support that)
-				if (userDataset instanceof Float[][][]) {
-
-					// Netcdf is not thread-safe
-					// synchronized (var) {
-						// read section of file
-						currVarData = (ArrayFloat.D3) var.read(new int[]{ placeOrder * readDim[0], 0, 0}, readDim);
-					// }
-
-					synchronized (userDataset) {
-						// Write the read data to the user's buffer
-						for (int x = 0; x < readDim[0]; x++) {
-							for (int y = 0; y < readDim[1]; y++) {
-								for (int z = 0; z < readDim[2]; z++) {
-									((ArrayFloat.D3) userDataset).set(x + (placeOrder * readDim[0]), y, z, currVarData.get(x, y, z));
-								}
-							}
-						}
-					}
-				}
-
-			} catch (InvalidRangeException ire) {
-				logger.debug("Invalid range: " + ire);
-				return false;
-			} catch (IOException ioe) {
-				logger.debug("Invalid range: " + ioe);
-				return false;
-			}
-		}*/
-	
+	private void printFormattedError(String formattedLog, Object... args) {
+		logger.error(String.format(formattedLog, args));
+	}
 }
