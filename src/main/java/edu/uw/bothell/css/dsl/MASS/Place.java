@@ -30,10 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import com.sun.tools.example.debug.tty.TTY;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.FileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFileAttributes;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFileAttributes;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.nc2.NetcdfFile;
 
@@ -158,6 +158,7 @@ public class Place {
 		} else {
 			fileAttributes.openForWrite();
 		}
+
 		fileTable.put(fileDescriptorIndex++, fileAttributes);
 	}
 
@@ -175,18 +176,17 @@ public class Place {
 	protected boolean read(int fileDescriptor, String variableToRead, Object variableBuffer) {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
-			NetcdfFileAttributes netcdfFileAttributes = convertToNetcdFileAttribute(fileAttributes);
+			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
 			readNetcdfFile(netcdfFileAttributes, variableToRead, variableBuffer);
 			return true;
 		} catch (Exception e) {
-			logFormattedDebug("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			logFormattedError("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
 			return false;
 		}
 	}
 
 	private void readNetcdfFile(NetcdfFileAttributes netcdfFileAttributes, String variableToRead, Object variableBuffer) {
-		int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-		netcdfFileAttributes.read(variableToRead, variableBuffer, placeOrder);
+		netcdfFileAttributes.read(variableToRead, variableBuffer, getPlaceOrder());
 	}
 
 	private FileAttributes getFileAttribute(int fileDescriptor) {
@@ -197,7 +197,7 @@ public class Place {
 		}
 	}
 
-	private NetcdfFileAttributes convertToNetcdFileAttribute(FileAttributes fileAttributes) {
+	private NetcdfFileAttributes convertFileAttributesToNetcdFileAttributes(FileAttributes fileAttributes) {
 		if (fileAttributes instanceof NetcdfFileAttributes) {
 			return (NetcdfFileAttributes) fileAttributes;
 		} else {
@@ -210,58 +210,40 @@ public class Place {
 	 * <p>
 	 * Reads from the specified file descriptor into the given byte buffer
 	 *
-	 * @param fd      specifies the file to read from
-	 * @param txtData the byte buffer to read into
+	 * @param fileDescriptor      specifies the file to read from
+	 * @param txtBuffer the byte buffer to read into
 	 * @return true on a successful read; otherwise false
 	 */
 	// TODO: 1/13/17 I don't believe the size of the given byte array is checked -
 	// currently the implementation reads the whole specified text file and assumes the byte array is large
 	// enough to store the data, this must be changed.
-	protected boolean read(int fd, byte[] txtData) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes instanceof TxtFileAttributes) {
-				return readTextFile((TxtFileAttributes) fileAttributes, txtData);
-			}
-		}
-		return false;
-	}
-
-	private boolean readTextFile(TxtFileAttributes fileAttributes, byte[] data) {
-
+	protected boolean read(int fileDescriptor, byte[] txtBuffer) {
 		try {
-
-			// Get the buffer to read from
-			byte[] buffer = fileAttributes.getBuffer();
-
-			// Used for determining which part of the file to read
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-			int length = fileAttributes.getBytesPerPlace();
-
-			// Determine if this place should read to the end of the file
-			if (placeOrder != MASSBase.getCurrentPlacesBase().getTotalPlaces() - 1) {        // No, read predetermined amount
-				// (currently 1 index)
-
-				// Read from the file into the temp buffer
-
-				for (int i = placeOrder * length; i < length * (placeOrder + 1); i++) {
-					data[i - (length * MASS.getMyPid())] = buffer[i];
-				}
-			}
-
-			// Perform final read
-			// Read the remaining bytes of the file (this should be done by only the last Place)
-			else {
-				for (int i = placeOrder * length; i < buffer.length; i++) {
-					data[i - (length * MASS.getMyPid())] = buffer[i];
-				}
-			}
-		} catch (ArrayIndexOutOfBoundsException oob) {
-			logger.error("Given buffer to read into is not large enough to hold the TXT file data to read.");
+			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
+			TxtFileAttributes txtFileAttributes = convertFileAttributesToTxtFileAttributes(fileAttributes);
+			readTxtFile(txtFileAttributes, txtBuffer);
+			return true;
+		} catch (Exception e) {
+			logFormattedError("An exception occurred while reading the TXT file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
 			return false;
 		}
-		return true;
+	}
+
+	private TxtFileAttributes convertFileAttributesToTxtFileAttributes(FileAttributes fileAttributes) {
+		if (fileAttributes instanceof TxtFileAttributes) {
+			return (TxtFileAttributes) fileAttributes;
+		} else {
+			throw new ClassCastException(String.format("The given file is not a valid TXT file: %s", fileAttributes.getFilepath()));
+		}
+	}
+
+	private void readTxtFile(TxtFileAttributes txtFileAttributes, byte[] txtBuffer) {
+		txtFileAttributes.read(txtBuffer, getPlaceOrder());
+	}
+
+	private int getPlaceOrder() {
+		return (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+
 	}
 
 
