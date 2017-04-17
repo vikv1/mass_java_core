@@ -1,7 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import ucar.nc2.util.IO;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Hashtable;
 
@@ -15,37 +17,29 @@ import java.util.Hashtable;
 public abstract class FileAttributes {
 
     // Name of opened file
-    private final Path filepath;
+    protected final Path filepath;
 
-    private final String fileName;
+    protected final String fileName;
 
-    private final FileType fileType;
-
-    // File descriptor
-    private final int fileDescriptor;
+    protected final FileType fileType;
 
     // The file
-    private final Object file;
+    protected Object file;
 
     public enum FileType {
         NETCDF,
         TXT;
     }
 
-    FileAttributes(int fileDescriptor, Path filepath, Object file, FileType fileType) {
+    public FileAttributes(Path filepath, FileType fileType) {
         this.filepath = filepath;
         this.fileName = filepath.getFileName().toString();
-        this.file = file;
-        this.fileDescriptor = fileDescriptor;
         this.fileType = fileType;
     }
 
+
     public String getFileName() {
         return fileName;
-    }
-
-    public int getFileDescriptor() {
-        return fileDescriptor;
     }
 
     public Object getFile() {
@@ -59,5 +53,20 @@ public abstract class FileAttributes {
     public Path getFilepath() {
         return filepath;
     }
+
+    public static FileAttributes factory(Path filepath) {
+        String fileName = filepath.getFileName().toString().toLowerCase();
+        if (fileName.endsWith(".nc")) {
+            return new NetcdfFileAttributes(filepath);
+        } else if (fileName.endsWith(".txt")){
+            return new TxtFileAttributes(filepath);
+        } else {
+            throw new UnsupportedFileTypeException(String.format("The file type of %s is not supported by MASS Parallel IO.", fileName));
+        }
+    }
+
+    public abstract void openForRead() throws Exception;
+
+    public abstract void openForWrite() throws Exception;
 
 }

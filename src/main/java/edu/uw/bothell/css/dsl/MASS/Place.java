@@ -107,9 +107,6 @@ public class Place {
 	// Stores each file and its attributes
 	protected static final Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
 
-	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
-	private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
-
 	// Counts the number of files open
 	private static int fileDescriptorIndex = 0;
 
@@ -145,7 +142,7 @@ public class Place {
 		}
 	}
 
-	private void openFileUsingOnePlace(String filepath, int ioType) throws IOException, InvalidRangeException {
+	private void openFileUsingOnePlace(String filepath, int ioType) throws Exception {
 		synchronized (fileTable) {
 			if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
 				openFileForReadOrWrite(filepath, ioType);
@@ -153,7 +150,7 @@ public class Place {
 		}
 	}
 
-	private void openFileForReadOrWrite(String filepath, int ioType) throws IOException, InvalidRangeException {
+	private void openFileForReadOrWrite(String filepath, int ioType) throws Exception {
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
@@ -163,92 +160,15 @@ public class Place {
 			throw new FileNotFoundException("The given file to open does not exist: " + path);
 		}
 
-		FileAttributes.FileType fileType = getFileType(path.getFileName().toString());
+		FileAttributes fileAttributes = FileAttributes.factory(path);
 
 		if (ioType == 0) {
-			openFileTypeForRead(path, fileType);
+			fileAttributes.openForRead();
 		} else {
-			openFileTypeForWrite(path, fileType);
+			fileAttributes.openForWrite();
 		}
-	}
 
-	private FileAttributes.FileType getFileType(String fileName) {
-		if (fileName.toLowerCase().endsWith(".nc")) {
-			return FileAttributes.FileType.NETCDF;
-		} else if (fileName.toLowerCase().endsWith(".txt")) {
-			return FileAttributes.FileType.TXT;
-		} else {
-			throw new UnsupportedFileTypeException(String.format("File type to open is not supported by MASS parallel I/O: %s", fileName));
-		}
-	}
-
-
-	private void openFileTypeForRead(Path filepath, FileAttributes.FileType fileType) throws IOException, InvalidRangeException {
-		if (fileType.equals(FileAttributes.FileType.NETCDF)) {
-			openNetcdfFileInMemory(filepath);
-		} else if (fileType.equals(FileAttributes.FileType.TXT)) {
-			openTextFileInMemory(filepath);
-		} else {
-			throw new IllegalArgumentException("File type given to openFileTypeForRead() is not supported (programmer error).");
-		}
-	}
-
-	private void openFileTypeForWrite(Path filepath, FileAttributes.FileType fileType) {
-
-	}
-
-	/**
-	 * Private helper method that opens the given ncFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-	 *
-	 */
-	private void openNetcdfFileInMemory(Path path) throws IOException, InvalidRangeException {
-		NetcdfFile netcdfFile;
-		netcdfFile = NetcdfFile.openInMemory(path.toString());
-		Hashtable<String, Object> netcdfVariablesBuffer = readNetcdfVariables(netcdfFile);
-		FileAttributes fileAttributes = new NetcdfFileAttributes(fileDescriptorIndex, path, netcdfFile, netcdfVariablesBuffer);
 		fileTable.put(fileDescriptorIndex, fileAttributes);
-	}
-
-	private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile) throws InvalidRangeException, IOException {
-		List<Variable> unReadVariables = netcdfFile.getVariables();
-
-		if (unReadVariables.isEmpty()) {
-			logger.debug("No NetCDF variables to read in: " + netcdfFile.getCacheName());
-		}
-
-		Hashtable<String, Object> readVariables = new Hashtable<String, Object>();
-
-		for (int i = 0; i < unReadVariables.size(); i++) {
-			Variable currentUnreadVariable = unReadVariables.get(i);
-			// TODO: 3/31/17 read only what is needed for this node
-			Array varData = currentUnreadVariable.read(new int[currentUnreadVariable.getShape().length], currentUnreadVariable.getShape());
-			readVariables.put(currentUnreadVariable.getShortName(), varData.copyTo1DJavaArray());
-		}
-		return readVariables;
-	}
-
-	/**
-	 * Private helper method that opens the given txtFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-	 *
-	 * @param
-	 * @return fileDescriptor
-	 */
-	private void openTextFileInMemory(Path path) throws IOException {
-		FileChannel fileChannel;
-		fileChannel = FileChannel.open(path, OpenOperations[0]);
-		byte[] textFileBuffer = readTextFileInMemory(fileChannel);
-		FileAttributes fileAttributes = new TxtFileAttributes(fileDescriptorIndex, path, fileChannel, textFileBuffer);
-		fileTable.put(fileDescriptorIndex, fileAttributes);
-	}
-
-	private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException{
-		ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
-		fileChannel.read(buffer);
-		return buffer.array();
 	}
 
 	/**
