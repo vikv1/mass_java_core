@@ -23,7 +23,7 @@ public abstract class FileAttributes {
 
     protected final FileType fileType;
 
-    protected final int totalPlaces;
+    protected final int totalPlaces;    // TODO: 4/17/17 sometime we may want only the places available to one node
 
     protected final int totalNodes;
 
@@ -63,7 +63,10 @@ public abstract class FileAttributes {
         } else if (fileName.endsWith(".txt")){
             return new TxtFileAttributes(filepath);
         } else {
-            throw new UnsupportedFileTypeException(String.format("The file type of %s is not supported by MASS Parallel IO.", fileName));
+            throw new UnsupportedFileTypeException(String.format(
+                    "The file type of %s is not supported by MASS Parallel IO.",
+                    fileName
+            ));
         }
     }
 

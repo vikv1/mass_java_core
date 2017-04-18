@@ -169,20 +169,16 @@ public class Place {
 	 *                       match those of the Netcdf file being read)
 	 * @return true on a successful read; otherwise false
 	 */
-	protected boolean read(int fileDescriptor, String variableToRead, Object variableBuffer) {
+	protected Object read(int fileDescriptor, String variableToRead) {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
-			readNetcdfFile(netcdfFileAttributes, variableToRead, variableBuffer);
-			return true;
+			Object variableBuffer = netcdfFileAttributes.read(variableToRead, getPlaceOrder());
+			return variableBuffer;
 		} catch (Exception e) {
 			logFormattedError("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
-			return false;
+			return null;
 		}
-	}
-
-	private void readNetcdfFile(NetcdfFileAttributes netcdfFileAttributes, String variableToRead, Object variableBuffer) {
-		netcdfFileAttributes.read(variableToRead, variableBuffer, getPlaceOrder());
 	}
 
 	private FileAttributes getFileAttribute(int fileDescriptor) {

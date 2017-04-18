@@ -9,6 +9,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -36,7 +37,6 @@ public class NetcdfFileAttributes extends FileAttributes {
 
     }
 
-
     /**
      * Private method that implements reading for Netcdf files
      *
@@ -46,8 +46,42 @@ public class NetcdfFileAttributes extends FileAttributes {
     // TODO currently each place reads a single index, each place should determine how much to read
     // based on the number of places, also assumes that the given data arrays are of the correct dimensions
     // (matches the dimensions of places)
-    public void read(String variableToRead, Object userVariableBuffer, int placeOrder) {
-        readIntoProperVariableBuffer(variableToRead, userVariableBuffer, placeOrder);
+    public Object read(String variableToRead, int placeOrder) {
+        Object allVariableData = getVariable(variableToRead);
+
+        if (allVariableData instanceof float[]) {
+            return readIntoFloatBuffer((float[]) allVariableData, placeOrder);
+        } else {
+            throw new UnsupportedBufferTypeException(String.format(
+                    "The NetCDF variable %s to read has a data type that is not supported.",
+                    variableToRead
+            ));
+        }
+    }
+
+    private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
+        int placeReadLength = getPlaceReadLength(bufferToReadFrom.length, placeOrder);
+        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, placeReadLength * (placeOrder + 1));
+    }
+
+    private int getPlaceReadLength(int sizeOfBufferToReadFrom, int placeOrder) {
+        int placeReadLength = sizeOfBufferToReadFrom / totalPlaces;
+
+        if (placeReadLength < 1) {
+            throw new InvalidNumberOfPlacesException(String.format(
+                    "Too many places attempting to read a NetCDF file. Number of places: %d, NetCDF file indexes: %d.",
+                    totalPlaces,
+                    sizeOfBufferToReadFrom
+            ));
+        }
+
+        // Last place reads remainder
+        if (placeOrder == totalPlaces - 1) {
+            int remainingIndexes = sizeOfBufferToReadFrom % totalPlaces;
+            placeReadLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
+        }
+
+        return placeReadLength;
     }
 
     public void close() throws IOException {
@@ -99,15 +133,25 @@ public class NetcdfFileAttributes extends FileAttributes {
         return nodeVariableData;
     }
 
-    private void readIntoProperVariableBuffer(String variableToRead, Object userVariableBuffer, int placeOrder) {
+    private Object getVariable(String variableName) {
+        Object variableBuffer = variables.get(variableName);
+        if (variableBuffer == null) {
+            throw new NullPointerException(String.format("The NetCDF file %s does not contain the variable %s", fileName, variableName));
+        }
+        return variableBuffer;
+    }
+}
+
+
+  /*  private Object readIntoProperVariableBuffer(String variableToRead, int placeOrder) {
         if (userVariableBuffer instanceof float[]) {
             readIntoFloatBuffer(variableToRead, (float[]) userVariableBuffer, placeOrder);
         } else {
             throw new UnsupportedBufferTypeException("The NetCDF variable buffer type to read to is not supported.");
         }
-    }
+    }*/
 
-    private void readIntoFloatBuffer(String variableToRead, float[] userFloatBuffer, int placeOrder) {
+   /* private void readIntoFloatBuffers(String variableToRead, float[] userFloatBuffer, int placeOrder) {
 
         Object allVariableData = getVariable(variableToRead);
         if (!(allVariableData instanceof float[])) {
@@ -138,13 +182,4 @@ public class NetcdfFileAttributes extends FileAttributes {
                 userFloatBuffer[userIndex] = allVariableFloatData[allIndex];
             }
         }
-    }
-
-    private Object getVariable(String variableName) {
-        Object variableBuffer = variables.get(variableName);
-        if (variableBuffer == null) {
-            throw new NullPointerException(String.format("The NetCDF file %s does not contain the variable %s", fileName, variableName));
-        }
-        return variableBuffer;
-    }
-}
+    }*/

@@ -40,8 +40,8 @@ public class TxtFileAttributes extends FileAttributes {
 
     public void openForRead() throws Exception {
         fileChannel = FileChannel.open(filepath, OpenOperations[0]);
-        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
         bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
+        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
 
         if (bytesPerPlace < 1) {
             throw new InvalidNumberOfPlacesException(
