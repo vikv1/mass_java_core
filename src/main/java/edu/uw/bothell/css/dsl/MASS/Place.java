@@ -128,7 +128,9 @@ public class Place {
 				return fileDescriptor;
 			}
 		} catch (Exception e) {
-			logFormattedError("An exception occurred while opening the file: %s, exception: %s", filepath, e.getMessage());
+			logFormattedError("An exception occurred while opening the file: %s, exception: %s",
+					filepath, e.getMessage()
+			);
 			return -1;
 		}
 	}
@@ -240,7 +242,10 @@ public class Place {
 			TxtFileAttributes txtFileAttributes = convertFileAttributesToTxtFileAttributes(fileAttributes);
 			return txtFileAttributes.read(getPlaceOrder());
 		} catch (Exception e) {
-			logFormattedError("An exception occurred while reading the TXT file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			logFormattedError(
+					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s",
+					fileDescriptor,
+					e.getMessage());
 			return null;
 			// TODO: 4/18/17 throw exception rather than returning null?
 		}
@@ -255,7 +260,10 @@ public class Place {
 		if (fileAttributes instanceof TxtFileAttributes) {
 			return (TxtFileAttributes) fileAttributes;
 		} else {
-			throw new ClassCastException(String.format("The given file is not a valid TXT file: %s", fileAttributes.getFilepath()));
+			throw new ClassCastException(String.format(
+					"The given file is not a valid TXT file: %s",
+					fileAttributes.getFilepath()
+			));
 		}
 	}
 
@@ -267,7 +275,7 @@ public class Place {
 
 	}
 
-	// TODO: 1/13/17 Once finished implementing and testing read() (including on mutliple nodes) add write() functionality
+	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
 
 	/**
 	 * Closes the specified file descriptor and removes it from the file table
@@ -279,7 +287,11 @@ public class Place {
 		try {
 			return attemptToCloseFile(fileDescriptor);
 		} catch (Exception e) {
-			logFormattedError("An exception occurred while closing the file with the file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			logFormattedError(
+					"An exception occurred while closing the file with the file descriptor %d, exception: %s",
+					fileDescriptor,
+					e.getMessage()
+			);
 			return false;
 		}
 	}
@@ -306,7 +318,7 @@ public class Place {
 		} else {
 			return false;
 		}
-	}s
+	}
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and

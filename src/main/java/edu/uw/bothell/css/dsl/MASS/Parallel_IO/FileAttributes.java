@@ -82,7 +82,8 @@ public abstract class FileAttributes {
 
         if (placeReadLength < 1) {
             throw new InvalidNumberOfPlacesException(String.format(
-                    "Too many places attempting to read a NetCDF file. Number of places: %d, NetCDF file indexes: %d.",
+                    "Too many places attempting to read a %s file. Number of places: %d, NetCDF file indexes: %d.",
+                    fileType,
                     totalPlaces,
                     sizeOfBufferToReadFrom
             ));
