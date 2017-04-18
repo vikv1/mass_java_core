@@ -105,17 +105,20 @@ public class Place {
 
 	private static long totalReadTime = 0;
 
+
+
 	/**
 	 * The first Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
 	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
 	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
 	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
-	 * file that is opened for writing will be opened on the disk and added to the fileTable so that the file
-	 * can be accessed by all Places. A successfully opened file is given a unique file descriptor (integer)
-	 * and the file descriptor is returned. An unsuccessfully opened file returns a file descriptor of -1.
+	 * file that is opened for writing will be opened on the disk and a temporary buffer to write to is added to the
+	 * fileTable so that the temp buffer can be accessed by all Places. A successfully opened file is given a unique
+	 * file descriptor (integer) and the file descriptor is returned. An unsuccessfully opened file returns a
+	 * file descriptor of -1.
 	 *
-	 * @param filepath
-	 * @param ioType
+	 * @param filepath the filepath of the file to be opened
+	 * @param ioType either 0 for read or 1 for write
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
 	protected int open(String filepath, int ioType) {
@@ -130,14 +133,27 @@ public class Place {
 		}
 	}
 
+	/**
+	 * Opens the file only if the file has not been opened and added to the fileTable
+	 * @param filepath the filepath of the file to be opened
+	 * @param ioType either 0 for read or 1 for write
+	 * @throws Exception any exception that may occur during the opening process
+     */
 	private void openFileUsingOnePlace(String filepath, int ioType) throws Exception {
 		if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
-			openFileForReadOrWrite(filepath, ioType);
+			openFile(filepath, ioType);
 		}
 		fileDescriptor = fileDescriptorIndex;
 	}
 
-	private void openFileForReadOrWrite(String filepath, int ioType) throws Exception {
+	/**
+	 * Ensures valid arguments (file exists, and ioType is either 0 or 1), and if the arguments are valid, the
+	 * specified file is opened accordingly
+	 * @param filepath file to open
+	 * @param ioType either 0 for read or 1 for write
+	 * @throws Exception any exception that may occur during the opening process
+     */
+	private void openFile(String filepath, int ioType) throws Exception {
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
@@ -153,54 +169,71 @@ public class Place {
 	}
 
 	/**
-	 * The read function used for Netcdf files
-	 * <p>
-	 * Reads from the specified file descriptor into the given Hashtable of buffers
+	 * Reads a specific portion of the a NetCDF file's variable based on this place's order and returns the results
+	 * as a 1 dimensional primitive java array (i.e. a float[]). Each place reads only a portion of the file, but if
+	 * each place calls this method, then the entire file will be read and parts of the data will be contained on
+	 * each place involved in the computation.
 	 *
-	 * @param fileDescriptor             specifies the file to read from
-	 * @param variableToRead should contain the variable names to read, and their corresponding
-	 *                       array buffers (this is a UCAR array, the dimensions and data type must
-	 *                       match those of the Netcdf file being read)
-	 * @return true on a successful read; otherwise false
-	 */
+	 * @param fileDescriptor specifies the NetCDF file to read from (must be in the fileTable)
+	 * @param variableToRead specifies the NetCDF variable to read (must be in the NetCDF file)
+     * @return a 1 dimensional primitive java array representing a portion of the NetCDF variable data read by this
+	 * place - if an error occurs during the read process, then null is returned
+     */
 	protected Object read(int fileDescriptor, String variableToRead) {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
 			return netcdfFileAttributes.read(variableToRead, getPlaceOrder());
 		} catch (Exception e) {
-			logFormattedError("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
+			logFormattedError(
+					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
+					fileDescriptor,
+					e.getMessage()
+			);
 			return null;
 		}
 	}
 
+	/**
+	 * Gets the file attribute from the file table.
+	 * @param fileDescriptor unique identifier for the file attribute to return
+	 * @return the file attribute corresponding to the given file descriptor
+     */
 	private FileAttributes getFileAttribute(int fileDescriptor) {
 		if (fileTable.containsKey(fileDescriptor)) {
 			return fileTable.get(fileDescriptor);
 		} else {
-			throw new IllegalArgumentException(String.format("File descriptor does not exist in the file table: %d", fileDescriptor));
-		}
-	}
-
-	private NetcdfFileAttributes convertFileAttributesToNetcdFileAttributes(FileAttributes fileAttributes) {
-		if (fileAttributes instanceof NetcdfFileAttributes) {
-			return (NetcdfFileAttributes) fileAttributes;
-		} else {
-			throw new ClassCastException(String.format("The given file is not a valid NetCDF file: %s", fileAttributes.getFilepath()));
+			throw new IllegalArgumentException(String.format(
+					"File descriptor does not exist in the file table: %d",
+					fileDescriptor
+			));
 		}
 	}
 
 	/**
-	 * The read function used for text files
-	 * <p>
-	 * Reads from the specified file descriptor into the given byte buffer
+	 * Converts the given file attributes to NetCDF file attributes
+	 * @param fileAttributes the file attributes to convert
+	 * @return the file attributes converted to NetCDF file attributes
+     */
+	private NetcdfFileAttributes convertFileAttributesToNetcdFileAttributes(FileAttributes fileAttributes) {
+		if (fileAttributes instanceof NetcdfFileAttributes) {
+			return (NetcdfFileAttributes) fileAttributes;
+		} else {
+			throw new ClassCastException(String.format(
+					"The given file is not a valid NetCDF file: %s",
+					fileAttributes.getFilepath()
+			));
+		}
+	}
+
+	/**
+	 * Reads a specific portion of the a TXT file based on this place's order and returns the results
+	 * as a byte array. Each place reads only a portion of the TXT file, but if each place calls this method, then the
+	 * entire file will be read and parts of the data will be contained on each place involved in the computation.
 	 *
-	 * @param fileDescriptor      specifies the file to read from
-=	 * @return true on a successful read; otherwise false
-	 */
-	// TODO: 1/13/17 I don't believe the size of the given byte array is checked -
-	// currently the implementation reads the whole specified text file and assumes the byte array is large
-	// enough to store the data, this must be changed.
+	 * @param fileDescriptor unique identifier for the file to read
+	 * @return the portion of the file read by this place - if an error occurs then null is returned
+     */
 	protected byte[] read(int fileDescriptor) {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
@@ -208,10 +241,16 @@ public class Place {
 			return txtFileAttributes.read(getPlaceOrder());
 		} catch (Exception e) {
 			logFormattedError("An exception occurred while reading the TXT file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
-			return null;    // TODO: 4/18/17 throw exception?
+			return null;
+			// TODO: 4/18/17 throw exception rather than returning null?
 		}
 	}
 
+	/**
+	 * Converts the given file attributes to TXT file attributes
+	 * @param fileAttributes the file attributes to convert
+	 * @return the file attributes converted to TXT file attributes
+	 */
 	private TxtFileAttributes convertFileAttributesToTxtFileAttributes(FileAttributes fileAttributes) {
 		if (fileAttributes instanceof TxtFileAttributes) {
 			return (TxtFileAttributes) fileAttributes;
@@ -220,14 +259,15 @@ public class Place {
 		}
 	}
 
+	/**
+	 * @return this place's order number determined its index
+     */
 	private int getPlaceOrder() {
 		return (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
 
 	}
 
-
 	// TODO: 1/13/17 Once finished implementing and testing read() (including on mutliple nodes) add write() functionality
-
 
 	/**
 	 * Closes the specified file descriptor and removes it from the file table
@@ -244,6 +284,16 @@ public class Place {
 		}
 	}
 
+	/**
+	 * Attempts to close the file that is identified by the given file descriptor only if it does not exist in the
+	 * file table; otherwise returns whether or not another place successfully closed the file (ensures only one place
+	 * actually closes and removes the file from the file table)
+	 *
+	 * @param fileDescriptor specifies the file to remove
+	 * @return true if the file is successfully found in the file table, closed, and removed (by one place);
+	 * otherwise false
+	 * @throws Exception thrown if an error occurs during the closing process
+     */
 	private boolean attemptToCloseFile(int fileDescriptor) throws Exception {
 		if (fileTable.containsKey(fileDescriptor)) {
 			FileAttributes fileAttributes = fileTable.remove(fileDescriptor);
@@ -256,7 +306,7 @@ public class Place {
 		} else {
 			return false;
 		}
-	}
+	}s
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
