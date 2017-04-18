@@ -31,28 +31,14 @@ public class TxtFileAttributes extends FileAttributes {
         super(filepath, FileType.TXT);
     }
 
-    public byte[] getEntireTxtFileBuffer() {
-        return entireTxtFileBuffer;
-    }
-
-    public int getBytesPerPlace() {
-        return bytesPerPlace;
-    }
-
-    public void openForRead() throws Exception {
-        fileChannel = FileChannel.open(filepath, OpenOperations[0]);
-        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
-        bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
-
-        if (bytesPerPlace < 1) {
-            throw new InvalidNumberOfPlacesException(
-                    "Txt file opened with too many Places (each place would have to read or write less than 1 byte)."
-            );
+    public void open(int ioType) throws Exception {
+        switch(ioType) {
+            case OPEN_FOR_READ:
+                openForRead();
+                break;
+            case OPEN_FOR_WRITE:
+                break;
         }
-    }
-
-    public void openForWrite() {
-
     }
 
     public byte[] read(int placeOrder) {
@@ -62,6 +48,26 @@ public class TxtFileAttributes extends FileAttributes {
 
     public void close() throws IOException {
         fileChannel.close();
+    }
+
+    public byte[] getEntireTxtFileBuffer() {
+        return entireTxtFileBuffer;
+    }
+
+    public int getBytesPerPlace() {
+        return bytesPerPlace;
+    }
+
+    private void openForRead() throws Exception {
+        fileChannel = FileChannel.open(filepath, OpenOperations[0]);
+        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
+        bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
+
+        if (bytesPerPlace < 1) {
+            throw new InvalidNumberOfPlacesException(
+                    "Txt file opened with too many Places (each place would have to read or write less than 1 byte)."
+            );
+        }
     }
 
     private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
@@ -77,18 +83,3 @@ public class TxtFileAttributes extends FileAttributes {
         return buffer.array();
     }
 }
-
-// Determine if this place should read to the end of the file
-        /*if (placeOrder != totalPlaces - 1) {        // No, read predetermined amount
-            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < bytesPerPlace * (placeOrder + 1); allIndex++, userIndex++) {
-                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
-            }
-        }
-
-        // Perform final read
-        // Read the remaining bytes of the file (this should be done by only the last Place)
-        else {
-            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < entireTxtFileBuffer.length; allIndex++, userIndex++) {
-                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
-            }
-        }*/

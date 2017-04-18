@@ -148,13 +148,7 @@ public class Place {
 		}
 
 		FileAttributes fileAttributes = FileAttributes.factory(path);
-
-		if (ioType == 0) {
-			fileAttributes.openForRead();
-		} else {
-			fileAttributes.openForWrite();
-		}
-
+		fileAttributes.open(ioType);
 		fileTable.put(fileDescriptorIndex++, fileAttributes);
 	}
 

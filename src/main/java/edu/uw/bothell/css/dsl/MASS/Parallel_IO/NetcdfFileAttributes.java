@@ -28,27 +28,20 @@ public class NetcdfFileAttributes extends FileAttributes {
         logger = Log4J2Logger.getInstance();
     }
 
-    public void openForRead() throws IOException, InvalidRangeException {
-            netcdfFile = NetcdfFile.openInMemory(filepath.toString());
-            variables = readNetcdfVariables(netcdfFile);
+    public void open(int ioType) throws Exception {
+        switch (ioType) {
+            case OPEN_FOR_READ:
+                openForRead();
+                break;
+            case OPEN_FOR_WRITE:
+                break;
+        }
     }
 
-    public void openForWrite() {
-
-    }
-
-    /**
-     * Private method that implements reading for Netcdf files
-     *
-     * @param variableToRead the buffers to read into - variable name (key), data array (value)
-     * @return true on success; otherwise false
-     */
-    // TODO currently each place reads a single index, each place should determine how much to read
-    // based on the number of places, also assumes that the given data arrays are of the correct dimensions
-    // (matches the dimensions of places)
     public Object read(String variableToRead, int placeOrder) {
         Object allVariableData = getVariable(variableToRead);
 
+        // TODO: 4/18/17 add more supported variable data types
         if (allVariableData instanceof float[]) {
             return readIntoFloatBuffer((float[]) allVariableData, placeOrder);
         } else {
@@ -59,13 +52,13 @@ public class NetcdfFileAttributes extends FileAttributes {
         }
     }
 
-    private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
-        int placeReadLength = getPlaceReadLength(bufferToReadFrom.length, placeOrder);
-        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, placeReadLength * (placeOrder + 1));
-    }
-
     public void close() throws IOException {
         netcdfFile.close();
+    }
+
+    private void openForRead() throws IOException, InvalidRangeException {
+        netcdfFile = NetcdfFile.openInMemory(filepath.toString());
+        variables = readNetcdfVariables(netcdfFile);
     }
 
     private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile) throws InvalidRangeException, IOException {
@@ -113,6 +106,11 @@ public class NetcdfFileAttributes extends FileAttributes {
         return nodeVariableData;
     }
 
+    private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
+        int placeReadLength = getPlaceReadLength(bufferToReadFrom.length, placeOrder);
+        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, placeReadLength * (placeOrder + 1));
+    }
+
     private Object getVariable(String variableName) {
         Object variableBuffer = variables.get(variableName);
         if (variableBuffer == null) {
@@ -121,45 +119,3 @@ public class NetcdfFileAttributes extends FileAttributes {
         return variableBuffer;
     }
 }
-
-
-  /*  private Object readIntoProperVariableBuffer(String variableToRead, int placeOrder) {
-        if (userVariableBuffer instanceof float[]) {
-            readIntoFloatBuffer(variableToRead, (float[]) userVariableBuffer, placeOrder);
-        } else {
-            throw new UnsupportedBufferTypeException("The NetCDF variable buffer type to read to is not supported.");
-        }
-    }*/
-
-   /* private void readIntoFloatBuffers(String variableToRead, float[] userFloatBuffer, int placeOrder) {
-
-        Object allVariableData = getVariable(variableToRead);
-        if (!(allVariableData instanceof float[])) {
-            throw new UnsupportedBufferTypeException(String.format(
-                    "The NetCDF variable buffer type to read to does not match the variable data to read, variable: %s",
-                    variableToRead
-            ));
-        }
-
-        float[] allVariableFloatData = (float[]) allVariableData;
-
-        int placeReadLength = allVariableFloatData.length / totalPlaces;
-
-        if (placeReadLength < 1) {
-            throw new InvalidNumberOfPlacesException(String.format(
-                    "Too many places attempting to read a NetCDF file. Number of places: %d, NetCDF file indexes: %d.",
-                    totalPlaces,
-                    allVariableFloatData.length
-            ));
-        }
-
-        if (placeOrder <  totalPlaces - 1) {
-            for (int allIndex = placeOrder * placeReadLength, userIndex = 0; allIndex < placeReadLength * (placeOrder + 1); allIndex++, userIndex++) {
-                userFloatBuffer[userIndex] = allVariableFloatData[allIndex];
-            }
-        } else {
-            for (int allIndex = placeOrder * placeReadLength, userIndex = 0; allIndex < allVariableFloatData.length; allIndex++, userIndex++) {
-                userFloatBuffer[userIndex] = allVariableFloatData[allIndex];
-            }
-        }
-    }*/

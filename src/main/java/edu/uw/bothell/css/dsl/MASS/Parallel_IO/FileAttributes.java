@@ -16,6 +16,9 @@ import java.util.Hashtable;
 
 public abstract class FileAttributes {
 
+    public static final int OPEN_FOR_READ = 0;
+    public static final int OPEN_FOR_WRITE = 1;
+
     // Name of opened file
     protected final Path filepath;
 
@@ -70,9 +73,7 @@ public abstract class FileAttributes {
         }
     }
 
-    public abstract void openForRead() throws Exception;
-
-    public abstract void openForWrite() throws Exception;
+    public abstract void open(int ioType) throws Exception;
 
     public abstract void close() throws IOException;
 
