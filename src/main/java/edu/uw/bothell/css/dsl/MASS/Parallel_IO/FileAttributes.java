@@ -89,13 +89,18 @@ public abstract class FileAttributes {
             ));
         }
 
+        return placeReadLength;
+    }
+
+    protected  int getRemainingReadLength(int sizeOfBufferToReadFrom, int placeReadLength, int placeOrder) {
+        int remainingLength = placeReadLength;
+
         // Last place reads remainder
         if (placeOrder == totalPlaces - 1) {
             int remainingIndexes = sizeOfBufferToReadFrom % totalPlaces;
-            placeReadLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
+            remainingLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
         }
-
-        return placeReadLength;
+        return remainingLength;
     }
 
 

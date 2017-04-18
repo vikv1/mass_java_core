@@ -100,7 +100,8 @@ public class NetcdfFileAttributes extends FileAttributes {
 
     private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
         int placeReadLength = getPlaceReadLength(bufferToReadFrom.length, placeOrder);
-        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, placeReadLength * (placeOrder + 1));
+        int remainingLength = getRemainingReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
+        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, (placeReadLength * placeOrder) + remainingLength);
     }
 
     private Object getVariable(String variableName) {
