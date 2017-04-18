@@ -64,26 +64,6 @@ public class NetcdfFileAttributes extends FileAttributes {
         return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, placeReadLength * (placeOrder + 1));
     }
 
-    private int getPlaceReadLength(int sizeOfBufferToReadFrom, int placeOrder) {
-        int placeReadLength = sizeOfBufferToReadFrom / totalPlaces;
-
-        if (placeReadLength < 1) {
-            throw new InvalidNumberOfPlacesException(String.format(
-                    "Too many places attempting to read a NetCDF file. Number of places: %d, NetCDF file indexes: %d.",
-                    totalPlaces,
-                    sizeOfBufferToReadFrom
-            ));
-        }
-
-        // Last place reads remainder
-        if (placeOrder == totalPlaces - 1) {
-            int remainingIndexes = sizeOfBufferToReadFrom % totalPlaces;
-            placeReadLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
-        }
-
-        return placeReadLength;
-    }
-
     public void close() throws IOException {
         netcdfFile.close();
     }

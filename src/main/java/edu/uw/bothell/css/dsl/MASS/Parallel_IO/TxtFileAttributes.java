@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -40,8 +41,8 @@ public class TxtFileAttributes extends FileAttributes {
 
     public void openForRead() throws Exception {
         fileChannel = FileChannel.open(filepath, OpenOperations[0]);
-        bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
         entireTxtFileBuffer = readTextFileInMemory(fileChannel);
+        bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
 
         if (bytesPerPlace < 1) {
             throw new InvalidNumberOfPlacesException(
@@ -54,22 +55,9 @@ public class TxtFileAttributes extends FileAttributes {
 
     }
 
-    public void read(byte[] userTxtBuffer, int placeOrder) {
-
-        // Determine if this place should read to the end of the file
-        if (placeOrder != totalPlaces - 1) {        // No, read predetermined amount
-            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < bytesPerPlace * (placeOrder + 1); allIndex++, userIndex++) {
-                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
-            }
-        }
-
-        // Perform final read
-        // Read the remaining bytes of the file (this should be done by only the last Place)
-        else {
-            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < entireTxtFileBuffer.length; allIndex++, userIndex++) {
-                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
-            }
-        }
+    public byte[] read(int placeOrder) {
+        int placeReadLength = getPlaceReadLength(entireTxtFileBuffer.length, placeOrder);
+        return Arrays.copyOfRange(entireTxtFileBuffer, placeOrder * placeReadLength, (placeOrder + 1) * placeReadLength);
     }
 
     public void close() throws IOException {
@@ -89,3 +77,18 @@ public class TxtFileAttributes extends FileAttributes {
         return buffer.array();
     }
 }
+
+// Determine if this place should read to the end of the file
+        /*if (placeOrder != totalPlaces - 1) {        // No, read predetermined amount
+            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < bytesPerPlace * (placeOrder + 1); allIndex++, userIndex++) {
+                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
+            }
+        }
+
+        // Perform final read
+        // Read the remaining bytes of the file (this should be done by only the last Place)
+        else {
+            for (int allIndex = placeOrder * bytesPerPlace, userIndex = 0; allIndex < entireTxtFileBuffer.length; allIndex++, userIndex++) {
+                userTxtBuffer[userIndex] = entireTxtFileBuffer[allIndex];
+            }
+        }*/

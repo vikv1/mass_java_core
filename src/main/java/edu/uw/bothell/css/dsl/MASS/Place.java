@@ -173,8 +173,7 @@ public class Place {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
-			Object variableBuffer = netcdfFileAttributes.read(variableToRead, getPlaceOrder());
-			return variableBuffer;
+			return netcdfFileAttributes.read(variableToRead, getPlaceOrder());
 		} catch (Exception e) {
 			logFormattedError("An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
 			return null;
@@ -203,21 +202,19 @@ public class Place {
 	 * Reads from the specified file descriptor into the given byte buffer
 	 *
 	 * @param fileDescriptor      specifies the file to read from
-	 * @param txtBuffer the byte buffer to read into
-	 * @return true on a successful read; otherwise false
+=	 * @return true on a successful read; otherwise false
 	 */
 	// TODO: 1/13/17 I don't believe the size of the given byte array is checked -
 	// currently the implementation reads the whole specified text file and assumes the byte array is large
 	// enough to store the data, this must be changed.
-	protected boolean read(int fileDescriptor, byte[] txtBuffer) {
+	protected byte[] read(int fileDescriptor) {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			TxtFileAttributes txtFileAttributes = convertFileAttributesToTxtFileAttributes(fileAttributes);
-			readTxtFile(txtFileAttributes, txtBuffer);
-			return true;
+			return txtFileAttributes.read(getPlaceOrder());
 		} catch (Exception e) {
 			logFormattedError("An exception occurred while reading the TXT file with file descriptor %d, exception: %s", fileDescriptor, e.getMessage());
-			return false;
+			return null;    // TODO: 4/18/17 throw exception?
 		}
 	}
 
@@ -227,10 +224,6 @@ public class Place {
 		} else {
 			throw new ClassCastException(String.format("The given file is not a valid TXT file: %s", fileAttributes.getFilepath()));
 		}
-	}
-
-	private void readTxtFile(TxtFileAttributes txtFileAttributes, byte[] txtBuffer) {
-		txtFileAttributes.read(txtBuffer, getPlaceOrder());
 	}
 
 	private int getPlaceOrder() {

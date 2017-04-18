@@ -76,4 +76,25 @@ public abstract class FileAttributes {
 
     public abstract void close() throws IOException;
 
+    protected int getPlaceReadLength(int sizeOfBufferToReadFrom, int placeOrder) {
+        int placeReadLength = sizeOfBufferToReadFrom / totalPlaces;
+
+        if (placeReadLength < 1) {
+            throw new InvalidNumberOfPlacesException(String.format(
+                    "Too many places attempting to read a NetCDF file. Number of places: %d, NetCDF file indexes: %d.",
+                    totalPlaces,
+                    sizeOfBufferToReadFrom
+            ));
+        }
+
+        // Last place reads remainder
+        if (placeOrder == totalPlaces - 1) {
+            int remainingIndexes = sizeOfBufferToReadFrom % totalPlaces;
+            placeReadLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
+        }
+
+        return placeReadLength;
+    }
+
+
 }

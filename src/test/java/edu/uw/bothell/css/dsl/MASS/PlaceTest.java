@@ -37,7 +37,7 @@ import java.util.Objects;
 public class PlaceTest extends AbstractTest {
 
 
-    @TestSubject
+    /*@TestSubject
     private Place place1 = new Place(); // create a place object to test with
 
     @TestSubject
@@ -46,14 +46,14 @@ public class PlaceTest extends AbstractTest {
     @TestSubject
     private Place place3 = new Place();
 
-    /*
+    *//*
     @Mock
     private int[] index;
 
     @Mock
     private int[] size;
 
-    */
+    *//*
 
 
     @Test
@@ -143,7 +143,7 @@ public class PlaceTest extends AbstractTest {
             closeError = true;
         if (closeError)
             System.out.println("Error Closing");
-    }
+    }*/
 }
         /*
         // check if descriptor is a NetcdfFile
