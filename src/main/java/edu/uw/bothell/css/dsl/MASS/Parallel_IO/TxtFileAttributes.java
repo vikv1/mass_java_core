@@ -40,8 +40,8 @@ public class TxtFileAttributes extends FileAttributes {
     }
 
     public byte[] read(int placeOrder) {
-        int placeReadLength = getReadOffset(entireTxtFileBuffer.length);
-        int remainingLength = getCurrentReadLength(entireTxtFileBuffer.length, placeReadLength, placeOrder);
+        int placeReadLength = getPlaceReadOffset(entireTxtFileBuffer.length);
+        int remainingLength = getCurrentPlaceReadLength(entireTxtFileBuffer.length, placeReadLength, placeOrder);
         return Arrays.copyOfRange(entireTxtFileBuffer, placeOrder * placeReadLength, (placeOrder * placeReadLength) + remainingLength);
     }
 

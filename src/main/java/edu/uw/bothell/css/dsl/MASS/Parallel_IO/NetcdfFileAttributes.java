@@ -86,17 +86,15 @@ public class NetcdfFileAttributes extends FileAttributes {
     }
 
     private float[] getIndividualNodeVariableData(float[] allVariableData) {
-        int indexesPerNode = allVariableData.length / totalNodes;
-        if (myNodeId == totalNodes - 1) {
-            int remainingIndexes = allVariableData.length % totalNodes;
-            indexesPerNode = remainingIndexes > 0 ? remainingIndexes : indexesPerNode;
-        }
-        return Arrays.copyOfRange(allVariableData, myNodeId * indexesPerNode, (myNodeId + 1) * indexesPerNode);
+        int nodeOffset = getNodeReadOffset(allVariableData.length);
+        int nodeReadLength = getCurrentNodeReadLength(allVariableData.length, nodeOffset);
+        int offset = nodeOffset * myNodeId;
+        return Arrays.copyOfRange(allVariableData, offset, offset + nodeReadLength);
     }
 
     private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
-        int placeReadLength = getReadOffset(bufferToReadFrom.length);
-        int remainingLength = getCurrentReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
+        int placeReadLength = getPlaceReadOffset(bufferToReadFrom.length);
+        int remainingLength = getCurrentPlaceReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
         return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, (placeReadLength * placeOrder) + remainingLength);
     }
 

@@ -79,30 +79,54 @@ public abstract class FileAttributes {
 
     public abstract void close() throws IOException;
 
-    protected int getReadOffset(int sizeOfBufferToReadFrom) {
-        int placeReadLength = sizeOfBufferToReadFrom / totalPlaces;
+    protected int getPlaceReadOffset(int sizeOfBufferToReadFrom) {
+        int placeOffset = sizeOfBufferToReadFrom / totalPlaces;
 
-        if (placeReadLength < 1) {
+        if (placeOffset < 1) {
             throw new InvalidNumberOfPlacesException(String.format(
-                    "Too many places attempting to read a %s file. Number of places: %d, NetCDF file indexes: %d.",
+                    "Too many places attempting to read a %s file. Number of places: %d, file size: %d.",
                     fileType,
                     totalPlaces,
                     sizeOfBufferToReadFrom
             ));
         }
 
-        return placeReadLength;
+        return placeOffset;
     }
 
-    protected  int getCurrentReadLength(int sizeOfBufferToReadFrom, int placeReadLength, int placeOrder) {
-        int remainingLength = placeReadLength;
+    protected  int getCurrentPlaceReadLength(int sizeOfBufferToReadFrom, int placeReadOffset, int placeOrder) {
+        int remainingLength = placeReadOffset;
 
         // Last place reads remainder
         if (placeOrder == totalPlaces - 1) {    // TODO: 4/19/17 should be total places on this node
             remainingLength += sizeOfBufferToReadFrom % totalPlaces;
         }
 
-        logger.debug(String.format("Place %d will read %d starting from %d", placeOrder, remainingLength, placeOrder * placeReadLength));
+        // logger.debug(String.format("Place %d will read %d starting from %d", placeOrder, remainingLength, placeOrder * placeReadOffset));
+        return remainingLength;
+    }
+
+    protected int getNodeReadOffset(int sizeOfBufferToReadFrom) {
+        int nodeOffset = sizeOfBufferToReadFrom / totalNodes;
+
+        if (nodeOffset < 1) {
+           throw new InvalidNumberOfNodesException(String.format("Too many nodes attempting to read a %s file. Number of nodes: %d, file size: %d.",
+                   fileType,
+                   totalNodes,
+                   sizeOfBufferToReadFrom));
+        }
+
+        return nodeOffset;
+    }
+
+    protected  int getCurrentNodeReadLength(int sizeOfBufferToReadFrom, int nodeReadOffset) {
+        int remainingLength = nodeReadOffset;
+
+        // Last place reads remainder
+        if (myNodeId == totalNodes - 1) {
+            remainingLength += sizeOfBufferToReadFrom % totalNodes;
+        }
+
         return remainingLength;
     }
 
