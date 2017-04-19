@@ -102,7 +102,8 @@ public abstract class FileAttributes {
             remainingLength += sizeOfBufferToReadFrom % totalPlaces;
         }
 
-        // logger.debug(String.format("Place %d will read %d starting from %d", placeOrder, remainingLength, placeOrder * placeReadOffset));
+        // logger.debug(String.format("Place %d will read %d starting from %d", placeOrder,
+        // remainingLength, placeOrder * placeReadOffset));
         return remainingLength;
     }
 
@@ -110,7 +111,8 @@ public abstract class FileAttributes {
         int nodeOffset = sizeOfBufferToReadFrom / totalNodes;
 
         if (nodeOffset < 1) {
-           throw new InvalidNumberOfNodesException(String.format("Too many nodes attempting to read a %s file. Number of nodes: %d, file size: %d.",
+           throw new InvalidNumberOfNodesException(String.format(
+                   "Too many nodes attempting to read a %s file. Number of nodes: %d, file size: %d.",
                    fileType,
                    totalNodes,
                    sizeOfBufferToReadFrom));

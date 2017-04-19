@@ -57,7 +57,9 @@ public class NetcdfFileAttributes extends FileAttributes {
         variables = readNetcdfVariables(netcdfFile);
     }
 
-    private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile) throws InvalidRangeException, IOException {
+    private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile)
+            throws InvalidRangeException, IOException {
+
         List<Variable> unReadVariables = netcdfFile.getVariables();
 
         Hashtable<String, Object> readVariables = new Hashtable<String, Object>();
@@ -65,8 +67,12 @@ public class NetcdfFileAttributes extends FileAttributes {
         for (int i = 0; i < unReadVariables.size(); i++) {
             Variable currentUnreadVariable = unReadVariables.get(i);
 
-            // TODO: 4/17/17 Read only the portion of the array needed - difficult because of multi dimensions and limited NetCDF Array API 
-            Array variableArray = currentUnreadVariable.read(new int[currentUnreadVariable.getShape().length], currentUnreadVariable.getShape());
+            // TODO: 4/17/17 Read only the portion of the array needed
+            // - difficult because of multi dimensions and limited NetCDF Array API
+            Array variableArray = currentUnreadVariable.read(
+                    new int[currentUnreadVariable.getShape().length],
+                    currentUnreadVariable.getShape()
+            );
 
             if (float.class == variableArray.getElementType()) {
                 float[] allVariableData = (float[]) variableArray.copyTo1DJavaArray();
@@ -102,7 +108,11 @@ public class NetcdfFileAttributes extends FileAttributes {
     private Object getVariable(String variableName) {
         Object variableBuffer = variables.get(variableName);
         if (variableBuffer == null) {
-            throw new NullPointerException(String.format("The NetCDF file %s does not contain the variable %s", fileName, variableName));
+            throw new NullPointerException(String.format(
+                    "The NetCDF file %s does not contain the variable %s",
+                    fileName,
+                    variableName
+            ));
         }
         return variableBuffer;
     }
