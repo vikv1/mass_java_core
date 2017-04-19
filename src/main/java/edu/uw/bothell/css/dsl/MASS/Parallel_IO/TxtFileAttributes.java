@@ -1,7 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
-import edu.uw.bothell.css.dsl.MASS.MASS;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -42,8 +40,8 @@ public class TxtFileAttributes extends FileAttributes {
     }
 
     public byte[] read(int placeOrder) {
-        int placeReadLength = getPlaceReadLength(entireTxtFileBuffer.length, placeOrder);
-        int remainingLength = getRemainingReadLength(entireTxtFileBuffer.length, placeReadLength, placeOrder);
+        int placeReadLength = getReadOffset(entireTxtFileBuffer.length);
+        int remainingLength = getCurrentReadLength(entireTxtFileBuffer.length, placeReadLength, placeOrder);
         return Arrays.copyOfRange(entireTxtFileBuffer, placeOrder * placeReadLength, (placeOrder * placeReadLength) + remainingLength);
     }
 

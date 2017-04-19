@@ -1,7 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
@@ -21,11 +19,9 @@ public class NetcdfFileAttributes extends FileAttributes {
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
     private NetcdfFile netcdfFile;
-    private Log4J2Logger logger;
 
     public NetcdfFileAttributes(Path filepath) {
         super(filepath, FileType.NETCDF);
-        logger = Log4J2Logger.getInstance();
     }
 
     public void open(int ioType) throws Exception {
@@ -99,8 +95,8 @@ public class NetcdfFileAttributes extends FileAttributes {
     }
 
     private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
-        int placeReadLength = getPlaceReadLength(bufferToReadFrom.length, placeOrder);
-        int remainingLength = getRemainingReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
+        int placeReadLength = getReadOffset(bufferToReadFrom.length);
+        int remainingLength = getCurrentReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
         return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, (placeReadLength * placeOrder) + remainingLength);
     }
 

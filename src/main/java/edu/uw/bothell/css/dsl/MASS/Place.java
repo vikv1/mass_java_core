@@ -122,6 +122,7 @@ public class Place {
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
 	protected int open(String filepath, int ioType) {
+		logFormattedDebug("PARALLEL IO OPEN STARTED");
 		try {
 			synchronized (fileTable) {
 				openFileUsingOnePlace(filepath, ioType);
@@ -145,7 +146,6 @@ public class Place {
 		if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
 			openFile(filepath, ioType);
 		}
-		fileDescriptor = fileDescriptorIndex;
 	}
 
 	/**
@@ -167,7 +167,15 @@ public class Place {
 
 		FileAttributes fileAttributes = FileAttributes.factory(path);
 		fileAttributes.open(ioType);
-		fileTable.put(fileDescriptorIndex++, fileAttributes);
+		fileTable.put(fileDescriptorIndex, fileAttributes);
+		fileDescriptor = fileDescriptorIndex;
+		fileDescriptorIndex++;
+		logFormattedDebug(
+				"Place %d opened the file %s with the fd %d",
+				getPlaceOrder(),
+				filepath,
+				fileDescriptor
+		);
 	}
 
 	/**
@@ -182,10 +190,17 @@ public class Place {
 	 * place - if an error occurs during the read process, then null is returned
      */
 	protected Object read(int fileDescriptor, String variableToRead) {
+		logFormattedDebug("PARALLEL IO READ STARTED");
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
-			return netcdfFileAttributes.read(variableToRead, getPlaceOrder());
+			Object readBuffer = netcdfFileAttributes.read(variableToRead, getPlaceOrder());
+			logFormattedDebug(
+					"Place %d read the fd %d",
+					getPlaceOrder(),
+					fileDescriptor
+			);
+			return readBuffer;
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
@@ -240,7 +255,13 @@ public class Place {
 		try {
 			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
 			TxtFileAttributes txtFileAttributes = convertFileAttributesToTxtFileAttributes(fileAttributes);
-			return txtFileAttributes.read(getPlaceOrder());
+			byte[] readBuffer = txtFileAttributes.read(getPlaceOrder());
+			logFormattedDebug(
+					"Place %d read the fd %d",
+					getPlaceOrder(),
+					fileDescriptor
+			);
+			return readBuffer;
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s",
@@ -270,9 +291,8 @@ public class Place {
 	/**
 	 * @return this place's order number determined its index
      */
-	private int getPlaceOrder() {
+	protected int getPlaceOrder() {
 		return (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
 	}
 
 	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
@@ -462,5 +482,10 @@ public class Place {
 
 	private void logFormattedError(String formattedLog, Object... args) {
 		logger.error(String.format(formattedLog, args));
+	}
+
+	@Override
+	public String toString() {
+		return "Place: " + Arrays.toString(this.getIndex());
 	}
 }

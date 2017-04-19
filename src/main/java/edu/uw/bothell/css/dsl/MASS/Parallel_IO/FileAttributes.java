@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import ucar.nc2.util.IO;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public abstract class FileAttributes {
 
     public static final int OPEN_FOR_READ = 0;
     public static final int OPEN_FOR_WRITE = 1;
+    protected static final Log4J2Logger logger = Log4J2Logger.getInstance();
 
     // Name of opened file
     protected final Path filepath;
@@ -77,7 +79,7 @@ public abstract class FileAttributes {
 
     public abstract void close() throws IOException;
 
-    protected int getPlaceReadLength(int sizeOfBufferToReadFrom, int placeOrder) {
+    protected int getReadOffset(int sizeOfBufferToReadFrom) {
         int placeReadLength = sizeOfBufferToReadFrom / totalPlaces;
 
         if (placeReadLength < 1) {
@@ -92,14 +94,15 @@ public abstract class FileAttributes {
         return placeReadLength;
     }
 
-    protected  int getRemainingReadLength(int sizeOfBufferToReadFrom, int placeReadLength, int placeOrder) {
+    protected  int getCurrentReadLength(int sizeOfBufferToReadFrom, int placeReadLength, int placeOrder) {
         int remainingLength = placeReadLength;
 
         // Last place reads remainder
-        if (placeOrder == totalPlaces - 1) {
-            int remainingIndexes = sizeOfBufferToReadFrom % totalPlaces;
-            remainingLength = remainingIndexes > 0 ? remainingIndexes : placeReadLength;
+        if (placeOrder == totalPlaces - 1) {    // TODO: 4/19/17 should be total places on this node
+            remainingLength += sizeOfBufferToReadFrom % totalPlaces;
         }
+
+        logger.debug(String.format("Place %d will read %d starting from %d", placeOrder, remainingLength, placeOrder * placeReadLength));
         return remainingLength;
     }
 
