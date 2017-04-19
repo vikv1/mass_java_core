@@ -23,8 +23,6 @@ public class TxtFileAttributes extends FileAttributes {
     // Open options, 0 for READ, 1 for WRITE (used for opening file channels)
     private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
 
-    private int bytesPerPlace;
-
     public TxtFileAttributes(Path filepath) {
         super(filepath, FileType.TXT);
     }
@@ -53,32 +51,19 @@ public class TxtFileAttributes extends FileAttributes {
         return entireTxtFileBuffer;
     }
 
-    public int getBytesPerPlace() {
-        return bytesPerPlace;
-    }
-
     private void openForRead() throws Exception {
         fileChannel = FileChannel.open(filepath, OpenOperations[0]);
         entireTxtFileBuffer = readTextFileInMemory(fileChannel);
-        bytesPerPlace = entireTxtFileBuffer.length / totalPlaces;
-
-        if (bytesPerPlace < 1) {
-            throw new InvalidNumberOfPlacesException(
-                    "Txt file opened with too many Places (each place would have to read or write less than 1 byte)."
-            );
-        }
     }
 
     private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
-        int bytesPerNode = (int) fileChannel.size() / totalNodes;
+        // TODO: 4/19/17 issues with long to int and vice versa?
+        int nodeOffset = getNodeReadOffset((int) fileChannel.size());
+        int nodeReadLength = getCurrentNodeReadLength((int) fileChannel.size(), nodeOffset);
+        int offset = myNodeId * nodeOffset;
 
-        if (myNodeId == totalNodes - 1) {
-            int remainingBytes = (int) fileChannel.size() % totalNodes;
-            bytesPerNode = remainingBytes > 0 ? remainingBytes : bytesPerNode;
-        }
-
-        ByteBuffer buffer = ByteBuffer.allocate(bytesPerNode);
-        fileChannel.read(buffer);
+        ByteBuffer buffer = ByteBuffer.allocate(nodeReadLength);
+        fileChannel.read(buffer, (long) offset);
         return buffer.array();
     }
 }

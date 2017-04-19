@@ -76,7 +76,7 @@ public class NetcdfFileAttributes extends FileAttributes {
             // TODO: 4/17/17 add more supported variable data types 
             else {
                 logger.debug(String.format(
-                        "The variable %s for NetCDF file %s could not be read (data type %s not supported).",
+                        "NOTE: The variable %s for NetCDF file %s could not be read (data type %s not supported).",
                         currentUnreadVariable.getShortName(),
                         fileName, variableArray.getElementType()
                 ));
@@ -93,9 +93,10 @@ public class NetcdfFileAttributes extends FileAttributes {
     }
 
     private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
-        int placeReadLength = getPlaceReadOffset(bufferToReadFrom.length);
-        int remainingLength = getCurrentPlaceReadLength(bufferToReadFrom.length, placeReadLength, placeOrder);
-        return Arrays.copyOfRange(bufferToReadFrom, placeOrder * placeReadLength, (placeReadLength * placeOrder) + remainingLength);
+        int placeOffset = getPlaceReadOffset(bufferToReadFrom.length);
+        int placeReadLength = getCurrentPlaceReadLength(bufferToReadFrom.length, placeOffset, placeOrder);
+        int offset = placeOffset * placeOrder;
+        return Arrays.copyOfRange(bufferToReadFrom, offset, offset + placeReadLength);
     }
 
     private Object getVariable(String variableName) {
