@@ -37,6 +37,22 @@ public class TxtFileAttributes extends FileAttributes {
         }
     }
 
+    private void openForRead() throws Exception {
+        fileChannel = FileChannel.open(filepath, OpenOperations[0]);
+        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
+    }
+
+    private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
+        // TODO: 4/19/17 issues with long to int and vice versa? (possibly when file size is large)
+        int nodeOffset = getNodeReadOffset((int) fileChannel.size());
+        int nodeReadLength = getCurrentNodeReadLength((int) fileChannel.size(), nodeOffset);
+        int offset = myNodeId * nodeOffset;
+
+        ByteBuffer buffer = ByteBuffer.allocate(nodeReadLength);
+        fileChannel.read(buffer, (long) offset);
+        return buffer.array();
+    }
+
     public byte[] read(int placeOrder) {
         int placeOffset = getPlaceReadOffset(entireTxtFileBuffer.length);
         int placeReadLength = getCurrentPlaceReadLength(entireTxtFileBuffer.length, placeOffset, placeOrder);
@@ -52,19 +68,5 @@ public class TxtFileAttributes extends FileAttributes {
         return entireTxtFileBuffer;
     }
 
-    private void openForRead() throws Exception {
-        fileChannel = FileChannel.open(filepath, OpenOperations[0]);
-        entireTxtFileBuffer = readTextFileInMemory(fileChannel);
-    }
 
-    private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
-        // TODO: 4/19/17 issues with long to int and vice versa?
-        int nodeOffset = getNodeReadOffset((int) fileChannel.size());
-        int nodeReadLength = getCurrentNodeReadLength((int) fileChannel.size(), nodeOffset);
-        int offset = myNodeId * nodeOffset;
-
-        ByteBuffer buffer = ByteBuffer.allocate(nodeReadLength);
-        fileChannel.read(buffer, (long) offset);
-        return buffer.array();
-    }
 }

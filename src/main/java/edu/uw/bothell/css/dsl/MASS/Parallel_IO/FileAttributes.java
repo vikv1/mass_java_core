@@ -28,7 +28,7 @@ public abstract class FileAttributes {
 
     protected final FileType fileType;
 
-    protected final int totalPlaces;    // TODO: 4/17/17 sometime we may want only the places available to one node
+    protected final int totalPlaces;
 
     protected final int totalNodes;
 
@@ -43,7 +43,7 @@ public abstract class FileAttributes {
         this.filepath = filepath;
         this.fileName = filepath.getFileName().toString();
         this.fileType = fileType;
-        totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces();
+        totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces(); // TODO: 4/19/17 this must be total places for one node
         totalNodes = MASSBase.getAllNodes().size();
         myNodeId = MASSBase.getMyPid();
     }

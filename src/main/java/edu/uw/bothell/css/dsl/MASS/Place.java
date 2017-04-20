@@ -103,10 +103,6 @@ public class Place {
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
-	private static long totalReadTime = 0;
-
-
-
 	/**
 	 * The first Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
 	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
