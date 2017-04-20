@@ -13,7 +13,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 /**
  * Created by Michael on 4/14/17.
  */
-public class TxtFileAttributes extends FileAttributes {
+public class TxtFile extends File {
 
     // Buffer text files are read to
     private byte[] entireTxtFileBuffer;
@@ -23,7 +23,7 @@ public class TxtFileAttributes extends FileAttributes {
     // Open options, 0 for READ, 1 for WRITE (used for opening file channels)
     private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
 
-    public TxtFileAttributes(Path filepath) {
+    public TxtFile(Path filepath) {
         super(filepath, FileType.TXT);
     }
 

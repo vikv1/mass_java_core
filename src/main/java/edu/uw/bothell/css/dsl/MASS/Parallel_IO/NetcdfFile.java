@@ -2,7 +2,6 @@ package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
@@ -14,13 +13,13 @@ import java.util.List;
 /**
  * Created by Michael on 4/14/17.
  */
-public class NetcdfFileAttributes extends FileAttributes {
+public class NetcdfFile extends File {
     
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
-    private NetcdfFile netcdfFile;
+    private ucar.nc2.NetcdfFile netcdfFile;
 
-    public NetcdfFileAttributes(Path filepath) {
+    public NetcdfFile(Path filepath) {
         super(filepath, FileType.NETCDF);
     }
 
@@ -53,11 +52,11 @@ public class NetcdfFileAttributes extends FileAttributes {
     }
 
     private void openForRead() throws IOException, InvalidRangeException {
-        netcdfFile = NetcdfFile.openInMemory(filepath.toString());
+        netcdfFile = ucar.nc2.NetcdfFile.openInMemory(filepath.toString());
         variables = readNetcdfVariables(netcdfFile);
     }
 
-    private Hashtable<String, Object> readNetcdfVariables(NetcdfFile netcdfFile)
+    private Hashtable<String, Object> readNetcdfVariables(ucar.nc2.NetcdfFile netcdfFile)
             throws InvalidRangeException, IOException {
 
         List<Variable> unReadVariables = netcdfFile.getVariables();

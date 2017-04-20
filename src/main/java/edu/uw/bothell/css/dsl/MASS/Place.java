@@ -30,9 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.FileAttributes;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFileAttributes;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFileAttributes;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.File;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.ParallelReadException;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFile;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 import java.io.FileNotFoundException;
@@ -93,7 +94,7 @@ public class Place {
 	//
 
 	// Stores each file and its attributes
-	protected static final Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
+	protected static final Hashtable<Integer, File> fileTable = new Hashtable<>();
 
 	// Counts the number of files open
 	private static int fileDescriptorIndex = 0;
@@ -161,9 +162,9 @@ public class Place {
 			throw new FileNotFoundException("The given file to open does not exist: " + path);
 		}
 
-		FileAttributes fileAttributes = FileAttributes.factory(path);
-		fileAttributes.open(ioType);
-		fileTable.put(fileDescriptorIndex, fileAttributes);
+		File file = File.factory(path);
+		file.open(ioType);
+		fileTable.put(fileDescriptorIndex, file);
 		fileDescriptor = fileDescriptorIndex;
 		fileDescriptorIndex++;
 		logFormattedDebug(
@@ -185,25 +186,23 @@ public class Place {
      * @return a 1 dimensional primitive java array representing a portion of the NetCDF variable data read by this
 	 * place - if an error occurs during the read process, then null is returned
      */
-	protected Object read(int fileDescriptor, String variableToRead) {
+	protected Object read(int fileDescriptor, String variableToRead) {    // TODO: 4/19/17 use "checked" exception? aka "throws ParallelReadException" 
 		logFormattedDebug("PARALLEL IO READ STARTED");
 		try {
-			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
-			NetcdfFileAttributes netcdfFileAttributes = convertFileAttributesToNetcdFileAttributes(fileAttributes);
-			Object readBuffer = netcdfFileAttributes.read(variableToRead, getPlaceOrder());
-			logFormattedDebug(
-					"Place %d read the fd %d",
-					getPlaceOrder(),
-					fileDescriptor
-			);
-			return readBuffer;
+			File file = getFileFromFileTable(fileDescriptor);
+			NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
+			return netcdfFile.read(variableToRead, getPlaceOrder());
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
 					fileDescriptor,
 					e.getMessage()
 			);
-			return null;
+			throw new ParallelReadException(String.format(
+					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
+					fileDescriptor,
+					e.getMessage()
+			));
 		}
 	}
 
@@ -212,7 +211,7 @@ public class Place {
 	 * @param fileDescriptor unique identifier for the file attribute to return
 	 * @return the file attribute corresponding to the given file descriptor
      */
-	private FileAttributes getFileAttribute(int fileDescriptor) {
+	private File getFileFromFileTable(int fileDescriptor) {
 		if (fileTable.containsKey(fileDescriptor)) {
 			return fileTable.get(fileDescriptor);
 		} else {
@@ -225,16 +224,16 @@ public class Place {
 
 	/**
 	 * Converts the given file attributes to NetCDF file attributes
-	 * @param fileAttributes the file attributes to convert
+	 * @param file the file attributes to convert
 	 * @return the file attributes converted to NetCDF file attributes
      */
-	private NetcdfFileAttributes convertFileAttributesToNetcdFileAttributes(FileAttributes fileAttributes) {
-		if (fileAttributes instanceof NetcdfFileAttributes) {
-			return (NetcdfFileAttributes) fileAttributes;
+	private NetcdfFile convertFileToNetcdfFile(File file) {
+		if (file instanceof NetcdfFile) {
+			return (NetcdfFile) file;
 		} else {
 			throw new ClassCastException(String.format(
 					"The given file is not a valid NetCDF file: %s",
-					fileAttributes.getFilepath()
+					file.getFilepath()
 			));
 		}
 	}
@@ -247,39 +246,37 @@ public class Place {
 	 * @param fileDescriptor unique identifier for the file to read
 	 * @return the portion of the file read by this place - if an error occurs then null is returned
      */
-	protected byte[] read(int fileDescriptor) {
+	protected byte[] read(int fileDescriptor) { // TODO: 4/19/17 use "checked" exception? 
 		try {
-			FileAttributes fileAttributes = getFileAttribute(fileDescriptor);
-			TxtFileAttributes txtFileAttributes = convertFileAttributesToTxtFileAttributes(fileAttributes);
-			byte[] readBuffer = txtFileAttributes.read(getPlaceOrder());
-			logFormattedDebug(
-					"Place %d read the fd %d",
-					getPlaceOrder(),
-					fileDescriptor
-			);
-			return readBuffer;
+			File file = getFileFromFileTable(fileDescriptor);
+			TxtFile txtFile = convertFileToTxtFile(file);
+			return txtFile.read(getPlaceOrder());
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s",
 					fileDescriptor,
-					e.getMessage());
-			return null;
-			// TODO: 4/18/17 throw exception rather than returning null?
+					e.getMessage()
+			);
+			throw new ParallelReadException(String.format(
+					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s", 
+					fileDescriptor, 
+					e.getMessage()
+			));
 		}
 	}
 
 	/**
 	 * Converts the given file attributes to TXT file attributes
-	 * @param fileAttributes the file attributes to convert
+	 * @param file the file attributes to convert
 	 * @return the file attributes converted to TXT file attributes
 	 */
-	private TxtFileAttributes convertFileAttributesToTxtFileAttributes(FileAttributes fileAttributes) {
-		if (fileAttributes instanceof TxtFileAttributes) {
-			return (TxtFileAttributes) fileAttributes;
+	private TxtFile convertFileToTxtFile(File file) {
+		if (file instanceof TxtFile) {
+			return (TxtFile) file;
 		} else {
 			throw new ClassCastException(String.format(
 					"The given file is not a valid TXT file: %s",
-					fileAttributes.getFilepath()
+					file.getFilepath()
 			));
 		}
 	}
@@ -324,9 +321,9 @@ public class Place {
      */
 	private boolean attemptToCloseFile(int fileDescriptor) throws Exception {
 		if (fileTable.containsKey(fileDescriptor)) {
-			FileAttributes fileAttributes = fileTable.remove(fileDescriptor);
+			File file = fileTable.remove(fileDescriptor);
 			filesAttemptedToClose.put(fileDescriptor, false);
-			fileAttributes.close();
+			file.close();
 			filesAttemptedToClose.put(fileDescriptor, true);
 			return true;
 		} else if (filesAttemptedToClose.containsKey(fileDescriptor)) {
