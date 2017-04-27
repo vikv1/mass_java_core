@@ -35,6 +35,7 @@ import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.ParallelReadException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFile;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -119,6 +120,7 @@ public class Place {
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
 	protected int open(String filepath, int ioType) {
+		MASS.setLoggingLevel(LogLevel.DEBUG);
 		logFormattedDebug("PARALLEL IO OPEN STARTED");
 		try {
 			synchronized (fileTable) {

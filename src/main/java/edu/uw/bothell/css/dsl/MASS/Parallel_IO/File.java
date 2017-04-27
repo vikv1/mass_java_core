@@ -8,7 +8,7 @@ import java.nio.file.Path;
 
 /**
  * @author Michael G. O'Keefe
- * 
+ *
  */
 public abstract class File {
 
