@@ -94,6 +94,18 @@ public class Log4J2Logger {
 		// MASSBase is considered to be the parent for all core library classes, so use it as the "root" node
 		if (logger == null) logger = LoggerFactory.getLogger(MASSBase.class);
 		
+		// register a shutdown hook to gracefully shut down logger when JVM is requested to exit
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			
+			public void run() {
+			
+				logger.debug( "Stopping Logger" );
+				LogManager.shutdown();	// normally this shouldn't be necessary, but just in case...
+				
+			}
+			
+		});
+		
 	}
     
 	public void setLogLevel(LogLevel level) {
