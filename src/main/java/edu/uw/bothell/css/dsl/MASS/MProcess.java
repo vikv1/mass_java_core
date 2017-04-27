@@ -41,6 +41,10 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
  */
 public class MProcess {
 
+	// representation of this remote node, containing all configuration info and object streams
+	private MNode thisNode;
+	
+	
   private int myPid; // my pid or rank
   private ObjectInputStream MAIN_IOS; // input from the master process
   private ObjectOutputStream MAIN_OOS; // output to the master process
@@ -72,35 +76,51 @@ public class MProcess {
    * responsible for maintaining some number of the total Places being used by
    * the entire MASS program, as well as the associated Agents.  Each MProcess
    * is referred to by its rank.
-   * @param hostName
-   * @param myPid
-   * @param nProc
-   * @param nThr
-   * @param port
-   * @param curDir
+   * @param hostName The hostname or IP address of this node
+   * @param myPid The PID assigned to this node
+   * @param nProc The total number of nodes in the cluster
+   * @param nThr The number of threads to start on this remote node
+   * @param port The port number to use for communications with this node
+   * @param curDir The working directory this remote node should use
    */
-  public MProcess(String hostName, int myPid, int nProc, int nThr, int port,
-      String curDir) {
-    // this.hostName = hostName;
-    this.myPid = myPid;
-    // this.nProc = nProc;
-    MASS.setNumThreads(nThr);
-    MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
-    MASSBase.initMASSBase(hostName, myPid, nProc, port);
+  public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
 
-      logger.debug("Launching MProcess... (" + "hostname = " + hostName
-          + ", myPid = " + myPid + ", nProc = " + nProc + ", nThr = " + nThr
-          + ", port = " + port + ", curDir = " + curDir + ")");
+	  this.myPid = myPid;
 
-    MASSBase.initializeThreads(MASS.getNumThreads());
-    // set up a connection with the master process
-    try {
-      MAIN_IOS = new ObjectInputStream(System.in);
-      MAIN_OOS = new ObjectOutputStream(System.out);
-    } catch (Exception e) {
-      logger.error("MProcess.Mprocess: detected ", e);
-      System.exit(-1);
-    }
+	  // create a MNode representation of this node for init purposes
+	  thisNode = new MNode();
+	  thisNode.setHostName( hostName );
+	  thisNode.setPid( myPid );
+	  thisNode.setPort( port );    	
+	  thisNode.setMassHome( curDir );
+	  
+	  MASS.setNumThreads( nThr );
+	  MASSBase.setWorkingDirectory( curDir ); // mprocess manually changes it.
+//	  MASSBase.initMASSBase(hostName, myPid, nProc, port);
+	  MASSBase.initMASSBase( thisNode );
+	  
+	  logger.debug("Launching MProcess... (" + "hostname = " + hostName
+			  + ", myPid = " + myPid + ", nProc = " + nProc + ", nThr = " + nThr
+			  + ", port = " + port + ", curDir = " + curDir + ")");
+
+	  MASSBase.initializeThreads(MASS.getNumThreads());
+
+	  /*
+	   * Set up a connection with the master process on the master node
+	   * (communications at this point to/from master node are channeled through
+	   * SSH connection)
+	   */
+	  try {
+
+		  MAIN_IOS = new ObjectInputStream(System.in);
+		  MAIN_OOS = new ObjectOutputStream(System.out);
+
+	  } catch (Exception e) {
+
+		  logger.error("MProcess.Mprocess: detected ", e);
+		  System.exit(-1);
+
+	  }
 
   }
 
@@ -125,10 +145,8 @@ public class MProcess {
   private void sendAck(int localPopulation) {
 
     Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
-    // if( printOutput ) {
-    // MASS_base.log( "msg.getAgentPopulation = " +
-    // msg.getAgentPopulation( ) );
-    // }
+    logger.debug( "msg.getAgentPopulation = {}", msg.getAgentPopulation( ) );
+
     sendMessage(msg);
 
   }
@@ -142,7 +160,7 @@ public class MProcess {
 
     } catch (Exception e) {
 
-      logger.error("MProcess.sendMessage: " + e);
+      logger.error("MProcess.sendMessage: ", e);
       System.exit(-1);
 
     }
@@ -174,9 +192,7 @@ public class MProcess {
       // receive a new message from the master
       Message m = receiveMessage();
 
-      // if ( printOutput )
-      // MASS_base.log( "A new message received: action = " +
-      // m.getAction( ) );
+      logger.debug( "A new message received: action = {}", m.getAction( ) );
 
       // get prepared for the following arguments for PLACES_INITIALIZE
       int[] size; // size[]
@@ -207,8 +223,7 @@ public class MProcess {
         MASSBase.getExchange().terminateConnection(this.myPid);
         sendAck();
         alive = false;
-        // if( printOutput )
-        // MASS_base.log( "FINISH received and ACK sent" );
+        logger.debug( "FINISH received and ACK sent" );
         break;
 
       case PLACES_INITIALIZE:

@@ -31,9 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -87,14 +85,14 @@ public class MASSBase {
     // helper classes
     private static Utilities utilities = new Utilities();
 
-    /**
-     *  Agents async migrate out and into this node
-     */
-    private static volatile int[] outAgents, inAgents;
+//    /**
+//     *  Agents async migrate out and into this node
+//     */
+    //private static volatile int[] outAgents, inAgents;
     
-    /**
-     * END Async vars section
-     */
+//    /**
+//     * END Async vars section
+//     */
 
 	/**
      * Add a new node to the cluster
@@ -364,12 +362,13 @@ public class MASSBase {
     
     /**
 	 * Initialize MASS_base, "legacy" mode
+	 * This method is also used by MProcess during the initialization process
+	 * of the remote node
 	 * @param name The hostname or IP address of this node
 	 * @param myPid The PID assigned to this node
 	 * @param nProc The total number of nodes in the cluster
 	 * @param port The port number to use for communications with this node
 	 */
-	//@Deprecated
 	public static void initMASSBase( String name, int myPid, int nProc, int port) {
     	
     	// create a MNode representation of this node, only for init purposes (legacy mode)
