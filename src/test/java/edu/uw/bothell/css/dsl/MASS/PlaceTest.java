@@ -1,39 +1,13 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.easymock.Capture;
-import org.easymock.Mock;
-import org.easymock.TestSubject;
-import org.junit.Test;
-
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-import ucar.nc2.stream.NcStreamProto;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-
-import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.nio.file.Path;
-import java.util.Objects;
+import org.junit.Ignore;
 
 /**
  * Place Test
  *
  * @author Michael O'Keefe
  */
+@Ignore
 public class PlaceTest extends AbstractTest {
 
 
