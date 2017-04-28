@@ -579,4 +579,12 @@ public class MASSBase {
 		return logger;
 	}
 
+	/**
+	 * For remote hosts, force the system size since it is not aware of all the nodes in the cluster
+	 * @param numNodes The total number of nodes in the cluster
+	 */
+	protected static void setSystemSize( int numNodes ) {
+		systemSize = numNodes;
+	}
+	
 }

@@ -96,6 +96,7 @@ public class MProcess {
 	  
 	  MASS.setNumThreads( nThr );
 	  MASSBase.setWorkingDirectory( curDir ); // mprocess manually changes it.
+	  MASSBase.setSystemSize( nProc ); 	// must force system size since we don't have visibility to all nodes
 //	  MASSBase.initMASSBase(hostName, myPid, nProc, port);
 	  MASSBase.initMASSBase( thisNode );
 	  
