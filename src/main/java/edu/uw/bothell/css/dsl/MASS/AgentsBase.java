@@ -31,11 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -234,11 +230,10 @@ public class AgentsBase implements Serializable {
     		
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
-   			logger.debug( "Agents_base:callAll: agents.size = " +
+   			logger.debug( "Agents_base:callAll: agents.size = {}",
     					MASSBase.getAgentsMap().get( new Integer(handle) ).
-    					agents.size_unreduced( ) + "\n" +
-    					"Agents_base:callAll: agentsBagSize = " +
-    					MThread.getAgentBagSize() );
+    					agents.size_unreduced( ) );
+   			logger.debug( "Agents_base:callAll: agentsBagSize = {}", MThread.getAgentBagSize() );
     	
     	}
     
@@ -306,11 +301,12 @@ public class AgentsBase implements Serializable {
     		
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
-   			logger.debug( "Agents_base:callAll: agents.size = " + 
+   			logger.debug( "Agents_base:callAll: agents.size = {}", 
    					MASSBase.getAgentsMap().get( new Integer(handle) ).
-   					agents.size_unreduced( ) + "\n" +
-   					"Agents_base:callAll: agentsBagSize = " + 
-   					MThread.getAgentBagSize() );
+   					agents.size_unreduced( ) );
+   			
+   			logger.debug( "Agents_base:callAll: agentsBagSize = {}", MThread.getAgentBagSize() );
+   			
     	}
     
     }

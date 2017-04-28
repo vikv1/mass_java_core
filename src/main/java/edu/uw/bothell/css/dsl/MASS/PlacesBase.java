@@ -848,6 +848,8 @@ public class PlacesBase {
     		}
 
     		// stripe size is total number of places divided by the number of nodes
+    		logger.debug( "Calculating stripe size, total number of Places is {}", total );
+    		logger.debug( "Calculating stripe size, system size (number of nodes) is {}", MASSBase.getSystemSize() );
     		stripeSize = total / MASSBase.getSystemSize();
 
     		// lower_boundary is the first place managed by this node
