@@ -267,7 +267,7 @@ public class MProcess {
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
         MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase()
-            .getPlacesSize()]);
+            .getNumberOfPlacesOnCurrentNode()]);
 
         // resume threads to work on call all.
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);

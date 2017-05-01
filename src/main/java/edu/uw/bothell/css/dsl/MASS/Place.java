@@ -171,7 +171,7 @@ public class Place {
 		fileDescriptorIndex++;
 		logFormattedDebug(
 				"Place %d opened the file %s with the fd %d",
-				getPlaceOrder(),
+				getPlaceOrderPerNode(),
 				filepath,
 				fileDescriptor
 		);
@@ -193,7 +193,7 @@ public class Place {
 		try {
 			File file = getFileFromFileTable(fileDescriptor);
 			NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
-			return netcdfFile.read(variableToRead, getPlaceOrder());
+			return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
@@ -252,7 +252,7 @@ public class Place {
 		try {
 			File file = getFileFromFileTable(fileDescriptor);
 			TxtFile txtFile = convertFileToTxtFile(file);
-			return txtFile.read(getPlaceOrder());
+			return txtFile.read(getPlaceOrderPerNode());
 		} catch (Exception e) {
 			logFormattedError(
 					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s",
@@ -284,10 +284,19 @@ public class Place {
 	}
 
 	/**
-	 * @return this place's order number determined its index
+	 * @return this place's order number determined by its index
      */
-	protected int getPlaceOrder() {
-		return (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
+	protected int getPlaceOrderPerNode() {
+		int totalNodes = MASSBase.getSystemSize();
+		int xDimSize = size[0] / totalNodes;
+
+		if (MASSBase.getMyPid() == totalNodes - 1) {
+			xDimSize += size[0] % totalNodes;
+		}
+
+		int xIndex = index[0] % xDimSize;
+
+		return (xDimSize * size[1] * index[2]) + (xDimSize * index[1]) + xIndex;
 	}
 
 	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
@@ -369,14 +378,14 @@ public class Place {
 		Place destintationPlace = null;
 		int shadowIndex;
 		if ( destinationLocalLinearIndex >= 0 &&
-				destinationLocalLinearIndex < places.getPlacesSize() )
+				destinationLocalLinearIndex < places.getNumberOfPlacesOnCurrentNode() )
 			destintationPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
 				( shadowIndex = destinationLocalLinearIndex + 
 				places.getShadowSize() ) >= 0 )
 			destintationPlace = places.getLeftShadow()[ shadowIndex ];
 		else if ( (shadowIndex = 
-				destinationLocalLinearIndex - places.getPlacesSize()) >= 0
+				destinationLocalLinearIndex - places.getNumberOfPlacesOnCurrentNode()) >= 0
 				&& shadowIndex < places.getShadowSize() )
 			destintationPlace = places.getRightShadow()[ shadowIndex ];
 
