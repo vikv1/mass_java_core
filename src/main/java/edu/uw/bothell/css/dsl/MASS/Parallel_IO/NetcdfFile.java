@@ -23,7 +23,7 @@ public class NetcdfFile extends File {
         super(filepath, FileType.NETCDF);
     }
 
-    public void open(int ioType) throws Exception {
+    public void open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException {
         switch (ioType) {
             case OPEN_FOR_READ:
                 openForRead();
@@ -33,7 +33,7 @@ public class NetcdfFile extends File {
         }
     }
 
-    public Object read(String variableToRead, int placeOrder) {
+    public Object read(String variableToRead, int placeOrder) throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
         Object allVariableData = getVariable(variableToRead);
 
         // TODO: 4/18/17 add more supported variable data types
@@ -51,13 +51,13 @@ public class NetcdfFile extends File {
         netcdfFile.close();
     }
 
-    private void openForRead() throws IOException, InvalidRangeException {
+    private void openForRead() throws IOException, InvalidRangeException, InvalidNumberOfNodesException {
         netcdfFile = ucar.nc2.NetcdfFile.openInMemory(filepath.toString());
         variables = readNetcdfVariables(netcdfFile);
     }
 
     private Hashtable<String, Object> readNetcdfVariables(ucar.nc2.NetcdfFile netcdfFile)
-            throws InvalidRangeException, IOException {
+            throws InvalidRangeException, IOException, InvalidNumberOfNodesException {
 
         List<Variable> unReadVariables = netcdfFile.getVariables();
 
@@ -90,14 +90,14 @@ public class NetcdfFile extends File {
         return readVariables;
     }
 
-    private float[] getIndividualNodeVariableData(float[] allVariableData) {
+    private float[] getIndividualNodeVariableData(float[] allVariableData) throws InvalidNumberOfNodesException {
         int nodeOffset = getNodeReadOffset(allVariableData.length);
         int nodeReadLength = getCurrentNodeReadLength(allVariableData.length, nodeOffset);
         int offset = nodeOffset * myNodeId;
         return Arrays.copyOfRange(allVariableData, offset, offset + nodeReadLength);
     }
 
-    private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) {
+    private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) throws InvalidNumberOfPlacesException {
         int placeOffset = getPlaceReadOffset(bufferToReadFrom.length);
         int placeReadLength = getCurrentPlaceReadLength(bufferToReadFrom.length, placeOffset, placeOrder);
         int offset = placeOffset * placeOrder;

@@ -30,14 +30,13 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.File;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.ParallelReadException;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.TxtFile;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.*;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import ucar.ma2.InvalidRangeException;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -121,19 +120,14 @@ public class Place {
 	 * @param ioType either 0 for read or 1 for write
 	 * @return unique file descriptor for the newly opened file; otherwise returns -1
 	 */
-	protected int open(String filepath, int ioType) {
+	protected int open(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+
 		MASS.setLoggingLevel(LogLevel.DEBUG);
 		logFormattedDebug("PARALLEL IO OPEN STARTED");
-		try {
-			synchronized (fileTable) {
-				openFileUsingOnePlace(filepath, ioType);
-				return allPlaceFileDescriptor;
-			}
-		} catch (Exception e) {
-			logFormattedError("An exception occurred while opening the file: %s, exception: %s",
-					filepath, e.toString()
-			);
-			return -1;
+		synchronized (fileTable) {
+			openFileUsingOnePlace(filepath, ioType);
+			return allPlaceFileDescriptor;
 		}
 	}
 
@@ -143,7 +137,9 @@ public class Place {
 	 * @param ioType either 0 for read or 1 for write
 	 * @throws Exception any exception that may occur during the opening process
      */
-	private void openFileUsingOnePlace(String filepath, int ioType) throws Exception {
+	private void openFileUsingOnePlace(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
 		} else {
@@ -158,7 +154,9 @@ public class Place {
 	 * @param ioType either 0 for read or 1 for write
 	 * @throws Exception any exception that may occur during the opening process
      */
-	private void openFile(String filepath, int ioType) throws Exception {
+	private void openFile(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
@@ -196,24 +194,13 @@ public class Place {
      * @return a 1 dimensional primitive java array representing a portion of the NetCDF variable data read by this
 	 * place - if an error occurs during the read process, then null is returned
      */
-	protected Object read(int fileDescriptor, String variableToRead) {    // TODO: 4/19/17 use "checked" exception? aka "throws ParallelReadException" 
+	protected Object read(int fileDescriptor, String variableToRead)
+			throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
+
 		logFormattedDebug("PARALLEL IO READ STARTED");
-		try {
-			File file = getFileFromFileTable(fileDescriptor);
-			NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
-			return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
-		} catch (Exception e) {
-			logFormattedError(
-					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
-					fileDescriptor,
-					e.getMessage()
-			);
-			throw new ParallelReadException(String.format(
-					"An exception occurred while reading the NetCDF file with file descriptor %d, exception: %s",
-					fileDescriptor,
-					e.getMessage()
-			));
-		}
+		File file = getFileFromFileTable(fileDescriptor);
+		NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
+		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
 	/**
@@ -256,23 +243,10 @@ public class Place {
 	 * @param fileDescriptor unique identifier for the file to read
 	 * @return the portion of the file read by this place - if an error occurs then null is returned
      */
-	protected byte[] read(int fileDescriptor) { // TODO: 4/19/17 use "checked" exception? 
-		try {
-			File file = getFileFromFileTable(fileDescriptor);
-			TxtFile txtFile = convertFileToTxtFile(file);
-			return txtFile.read(getPlaceOrderPerNode());
-		} catch (Exception e) {
-			logFormattedError(
-					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s",
-					fileDescriptor,
-					e.getMessage()
-			);
-			throw new ParallelReadException(String.format(
-					"An exception occurred while reading the TXT file with file descriptor %d, exception: %s", 
-					fileDescriptor, 
-					e.getMessage()
-			));
-		}
+	protected byte[] read(int fileDescriptor) throws InvalidNumberOfPlacesException {
+		File file = getFileFromFileTable(fileDescriptor);
+		TxtFile txtFile = convertFileToTxtFile(file);
+		return txtFile.read(getPlaceOrderPerNode());
 	}
 
 	/**
@@ -315,15 +289,16 @@ public class Place {
 	 * @param fileDescriptor the file descriptor to close
 	 * @return true if the file is successfully found in the file table, closed, and removed; otherwise false
 	 */
-	protected synchronized boolean close(int fileDescriptor) {
-		try {
-			return attemptToCloseFile(fileDescriptor);
-		} catch (Exception e) {
-			logFormattedError(
-					"An exception occurred while closing the file with the file descriptor %d, exception: %s",
-					fileDescriptor,
-					e.getMessage()
-			);
+	protected synchronized boolean close(int fileDescriptor) throws IOException {
+		if (fileTable.containsKey(fileDescriptor)) {
+			File file = fileTable.remove(fileDescriptor);
+			filesAttemptedToClose.put(fileDescriptor, false);
+			file.close();
+			filesAttemptedToClose.put(fileDescriptor, true);
+			return true;
+		} else if (filesAttemptedToClose.containsKey(fileDescriptor)) {
+			return filesAttemptedToClose.get(fileDescriptor);
+		} else {
 			return false;
 		}
 	}
@@ -338,19 +313,7 @@ public class Place {
 	 * otherwise false
 	 * @throws Exception thrown if an error occurs during the closing process
      */
-	private boolean attemptToCloseFile(int fileDescriptor) throws Exception {
-		if (fileTable.containsKey(fileDescriptor)) {
-			File file = fileTable.remove(fileDescriptor);
-			filesAttemptedToClose.put(fileDescriptor, false);
-			file.close();
-			filesAttemptedToClose.put(fileDescriptor, true);
-			return true;
-		} else if (filesAttemptedToClose.containsKey(fileDescriptor)) {
-			return filesAttemptedToClose.get(fileDescriptor);
-		} else {
-			return false;
-		}
-	}
+	// TODO: 5/4/17  
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and

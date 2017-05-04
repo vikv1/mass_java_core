@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import ucar.ma2.InvalidRangeException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -68,7 +69,7 @@ public abstract class File {
         return filepath;
     }
 
-    public static File factory(Path filepath) {
+    public static File factory(Path filepath) throws UnsupportedFileTypeException {
         logger.debug("File factory called.");
         String fileName = filepath.getFileName().toString().toLowerCase();
         if (fileName.endsWith(".nc")) {
@@ -83,13 +84,11 @@ public abstract class File {
         }
     }
 
-    public abstract void open(int ioType) throws Exception;
+    public abstract void open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException;
 
     public abstract void close() throws IOException;
 
-    protected int getPlaceReadOffset(int sizeOfBufferToReadFrom) {
-        logger.debug("Get Place Read Offset");
-
+    protected int getPlaceReadOffset(int sizeOfBufferToReadFrom) throws InvalidNumberOfPlacesException {
         int placeOffset = sizeOfBufferToReadFrom / myTotalPlaces;
 
         if (placeOffset < 1) {
@@ -105,8 +104,6 @@ public abstract class File {
     }
 
     protected  int getCurrentPlaceReadLength(int sizeOfBufferToReadFrom, int placeReadOffset, int placeOrder) {
-        logger.debug("Get Place Read Length");
-
         int remainingLength = placeReadOffset;
 
         // Last place reads remainder
@@ -119,8 +116,7 @@ public abstract class File {
         return remainingLength;
     }
 
-    protected int getNodeReadOffset(int sizeOfBufferToReadFrom) {
-        logger.debug("Get Node Read Offset");
+    protected int getNodeReadOffset(int sizeOfBufferToReadFrom) throws InvalidNumberOfNodesException {
         int nodeOffset = sizeOfBufferToReadFrom / totalNodes;
 
         if (nodeOffset < 1) {
@@ -135,8 +131,6 @@ public abstract class File {
     }
 
     protected  int getCurrentNodeReadLength(int sizeOfBufferToReadFrom, int nodeReadOffset) {
-        logger.debug("Get Node Read Length");
-
         int remainingLength = nodeReadOffset;
 
         // Last place reads remainder

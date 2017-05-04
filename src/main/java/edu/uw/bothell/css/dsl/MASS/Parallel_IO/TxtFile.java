@@ -27,7 +27,7 @@ public class TxtFile extends File {
         super(filepath, FileType.TXT);
     }
 
-    public void open(int ioType) throws Exception {
+    public void open(int ioType) throws IOException, InvalidNumberOfNodesException {
         switch(ioType) {
             case OPEN_FOR_READ:
                 openForRead();
@@ -37,7 +37,7 @@ public class TxtFile extends File {
         }
     }
 
-    private void openForRead() throws Exception {
+    private void openForRead() throws IOException, InvalidNumberOfNodesException {
         fileChannel = FileChannel.open(filepath, OpenOperations[0]);
         entireTxtFileBuffer = readTextFileInMemory(fileChannel);
     }
@@ -53,7 +53,7 @@ public class TxtFile extends File {
         return buffer.array();
     }
 
-    public byte[] read(int placeOrder) {
+    public byte[] read(int placeOrder) throws InvalidNumberOfPlacesException {
         int placeOffset = getPlaceReadOffset(entireTxtFileBuffer.length);
         int placeReadLength = getCurrentPlaceReadLength(entireTxtFileBuffer.length, placeOffset, placeOrder);
         int offset = placeOffset * placeOrder;
