@@ -42,7 +42,7 @@ public class TxtFile extends File {
         entireTxtFileBuffer = readTextFileInMemory(fileChannel);
     }
 
-    private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException {
+    private byte[] readTextFileInMemory(FileChannel fileChannel) throws IOException, InvalidNumberOfNodesException {
         // TODO: 4/19/17 issues with long to int and vice versa? (possibly when file size is large)
         int nodeOffset = getNodeReadOffset((int) fileChannel.size());
         int nodeReadLength = getCurrentNodeReadLength((int) fileChannel.size(), nodeOffset);

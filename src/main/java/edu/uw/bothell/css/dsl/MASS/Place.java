@@ -101,7 +101,9 @@ public class Place {
 	private static int fileDescriptorIndex = 0;
 
 	// File descriptor value that each place has access too
-	private static int fileDescriptor;
+	private static int allPlaceFileDescriptor;
+
+	private int thisPlaceFileDescriptor;
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
@@ -125,11 +127,11 @@ public class Place {
 		try {
 			synchronized (fileTable) {
 				openFileUsingOnePlace(filepath, ioType);
-				return fileDescriptor;
+				return allPlaceFileDescriptor;
 			}
 		} catch (Exception e) {
 			logFormattedError("An exception occurred while opening the file: %s, exception: %s",
-					filepath, e.getMessage()
+					filepath, e.toString()
 			);
 			return -1;
 		}
@@ -142,8 +144,10 @@ public class Place {
 	 * @throws Exception any exception that may occur during the opening process
      */
 	private void openFileUsingOnePlace(String filepath, int ioType) throws Exception {
-		if (!fileTable.containsKey(fileDescriptorIndex - 1)) {
+		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
+		} else {
+			thisPlaceFileDescriptor = allPlaceFileDescriptor;
 		}
 	}
 
@@ -166,15 +170,19 @@ public class Place {
 
 		File file = File.factory(path);
 		file.open(ioType);
-		fileTable.put(fileDescriptorIndex, file);
-		fileDescriptor = fileDescriptorIndex;
-		fileDescriptorIndex++;
+		fileTable.put(thisPlaceFileDescriptor, file);
 		logFormattedDebug(
 				"Place %d opened the file %s with the fd %d",
 				getPlaceOrderPerNode(),
 				filepath,
-				fileDescriptor
+				thisPlaceFileDescriptor
 		);
+		incrementFileDescriptors();
+	}
+
+	private void incrementFileDescriptors() {
+		thisPlaceFileDescriptor++;
+		allPlaceFileDescriptor = thisPlaceFileDescriptor;
 	}
 
 	/**
