@@ -18,6 +18,7 @@ public class NetcdfFile extends File {
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
     private ucar.nc2.NetcdfFile netcdfFile;
+    private static final long MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY = 2000000000;
 
     public NetcdfFile(Path filepath) {
         super(filepath, FileType.NETCDF);
@@ -52,7 +53,21 @@ public class NetcdfFile extends File {
     }
 
     private void openForRead() throws IOException, InvalidRangeException, InvalidNumberOfNodesException {
-        netcdfFile = ucar.nc2.NetcdfFile.openInMemory(filepath.toString());
+        java.io.File ncFileForSizeCheck = new java.io.File(filepath.toUri());
+        if (ncFileForSizeCheck.length() > MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY) {
+            netcdfFile = ucar.nc2.NetcdfFile.open(filepath.toString());
+            logger.debug(String.format(
+                    "Opening NetCDF file %s on disk (exceeds max size to open in memory)",
+                    fileName
+            ));
+        } else {
+            netcdfFile = ucar.nc2.NetcdfFile.openInMemory(filepath.toString());
+            logger.debug(String.format(
+                    "Opening NetCDF file %s in memory",
+                    fileName
+            ));
+        }
+
         variables = readNetcdfVariables(netcdfFile);
     }
 
