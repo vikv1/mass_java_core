@@ -43,7 +43,7 @@ public abstract class File {
         this.filepath = filepath;
         this.fileName = filepath.getFileName().toString();
         this.fileType = fileType;
-        totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces(); // TODO: 4/19/17 this must be total places for one node
+        totalPlaces = MASSBase.getCurrentPlacesBase().getTotalPlaces();
         totalNodes = MASSBase.getSystemSize();
         myTotalPlaces = MASSBase.getCurrentPlacesBase().getNumberOfPlacesOnCurrentNode();
         myNodeId = MASSBase.getMyPid();
@@ -107,12 +107,10 @@ public abstract class File {
         int remainingLength = placeReadOffset;
 
         // Last place reads remainder
-        if (placeOrder == myTotalPlaces - 1) {    // TODO: 4/19/17 should be total places on this node
+        if (placeOrder == myTotalPlaces - 1) {
             remainingLength += sizeOfBufferToReadFrom % myTotalPlaces;
         }
 
-        // logger.debug(String.format("Place %d will read %d starting from %d", placeOrder,
-        // remainingLength, placeOrder * placeReadOffset));
         return remainingLength;
     }
 
@@ -137,7 +135,6 @@ public abstract class File {
         if (myNodeId == totalNodes - 1) {
             remainingLength += sizeOfBufferToReadFrom % totalNodes;
         }
-
         return remainingLength;
     }
 

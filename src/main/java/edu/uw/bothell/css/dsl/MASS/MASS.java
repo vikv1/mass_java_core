@@ -371,7 +371,7 @@ public class MASS extends MASSBase {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xmx9g ");
+    		commandBuilder.append("-Xmx20g ");
     		
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {

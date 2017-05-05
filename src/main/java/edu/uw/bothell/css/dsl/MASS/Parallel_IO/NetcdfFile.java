@@ -18,7 +18,7 @@ public class NetcdfFile extends File {
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
     private ucar.nc2.NetcdfFile netcdfFile;
-    private static final long MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY = 2000000000;
+    private static final long MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY = 2000001000;
 
     public NetcdfFile(Path filepath) {
         super(filepath, FileType.NETCDF);

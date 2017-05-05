@@ -67,6 +67,4 @@ public class TxtFile extends File {
     public byte[] getEntireTxtFileBuffer() {
         return entireTxtFileBuffer;
     }
-
-
 }

@@ -96,54 +96,46 @@ public class Place {
 	// Stores each file and its attributes
 	protected static final Hashtable<Integer, File> fileTable = new Hashtable<>();
 
-	// Counts the number of files open
-	private static int fileDescriptorIndex = 0;
-
 	// File descriptor value that each place has access too
-	private static int allPlaceFileDescriptor;
+	private static int allPlaceFileDescriptor = -1;
 
-	private int thisPlaceFileDescriptor;
+	private int thisPlaceFileDescriptor = 0;
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
 	/**
-	 * The first Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
+	 * A single Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
 	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
 	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
 	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
 	 * file that is opened for writing will be opened on the disk and a temporary buffer to write to is added to the
 	 * fileTable so that the temp buffer can be accessed by all Places. A successfully opened file is given a unique
-	 * file descriptor (integer) and the file descriptor is returned. An unsuccessfully opened file returns a
-	 * file descriptor of -1.
+	 * file descriptor (integer) and the file descriptor is returned. An unsuccessfully opened file will result in
+	 * an exception being thrown
 	 *
 	 * @param filepath the filepath of the file to be opened
 	 * @param ioType either 0 for read or 1 for write
-	 * @return unique file descriptor for the newly opened file; otherwise returns -1
+	 * @return unique file descriptor for the newly opened file
 	 */
 	protected int open(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
 
-		MASS.setLoggingLevel(LogLevel.DEBUG);
-		logFormattedDebug("PARALLEL IO OPEN STARTED");
 		synchronized (fileTable) {
 			openFileUsingOnePlace(filepath, ioType);
-			return allPlaceFileDescriptor;
 		}
+		return allPlaceFileDescriptor;
 	}
 
 	/**
 	 * Opens the file only if the file has not been opened and added to the fileTable
 	 * @param filepath the filepath of the file to be opened
 	 * @param ioType either 0 for read or 1 for write
-	 * @throws Exception any exception that may occur during the opening process
      */
 	private void openFileUsingOnePlace(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
 
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
-		} else {
-			thisPlaceFileDescriptor = allPlaceFileDescriptor;
 		}
 	}
 
@@ -152,7 +144,6 @@ public class Place {
 	 * specified file is opened accordingly
 	 * @param filepath file to open
 	 * @param ioType either 0 for read or 1 for write
-	 * @throws Exception any exception that may occur during the opening process
      */
 	private void openFile(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
@@ -168,19 +159,20 @@ public class Place {
 
 		File file = File.factory(path);
 		file.open(ioType);
-		fileTable.put(thisPlaceFileDescriptor, file);
-		logFormattedDebug(
-				"Place %d opened the file %s with the fd %d",
-				getPlaceOrderPerNode(),
-				filepath,
-				thisPlaceFileDescriptor
-		);
 		incrementFileDescriptors();
+		fileTable.put(allPlaceFileDescriptor, file);
+		logFormattedDebug(
+				this + " or Place %d on node %d opened the file %s with the fd %d",
+				getPlaceOrderPerNode(),
+				MASSBase.getMyPid(),
+				filepath,
+				allPlaceFileDescriptor
+		);
 	}
 
 	private void incrementFileDescriptors() {
-		thisPlaceFileDescriptor++;
 		allPlaceFileDescriptor = thisPlaceFileDescriptor;
+		thisPlaceFileDescriptor++;
 	}
 
 	/**
@@ -197,14 +189,13 @@ public class Place {
 	protected Object read(int fileDescriptor, String variableToRead)
 			throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
 
-		logFormattedDebug("PARALLEL IO READ STARTED");
 		File file = getFileFromFileTable(fileDescriptor);
 		NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
 		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
 	/**
-	 * Gets the file attribute from the file table.
+	 * Gets the file attribute from the file table
 	 * @param fileDescriptor unique identifier for the file attribute to return
 	 * @return the file attribute corresponding to the given file descriptor
      */
