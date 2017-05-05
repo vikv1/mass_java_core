@@ -1,3 +1,4 @@
+![BrandHeader-STEM-BlackPrint.png](https://bitbucket.org/repo/b9GKML/images/1347427446-BrandHeader-STEM-BlackPrint.png)
 # What is MASS? #
 
 (Multi-Agent Spatial Simulation)
