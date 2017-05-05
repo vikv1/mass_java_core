@@ -161,6 +161,7 @@ public class Place {
 		file.open(ioType);
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
+
 		logFormattedDebug(
 				this + " or Place %d on node %d opened the file %s with the fd %d",
 				getPlaceOrderPerNode(),

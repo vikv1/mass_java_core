@@ -83,6 +83,7 @@ public class NetcdfFile extends File {
 
             // TODO: 4/17/17 Read only the portion of the array needed
             // - difficult because of multi dimensions and limited NetCDF Array API
+
             Array variableArray = currentUnreadVariable.read(
                     new int[currentUnreadVariable.getShape().length],
                     currentUnreadVariable.getShape()
@@ -93,6 +94,7 @@ public class NetcdfFile extends File {
                 float[] thisNodesVariableData = getIndividualNodeVariableData(allVariableData);
                 readVariables.put(currentUnreadVariable.getShortName(), thisNodesVariableData);
             }
+
             // TODO: 4/17/17 add more supported variable data types 
             else {
                 logger.debug(String.format(
