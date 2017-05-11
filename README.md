@@ -8,7 +8,7 @@ For more than the last two decades, multi-agent simulations have been highlighte
 More information about MASS can be found out the University of Washington Distributed Systems Lab [Homepage](http://depts.washington.edu/dslab/MASS).
 
 #Documentation
-You may find documentation regarding the Java version of the MASS library in the [Wiki](Home)
+You may find documentation regarding the Java version of the MASS library in the [Wiki](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/Home)
 
 # Building The Core Library #
 ## Overview ##
