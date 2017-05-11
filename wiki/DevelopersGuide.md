@@ -22,6 +22,10 @@ Please observe the following guidelines when working with the repository:
 * Name your branches in the following manner: '<your UW Netid>-<develop/hotfix>-<short feature description>'. For example, your branch might be named: 'jeckert-develop-mobile_ring_counters'.
 * Commit and push often. As you commit, add the following text to your commit messages: '[#<issue number>]'. For example, as 'jeckert' worked on his mobile ring counters, he might commit a change with the following message: 'Added a simulator for the 6AV6 triode to improve performance [#7768]'
 
+## Project Versioning With Maven ##
+### Overview ###
+
+
 ## Workflow ##
 There are different development activities depending on the nature of the work being performed. In general, there are four different workflows:
 
