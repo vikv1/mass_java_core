@@ -7,6 +7,9 @@ For more than the last two decades, multi-agent simulations have been highlighte
 
 More information about MASS can be found out the University of Washington Distributed Systems Lab [Homepage](http://depts.washington.edu/dslab/MASS).
 
+#Documentation
+You may find documentation regarding the Java version of the MASS library in the [Wiki](Home)
+
 # Building The Core Library #
 ## Overview ##
 The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; Maven will need to be installed on your computer to build a properly functioning JAR. Maven is a popular tool for managing the development and maintenance lifecycle of Java applications; it is recommended that you visit the Maven home site and become familiar with its' use. In particular, check out the following topics:
