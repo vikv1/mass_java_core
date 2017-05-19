@@ -197,7 +197,8 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-    		node.closeMainConnection( );
+//    		node.closeMainConnection( );
+    		util.disconnectRemoteNode(node);
 
     	System.err.println( "MASS::finish: done" );
 

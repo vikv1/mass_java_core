@@ -79,6 +79,7 @@ public class MNode {
 
 		try {
 
+			// close stream connections
 			mainIOS.close( );
 			mainOOS.close( );
 
