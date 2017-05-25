@@ -785,7 +785,7 @@ public class PlacesBase {
 		return places;
 	}
 
-	protected int getPlacesSize( ) {
+	public int getNumberOfPlacesOnCurrentNode( ) {
     	return placesSize;
     }
 

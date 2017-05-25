@@ -285,7 +285,7 @@ public class Places extends PlacesBase {
 	 * @param neighbors The vector to set
 	 */
 	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
-		for(int i = 0; i < this.getPlacesSize(); i++)
+		for(int i = 0; i < this.getNumberOfPlacesOnCurrentNode(); i++)
 		{
 			this.getPlaces()[i].setNeighbors(neighbors);
 		}

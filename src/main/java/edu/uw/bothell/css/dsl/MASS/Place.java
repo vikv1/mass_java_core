@@ -30,20 +30,14 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.*;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import ucar.ma2.*;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-import ucar.nc2.util.IO;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import ucar.ma2.InvalidRangeException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.annotation.ElementType;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -66,9 +60,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 
-
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  *	Place represents a single element from a collection of places distributed
@@ -122,355 +113,105 @@ public class Place {
 	//
 
 	// Stores each file and its attributes
-	protected static final Hashtable<Integer, FileAttributes> fileTable = new Hashtable<>();
+	protected static final Hashtable<Integer, File> fileTable = new Hashtable<>();
 
-	// Open options, 0 for READ, 1 for WRITE (used for opening file channels)
-	private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
+	// File descriptor value that each place has access too
+	private static int allPlaceFileDescriptor = -1;
 
-	// Counts the number of files open
-	private static int count = 0;
-
-	// Current file descriptor - used for giving each file a unique descriptor
-	private static int fileDescriptor;
+	private int thisPlaceFileDescriptor = 0;
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
-	private static long totalReadTime = 0;
+	/**
+	 * A single Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
+	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
+	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
+	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
+	 * file that is opened for writing will be opened on the disk and a temporary buffer to write to is added to the
+	 * fileTable so that the temp buffer can be accessed by all Places. A successfully opened file is given a unique
+	 * file descriptor (integer) and the file descriptor is returned. An unsuccessfully opened file will result in
+	 * an exception being thrown
+	 *
+	 * @param filepath the filepath of the file to be opened
+	 * @param ioType either 0 for read or 1 for write
+	 * @return unique file descriptor for the newly opened file
+	 */
+	protected int open(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
 
-	//
-	// Private class that stores the file attributes needed for parallel I/O
-	//
-
-	private class FileAttributes {
-
-		// Name of opened file
-		private String fileName;
-
-		// Number of places being used
-		private int numberOfPlaces;
-
-		// Number of read operations remaining (one per place)
-		private int remainingReads;
-
-		// Number of write operations remaining (one per place)
-		private int remainingWrites;
-
-		// File descriptor
-		private int count;
-
-		// Length for reading from the buffer
-		private int readLength;
-
-		// Buffer text files are read to
-		private byte[] buffer;
-
-		// The file
-		private Object file;
-
-		// Variable to read or write (NetCDF)
-		private Hashtable<String, Object> variables;
-
-		FileAttributes() {
-			this.count = -1;
+		synchronized (fileTable) {
+			openFileUsingOnePlace(filepath, ioType);
 		}
+		return allPlaceFileDescriptor;
+	}
 
-		FileAttributes(String fileName, Object file, int numberOfPlaces, int count) {
+	/**
+	 * Opens the file only if the file has not been opened and added to the fileTable
+	 * @param filepath the filepath of the file to be opened
+	 * @param ioType either 0 for read or 1 for write
+     */
+	private void openFileUsingOnePlace(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
 
-			this.fileName = fileName;
-			this.numberOfPlaces = numberOfPlaces;
-			remainingReads = numberOfPlaces;
-			remainingWrites = numberOfPlaces;
-			this.file = file;
-			this.count = count;
-			readLength = 0;
-		}
-
-		FileAttributes(String fileName, Object file, int numberOfPlaces,
-					   int count, Hashtable<String, Object> variables) {
-			this.fileName = fileName;
-			this.numberOfPlaces = numberOfPlaces;
-			remainingReads = numberOfPlaces;
-			remainingWrites = numberOfPlaces;
-			this.file = file;
-			this.count = count;
-			readLength = 0;
-			this.variables = variables;
-		}
-
-		public synchronized int testAndDecrementReads() {
-			int returnValue = remainingReads--;
-			return returnValue;
-		}
-
-		// Decrements the number of remaining writes by 1
-		public synchronized void decrementWrites() {
-			this.remainingWrites -= 1;
-		}
-
-		//
-		// Getter methods
-		//
-
-		public String getFileName() {
-			return fileName;
-		}
-
-		public int getNumberOfPlaces() {
-			return numberOfPlaces;
-		}
-
-		public int getRemainingWrites() {
-			return remainingWrites;
-		}
-
-		public int getRemainingReads() {
-			return remainingReads;
-		}
-
-		public int getCount() {
-			return count;
-		}
-
-		public int getReadLength() {
-			return readLength;
-		}
-
-		public byte[] getBuffer() {
-			return buffer;
-		}
-
-		public Object getFile() {
-			return file;
-		}
-
-		public Hashtable<String, Object> getVariables() {
-			return variables;
-		}
-
-		public Object getVariable(String varName) {
-			return variables.get(varName);
-		}
-
-		//
-		// Setter methods
-		//
-
-		public void setFileName(String fileName) {
-			this.fileName = fileName;
-		}
-
-		public void setNumberOfPlaces(int numberOfPlaces) {
-			this.numberOfPlaces = numberOfPlaces;
-		}
-
-		public void setRemainingReads(int remainingReads) {
-			this.remainingReads = remainingReads;
-		}
-
-		public void setRemainingWrites(int remainingWrites) {
-			this.remainingWrites = remainingWrites;
-		}
-
-		public void setCount(int count) {
-			this.count = count;
-		}
-
-		public void setReadLength(int readLength) {
-			this.readLength = readLength;
-		}
-
-		//TODO check for privacy leaks
-		public void setBuffer(byte[] buffer) {
-			this.buffer = buffer;
-		}
-
-		//TODO check for privacy leaks
-		public void setFile(Object file) {
-			this.file = file;
-		}
-
-		//TODO check for privacy leaks
-		public void setVariables(Hashtable<String, Object> variables) {
-			this.variables = variables;
+		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
+			openFile(filepath, ioType);
 		}
 	}
 
 	/**
-	 * The first Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
-	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
-	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
-	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
-	 * file that is opened for writing will be opened on the disk and added to the fileTable so that the file
-	 * can be accessed by all Places. A successfully opened file is given a unique file descriptor (integer)
-	 * and the file descriptor is returned. An unsuccessfully opened file returns a file descriptor of -1.
-	 *
-	 * @param filePath
-	 * @param ioType
-	 * @return unique file descriptor for the newly opened file; otherwise returns -1
-	 */
-	protected int open(String filePath, int ioType) {
-
-		//logger.debug("PARALLEL IO: open called on PID" + MASSBase.getMyPid());
+	 * Ensures valid arguments (file exists, and ioType is either 0 or 1), and if the arguments are valid, the
+	 * specified file is opened accordingly
+	 * @param filepath file to open
+	 * @param ioType either 0 for read or 1 for write
+     */
+	private void openFile(String filepath, int ioType)
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
 
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
 
-		// Create a path object from the given file path string
-		Path path = Paths.get(filePath);
-
-		// Ensure the file exists at the specified path
+		Path path = Paths.get(filepath);
 		if (!Files.exists(path)) {
-			logger.error("The given file path does not exist");
-			return -1;
+			throw new FileNotFoundException("The given file to open does not exist: " + path);
 		}
 
-		// Isolate the file name
-		String fileName = path.getFileName().toString();
-		synchronized (fileTable) {
+		File file = File.factory(path);
+		file.open(ioType);
+		incrementFileDescriptors();
+		fileTable.put(allPlaceFileDescriptor, file);
 
-			// Only the first place opens the file
-			if (!fileTable.containsKey(count - 1)) {
+		logFormattedDebug(
+				this + " or Place %d on node %d opened the file %s with the fd %d",
+				getPlaceOrderPerNode(),
+				MASSBase.getMyPid(),
+				filepath,
+				allPlaceFileDescriptor
+		);
+	}
 
-				// Open the file if the file type is supported, return -1 if not supported
-				if (fileName.toLowerCase().endsWith(".nc")) {
-					fileDescriptor = openNetcdfFile(fileName, ioType, path);
-				} else if (fileName.toLowerCase().endsWith(".txt")) {
-					fileDescriptor = openTextFile(fileName, ioType, path);
-				} else {
-					logger.error("File type not supported by MASS parallel I/O");
-					return -1;
-				}
-				logger.debug(fileTable.get(fileDescriptor).getFileName() + " opened");
-			}
-		}
-
-		// Return the file's unique file descriptor
-		return fileDescriptor;
+	private void incrementFileDescriptors() {
+		allPlaceFileDescriptor = thisPlaceFileDescriptor;
+		thisPlaceFileDescriptor++;
 	}
 
 	/**
-	 * Private helper method that opens the given ncFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
+	 * Reads a specific portion of the a NetCDF file's variable based on this place's order and returns the results
+	 * as a 1 dimensional primitive java array (i.e. a float[]). Each place reads only a portion of the file, but if
+	 * each place calls this method, then the entire file will be read and parts of the data will be contained on
+	 * each place involved in the computation.
 	 *
-	 * @param ncFileName
-	 * @param ioType
-	 * @return fileDescriptor
-	 */
-	private int openNetcdfFile(String ncFileName, int ioType, Path path) {
-		NetcdfFile netcdfFile;
+	 * @param fileDescriptor specifies the NetCDF file to read from (must be in the fileTable)
+	 * @param variableToRead specifies the NetCDF variable to read (must be in the NetCDF file)
+     * @return a 1 dimensional primitive java array representing a portion of the NetCDF variable data read by this
+	 * place - if an error occurs during the read process, then null is returned
+     */
+	protected Object read(int fileDescriptor, String variableToRead)
+			throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
 
-		// Read entire file into memory for reading
-		if (ioType == 0) {
-			try {
-				netcdfFile = NetcdfFile.openInMemory(path.toString());
-			} catch (IOException e) {
-				logger.error("Exception opening netcdf file in memory: " + e);
-				return -1;
-			}
-		}
-
-		// Open file in disk for writing
-		else {
-			try {
-				netcdfFile = NetcdfFile.open(path.toString());
-			} catch (IOException e) {
-				logger.error("Exception opening netcdf file on disk: " + e);
-				return -1;
-			}
-		}
-
-		List<Variable> varList = netcdfFile.getVariables();
-		if (varList.isEmpty()) {
-			logger.error("No NetCDF variables to read");
-		}
-
-		Hashtable<String, Object> variables = new Hashtable<String, Object>();
-
-		for (int i = 0; i < varList.size(); i++) {
-			Variable currVar = varList.get(i);
-
-			// read
-			try {
-				// TODO: 3/31/17 read only what is needed for this node 
-				Array varData = currVar.read(new int[currVar.getShape().length], currVar.getShape());
-
-				variables.put(currVar.getShortName(), varData.copyTo1DJavaArray());
-
-				/*if (varData.getElementType() == Float.class) {
-					float[] floatData = (float[]) varData.copyTo1DJavaArray();
-				}*/
-
-			} catch (IOException ioe) {
-				logger.error("An IOException occurred while reading the NetCDF file into memory: " + ioe.getMessage());
-			} catch (InvalidRangeException ire) {
-				logger.error("An InvalidRangeException occurred while reading the NetCDF file into memory: " + ire.getMessage());
-			}
-		}
-		logger.debug("Total num places: " + MASSBase.getCurrentPlacesBase().getTotalPlaces());
-		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(ncFileName, netcdfFile, MASSBase.getCurrentPlacesBase().getTotalPlaces(), count, variables);
-
-		fileTable.put(count, fileAttributes);
-
-
-		// Increment the file count since a file has been added to the file table
-		count++;
-
-
-		// Return the file's count (which is the file's unique descriptor)
-		return fileAttributes.getCount();
-	}
-
-	/**
-	 * Private helper method that opens the given txtFileName (throws an IOException if the file does
-	 * not exist) based on the given ioType, and add the file and its attributes to the fileTable.
-	 * Returns the file's unique file descriptor if opened successfully; otherwise, returns -1.
-	 *
-	 * @param txtFileName
-	 * @param ioType
-	 * @return fileDescriptor
-	 */
-	private int openTextFile(String txtFileName, int ioType, Path path) {
-		FileChannel fileChannel;
-
-		// opens a file, returning a FileChannel to access the supplied file
-		// file is opened with the specified OpenOption of either READ or WRITE
-		try {
-			fileChannel = FileChannel.open(path, OpenOperations[ioType]);
-		} catch (IOException e) {
-			logger.debug("Exception opening text file: " + e);
-			return -1;
-		}
-
-		// Set file attributes and add them to the file table
-		FileAttributes fileAttributes = new FileAttributes(txtFileName, fileChannel, MASSBase.getCurrentPlacesBase().getTotalPlaces(), count);
-
-		// Set file attributes for a read operation
-		if (ioType == 0) {
-
-			ByteBuffer buffer = null;
-
-			// create a buffer that has the same space as the file being read
-			try {
-				buffer = ByteBuffer.allocate((int) fileChannel.size());
-				fileChannel.read(buffer);
-				fileAttributes.setBuffer(buffer.array());
-				fileAttributes.setReadLength(buffer.capacity() / fileAttributes.getNumberOfPlaces());
-			} catch (IOException ioe) {
-				logger.error("Could not create a buffer for the given text file: " + ioe.getMessage());
-				return -1;
-			}
-		}
-
-		fileTable.put(count, fileAttributes);
-
-		// Increment the file count since a file has been added to the file table
-		count++;
-
-		// Return the file's count (which is the file's unique descriptor)
-		return fileAttributes.getCount();
+		File file = getFileFromFileTable(fileDescriptor);
+		NetcdfFile netcdfFile = convertFileToNetcdfFile(file);
+		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
 	public void readFilefromHDFS(String file) throws IOException {
@@ -507,216 +248,116 @@ public class Place {
 	}
 
 	/**
-	 * The read function used for Netcdf files
-	 * <p>
-	 * Reads from the specified file descriptor into the given Hashtable of buffers
-	 *
-	 * @param fd             specifies the file to read from
-	 * @param variableToRead should contain the variable names to read, and their corresponding
-	 *                       array buffers (this is a UCAR array, the dimensions and data type must
-	 *                       match those of the Netcdf file being read)
-	 * @return true on a successful read; otherwise false
-	 */
-	protected boolean read(int fd, String variableToRead, Object variableBuffer) {
-		//logger.debug("PARALLEL IO: Read started.");
-		//synchronized (fileTable) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes.getFileName().toLowerCase().endsWith(".nc")) {
-				return readNetcdfFile(fileAttributes, variableToRead, variableBuffer);
-			} else {
-				logger.debug("Given fd to read is not supported by MASS parallel I/O");
-			}
+	 * Gets the file attribute from the file table
+	 * @param fileDescriptor unique identifier for the file attribute to return
+	 * @return the file attribute corresponding to the given file descriptor
+     */
+	private File getFileFromFileTable(int fileDescriptor) {
+		if (fileTable.containsKey(fileDescriptor)) {
+			return fileTable.get(fileDescriptor);
 		} else {
-			logger.debug("Given fd to read does not exist in the file table (has not been opened)");
+			throw new IllegalArgumentException(String.format(
+					"File descriptor does not exist in the file table: %d",
+					fileDescriptor
+			));
 		}
-		//}
-		return false;
-	}
-
-
-	/**
-	 * Private method that implements reading for Netcdf files
-	 *
-	 * @param fileAttributes the file attributes of the file to be read
-	 * @param variableToRead the buffers to read into - variable name (key), data array (value)
-	 * @return true on success; otherwise false
-	 */
-	// TODO currently each place reads a single index, each place should determine how much to read
-	// based on the number of places, also assumes that the given data arrays are of the correct dimensions
-	// (matches the dimensions of places)
-	private boolean readNetcdfFile(FileAttributes fileAttributes, String variableToRead, Object userVariableBuffer) {
-
-		Object allVariableData = fileAttributes.getVariable(variableToRead);
-		if (allVariableData == null) {
-			logger.error("Given variable: \"" + variableToRead + "\" does not exist in: \""
-					+ fileAttributes.getFileName() + "\"");
-			return false;
-		}
-
-		int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-		if (userVariableBuffer instanceof float[]) {
-
-			try {
-				float[] userFloatBuffer = (float[]) userVariableBuffer;
-				float[] allVariableFloatData = (float[]) allVariableData;
-
-				int placeReadLength = allVariableFloatData.length / fileAttributes.getNumberOfPlaces();
-
-				if (placeReadLength < 1) {
-					logger.debug("Too many places attempting to read a NetCDF file.");
-					return false;
-				}
-
-				if (placeOrder < fileAttributes.getNumberOfPlaces() - 1) {
-					for (int i = placeOrder * placeReadLength, j = 0; i < placeReadLength * (placeOrder + 1); i++, j++) {
-						userFloatBuffer[j] = allVariableFloatData[i];
-					}
-					/*logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-							placeReadLength * (placeOrder + 1));*/
-				} else {
-					for (int i = placeOrder * placeReadLength, j = 0; i < allVariableFloatData.length; i++, j++) {
-						userFloatBuffer[j] = allVariableFloatData[i];
-					}
-					/*logger.debug("Place: " + placeOrder + ", read: " + placeOrder * placeReadLength + " to " +
-							allVariableFloatData.length);*/
-				}
-
-				/*logger.debug("PARALLEL IO: NetCDF Read finished successfully for Place: " + placeOrder + ", " +
-						"running on Machine: " + MASS.getMyPid());*/
-
-
-			} catch (ClassCastException cce) {
-				logger.error("Given buffer to read into does not match the NetCDF file data to read.");
-				return false;
-			} catch (ArrayIndexOutOfBoundsException oob) {
-				logger.error("Given buffer to read into is not large enough to hold the NetCDF file data to read.");
-				return false;
-			}
-		} else {
-			logger.error("Given buffer to read into is not a supported data type.");
-			return false;
-		}
-		return true;
 	}
 
 	/**
-	 * The read function used for text files
-	 * <p>
-	 * Reads from the specified file descriptor into the given byte buffer
+	 * Converts the given file attributes to NetCDF file attributes
+	 * @param file the file attributes to convert
+	 * @return the file attributes converted to NetCDF file attributes
+     */
+	private NetcdfFile convertFileToNetcdfFile(File file) {
+		if (file instanceof NetcdfFile) {
+			return (NetcdfFile) file;
+		} else {
+			throw new ClassCastException(String.format(
+					"The given file is not a valid NetCDF file: %s",
+					file.getFilepath()
+			));
+		}
+	}
+
+	/**
+	 * Reads a specific portion of the a TXT file based on this place's order and returns the results
+	 * as a byte array. Each place reads only a portion of the TXT file, but if each place calls this method, then the
+	 * entire file will be read and parts of the data will be contained on each place involved in the computation.
 	 *
-	 * @param fd      specifies the file to read from
-	 * @param txtData the byte buffer to read into
-	 * @return true on a successful read; otherwise false
+	 * @param fileDescriptor unique identifier for the file to read
+	 * @return the portion of the file read by this place - if an error occurs then null is returned
+     */
+	protected byte[] read(int fileDescriptor) throws InvalidNumberOfPlacesException {
+		File file = getFileFromFileTable(fileDescriptor);
+		TxtFile txtFile = convertFileToTxtFile(file);
+		return txtFile.read(getPlaceOrderPerNode());
+	}
+
+	/**
+	 * Converts the given file attributes to TXT file attributes
+	 * @param file the file attributes to convert
+	 * @return the file attributes converted to TXT file attributes
 	 */
-	// TODO: 1/13/17 I don't believe the size of the given byte array is checked -
-	// currently the implementation reads the whole specified text file and assumes the byte array is large
-	// enough to store the data, this must be changed.
-	protected boolean read(int fd, byte[] txtData) {
-		if (fileTable.containsKey(fd)) {
-			FileAttributes fileAttributes = fileTable.get(fd);
-			if (fileAttributes.getFileName().toLowerCase().endsWith(".txt")) {
-				return readTextFile(fileAttributes, txtData);
-			}
+	private TxtFile convertFileToTxtFile(File file) {
+		if (file instanceof TxtFile) {
+			return (TxtFile) file;
+		} else {
+			throw new ClassCastException(String.format(
+					"The given file is not a valid TXT file: %s",
+					file.getFilepath()
+			));
 		}
-		return false;
 	}
 
-	private boolean readTextFile(FileAttributes fileAttributes, byte[] data) {
+	/**
+	 * @return this place's order number determined by its index
+     */
+	protected int getPlaceOrderPerNode() {
+		int totalNodes = MASSBase.getSystemSize();
+		int xDimSize = size[0] / totalNodes;
 
-		try {
-
-			// Get the buffer to read from
-			byte[] buffer = fileAttributes.getBuffer();
-
-			// Used for determining which part of the file to read
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-			int length = fileAttributes.getReadLength();
-
-			// Determine if this place should read to the end of the file
-			if (placeOrder != fileAttributes.getNumberOfPlaces() - 1) {        // No, read predetermined amount
-				// (currently 1 index)
-
-				// Read from the file into the temp buffer
-
-				for (int i = placeOrder * length; i < length * (placeOrder + 1); i++) {
-					data[i - (length * MASS.getMyPid())] = buffer[i];
-				}
-			}
-
-			// Perform final read
-			// Read the remaining bytes of the file (this should be done by only the last Place)
-			else {
-				for (int i = placeOrder * length; i < buffer.length; i++) {
-					data[i - (length * MASS.getMyPid())] = buffer[i];
-				}
-			}
-		} catch (ArrayIndexOutOfBoundsException oob) {
-			logger.error("Given buffer to read into is not large enough to hold the TXT file data to read.");
-			return false;
+		if (MASSBase.getMyPid() == totalNodes - 1) {
+			xDimSize += size[0] % totalNodes;
 		}
-		return true;
+
+		int xIndex = index[0] % xDimSize;
+
+		return (xDimSize * size[1] * index[2]) + (xDimSize * index[1]) + xIndex;
 	}
 
-
-	// TODO: 1/13/17 Once finished implementing and testing read() (including on mutliple nodes) add write() functionality
-
+	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
 
 	/**
 	 * Closes the specified file descriptor and removes it from the file table
 	 *
-	 * @param fd the file descriptor to close
+	 * @param fileDescriptor the file descriptor to close
 	 * @return true if the file is successfully found in the file table, closed, and removed; otherwise false
 	 */
-	protected synchronized boolean close(int fd) {
-
-		// Check if the file exists in the file table
-		if (fileTable.containsKey(fd)) {
-
-			FileAttributes fileAttributes = fileTable.get(fd);
-
-			// Get the file
-			Object file = fileAttributes.getFile();
-
-			// Closes Netcdf files
-			if (file instanceof NetcdfFile) {
-				try {
-					((NetcdfFile) file).close();
-					fileTable.remove(fd);
-					filesAttemptedToClose.put(fd, true);
-					logger.debug("CLOSE SUCCESS");
-					return true;
-				} catch (IOException ioe) {
-					logger.error("An IO Exception occurred while attempting to close a NetCDF file: "
-							+ ioe.toString());
-					filesAttemptedToClose.put(fd, false);
-					return false;
-				}
-			}
-
-			// Closes text files
-			else if (file instanceof FileChannel) {
-				try {
-					((FileChannel) file).close();
-					fileTable.remove(fd);
-					filesAttemptedToClose.put(fd, true);
-					return true;
-				} catch (IOException ioe) {
-					logger.error("An IO Exception occurred while attempting to close a TXT file: "
-							+ ioe.toString());
-					filesAttemptedToClose.put(fd, false);
-					return false;
-				}
-			}
-		} else if (filesAttemptedToClose.containsKey(fd)) {
-			return filesAttemptedToClose.get(fd);
+	protected synchronized boolean close(int fileDescriptor) throws IOException {
+		if (fileTable.containsKey(fileDescriptor)) {
+			File file = fileTable.remove(fileDescriptor);
+			filesAttemptedToClose.put(fileDescriptor, false);
+			file.close();
+			filesAttemptedToClose.put(fileDescriptor, true);
+			return true;
+		} else if (filesAttemptedToClose.containsKey(fileDescriptor)) {
+			return filesAttemptedToClose.get(fileDescriptor);
+		} else {
+			return false;
 		}
-
-		return false;
 	}
 
+	/**
+	 * Attempts to close the file that is identified by the given file descriptor only if it does not exist in the
+	 * file table; otherwise returns whether or not another place successfully closed the file (ensures only one place
+	 * actually closes and removes the file from the file table)
+	 *
+	 * @param fileDescriptor specifies the file to remove
+	 * @return true if the file is successfully found in the file table, closed, and removed (by one place);
+	 * otherwise false
+	 * @throws Exception thrown if an error occurs during the closing process
+     */
+	// TODO: 5/4/17  
 
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
@@ -752,14 +393,14 @@ public class Place {
 		Place destintationPlace = null;
 		int shadowIndex;
 		if ( destinationLocalLinearIndex >= 0 &&
-				destinationLocalLinearIndex < places.getPlacesSize() )
+				destinationLocalLinearIndex < places.getNumberOfPlacesOnCurrentNode() )
 			destintationPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
 				( shadowIndex = destinationLocalLinearIndex + 
 				places.getShadowSize() ) >= 0 )
 			destintationPlace = places.getLeftShadow()[ shadowIndex ];
 		else if ( (shadowIndex = 
-				destinationLocalLinearIndex - places.getPlacesSize()) >= 0
+				destinationLocalLinearIndex - places.getNumberOfPlacesOnCurrentNode()) >= 0
 				&& shadowIndex < places.getShadowSize() )
 			destintationPlace = places.getRightShadow()[ shadowIndex ];
 
@@ -854,60 +495,16 @@ public class Place {
 		this.size = size.clone();
 	}
 
-	// TODO: 3/31/17  Old netcdf read - remove when no longer needed
-	/*List<Dimension> dimensions = var.getDimensions();
+	private void logFormattedDebug(String formattedLog, Object... args) {
+		logger.debug(String.format(formattedLog, args));
+	}
 
-			int[] readDim = new int[dimensions.size()];
+	private void logFormattedError(String formattedLog, Object... args) {
+		logger.error(String.format(formattedLog, args));
+	}
 
-			for (int i = 0; i < dimensions.size(); i++) {
-				readDim[i] = dimensions.get(i).getLength();
-			}
-
-			// Split along x axis
-			readDim[0] = readDim[0] / fileAttributes.getNumberOfPlaces();
-
-			int placeOrder = (size[0] * size[1] * index[2]) + (size[0] * index[1]) + index[0];
-
-			logger.debug("PLACE: " + placeOrder);
-			logger.debug("READ DIM: " + Arrays.toString(readDim));
-
-			// Read data and add to place storage
-			try {
-
-				Number[][][] userDataset = varsData.get(varName);
-				ArrayFloat.D3 currVarData;
-
-				// Read for 3D float
-				// TODO: 1/13/17 there is probably a better way to do this so that each data type can be read
-				// without having to write a separate implementation for each data type
-				// (You will have to have separate implementations for each dimension if we want to support that)
-				if (userDataset instanceof Float[][][]) {
-
-					// Netcdf is not thread-safe
-					// synchronized (var) {
-						// read section of file
-						currVarData = (ArrayFloat.D3) var.read(new int[]{ placeOrder * readDim[0], 0, 0}, readDim);
-					// }
-
-					synchronized (userDataset) {
-						// Write the read data to the user's buffer
-						for (int x = 0; x < readDim[0]; x++) {
-							for (int y = 0; y < readDim[1]; y++) {
-								for (int z = 0; z < readDim[2]; z++) {
-									((ArrayFloat.D3) userDataset).set(x + (placeOrder * readDim[0]), y, z, currVarData.get(x, y, z));
-								}
-							}
-						}
-					}
-				}
-
-			} catch (InvalidRangeException ire) {
-				logger.debug("Invalid range: " + ire);
-				return false;
-			} catch (IOException ioe) {
-				logger.debug("Invalid range: " + ioe);
-				return false;
-			}
-		}*/
-	
+	@Override
+	public String toString() {
+		return "Place: " + Arrays.toString(this.getIndex());
+	}
 }

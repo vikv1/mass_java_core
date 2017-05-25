@@ -1,43 +1,17 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.easymock.Capture;
-import org.easymock.Mock;
-import org.easymock.TestSubject;
-import org.junit.Test;
-
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-import ucar.nc2.stream.NcStreamProto;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-
-import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.nio.file.Path;
-import java.util.Objects;
+import org.junit.Ignore;
 
 /**
  * Place Test
  *
  * @author Michael O'Keefe
  */
+@Ignore
 public class PlaceTest extends AbstractTest {
 
 
-    @TestSubject
+    /*@TestSubject
     private Place place1 = new Place(); // create a place object to test with
 
     @TestSubject
@@ -46,14 +20,14 @@ public class PlaceTest extends AbstractTest {
     @TestSubject
     private Place place3 = new Place();
 
-    /*
+    *//*
     @Mock
     private int[] index;
 
     @Mock
     private int[] size;
 
-    */
+    *//*
 
 
     @Test
@@ -143,7 +117,7 @@ public class PlaceTest extends AbstractTest {
             closeError = true;
         if (closeError)
             System.out.println("Error Closing");
-    }
+    }*/
 }
         /*
         // check if descriptor is a NetcdfFile

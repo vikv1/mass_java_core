@@ -142,7 +142,7 @@ public class AgentsBase implements Serializable {
 //   		logger.debug( "Agents_base constructor: placesClass = " 
 //    				+ " curPlaces = " + (Object)curPlaces );
 
-    	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
+    	for (int i = 0; i < curPlaces.getNumberOfPlacesOnCurrentNode( ); i++ ) {
 
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
