@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Properties>
+        <Property name="PATTERN">%d{HH:mm:ss.SSS} [%t] [%-5level] %msg%n</Property>
+    </Properties>
+    <Appenders>
+		<File name="File" fileName="${sys:MASSLogFilename}" immediateFlush="false" append="true">
+      		<PatternLayout pattern="${PATTERN}" />
+      	</File>
+	</Appenders>
+	<Loggers>
+		<Root level="${sys:MASSLogLevel}">
+			<AppenderRef ref="File"/>
+		</Root>
+	</Loggers>
+</Configuration>
