@@ -74,21 +74,17 @@ public class Agent implements Serializable {
 	 */
 	private Object[] arguments = null;
 
-	// logging
+	// logging (okay to suppress unused warning for now - it will be used later!)
+	@SuppressWarnings("unused")
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
-
-	public Agent ( ) {
-		//super();
-		//agentId = Agents.getAgentInitAgentId();
-	}
 
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
 	 * functionId as passing arguments to this function. A user-derived Agent
 	 * class must implement this method.
-	 * @param functionId
-	 * @param argument
-	 * @return 
+	 * @param functionId The ID number of the function to invoke
+	 * @param argument Argument (as Object) to pass to the invoked function
+	 * @return Always returns NULL
 	 */  	
 	public Object callMethod( int functionId, Object argument ) {
 		 return null;
@@ -147,10 +143,6 @@ public class Agent implements Serializable {
 	  * The map( ) method may be overloaded by an application-specific method.
 	  * A user-provided map( ) method may ignore maxAgents when creating
 	  * agents.
-	  * @param initPopulation
-	  * @param size
-	  * @param index
-	  * @return 
 	  */	
 	public int map( int initPopulation, int[] size, int[] index ) {
 
@@ -180,8 +172,6 @@ public class Agent implements Serializable {
 	/**
 	 * Initiates an agent migration upon a next call to Agents.manageAll( ). More
 	 * specifically, migrate( ) updates the calling agent’s index[].
-	 * @param index
-	 * @return 
 	 */
 	protected boolean migrate( int... index ) { 
 
@@ -219,8 +209,8 @@ public class Agent implements Serializable {
 	 * Spawns a “numAgents’ of new agents, as passing arguments[i] (with arg_size) 
 	 * to the i-th new agent upon a next call to Agents.manageAll( ).
 	 * More specifically, spawn( ) changes the calling agent’s newChildren.
-	 * @param numAgents
-	 * @param arguments
+	 * @param numAgents The number of Agents to spawn
+	 * @param arguments Arguments to pass to the Agents
 	 */
 	protected void spawn( int numAgents, Object[] arguments ) { 
 
