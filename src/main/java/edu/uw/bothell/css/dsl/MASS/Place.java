@@ -42,6 +42,7 @@ import java.util.Vector;
  *	perform operations on objects contained within the Place. 
  *
  */
+@SuppressWarnings("serial")
 public class Place implements Serializable {
 
 	/**
@@ -87,9 +88,9 @@ public class Place implements Serializable {
 	 * exchangeSome( ), and invoke the function specified with functionId as
 	 * passing arguments to this function. A user-derived Place class must
 	 * implement this method.
-	 * @param functionId
-	 * @param argument
-	 * @return 
+	 * @param functionId The ID number of the function to invoke
+	 * @param argument An argument that will be passed to the invoked function
+	 * @return Always returns NULL
 	 */
 	public Object callMethod( int functionId, Object argument ) {
 		return null;
@@ -132,10 +133,14 @@ public class Place implements Serializable {
 	}
 
 	/**
-	 * Important: Synchronized set is NOT serializable. Therefore when agent is de-serialized
-	 * 	the place field of agent must be re-assigned. Otherwise you will get an exception when you
-	 * 	call <agent_instance>.getPlace().getAgents()
-	 * */
+	 * Get the collection of Agents residing locally on this place
+	 * <p>
+	 * Important: Synchronized set is NOT serializable! Therefore when agent is de-serialized
+	 * the place field of agent must be re-assigned. Otherwise you will get an exception when you
+	 * call [agent instance].getPlace().getAgents()
+	 *  
+	 * @return The Agents residing in this instance of Place
+	 */
 	public synchronized Set<Agent> getAgents() {
 		return agents;
 	}
@@ -187,7 +192,7 @@ public class Place implements Serializable {
 	 * Returns the size of the matrix that consists of application-specific
 	 * places. Intuitively, size[0], size[1], and size[2] correspond to the size
 	 * of x, y, and z, or that of i, j, and k.
-	 * @return 
+	 * @return Matrix size
 	 */
 	public int[] getSize() {
 		return size;
