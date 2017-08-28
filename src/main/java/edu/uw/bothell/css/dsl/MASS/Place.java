@@ -136,6 +136,8 @@ public class Place {
 
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
+		} else {
+			thisPlaceFileDescriptor++;
 		}
 	}
 
