@@ -361,5 +361,4 @@ public class Places extends PlacesBase {
 		MASS.barrierAllSlaves( );
 
     }
-
 }
