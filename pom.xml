@@ -178,8 +178,8 @@
 			<version>2.4</version>
 			<scope>compile</scope>
 		</dependency>
-  		
-  	</dependencies>
+
+	</dependencies>
     
 	<build>
 		<plugins>

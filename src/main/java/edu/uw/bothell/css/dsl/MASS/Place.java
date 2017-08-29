@@ -31,16 +31,28 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.*;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.File;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 import ucar.ma2.InvalidRangeException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+//import java.nio.file.Files;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+//import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+
 
 /**
  *	Place represents a single element from a collection of places distributed
@@ -94,7 +106,7 @@ public class Place {
 	//
 
 	// Stores each file and its attributes
-	protected static final Hashtable<Integer, File> fileTable = new Hashtable<>();
+	protected static final Hashtable<Integer, edu.uw.bothell.css.dsl.MASS.Parallel_IO.File> fileTable = new Hashtable<>();
 
 	// File descriptor value that each place has access too
 	private static int allPlaceFileDescriptor = -1;
@@ -159,7 +171,7 @@ public class Place {
 			throw new FileNotFoundException("The given file to open does not exist: " + path);
 		}
 
-		File file = File.factory(path);
+		edu.uw.bothell.css.dsl.MASS.Parallel_IO.File file = edu.uw.bothell.css.dsl.MASS.Parallel_IO.File.factory(path);
 		file.open(ioType);
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
@@ -197,12 +209,45 @@ public class Place {
 		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
+//	public void readFilefromHDFS(String file) throws IOException {
+//		Configuration conf = new Configuration();
+//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/core-site.xml"));
+//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/hdfs-site.xml"));
+//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/mapred-site.xml"));
+//
+//		FileSystem fileSystem = FileSystem.get(conf);
+//
+//		org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(file);
+//		if (!fileSystem.exists(path)) {
+//			System.out.println("File " + file + " does not exists");
+//			return;
+//		}
+//
+//		FSDataInputStream in = fileSystem.open(path);
+//
+//		String filename = file.substring(file.lastIndexOf('/') + 1,
+//				file.length());
+//
+//		OutputStream out = new BufferedOutputStream(new FileOutputStream(
+//				new File(filename)));
+//
+//		byte[] b = new byte[1024];
+//		int numBytes = 0;
+//		while ((numBytes = in.read(b)) > 0) {
+//			out.write(b, 0, numBytes);
+//		}
+//
+//		in.close();
+//		out.close();
+//		fileSystem.close();
+//	}
+
 	/**
 	 * Gets the file attribute from the file table
 	 * @param fileDescriptor unique identifier for the file attribute to return
 	 * @return the file attribute corresponding to the given file descriptor
      */
-	private File getFileFromFileTable(int fileDescriptor) {
+	private edu.uw.bothell.css.dsl.MASS.Parallel_IO.File getFileFromFileTable(int fileDescriptor) {
 		if (fileTable.containsKey(fileDescriptor)) {
 			return fileTable.get(fileDescriptor);
 		} else {
