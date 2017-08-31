@@ -210,7 +210,6 @@ public class Place {
 		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
-
 	/**
 	 * Gets the file attribute from the file table
 	 * @param fileDescriptor unique identifier for the file attribute to return
