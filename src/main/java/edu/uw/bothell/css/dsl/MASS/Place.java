@@ -183,6 +183,7 @@ public class Place {
 				filepath,
 				allPlaceFileDescriptor
 		);
+
 	}
 
 	private void incrementFileDescriptors() {
@@ -209,38 +210,6 @@ public class Place {
 		return netcdfFile.read(variableToRead, getPlaceOrderPerNode());
 	}
 
-//	public void readFilefromHDFS(String file) throws IOException {
-//		Configuration conf = new Configuration();
-//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/core-site.xml"));
-//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/hdfs-site.xml"));
-//		conf.addResource(new org.apache.hadoop.fs.Path("/home/hadoop/hadoop/conf/mapred-site.xml"));
-//
-//		FileSystem fileSystem = FileSystem.get(conf);
-//
-//		org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(file);
-//		if (!fileSystem.exists(path)) {
-//			System.out.println("File " + file + " does not exists");
-//			return;
-//		}
-//
-//		FSDataInputStream in = fileSystem.open(path);
-//
-//		String filename = file.substring(file.lastIndexOf('/') + 1,
-//				file.length());
-//
-//		OutputStream out = new BufferedOutputStream(new FileOutputStream(
-//				new File(filename)));
-//
-//		byte[] b = new byte[1024];
-//		int numBytes = 0;
-//		while ((numBytes = in.read(b)) > 0) {
-//			out.write(b, 0, numBytes);
-//		}
-//
-//		in.close();
-//		out.close();
-//		fileSystem.close();
-//	}
 
 	/**
 	 * Gets the file attribute from the file table
