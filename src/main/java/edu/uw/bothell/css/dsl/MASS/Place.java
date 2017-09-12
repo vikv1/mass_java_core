@@ -61,7 +61,9 @@ import java.io.OutputStream;
  *
  */
 public class Place {
-
+	public static final String HDFS_USERFOLDER = "/user/dslab/input/";
+	public static final String MYSCRIPT_DIRCTORY = "/tmp/myscript";
+	public static final String WORKING_DIRECTORY = "/tmp";
 
 	/**
 	 * Defines the size of the matrix that consists of application-specific
@@ -130,7 +132,7 @@ public class Place {
 	 * @return unique file descriptor for the newly opened file
 	 */
 	protected int open(String filepath, int ioType)
-			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
 
 		synchronized (fileTable) {
 			openFileUsingOnePlace(filepath, ioType);
@@ -144,7 +146,7 @@ public class Place {
 	 * @param ioType either 0 for read or 1 for write
      */
 	private void openFileUsingOnePlace(String filepath, int ioType)
-			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
 
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
@@ -160,7 +162,7 @@ public class Place {
 	 * @param ioType either 0 for read or 1 for write
      */
 	private void openFile(String filepath, int ioType)
-			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException {
+			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
 
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
@@ -168,7 +170,16 @@ public class Place {
 
 		Path path = Paths.get(filepath);
 		if (!Files.exists(path)) {
-			throw new FileNotFoundException("The given file to open does not exist: " + path);
+			String filename = filepath.substring(filepath.lastIndexOf('/') + 1, filepath.length());
+			getNetcdfFileFromHDFS(filename);
+			if (!Files.exists(path)) {
+				// check exists again.. throw exception if doesn't exist
+				throw new FileNotFoundException("The given file to open does not exist: " + path);
+			} else {
+				logFormattedDebug(String.format("**************************************************"));
+				logFormattedDebug(String.format("SUCCESS retrieving test NetCDF file: %s", filepath));
+				logFormattedDebug(String.format("**************************************************"));
+			}
 		}
 
 		edu.uw.bothell.css.dsl.MASS.Parallel_IO.File file = edu.uw.bothell.css.dsl.MASS.Parallel_IO.File.factory(path);
@@ -184,6 +195,15 @@ public class Place {
 				allPlaceFileDescriptor
 		);
 
+	}
+
+	private void getNetcdfFileFromHDFS(String filename) throws IOException, InterruptedException {
+
+		String[] command = { MYSCRIPT_DIRCTORY, "read ", HDFS_USERFOLDER + filename};
+		Process process = Runtime.getRuntime().exec(command);
+
+		logFormattedDebug("Retrieving " + filename + " from HDFS ...");
+		process.waitFor();
 	}
 
 	private void incrementFileDescriptors() {
