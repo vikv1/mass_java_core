@@ -183,7 +183,7 @@ public class Place {
 		}
 
 		edu.uw.bothell.css.dsl.MASS.Parallel_IO.File file = edu.uw.bothell.css.dsl.MASS.Parallel_IO.File.factory(path);
-		file.open(ioType);
+		file.open(ioType); // either NetCDFFile open or Txt open
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
 
@@ -196,6 +196,7 @@ public class Place {
 		);
 
 	}
+
 
 	private void getNetcdfFileFromHDFS(String filename) throws IOException, InterruptedException {
 
@@ -261,6 +262,29 @@ public class Place {
 			));
 		}
 	}
+
+	/**
+	 * Reads a specific portion of the a NetCDF file's variable based on this place's order and returns the results
+	 * as a 1 dimensional primitive java array (i.e. a float[]). Each place reads only a portion of the file, but if
+	 * each place calls this method, then the entire file will be read and parts of the data will be contained on
+	 * each place involved in the computation.
+	 *
+	 * @param dataToWrite data to be written
+	 * @param variableName the NetCDF variable name to write
+	 * @param shape shape of the netCDF data to be written
+	 */
+	public void write(float[] dataToWrite, String variableName, int[] shape, String filepath)
+			throws IOException ,InvalidRangeException,InvalidNumberOfNodesException, InvalidNumberOfPlacesException,
+			UnsupportedFileTypeException,InterruptedException {
+		if(getPlaceOrderPerNode() == 0) {
+			Path path = Paths.get(filepath);
+			NetcdfFile ncfile = new NetcdfFile(path);
+			ncfile.open(1);
+			ncfile.write(dataToWrite, variableName, shape);
+			ncfile.close(); // need delete later - should close in close()
+		}
+	}
+
 
 	/**
 	 * Reads a specific portion of the a TXT file based on this place's order and returns the results

@@ -1,37 +1,54 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
-import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
+//import com.sun.javaws.exceptions.InvalidArgumentException;
+import org.omg.CORBA.DynAnyPackage.Invalid;
+import ucar.ma2.*;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
+
 /**
- * Created by Michael on 4/14/17.
+ * Created by Michael on 4/14/17
+ * Edited by Jas on 9/1/17
  */
 public class NetcdfFile extends File {
     
     // Variable to read or write (NetCDF)
     private Hashtable<String, Object> variables;
     private ucar.nc2.NetcdfFile netcdfFile;
+    private NetcdfFileWriter netcdfFileWriter;
+    private int[] shape;
+    Variable dataVariable;
+    long fileSize;
     private static final long MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY = 2000001000;
 
     public NetcdfFile(Path filepath) {
+
         super(filepath, FileType.NETCDF);
     }
 
-    public void open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException {
+    public void open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException, RuntimeException {
+        if(netcdfFile != null || netcdfFileWriter != null) {
+            throw new RuntimeException("Multiple calls to open");
+        }
         switch (ioType) {
             case OPEN_FOR_READ:
                 openForRead();
                 break;
             case OPEN_FOR_WRITE:
+                //openForWrite();
                 break;
         }
+
     }
 
     public Object read(String variableToRead, int placeOrder) throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
@@ -48,10 +65,104 @@ public class NetcdfFile extends File {
         }
     }
 
-    public void close() throws IOException {
-        netcdfFile.close();
+    private void openForWrite() throws IOException {
+        String tempFilePath = filepath.toString();
+        tempFilePath = tempFilePath.replace(".nc", "xx.nc");
+        netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, tempFilePath,null);
     }
 
+    // With Trinh
+//    public void writeFloat(String variableName, float[] input) throws InvalidArgumentException {
+//        if(input.length > 0) {
+//            String[] e = {"Empty Input"};
+//            throw new InvalidArgumentException(e);
+//        }
+//        float[] data = input;
+//        Dimension dim = netcdfFileWriter.addDimension(null, variableName, input.length);
+//        Variable variable = netcdfFileWriter.addVariable(null, variableName, DataType.FLOAT, variableName);
+//
+//        ArrayList<String> stringData = new ArrayList<>(input.length);
+//        for(int i = 0; i < data.length; i++) {
+//            stringData.add(Float.toString(data[i]));
+//        }
+//        variable.setValues(stringData);
+//    }
+
+
+    private void prepareNetCDFWriteData(String variableName, int[] shape) throws IOException, InvalidRangeException {
+
+        this.shape = shape;
+        fileSize = getFileSizeFromShape(shape);
+
+
+        //netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, filepath.toString()); in openForWrite
+        List<Dimension> dimensions = new ArrayList<>();
+
+        for (int dim = 0; dim < shape.length; dim++) {
+            dimensions.add(netcdfFileWriter.addDimension(null, "Dim" + dim, shape[dim]));
+        }
+
+        dataVariable = netcdfFileWriter.addVariable(null, variableName, DataType.FLOAT, dimensions);
+
+    }
+
+    public void write(float[] dataToWrite, String variableName, int[] shape) throws IOException, InvalidRangeException {
+
+        prepareNetCDFWriteData(variableName, shape);
+        logger.debug("JAS in Place WRITE, data :: " + Arrays.toString(dataToWrite));
+        if(fileSize != dataToWrite.length) { // Expecting use to provide matching size of shape and data
+            logger.debug("JAS Invalid RangeException :: fileSize = " +fileSize+ " dataToWrite.length = " + dataToWrite.length);
+            throw new InvalidRangeException();
+        }
+
+        netcdfFileWriter.create();
+
+        // need shape; need dataVariable
+
+        Array dataOut = new ArrayFloat(shape);
+        fillArrayWithFloatData(dataOut, dataToWrite);
+        float[] jasTest = (float[])dataOut.copyTo1DJavaArray(); //need delete
+        logger.debug("JAS check thisA::" + Arrays.toString(jasTest)); //need delete
+        netcdfFileWriter.write(dataVariable, dataOut);
+    }
+
+    private void fillArrayWithFloatData(Array dataOut, float[] dataToWrite) {
+        Index index = Index.factory(shape);
+        long counter = fileSize;
+        int dataIndex = 0;
+        while (counter-- > 0) {
+
+            dataOut.setFloat(index, dataToWrite[dataIndex]); // what is dataIndes is greater than int?
+            logger.debug("JAS in Place filled :: " + dataOut.getFloat(index));
+            dataIndex++;
+            index.incr();
+        }
+        float[] jasTest = (float[])dataOut.copyTo1DJavaArray(); //need delete
+        logger.debug("JAS check thisB::" + Arrays.toString(jasTest)); //need delete
+    }
+
+    private int getFileSizeFromShape(int[] shape) {
+        int size = 1;
+        for (int i : shape) {
+            size *= i;
+        }
+        return size;
+    }
+
+    public void close() throws IOException {
+        if(netcdfFile != null) {
+            netcdfFile.close();
+        }
+        if(netcdfFileWriter != null) {
+            netcdfFileWriter.close();
+        }
+    }
+
+    /*
+        Opens the NetCDF file to a NetCDF object for access
+        - get the variables and the corresponding data from this opened NetCDF file
+        - variables is a key/value pair table that stores variable as key and its corresponding data as value
+     */
     private void openForRead() throws IOException, InvalidRangeException, InvalidNumberOfNodesException {
         java.io.File ncFileForSizeCheck = new java.io.File(filepath.toUri());
         if (ncFileForSizeCheck.length() > MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY) {
@@ -68,10 +179,14 @@ public class NetcdfFile extends File {
             ));
         }
 
-        variables = readNetcdfVariables(netcdfFile);
+        variables = retrieveNetcdfVariablesAndData(netcdfFile);
     }
 
-    private Hashtable<String, Object> readNetcdfVariables(ucar.nc2.NetcdfFile netcdfFile)
+
+    /*
+        Retrieves variable name and data from the NetCDF file to table
+     */
+    private Hashtable<String, Object> retrieveNetcdfVariablesAndData(ucar.nc2.NetcdfFile netcdfFile)
             throws InvalidRangeException, IOException, InvalidNumberOfNodesException {
 
         List<Variable> unReadVariables = netcdfFile.getVariables();
@@ -107,6 +222,11 @@ public class NetcdfFile extends File {
         return readVariables;
     }
 
+
+    private void writeNetcdfVariables(float[] javaArray, IndexIterator itr) {
+
+    }
+
     private float[] getIndividualNodeVariableData(float[] allVariableData) throws InvalidNumberOfNodesException {
         int nodeOffset = getNodeReadOffset(allVariableData.length);
         int nodeReadLength = getCurrentNodeReadLength(allVariableData.length, nodeOffset);
@@ -114,6 +234,9 @@ public class NetcdfFile extends File {
         return Arrays.copyOfRange(allVariableData, offset, offset + nodeReadLength);
     }
 
+    /*
+        Called by read() - all data already in the buffer. Only reading the correct portion based on placeOrder
+     */
     private float[] readIntoFloatBuffer(float[] bufferToReadFrom, int placeOrder) throws InvalidNumberOfPlacesException {
         int placeOffset = getPlaceReadOffset(bufferToReadFrom.length);
         int placeReadLength = getCurrentPlaceReadLength(bufferToReadFrom.length, placeOffset, placeOrder);
@@ -121,6 +244,10 @@ public class NetcdfFile extends File {
         return Arrays.copyOfRange(bufferToReadFrom, offset, offset + placeReadLength);
     }
 
+    /*
+     *  Get the data for the requesting variable from the variables table
+     *  @param variableName requesting variable
+     */
     private Object getVariable(String variableName) {
         Object variableBuffer = variables.get(variableName);
         if (variableBuffer == null) {
