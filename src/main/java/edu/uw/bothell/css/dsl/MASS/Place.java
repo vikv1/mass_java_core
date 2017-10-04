@@ -276,6 +276,10 @@ public class Place {
 	public void write(float[] dataToWrite, String variableName, int[] shape, String filepath)
 			throws IOException ,InvalidRangeException,InvalidNumberOfNodesException, InvalidNumberOfPlacesException,
 			UnsupportedFileTypeException,InterruptedException {
+		logFormattedDebug(String.format("******************************************************************"));
+		logFormattedDebug(String.format("****************JAS JAS JAS in Place.java Write()*****************"));
+		logFormattedDebug(String.format("************getPlaceOrderPerNode = "+ getPlaceOrderPerNode()+"**************"));
+		logFormattedDebug(String.format("******************************************************************"));
 		if(getPlaceOrderPerNode() == 0) {
 			Path path = Paths.get(filepath);
 			NetcdfFile ncfile = new NetcdfFile(path);

@@ -45,7 +45,7 @@ public class NetcdfFile extends File {
                 openForRead();
                 break;
             case OPEN_FOR_WRITE:
-                //openForWrite();
+                openForWrite();
                 break;
         }
 
@@ -90,48 +90,58 @@ public class NetcdfFile extends File {
 
 
     private void prepareNetCDFWriteData(String variableName, int[] shape) throws IOException, InvalidRangeException {
-
+        logger.debug("JAS in MASS NCPFile.java **** A");
         this.shape = shape;
         fileSize = getFileSizeFromShape(shape);
 
 
         //netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, filepath.toString()); in openForWrite
+        logger.debug("JAS in MASS NCPFile.java **** B");
         List<Dimension> dimensions = new ArrayList<>();
-
+        logger.debug("JAS in MASS NCPFile.java **** C shape size = " + shape.length);
         for (int dim = 0; dim < shape.length; dim++) {
+            logger.debug("JAS in MASS NCPFile.java **** D");
             dimensions.add(netcdfFileWriter.addDimension(null, "Dim" + dim, shape[dim]));
+            logger.debug("JAS in MASS NCPFile.java **** E " + dim + " shape[dim] = " + shape[dim]);
         }
-
+        logger.debug("JAS in MASS NCPFile.java **** F");
         dataVariable = netcdfFileWriter.addVariable(null, variableName, DataType.FLOAT, dimensions);
-
+        logger.debug("JAS in MASS NCPFile.java **** G");
     }
 
     public void write(float[] dataToWrite, String variableName, int[] shape) throws IOException, InvalidRangeException {
-
+        logger.debug("JAS in MASS NCPFile.java .... A");
         prepareNetCDFWriteData(variableName, shape);
         logger.debug("JAS in Place WRITE, data :: " + Arrays.toString(dataToWrite));
-        if(fileSize != dataToWrite.length) { // Expecting use to provide matching size of shape and data
-            logger.debug("JAS Invalid RangeException :: fileSize = " +fileSize+ " dataToWrite.length = " + dataToWrite.length);
-            throw new InvalidRangeException();
-        }
-
+//        if(fileSize != dataToWrite.length) { // Expecting use to provide matching size of shape and data
+//            logger.debug("JAS Invalid RangeException :: fileSize = " +fileSize+ " dataToWrite.length = " + dataToWrite.length);
+//            throw new InvalidRangeException();
+//        }
+        logger.debug("JAS in MASS NCPFile.java .... B");
         netcdfFileWriter.create();
+        logger.debug("JAS in MASS NCPFile.java .... C");
 
         // need shape; need dataVariable
-
         Array dataOut = new ArrayFloat(shape);
+        logger.debug("JAS in MASS NCPFile.java .... D");
         fillArrayWithFloatData(dataOut, dataToWrite);
+        logger.debug("JAS in MASS NCPFile.java .... E");
+
         float[] jasTest = (float[])dataOut.copyTo1DJavaArray(); //need delete
         logger.debug("JAS check thisA::" + Arrays.toString(jasTest)); //need delete
         netcdfFileWriter.write(dataVariable, dataOut);
+        logger.debug("JAS in MASS NCPFile.java .... F");
     }
 
     private void fillArrayWithFloatData(Array dataOut, float[] dataToWrite) {
+        logger.debug("JAS in MASS NCPFile.java .... D1");
         Index index = Index.factory(shape);
-        long counter = fileSize;
+        //long counter = fileSize;
+        long counter = dataToWrite.length;
+        logger.debug("JAS in MASS NCPFile.java .... D2 dataOut Size = " + counter);
         int dataIndex = 0;
         while (counter-- > 0) {
-
+            logger.debug("JAS in MASS NCPFile.java .... D3 couter = " + counter);
             dataOut.setFloat(index, dataToWrite[dataIndex]); // what is dataIndes is greater than int?
             logger.debug("JAS in Place filled :: " + dataOut.getFloat(index));
             dataIndex++;
