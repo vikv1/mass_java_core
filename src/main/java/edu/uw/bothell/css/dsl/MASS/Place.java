@@ -64,6 +64,8 @@ public class Place {
 	public static final String HDFS_USERFOLDER = "/user/dslab/input/";
 	public static final String MYSCRIPT_DIRCTORY = "/tmp/myscript";
 	public static final String WORKING_DIRECTORY = "/tmp";
+	public static final int FOR_WRITE = 1;
+
 
 	/**
 	 * Defines the size of the matrix that consists of application-specific
@@ -117,6 +119,10 @@ public class Place {
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
+	private static edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile writeFile = null;
+	private static final Object writeFileLock = new Object();
+
+
 	/**
 	 * A single Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
 	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
@@ -133,7 +139,6 @@ public class Place {
 	 */
 	protected int open(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
-
 		synchronized (fileTable) {
 			openFileUsingOnePlace(filepath, ioType);
 		}
@@ -147,12 +152,15 @@ public class Place {
      */
 	private void openFileUsingOnePlace(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
-
+		logFormattedDebug("Before My place order = " + getPlaceOrderPerNode() + " allPlaceFileDescriptor = " + allPlaceFileDescriptor);
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
 		} else {
+
 			thisPlaceFileDescriptor++;
 		}
+		logFormattedDebug("After My place order = " + getPlaceOrderPerNode() + " allPlaceFileDescriptor = " + allPlaceFileDescriptor);
+
 	}
 
 	/**
@@ -169,6 +177,7 @@ public class Place {
 		}
 
 		Path path = Paths.get(filepath);
+
 		if (!Files.exists(path)) {
 			String filename = filepath.substring(filepath.lastIndexOf('/') + 1, filepath.length());
 			getNetcdfFileFromHDFS(filename);
@@ -183,7 +192,7 @@ public class Place {
 		}
 
 		edu.uw.bothell.css.dsl.MASS.Parallel_IO.File file = edu.uw.bothell.css.dsl.MASS.Parallel_IO.File.factory(path);
-		file.open(ioType); // either NetCDFFile open or Txt open
+		file.open(ioType); // either NetCDFFile open or TxtFile open
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
 
@@ -198,6 +207,11 @@ public class Place {
 	}
 
 
+	/**
+	 * Calls another program to retrieve the requested file from HDFS
+	 *
+	 * @param filename name of the file to retrieve
+	 */
 	private void getNetcdfFileFromHDFS(String filename) throws IOException, InterruptedException {
 
 		String[] command = { MYSCRIPT_DIRCTORY, "read ", HDFS_USERFOLDER + filename};
@@ -264,29 +278,69 @@ public class Place {
 	}
 
 	/**
-	 * Reads a specific portion of the a NetCDF file's variable based on this place's order and returns the results
-	 * as a 1 dimensional primitive java array (i.e. a float[]). Each place reads only a portion of the file, but if
-	 * each place calls this method, then the entire file will be read and parts of the data will be contained on
-	 * each place involved in the computation.
+	 * Write a specific portion of the a NetCDF file's variable based on this place's order into a buffer
 	 *
 	 * @param dataToWrite data to be written
 	 * @param variableName the NetCDF variable name to write
 	 * @param shape shape of the netCDF data to be written
 	 */
-	public void write(float[] dataToWrite, String variableName, int[] shape, String filepath)
-			throws IOException ,InvalidRangeException,InvalidNumberOfNodesException, InvalidNumberOfPlacesException,
-			UnsupportedFileTypeException,InterruptedException {
-		logFormattedDebug(String.format("******************************************************************"));
-		logFormattedDebug(String.format("****************JAS JAS JAS in Place.java Write()*****************"));
-		logFormattedDebug(String.format("************getPlaceOrderPerNode = "+ getPlaceOrderPerNode()+"**************"));
-		logFormattedDebug(String.format("******************************************************************"));
-		if(getPlaceOrderPerNode() == 0) {
-			Path path = Paths.get(filepath);
-			NetcdfFile ncfile = new NetcdfFile(path);
-			ncfile.open(1);
-			ncfile.write(dataToWrite, variableName, shape);
-			ncfile.close(); // need delete later - should close in close()
+	public void write(int fileDescriptor, float[] dataToWrite, String variableName, int[] shape)
+			throws IOException, InvalidRangeException {
+
+		// open stuff was here
+		boolean doneWriting = writeFile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
+		if(doneWriting) {
+			writeFile.closeFileWrite();
 		}
+
+//		if(getPlaceOrderPerNode() == 0) {
+//			logFormattedDebug(String.format("JAS JAS JAS --- new fileTable Size = " + fileTable.size()));
+//			Path path = Paths.get(filepath);
+//			NetcdfFile ncfile = new NetcdfFile(path);
+//			ncfile.open(1);
+////			File file = getFileFromFileTable(fileDescriptor); // 10/07
+////			NetcdfFile ncfile = convertFileToNetcdfFile(file);// 10/07
+//			ncfile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
+//			ncfile.close(); // need delete later - should close in close()
+//		}
+	}
+
+
+	/**
+	 * A single Place opens a file specified by the given filePath and ioType. If ioType is 0 then the file
+	 * is opened for reading, if the ioType is 1 then the file is opened for writing (it is
+	 * expected that the ioType is either 0 or 1; otherwise, -1 is returned). A file that is opened for reading
+	 * will be opened in memory and added to the fileTable so that the file can be accessed by all Places. A
+	 * file that is opened for writing will be opened on the disk and a temporary buffer to write to is added to the
+	 * fileTable so that the temp buffer can be accessed by all Places. A successfully opened file is given a unique
+	 * file descriptor (integer) and the file descriptor is returned. An unsuccessfully opened file will result in
+	 * an exception being thrown
+	 *
+	 * @param filepath the filepath of the file to be opened
+	 * @return unique file descriptor for the newly opened file
+	 */
+	protected boolean openForWrite(String filepath) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
+		logFormattedDebug(String.format("JAS JAS JAS PlaceOrderPerNode-1 = "+ getPlaceOrderPerNode()+" writeFile is null " + (writeFile == null)));
+		if(writeFile == null)
+		synchronized (writeFileLock) {
+			if(writeFile == null) {
+				openFileUsingOnePlaceForWrite(filepath);
+			}
+		}
+		logFormattedDebug(String.format("JAS JAS JAS PlaceOrderPerNode-2 = " + getPlaceOrderPerNode() + " writeFile is null" + (writeFile == null)));
+		return writeFile != null;
+	}
+
+
+	/**
+	 * Opens the file only if the file has not been opened and added to the fileTable
+	 * @param filepath file to open for write
+	 */
+	private void openFileUsingOnePlaceForWrite(String filepath) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
+		logFormattedDebug(String.format("JAS JAS JAS HOWMANY = "+ getPlaceOrderPerNode()));
+		Path path = Paths.get(filepath);
+		writeFile = new NetcdfFile(path);
+		writeFile.open(FOR_WRITE);
 	}
 
 
@@ -345,6 +399,10 @@ public class Place {
 	 * @return true if the file is successfully found in the file table, closed, and removed; otherwise false
 	 */
 	protected synchronized boolean close(int fileDescriptor) throws IOException {
+		if(writeFile != null) {
+			writeFile.close(); // maybe use a separate close function for closing writeFile?!
+		}
+
 		if (fileTable.containsKey(fileDescriptor)) {
 			File file = fileTable.remove(fileDescriptor);
 			filesAttemptedToClose.put(fileDescriptor, false);
