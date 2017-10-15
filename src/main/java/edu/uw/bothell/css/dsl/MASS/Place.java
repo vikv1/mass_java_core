@@ -120,7 +120,7 @@ public class Place {
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
 	private static edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile writeFile = null;
-	private static final Object writeFileLock = new Object();
+	private static final Object WRITE_FILE_LOCK = new Object();
 
 
 	/**
@@ -285,24 +285,12 @@ public class Place {
 	 * @param shape shape of the netCDF data to be written
 	 */
 	public void write(int fileDescriptor, float[] dataToWrite, String variableName, int[] shape)
-			throws IOException, InvalidRangeException {
+			throws IOException, InvalidRangeException, InvalidNumberOfPlacesException {
 
-		// open stuff was here
 		boolean doneWriting = writeFile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
 		if(doneWriting) {
 			writeFile.closeFileWrite();
 		}
-
-//		if(getPlaceOrderPerNode() == 0) {
-//			logFormattedDebug(String.format("JAS JAS JAS --- new fileTable Size = " + fileTable.size()));
-//			Path path = Paths.get(filepath);
-//			NetcdfFile ncfile = new NetcdfFile(path);
-//			ncfile.open(1);
-////			File file = getFileFromFileTable(fileDescriptor); // 10/07
-////			NetcdfFile ncfile = convertFileToNetcdfFile(file);// 10/07
-//			ncfile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
-//			ncfile.close(); // need delete later - should close in close()
-//		}
 	}
 
 
@@ -319,15 +307,13 @@ public class Place {
 	 * @param filepath the filepath of the file to be opened
 	 * @return unique file descriptor for the newly opened file
 	 */
-	protected boolean openForWrite(String filepath) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
-		logFormattedDebug(String.format("JAS JAS JAS PlaceOrderPerNode-1 = "+ getPlaceOrderPerNode()+" writeFile is null " + (writeFile == null)));
+	protected boolean openForWrite(String filepath, String variableName, int[] shape) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
 		if(writeFile == null)
-		synchronized (writeFileLock) {
+		synchronized (WRITE_FILE_LOCK) {
 			if(writeFile == null) {
-				openFileUsingOnePlaceForWrite(filepath);
+				openFileUsingOnePlaceForWrite(filepath, variableName, shape);
 			}
 		}
-		logFormattedDebug(String.format("JAS JAS JAS PlaceOrderPerNode-2 = " + getPlaceOrderPerNode() + " writeFile is null" + (writeFile == null)));
 		return writeFile != null;
 	}
 
@@ -336,11 +322,10 @@ public class Place {
 	 * Opens the file only if the file has not been opened and added to the fileTable
 	 * @param filepath file to open for write
 	 */
-	private void openFileUsingOnePlaceForWrite(String filepath) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
-		logFormattedDebug(String.format("JAS JAS JAS HOWMANY = "+ getPlaceOrderPerNode()));
+	private void openFileUsingOnePlaceForWrite(String filepath, String variableName, int[] shape) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
 		Path path = Paths.get(filepath);
 		writeFile = new NetcdfFile(path);
-		writeFile.open(FOR_WRITE);
+		writeFile.open(variableName, shape);
 	}
 
 

@@ -31,10 +31,10 @@ public class NetcdfFile extends File {
     Variable dataVariable;
     long fileSize;
     private static final long MAX_FILE_SIZE_FOR_OPEN_IN_MEMORY = 2000001000;
-    private static int numberOfVisits = -1;
+    private static Array dataOut = null;
+    private static int numberOfPreparedPlace = 0;
 
     public NetcdfFile(Path filepath) {
-
         super(filepath, FileType.NETCDF);
     }
 
@@ -47,10 +47,17 @@ public class NetcdfFile extends File {
                 openForRead();
                 break;
             case OPEN_FOR_WRITE:
-                openForWrite();
+               // openForWrite();
                 break;
         }
 
+    }
+
+    public void open(String variableName, int[] shape) throws IOException, InvalidRangeException, InvalidNumberOfNodesException, RuntimeException {
+        if(netcdfFile != null || netcdfFileWriter != null) {
+            throw new RuntimeException("Multiple calls to open");
+        }
+        openForWrite(variableName, shape);
     }
 
     public Object read(String variableToRead, int placeOrder) throws InvalidNumberOfPlacesException, UnsupportedBufferTypeException {
@@ -67,11 +74,14 @@ public class NetcdfFile extends File {
         }
     }
 
-    private void openForWrite() throws IOException {
+    private void openForWrite(String variableName, int[] shape) throws IOException, InvalidRangeException {
         String tempFilePath = filepath.toString();
         tempFilePath = tempFilePath.replace(".nc", "xx.nc");
         writeDataHolder = new ArrayList<>();
         netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, tempFilePath,null);
+
+        prepareAndCreateNetCDFWriteFile(variableName, shape);
+        dataOut = new ArrayFloat(shape);
     }
 
     // With Trinh
@@ -92,85 +102,51 @@ public class NetcdfFile extends File {
 //    }
 
 
-    private void prepareNetCDFWriteData(String variableName, int[] shape) throws IOException, InvalidRangeException {
+    private void prepareAndCreateNetCDFWriteFile(String variableName, int[] shape) throws IOException, InvalidRangeException {
         this.shape = shape;
         fileSize = getFileSizeFromShape(shape);
 
-
-        //netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, filepath.toString()); in openForWrite
         List<Dimension> dimensions = new ArrayList<>();
-        logger.debug("JAS in MASS NCPFile.java **** A shape size = " + shape.length);
         for (int dim = 0; dim < shape.length; dim++) {
             dimensions.add(netcdfFileWriter.addDimension(null, "Dim" + dim, shape[dim]));
-            logger.debug("JAS in MASS NCPFile.java **** E " + dim + " shape[dim] = " + shape[dim]);
         }
         dataVariable = netcdfFileWriter.addVariable(null, variableName, DataType.FLOAT, dimensions);
+        netcdfFileWriter.create();
     }
 
-//    public boolean write(float[] dataToWrite, String variableName, int[] shape, int placeOrder) throws IOException, InvalidRangeException {
-//        logger.debug("***JAS JAS JAS myTotalPlaces :: " + myTotalPlaces);
-//        numberOfVisits++;
-//        logger.debug("***JAS JAS JAS myPlaceOrder :: " + placeOrder + "  number of visits = " +numberOfVisits);
-//        if(placeOrder == 0) { //today need delete
-//            prepareNetCDFWriteData(variableName, shape);
-////        if(fileSize != dataToWrite.length) { // Expecting use to provide matching size of shape and data
-////            logger.debug("JAS Invalid RangeException :: fileSize = " +fileSize+ " dataToWrite.length = " + dataToWrite.length);
-////            throw new InvalidRangeException();
-////        }
-//
-//            // if(writeDataHolder.size() == myTotalPlaces) {
-//            netcdfFileWriter.create();
-//            // need shape; need dataVariable
-//            Array dataOut = new ArrayFloat(shape);
-//            fillArrayWithFloatData(dataOut, dataToWrite);
-//
-//            //        float[] jasTest = (float[])dataOut.copyTo1DJavaArray(); //need delete
-////        logger.debug("JAS check thisA::" + Arrays.toString(jasTest)); //need delete
-//            netcdfFileWriter.write(dataVariable, dataOut);
-//            return true;
-//            // }
-//        } // today need delete
-//        return false;
-//    }
 
+    public boolean write(float[] dataToWrite, String variableName, int[] shape, int placeOrder)
+            throws IOException, InvalidRangeException, InvalidNumberOfPlacesException {
 
-    public boolean write(float[] dataToWrite, String variableName, int[] shape, int placeOrder) throws IOException, InvalidRangeException {
-        logger.debug("***JAS JAS JAS myTotalPlaces :: " + myTotalPlaces);
-        numberOfVisits++;
-        logger.debug("***JAS JAS JAS myPlaceOrder :: " + placeOrder + "  number of visits = " +numberOfVisits);
-        if(placeOrder == 0) { //today need delete
-            prepareNetCDFWriteData(variableName, shape);
-//        if(fileSize != dataToWrite.length) { // Expecting use to provide matching size of shape and data
-//            logger.debug("JAS Invalid RangeException :: fileSize = " +fileSize+ " dataToWrite.length = " + dataToWrite.length);
-//            throw new InvalidRangeException();
-//        }
+            synchronized (dataOut) {
+                fillArrayWithFloatData(dataToWrite, placeOrder);
+                numberOfPreparedPlace++;
 
-            // if(writeDataHolder.size() == myTotalPlaces) {
-            netcdfFileWriter.create();
-            // need shape; need dataVariable
-            Array dataOut = new ArrayFloat(shape);
-            fillArrayWithFloatData(dataOut, dataToWrite);
+                if(numberOfPreparedPlace == myTotalPlaces) {
+                    netcdfFileWriter.write(dataVariable, dataOut);
+                    return true;
+                }
+            }
 
-            //        float[] jasTest = (float[])dataOut.copyTo1DJavaArray(); //need delete
-//        logger.debug("JAS check thisA::" + Arrays.toString(jasTest)); //need delete
-            netcdfFileWriter.write(dataVariable, dataOut);
-            return true;
-            // }
-        } // today need delete
         return false;
     }
 
-    private void fillArrayWithFloatData(Array dataOut, float[] dataToWrite) {
+    private void fillArrayWithFloatData(float[] dataToWrite, int placeOrder) throws InvalidNumberOfPlacesException {
         Index index = Index.factory(shape);
-        //long counter = fileSize;
-        long counter = dataToWrite.length;
-        int dataIndex = 0;
-        while (counter-- > 0) {
-            dataOut.setFloat(index, dataToWrite[dataIndex]); // what is dataIndes is greater than int?
-            dataIndex++;
+
+        int placeOffset = getPlaceReadOffset(dataToWrite.length);
+        int placeReadLength = getCurrentPlaceReadLength(dataToWrite.length, placeOffset, placeOrder);
+        int offset = placeOffset * placeOrder;
+
+        for(int i = 0; i < (offset + placeReadLength); i++) {
+            if(i >= offset) {
+                dataOut.setFloat(index, dataToWrite[i]);
+            }
             index.incr();
         }
+
     }
+
 
     private int getFileSizeFromShape(int[] shape) {
         int size = 1;
@@ -261,9 +237,6 @@ public class NetcdfFile extends File {
     }
 
 
-    private void writeNetcdfVariables(float[] javaArray, IndexIterator itr) {
-
-    }
 
     private float[] getIndividualNodeVariableData(float[] allVariableData) throws InvalidNumberOfNodesException {
         int nodeOffset = getNodeReadOffset(allVariableData.length);
