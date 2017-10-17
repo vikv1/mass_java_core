@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static java.nio.file.StandardOpenOption.READ;
@@ -19,6 +20,8 @@ public class TxtFile extends File {
     private byte[] entireTxtFileBuffer;
 
     private FileChannel fileChannel;
+    private static ByteBuffer dataOut = null;
+    private static int numberOfPreparedPlace = 0;
 
     // Open options, 0 for READ, 1 for WRITE (used for opening file channels)
     private static final OpenOption[] OpenOperations = new OpenOption[]{READ, WRITE};
@@ -60,8 +63,63 @@ public class TxtFile extends File {
         return Arrays.copyOfRange(entireTxtFileBuffer, offset, offset + placeReadLength);
     }
 
+    public void open(int ioType, int size) throws IOException {
+        if(fileChannel != null) {
+            throw new RuntimeException("Multiple calls to open");
+        }
+        openForWrite(size);
+    }
+
+    private void openForWrite(int size) throws IOException {
+        String tempFileName = filepath.toString();
+        tempFileName = tempFileName.replace(".txt", "xx.txt");
+        java.io.File newFile = new java.io.File(tempFileName);
+        if(newFile.createNewFile()) {
+            Path tempFilePath = Paths.get(tempFileName);
+            fileChannel = FileChannel.open(tempFilePath, OpenOperations[1]);
+            //dataOut = ByteBuffer.allocateDirect(size);
+            logger.debug("JAS  size = " +size);
+            dataOut = ByteBuffer.allocate(size);
+        }
+    }
+
+    public boolean write(byte[] dataToWrite, int placeOrder)
+            throws IOException, InvalidNumberOfPlacesException {
+
+        synchronized (dataOut) {
+            fillBufferWithByteData(dataToWrite, placeOrder);
+            numberOfPreparedPlace++;
+
+            if(numberOfPreparedPlace == myTotalPlaces) {
+                logger.debug("JAS -- I am in " + placeOrder);
+                byte[] b = dataOut.array();
+                logger.debug("JAS -- last place print array = " + Arrays.toString(b));
+                dataOut.rewind();
+                fileChannel.write(dataOut);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void fillBufferWithByteData(byte[] dataToWrite, int placeOrder) throws InvalidNumberOfPlacesException {
+        logger.debug("JAS I am here place order = " + placeOrder);
+        int placeOffset = getPlaceReadOffset(dataToWrite.length);
+        int placeReadLength = getCurrentPlaceReadLength(dataToWrite.length, placeOffset, placeOrder);
+        int offset = placeOffset * placeOrder;
+        for(int i = offset; i < (offset+placeReadLength); i++) {
+            logger.debug("JAS - Order = " + placeOrder + " i = " + i + " data = " + dataToWrite[i]);
+            logger.debug("JAS - dataOutSize = " + dataOut.array().length);
+            dataOut.put(i, dataToWrite[i]);
+        }
+
+    }
+
     public void close() throws IOException {
-        fileChannel.close();
+        if(fileChannel != null) {
+            fileChannel.close();
+        }
     }
 
     public byte[] getEntireTxtFileBuffer() {

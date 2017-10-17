@@ -26,7 +26,6 @@ public class NetcdfFile extends File {
     private Hashtable<String, Object> variables;
     private ucar.nc2.NetcdfFile netcdfFile;
     private NetcdfFileWriter netcdfFileWriter;
-    private ArrayList<Object> writeDataHolder;
     private int[] shape;
     Variable dataVariable;
     long fileSize;
@@ -77,7 +76,6 @@ public class NetcdfFile extends File {
     private void openForWrite(String variableName, int[] shape) throws IOException, InvalidRangeException {
         String tempFilePath = filepath.toString();
         tempFilePath = tempFilePath.replace(".nc", "xx.nc");
-        writeDataHolder = new ArrayList<>();
         netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, tempFilePath,null);
 
         prepareAndCreateNetCDFWriteFile(variableName, shape);
@@ -119,7 +117,7 @@ public class NetcdfFile extends File {
             throws IOException, InvalidRangeException, InvalidNumberOfPlacesException {
 
             synchronized (dataOut) {
-                fillArrayWithFloatData(dataToWrite, placeOrder);
+                fillBufferWithFloatData(dataToWrite, placeOrder);
                 numberOfPreparedPlace++;
 
                 if(numberOfPreparedPlace == myTotalPlaces) {
@@ -131,7 +129,7 @@ public class NetcdfFile extends File {
         return false;
     }
 
-    private void fillArrayWithFloatData(float[] dataToWrite, int placeOrder) throws InvalidNumberOfPlacesException {
+    private void fillBufferWithFloatData(float[] dataToWrite, int placeOrder) throws InvalidNumberOfPlacesException {
         Index index = Index.factory(shape);
 
         int placeOffset = getPlaceReadOffset(dataToWrite.length);
@@ -144,7 +142,6 @@ public class NetcdfFile extends File {
             }
             index.incr();
         }
-
     }
 
 

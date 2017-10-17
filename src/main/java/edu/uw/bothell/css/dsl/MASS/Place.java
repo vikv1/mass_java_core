@@ -119,7 +119,7 @@ public class Place {
 
 	private static final Hashtable<Integer, Boolean> filesAttemptedToClose = new Hashtable<Integer, Boolean>();
 
-	private static edu.uw.bothell.css.dsl.MASS.Parallel_IO.NetcdfFile writeFile = null;
+	private static edu.uw.bothell.css.dsl.MASS.Parallel_IO.File writeFile = null;
 	private static final Object WRITE_FILE_LOCK = new Object();
 
 
@@ -180,13 +180,13 @@ public class Place {
 
 		if (!Files.exists(path)) {
 			String filename = filepath.substring(filepath.lastIndexOf('/') + 1, filepath.length());
-			getNetcdfFileFromHDFS(filename);
+			getFileFromHDFS(filename);
 			if (!Files.exists(path)) {
 				// check exists again.. throw exception if doesn't exist
 				throw new FileNotFoundException("The given file to open does not exist: " + path);
 			} else {
 				logFormattedDebug(String.format("**************************************************"));
-				logFormattedDebug(String.format("SUCCESS retrieving test NetCDF file: %s", filepath));
+				logFormattedDebug(String.format("SUCCESS retrieving test file: %s", filepath));
 				logFormattedDebug(String.format("**************************************************"));
 			}
 		}
@@ -212,7 +212,7 @@ public class Place {
 	 *
 	 * @param filename name of the file to retrieve
 	 */
-	private void getNetcdfFileFromHDFS(String filename) throws IOException, InterruptedException {
+	private void getFileFromHDFS(String filename) throws IOException, InterruptedException {
 
 		String[] command = { MYSCRIPT_DIRCTORY, "read ", HDFS_USERFOLDER + filename};
 		Process process = Runtime.getRuntime().exec(command);
@@ -286,10 +286,10 @@ public class Place {
 	 */
 	public void write(int fileDescriptor, float[] dataToWrite, String variableName, int[] shape)
 			throws IOException, InvalidRangeException, InvalidNumberOfPlacesException {
-
-		boolean doneWriting = writeFile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
+		NetcdfFile ncWriteFile = convertFileToNetcdfFile(writeFile);
+		boolean doneWriting = ncWriteFile.write(dataToWrite, variableName, shape, getPlaceOrderPerNode());
 		if(doneWriting) {
-			writeFile.closeFileWrite();
+			ncWriteFile.closeFileWrite();
 		}
 	}
 
@@ -325,7 +325,8 @@ public class Place {
 	private void openFileUsingOnePlaceForWrite(String filepath, String variableName, int[] shape) throws InvalidNumberOfNodesException, InvalidRangeException, IOException {
 		Path path = Paths.get(filepath);
 		writeFile = new NetcdfFile(path);
-		writeFile.open(variableName, shape);
+		NetcdfFile ncWriteFile = convertFileToNetcdfFile(writeFile);
+		ncWriteFile.open(variableName, shape);
 	}
 
 
@@ -341,6 +342,50 @@ public class Place {
 		File file = getFileFromFileTable(fileDescriptor);
 		TxtFile txtFile = convertFileToTxtFile(file);
 		return txtFile.read(getPlaceOrderPerNode());
+	}
+
+	/**
+	 * A single Place opens a file specified by the given filePath (TxtFile).
+	 *
+	 * @param filepath the filepath of the file to be opened
+	 * @return unique file descriptor for the newly opened file
+	 */
+	protected boolean openForWrite(String filepath, int size) throws IOException {
+		if(writeFile == null)
+			synchronized (WRITE_FILE_LOCK) {
+				if(writeFile == null) {
+					openFileUsingOnePlaceForWrite(filepath, size);
+				}
+			}
+		return writeFile != null;
+	}
+
+	/**
+	 * Opens the file only if the file has not been opened and added to the fileTable
+	 * @param filepath file to open for write
+	 */
+	private void openFileUsingOnePlaceForWrite(String filepath, int size) throws IOException {
+		Path path = Paths.get(filepath);
+		writeFile = new TxtFile(path);
+		TxtFile txtWriteFile = convertFileToTxtFile(writeFile);
+		txtWriteFile.open(FOR_WRITE,size);
+	}
+
+
+	/**
+	 * Write a specific portion of the a Txt file's variable based on this place's order into a buffer
+	 *
+	 * @param dataToWrite data to be written
+	 */
+	public void write(int fileDescriptor, byte[] dataToWrite)
+			throws IOException, InvalidRangeException, InvalidNumberOfPlacesException {
+		TxtFile txtWriteFile = convertFileToTxtFile(writeFile);
+		boolean doneWriting = txtWriteFile.write(dataToWrite, getPlaceOrderPerNode());
+		logger.debug("JAS JAS -- place " + getPlaceOrderPerNode() + " doneWriting = " + doneWriting );
+		if(doneWriting) {
+			logger.debug("JAS JAS -- I am done " + getPlaceOrderPerNode());
+			txtWriteFile.close();
+		}
 	}
 
 	/**
@@ -387,7 +432,6 @@ public class Place {
 		if(writeFile != null) {
 			writeFile.close(); // maybe use a separate close function for closing writeFile?!
 		}
-
 		if (fileTable.containsKey(fileDescriptor)) {
 			File file = fileTable.remove(fileDescriptor);
 			filesAttemptedToClose.put(fileDescriptor, false);
