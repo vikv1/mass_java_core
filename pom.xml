@@ -59,28 +59,9 @@
 
 	<repositories>
 		<repository>
-    		<id>uwb-css-artifactory-release</id>
-    		<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
-    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
-    		<snapshots>
-        		<enabled>false</enabled>
-    		</snapshots>
-		</repository>
-		<repository>
-    		<id>uwb-css-artifactory-snapshot</id>
-    		<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
-    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
-    		<releases>
-        		<enabled>false</enabled>
-    		</releases>
-    		<snapshots>
-        		<enabled>true</enabled>
-    		</snapshots>
-		</repository>  
-		<!-- backup repository - in case MASS build server not responding -->
-		<repository>
-     			<id>MVNRepository</id>
-     			<url>http://http://mvnrepository.com</url>
+			<id>uwb-css-release</id>
+			<name>UWB CSS Distributed Systems Lab Maven Repository Manager - Release Only</name>
+			<url>http://depts.washington.edu/dslab/maven</url>
 		</repository>
 	</repositories>
 
