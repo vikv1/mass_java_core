@@ -68,6 +68,16 @@ class Utilities {
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	/**
+	 * Compatibility method to prevent breakage until "launchRemoteProcess" is used instead
+	 * @param command The "exec" command to execute upon connection
+	 * @param remoteNode An MNode instance representing the remote host
+	 */
+	@Deprecated
+	protected void LaunchRemoteProcess( String command, MNode remoteNode ) {
+		launchRemoteProcess( command, remoteNode );
+	};
+	
+	/**
 	 * Obtain a communications channel with a remote host and execute a command.
 	 * This method sets Input and Output streams in the supplied MNode, so that 
 	 * consumers will have access to the host. Also note that the
@@ -78,7 +88,7 @@ class Utilities {
 	 * @param command The "exec" command to execute upon connection
 	 * @param remoteNode An MNode instance representing the remote host
 	 */
-    protected void LaunchRemoteProcess( String command, MNode remoteNode ) {
+    protected void launchRemoteProcess( String command, MNode remoteNode ) {
     	
     	// must provide required parameters
     	if ( command == null || command.length() == 0 )
@@ -196,7 +206,8 @@ class Utilities {
 		}
 		catch (UnknownHostException e) {
 
-			// no biggie, at least not now
+			// no biggie, at least not now, but should be logged at least
+			logger.warning("Unable to determine hostname when requested");
 			
 		}
 

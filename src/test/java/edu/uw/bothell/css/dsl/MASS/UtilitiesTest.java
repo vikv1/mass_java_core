@@ -30,152 +30,128 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Properties;
+
+import org.easymock.Capture;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Test;
 
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+
 /**
  * Perform a series of unit tests against the Utilities class to verify proper
  * and consistent behavior of the class / methods
- * 
- * @author Matthew Sell
- *
  */
 public class UtilitiesTest extends AbstractTest {
 
+	private static final int DEFAULT_PORT = 22;
+	private static final int DEFAULT_SESSION_TIMEOUT_MS = 30000;
+	
 	@TestSubject
 	private Utilities utilities = new Utilities();
 	
-//	@Mock
-//	private JSch mockJsch;
+	@Mock
+	private MNode mockRemoteNode;
 	
-//	@Mock
-//	private Session mockSession;
+	@Mock
+	private JSch mockJsch;
+	
+	@Mock
+	private Session mockSession;
 
-//	@Mock
-//	private ChannelExec mockChannelExec;
+	@Mock
+	private ChannelExec mockChannelExec;
 	
-//	@Test
-//	public void testLaunchRemoteProcess() throws Exception {
-//		
-//		String command = randomString(32);
-//		
-//		MNode remoteNode = new MNode();
-//		remoteNode.setHostName(randomString(32));
-//		remoteNode.setUserName(randomString(32));
-//		remoteNode.setPrivateKey(randomString(32));
-//		
-//		// first, the JSCH library will define a session for the remote host
-//		expect( mockJsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), 22 ) ).andReturn( mockSession );
-//		
-//		// should set private key
-//		mockJsch.addIdentity(remoteNode.getPrivateKey());
-//		
-//		// Session will have a configuration property added to disable strict host checking
-//		Capture<Properties> capturedProperties = new Capture<Properties>();
-//		mockSession.setConfig( capture(capturedProperties) );
-//		
-//		// connection will be completed, via Session
-//		mockSession.connect();
-//		
-//		// a Channel will be opened, in "exec mode"
-//		expect( mockSession.openChannel("exec") ).andReturn(mockChannelExec);
-//		
-//		// command set within the Channel, but not executed yet
-//		mockChannelExec.setCommand(command);
-//		
-//		// put mocks into replay mode
-//		replayAll();
-//		
-//		// call the method under test
-//		utilities.LaunchRemoteProcess(command, remoteNode);
-//		
-//		// make sure the strict host key check disable property was set
-//		capturedProperties.getValue().containsKey("StrictHostKeyChecking");
-//		assertEquals("no", (String) capturedProperties.getValue().get("StrictHostKeyChecking"));
-//		
-//		/*String command = randomString( 32 );
-//		String hostName = randomString( 32 );
-//		String passWord = randomString( 32 );
-//		int portNumber = randomInt();
-//		String userName = randomString( 32 );
-//		
-//		// first, the JSCH library will attempt to connect to the remote host
-//		expect( mockJsch.getSession( userName, hostName, portNumber )).andReturn( mockSession );
-//		
-//		// second, user information is associated with the Session
-//		Capture<UserInfo> capturedUserInfo = new Capture<UserInfo>();
-//		mockSession.setUserInfo( capture( capturedUserInfo ) );
-//		
-//		// connection will be completed, via Session
-//		mockSession.connect();
-//		
-//		// a Channel will be opened, in "exec mode"
-//		expect( mockSession.openChannel( "exec" ) ).andReturn( mockChannelExec );
-//		
-//		// command set within the Channel, but not executed yet
-//		mockChannelExec.setCommand( command );
-//		
-//		// put mocks into replay mode
-//		replayAll();
-//		
-//		// call the method under test
-//		utilities.LaunchRemoteProcess(hostName, portNumber, command, userName, passWord);
-//		
-//		// make sure the proper credentials were supplied to the library
-//		UserInfo ui = capturedUserInfo.getValue();
-//		assertEquals( passWord, ui.getPassword() );
-//		assertNull( ui.getPassphrase() );
-//
-//		// test proper (consistent!) behavior of the user credentials object
-//		assertTrue( ui.promptPassphrase( randomString( 32 ) ) );	// any passphrase prompt returns TRUE
-//		assertTrue( ui.promptPassword( randomString( 32 ) ) );		// any password prompt returns TRUE
-//		assertTrue( ui.promptYesNo( randomString( 32 ) ) );			// any yes/no prompt returns TRUE
-//		
-//		// attempting to show a message should NOT result in an Exception
-//		ui.showMessage( randomString( 32 ) );*/
-//		
-//	}
-	
-//	@Test
-//	public void handleConnectionException() throws Exception {
-//
-//		Channel returnChannel = null;
-//
-//		//expect( mockJsch.getSession("username", "host", 22) ).andThrow(new JSchException());
-//		MNode remoteNode = new MNode();
-//		remoteNode.setHostName(randomString(32));
-//		remoteNode.setUserName(randomString(32));
-//		remoteNode.setPrivateKey(randomString(32));
-//		
-//		expect( mockJsch.getSession(remoteNode.getUserName(), remoteNode.getHostName(), 22) ).andThrow(new JSchException());
-//		mockJsch.addIdentity(remoteNode.getPrivateKey());
-//
-//		// put mocks into replay mode
-//		replayAll();
-//
-//		try {
-//			
-//			//returnChannel = utilities.LaunchRemoteProcess("host", 22, null, "username", null);
-////			returnChannel = utilities.LaunchRemoteProcess("a command", remoteNode);
-//			
-//		}
-//		
-//		catch(Exception e) {
-//			
-//			// we NOT expect an exception
-//			fail("Should have swallowed a connection exception!");
-//			
-//		}
-//		
-//		assertNull(returnChannel);
-//		
-//	}
+	@Mock
+	private ObjectInputStream mockObjectInputStream;
+
+	@Mock
+	private ObjectOutputStream mockObjectOutputStream;
 	
 	@Test
-	public void testHostnameDetect() throws Exception {
+	public void launchRemoteProcess() throws Exception {
+		
+		String command = randomString( 32 );
+		
+		MNode remoteNode = new MNode();
+		remoteNode.setHostName( randomString( 32 ));
+		remoteNode.setUserName( randomString( 32 ));
+		remoteNode.setPrivateKey( randomString( 32 ));
+		
+		// first, the JSCH library will define a session for the remote host
+		expect( mockJsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), DEFAULT_PORT ) ).andReturn( mockSession );
+		
+		// should set private key
+		mockJsch.addIdentity( remoteNode.getPrivateKey() );
+		
+		// Session will have a configuration property added to disable strict host checking
+		Capture<Properties> capturedProperties = new Capture<Properties>();
+		mockSession.setConfig( capture(capturedProperties) );
+		
+		// connection will be completed, via Session
+		mockChannelExec.connect( DEFAULT_SESSION_TIMEOUT_MS );
+		mockSession.connect();
+		
+		// a Channel will be opened, in "exec mode"
+		expect( mockSession.openChannel( "exec" ) ).andReturn( mockChannelExec );
+		
+		// command set within the Channel, but not executed yet
+		mockChannelExec.setCommand( command );
+		
+		// input/output streams will be associated with the session now
+		// the exact streams aren't important, just the fact that they're bound to the node
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	    ObjectOutputStream os = new ObjectOutputStream(out);
+	    os.writeObject( new Message() );
+		expect( mockChannelExec.getOutputStream() ).andReturn( out );
+		expect( mockChannelExec.getInputStream() ).andReturn( new ByteArrayInputStream( out.toByteArray() ) );
+		
+		replayAll();
+		
+		// call the method under test
+		utilities.launchRemoteProcess( command, remoteNode );
+		
+		// make sure the strict host key check disable property was set
+		capturedProperties.getValue().containsKey( "StrictHostKeyChecking" );
+		assertEquals( "no", ( String ) capturedProperties.getValue().get( "StrictHostKeyChecking" ) );
+
+		// make sure public key is the preferred method of authentication
+		capturedProperties.getValue().containsKey( "PreferredAuthentications" );
+		assertEquals( "publickey", ( String ) capturedProperties.getValue().get( "PreferredAuthentications" ) );
+		
+	}
+	
+	@Test
+	public void disconnectRemoteNode() throws Exception {
+		
+		// debug message will get PID of remote node
+		expect( mockRemoteNode.getPid() ).andReturn( randomInt() );
+		
+		// Utilities will instruct MNode to close connections
+		mockRemoteNode.closeMainConnection();
+		
+		replayAll();
+		
+		utilities.disconnectRemoteNode( mockRemoteNode );
+		
+		// TODO - need to verify channels are being closed, but hashmap in Utilities prevents this
+		
+	}
+	
+	@Test
+	public void getLocalHostname() throws Exception {
 
 		// put mocks into replay mode (even though this method isn't using mock
 		// objects, the ones that exist must be in replay mode for teardown
@@ -186,6 +162,24 @@ public class UtilitiesTest extends AbstractTest {
 		// logging filename should include a real hostname or IP address
 		assertNotNull(hostname);
 		
+	}
+	
+	@Test( expected = IllegalArgumentException.class)
+	public void launchRemoteProcessNullExecCommand() throws Exception {
+		replayAll();
+		utilities.launchRemoteProcess( null , null );
+	}
+
+	@Test( expected = IllegalArgumentException.class)
+	public void launchRemoteProcessZeroLengthExecCommand() throws Exception {
+		replayAll();
+		utilities.launchRemoteProcess( "" , null );
+	}
+
+	@Test
+	public void disconnectNullMNodeNoException() throws Exception {
+		replayAll();
+		utilities.disconnectRemoteNode( null );
 	}
 
 }

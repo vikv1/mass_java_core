@@ -40,9 +40,6 @@ import org.junit.runner.RunWith;
 
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
- * 
- * @author Matthew Sell
- *
  */
 @Ignore
 @RunWith(EasyMockRunner.class)
