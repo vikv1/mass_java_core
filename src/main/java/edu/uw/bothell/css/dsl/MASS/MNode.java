@@ -85,11 +85,11 @@ public class MNode {
 
 		} catch( Exception e ) {
 
-			logger.error( "closeMainConnection error with rank[" + pid + 
-					"] at " + hostName, e );
-			System.exit( -1 );
+			logger.warning( "closeMainConnection error with rank[" + pid + "] at " + hostName );
 
 		}
+		
+		// don't stop MASS from executing, it may need to continue shutting down other nodes
 
 	}
 
