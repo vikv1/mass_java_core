@@ -47,6 +47,9 @@ public class AbstractTest extends EasyMockSupport {
 
     // Toggle for enabling Unicode in unit Tests
     private static final boolean ENABLE_UNICODE = false;
+    
+    // when not specified, length of a random string
+    private static final int DEFAULT_RANDOM_STRING_LENGTH = 32;
 
     private static Random random = new Random(System.currentTimeMillis());
 
@@ -155,12 +158,20 @@ public class AbstractTest extends EasyMockSupport {
     }
 
     /**
-     * Generate a string of random characters
+     * Generate a string of random characters of default length
+     *@returns A string of random characters
+    */
+    protected static String randomString() {
+    	return randomString( DEFAULT_RANDOM_STRING_LENGTH );
+    }
+    
+    /**
+     * Generate a string of random characters of specified length
      *
      *@param length The length to the string to be generated
      *@returns A string of random characters of the length specified
     */
-    protected static synchronized String randomString(int length) {
+    protected static String randomString(int length) {
     
         StringBuffer returnString = new StringBuffer("");
         

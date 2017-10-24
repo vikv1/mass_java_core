@@ -57,8 +57,16 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
-	private LogLevel logLevel;			// custom logging level for this node
-	private String logFileName;			// custom logging filename for this node
+	// reset the object outputstream (Message sender) after this many transmits
+	private static final int RESET_OUTPUTSTREAM_COUNT = 5;
+	
+	
+	@SuppressWarnings("unused")
+	private LogLevel logLevel;			// TODO - custom logging level for this node
+	
+	@SuppressWarnings("unused")
+	private String logFileName;			// TODO - custom logging filename for this node
+	
 	private String hostName;			// the host name of this node
 	private String userName;			// for SSH login, the username - optional
 	private String javaHome;			// where the JVM is installed on this node - optional
@@ -236,12 +244,14 @@ public class MNode {
 			logger.debug("Message sent!");
 			mainOOS.flush( );
 			logger.debug("Object outputstream flushed");
-                        
+            
+			// is it time to reset the outputstream?
+			// TODO - this is a kludge! Do we really need to do this?
 			resetCounter++;
-			if(resetCounter == 5){
-				logger.debug("Resetting object outputstream...");
+			if ( resetCounter == RESET_OUTPUTSTREAM_COUNT ) {
+				logger.debug( "Resetting object outputstream... ");
 				mainOOS.reset();
-				logger.debug("Stream reset!");
+				logger.debug( "Stream reset!" );
 				resetCounter = 0;
 			}
 

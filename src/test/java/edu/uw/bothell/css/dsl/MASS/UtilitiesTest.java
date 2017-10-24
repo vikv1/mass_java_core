@@ -83,12 +83,12 @@ public class UtilitiesTest extends AbstractTest {
 	@Test
 	public void launchRemoteProcess() throws Exception {
 		
-		String command = randomString( 32 );
+		String command = randomString();
 		
 		MNode remoteNode = new MNode();
-		remoteNode.setHostName( randomString( 32 ));
-		remoteNode.setUserName( randomString( 32 ));
-		remoteNode.setPrivateKey( randomString( 32 ));
+		remoteNode.setHostName( randomString() );
+		remoteNode.setUserName( randomString() );
+		remoteNode.setPrivateKey( randomString() );
 		
 		// first, the JSCH library will define a session for the remote host
 		expect( mockJsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), DEFAULT_PORT ) ).andReturn( mockSession );
@@ -113,7 +113,7 @@ public class UtilitiesTest extends AbstractTest {
 		// input/output streams will be associated with the session now
 		// the exact streams aren't important, just the fact that they're bound to the node
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-	    ObjectOutputStream os = new ObjectOutputStream(out);
+	    ObjectOutputStream os = new ObjectOutputStream( out );
 	    os.writeObject( new Message() );
 		expect( mockChannelExec.getOutputStream() ).andReturn( out );
 		expect( mockChannelExec.getInputStream() ).andReturn( new ByteArrayInputStream( out.toByteArray() ) );
