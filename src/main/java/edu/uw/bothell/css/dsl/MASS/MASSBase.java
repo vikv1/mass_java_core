@@ -86,15 +86,6 @@ public class MASSBase {
     // helper classes
     private static Utilities utilities = new Utilities();
 
-//    /**
-//     *  Agents async migrate out and into this node
-//     */
-    //private static volatile int[] outAgents, inAgents;
-    
-//    /**
-//     * END Async vars section
-//     */
-
 	/**
      * Add a new node to the cluster
      * @param node The node to add to the cluster
@@ -503,7 +494,6 @@ public class MASSBase {
 		// has MASS been initialized yet?
 		if (thisNode == null) return;
 		
-		//		System.err.println("setWorkingDir = " + workingDirectory);
 		thisNode.setMassHome( workingDirectory );
 		
 	}
