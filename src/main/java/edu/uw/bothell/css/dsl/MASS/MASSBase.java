@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -191,9 +192,13 @@ public class MASSBase {
 	public static ExchangeHelper getExchange() {
 		return exchange;
 	}
-	
+
+	/**
+	 * Get all hosts, as a collection of host names
+	 * @return All host names used as MASS nodes
+	 */
 	public static Vector<String> getHosts() {
-		return hosts;
+		return new Vector<>( allNodes.stream().map( MNode::getHostName ).collect( Collectors.toList() ) );
 	}
 	
 	/**
@@ -512,8 +517,8 @@ public class MASSBase {
     		
     		String convert = "Hosts: ";
     		
-    		for ( int i = 0; i < hosts.size( ); i++ ) {
-    			convert += "rank[" + i + "] = " + hosts.get(i) + " ";
+    		for (MNode node : allNodes ) {
+    			convert += "rank[" + node.getPid() + "] = " + node.getHostName() + " ";
     		}
     		
     		logger.debug( convert );
