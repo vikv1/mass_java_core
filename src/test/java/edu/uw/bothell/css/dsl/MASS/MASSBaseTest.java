@@ -34,6 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.easymock.TestSubject;
 import org.junit.After;
@@ -45,13 +46,21 @@ public class MASSBaseTest extends AbstractTest {
 	private MASSBase massBase = new MASSBase();
 	
 	@After
+	@SuppressWarnings("static-access")
 	public void tearDown() {
 
 		// perform normal cleanup activities
 		super.tearDown();
 		
 		// reset test subject fields
-		
+		massBase.setCurrentArgument( null );
+		massBase.setCurrentFunctionId( 0 );
+		massBase.setCurrentMsgType( null );
+		massBase.setCurrentAgentsBase( null );
+		massBase.setCurrentAgentsBase( null );
+		massBase.setCurrentReturns( null );
+		massBase.setDestinationPlaces( null );
+
 	}
 
 	@Test
@@ -62,12 +71,12 @@ public class MASSBaseTest extends AbstractTest {
 		MASSBase mb = new MASSBase();
 
 		// init without specifying a hostname in node config
-		mb.initMASSBase(new MNode());
+		mb.initMASSBase( new MNode() );
 		
 		// should generate a valid logging filename, with a valid host
 		String loggingFilename = mb.getLogFileName();
-		assertNotNull(loggingFilename);
-		assertFalse(loggingFilename.toLowerCase().contains("null"));
+		assertNotNull( loggingFilename );
+		assertFalse( loggingFilename.toLowerCase().contains( "null" ) );
 		
 	}
 	
@@ -96,7 +105,7 @@ public class MASSBaseTest extends AbstractTest {
 		
 		// add a single master node
 		MNode masterNode = new MNode();
-		masterNode.setHostName( "master" );
+		masterNode.setHostName( randomString() );
 		masterNode.setMaster( true );
 		mb.addNode( masterNode );
 		
@@ -112,7 +121,7 @@ public class MASSBaseTest extends AbstractTest {
 		
 		// add a remote node
 		MNode remoteNode = new MNode();
-		remoteNode.setHostName( "remote" );
+		remoteNode.setHostName( randomString() );
 		mb.addNode( remoteNode );
 		
 		// verify node representations
@@ -131,6 +140,171 @@ public class MASSBaseTest extends AbstractTest {
 	@SuppressWarnings("static-access")
 	public void getLogger() throws Exception {
 		assertNotNull( massBase.getLogger() );
+		
+	}
+	
+	@Test
+	@SuppressWarnings("static-access")
+	public void getAgents() throws Exception {
+		
+		// agents collection is managed by Agents (bad practice!)
+		// only thing to do here is make sure it doesn't throw an exception
+		assertNull( massBase.getAgents( 0 ) );
+		
+	}
+	
+	@Test
+	@SuppressWarnings("static-access")
+	public void getAgentsMap() throws Exception {
+		
+		// agents collection is managed by Agents (bad practice!)
+		// only thing to do here is make sure it isn't NULL on startup
+		assertNotNull( massBase.getAgentsMap() );
+		assertEquals( 0, massBase.getAgentsMap().size() );
+		
+	}
+	
+	@Test
+	@SuppressWarnings("static-access")
+	public void getCores() throws Exception {
+		
+		// should be non-zero, since it's calculated at runtime
+		assertTrue( massBase.getCores() > 0 );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentAgentsBase() throws Exception {
+
+		// testing in isolation...
+		MASSBase mb = new MASSBase();
+		
+		// add a single master node
+		MNode masterNode = new MNode();
+		masterNode.setHostName( randomString() );
+		masterNode.setMaster( true );
+		mb.addNode( masterNode );
+		
+		// "init" MASSBase to set it's own node
+		mb.initMASSBase( masterNode );
+
+		// force PlacesMap to something to prevent NPE
+		PlacesBase pb = new PlacesBase( 1 , null, 0, null, new int[0] );
+		mb.getPlacesMap().put( 1, pb );
+		
+		// nonsensical AgentsBase just for testing
+		// classloader throws an exception during instantiation, but who cares - we're not testing AgentsBase here 
+		AgentsBase ab = new AgentsBase( 1, Message.class.getName(), null, 1, 1 );
+		
+		// should not be an existing association
+		assertNull( mb.getCurrentAgentsBase() );
+		
+		// set the current AgentsBase
+		mb.setCurrentAgentsBase( ab );
+		
+		// should be there
+		assertEquals( ab, mb.getCurrentAgentsBase() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentArgument() throws Exception {
+		
+		// should not have a current argument
+		assertNull( massBase.getCurrentArgument() );
+		
+		// set one, and check
+		String testObj = randomString();
+		massBase.setCurrentArgument( testObj );
+		assertEquals( testObj, massBase.getCurrentArgument() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentFunctionId() throws Exception {
+		
+		// should not have a current function ID
+		assertEquals( 0,  massBase.getCurrentFunctionId() );
+		
+		// set one, and check
+		int functionId = randomInt();
+		massBase.setCurrentFunctionId( functionId );
+		assertEquals( functionId, massBase.getCurrentFunctionId() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentMessageType() throws Exception {
+		
+		// should not have a current message type
+		assertNull( massBase.getCurrentMsgType() );
+		
+		// set one, and check
+		massBase.setCurrentMsgType( Message.ACTION_TYPE.ACK );
+		assertEquals( Message.ACTION_TYPE.ACK, massBase.getCurrentMsgType() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentPlacesBase() throws Exception {
+
+		// testing in isolation...
+		MASSBase mb = new MASSBase();
+		
+		// add a single master node
+		MNode masterNode = new MNode();
+		masterNode.setHostName( randomString() );
+		masterNode.setMaster( true );
+		mb.addNode( masterNode );
+		
+		// "init" MASSBase to set it's own node
+		mb.initMASSBase( masterNode );
+
+		// should not be an existing association
+		assertNull( mb.getCurrentPlacesBase() );
+
+		// force PlacesMap to something to prevent NPE
+		PlacesBase pb = new PlacesBase( 1 , null, 0, null, new int[0] );
+		mb.getPlacesMap().put( 1, pb );
+		
+		// set the current PlacesBase
+		mb.setCurrentPlacesBase( pb );
+		
+		// should be there
+		assertEquals( pb, mb.getCurrentPlacesBase() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetCurrentReturns() throws Exception {
+		
+		// should not have a current returns array
+		assertNull( massBase.getCurrentReturns() );
+		
+		// set one, and check
+		String[] testObj = new String[0];
+		massBase.setCurrentReturns( testObj );
+		assertNotNull( massBase.getCurrentReturns() );
+		
+	}
+
+	@Test
+	@SuppressWarnings("static-access")
+	public void getSetDestinationPlaces() throws Exception {
+		
+		// should not have a current destination
+		assertNull( massBase.getDestinationPlaces() );
+		
+		// set one, and check
+		PlacesBase pb = new PlacesBase( 1 , null, 0, null, new int[0] );
+		massBase.setDestinationPlaces( pb );
+		assertEquals( pb,  massBase.getDestinationPlaces() );
 		
 	}
 

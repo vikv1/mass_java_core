@@ -120,10 +120,19 @@ public class MASSBase {
     	
     }
 
+    /**
+     * Get Agents class for a specific Agents Handle ID
+     * @param handle The Agents Handle ID to retrieve
+     * @return The Agents class having the specified Handle ID
+     */
 	public static Agents getAgents( int handle ) {
     	return ( Agents )agentsMap.get( new Integer( handle ) );
     }
 	
+	/**
+	 * Get the collection of Agents currently residing on this node (as AgentsBase)
+	 * @return The Agents (as AgentsBase) located on this node
+	 */
 	public static Hashtable<Integer, AgentsBase> getAgentsMap() {
 		return agentsMap;
 	}
@@ -144,18 +153,34 @@ public class MASSBase {
 		return Runtime.getRuntime().availableProcessors();
     }
 	
+	/**
+	 * Get the current AgentsBase this node is working with
+	 * @return The current AgentsBase this node is using
+	 */
 	public static AgentsBase getCurrentAgentsBase( ) {
     	return currentAgentsBase;
     }
 	
+	/**
+	 * Get the current argument (supplied to MProcess)
+	 * @return The current argument used by MProcess
+	 */
 	public static Object getCurrentArgument( ) { 
     	return currentArgument;
     }
 	
+	/**
+	 * Get the current function ID that Agents are executing
+	 * @return The current Agents function ID
+	 */
 	public static int getCurrentFunctionId( ) { 
     	return currentFunctionId; 
     }
 	
+	/**
+	 * Get the current Message type enumeration, used by MThread
+	 * @return The current Message type enumeration
+	 */
 	public static Message.ACTION_TYPE getCurrentMsgType( ) { 
     	return currentMsgType;
     }
@@ -168,10 +193,18 @@ public class MASSBase {
     	return currentPlacesBase;
     }
 	
+    /**
+     * Get the current returns from Places or Agents resulting from the last callAll
+     * @return Current returns array
+     */
     public static Object[] getCurrentReturns() {
 		return currentReturns;
 	}
 
+    /**
+     * Get the PlacesBase representing the destination for an Agent
+     * @return Destination PlacesBase
+     */
 	public static PlacesBase getDestinationPlaces( ) { 
     	return destinationPlaces; 
     }
@@ -396,22 +429,39 @@ public class MASSBase {
 		//requestCounter = 0;
 	}
 	
-	public static void setAgentsMap(Hashtable<Integer, AgentsBase> agentsMap) {
-		MASSBase.agentsMap = agentsMap;
-	}
+	// TODO - remove this method - it doesn't appear to be used
+//	public static void setAgentsMap(Hashtable<Integer, AgentsBase> agentsMap) {
+//		MASSBase.agentsMap = agentsMap;
+//	}
 
+	/**
+	 * Set the current AgentsBase this node is working with
+	 * @param currentAgents The current AgentsBase object
+	 */
 	public static void setCurrentAgentsBase(AgentsBase currentAgents) {
 		MASSBase.currentAgentsBase = currentAgents;
 	}
 	
+	/**
+	 * Set the current argument (supplied to MProcess)
+	 * @param currentArgument The current argument to be used by MProcess
+	 */
 	public static void setCurrentArgument(Object currentArgument) {
 		MASSBase.currentArgument = currentArgument;
 	}
 
+	/**
+	 * Set the current function ID that Agents will execute
+	 * @param currentFunctionId The current Agents function ID to execute
+	 */
 	public static void setCurrentFunctionId(int currentFunctionId) {
 		MASSBase.currentFunctionId = currentFunctionId;
 	}
 
+	/**
+	 * Set the current Message type enumeration, used by MThread
+	 * @param currentMsgType The Message type enumeration to be used by MThread
+	 */
     public static void setCurrentMsgType(Message.ACTION_TYPE currentMsgType) {
 		MASSBase.currentMsgType = currentMsgType;
 	}
@@ -424,10 +474,18 @@ public class MASSBase {
 		MASSBase.currentPlacesBase = currentPlaces;
 	};
 
+    /**
+     * set the current returns from Places or Agents resulting from the last callAll
+     * @param currentReturns Returns array result from callAll
+     */
     public static void setCurrentReturns(Object[] currentReturns) {
 		MASSBase.currentReturns = currentReturns;
 	}
     
+    /**
+     * Set the PlacesBase representing the destination for an Agent
+     * @param destinationPlaces The destination PlacesBase
+     */
     public static void setDestinationPlaces(PlacesBase destinationPlaces) {
 		MASSBase.destinationPlaces = destinationPlaces;
 	}
