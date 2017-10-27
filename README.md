@@ -8,18 +8,26 @@ For more than the last two decades, multi-agent simulations have been highlighte
 More information about MASS can be found out the University of Washington Distributed Systems Lab [Homepage](http://depts.washington.edu/dslab/MASS).
 
 #Documentation
-You may find documentation regarding the Java version of the MASS library in the [Wiki](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/Home)
+You may find documentation regarding the Java version of the MASS library in the [Wiki](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/Home). If you want to try out a version of the library that is still in active development, clone the "develop" branch and refer to the "MASS Developer's Guide" for instructions on building the library.
 
-# Building The Core Library #
-## Overview ##
-The core library is structured around [Maven](https://maven.apache.org). MASS-Java takes advantage of the dependency management and build functionality of Maven; Maven will need to be installed on your computer to build a properly functioning JAR. Maven is a popular tool for managing the development and maintenance lifecycle of Java applications; it is recommended that you visit the Maven home site and become familiar with its' use. In particular, check out the following topics:
+# Getting Started
+## Maven-enabled Project
+If you are using Maven, add the following repository to your POM:
 
-* [What is Maven?](https://maven.apache.org/what-is-maven.html)
-* [Build cycle overview](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
-* [IDE Integration](https://maven.apache.org/ide.html)
-* [POM Reference](https://maven.apache.org/pom.html) (further reading)
+	<repository>
+		<id>uwb-css-dsl-release</id>
+		<name>UWB CSS Distributed Systems Lab Maven Repository</name>
+		<url>http://depts.washington.edu/dslab/maven</url>
+	</repository>
 
-## Installing Maven ##
-Some Java IDEs include Maven (such as [NetBeans](https://netbeans.org) and [IntelliJ IDEA](https://www.jetbrains.com/idea)), others such as [Eclipse](https://eclipse.org) require a [plugin](http://www.eclipse.org/m2e). If you decide to use an IDE plugin or native functionality, refer to IDE documentation. For Linux, check to see if there is a installation package available for your distribution. For Windows (and Linux), you may use the ZIP archive available on the Maven home site. If you plan to use Maven from the command line, test your installation using the command "mvn --version". If the installation is correct, you should see version and environment information returned by Maven. 
-## Building the Library ##
-The project is configured to build when Maven is instructed to execute the "package" build phase. If you are using an IDE plugin or built-in Maven support, refer to IDE instructions for starting the "package" phase. From the command line, "mvn package" executed at the top-level project directory will start the phase. Maven will automatically download any necessary dependencies, compile classes, and create the final JAR artifact. The JAR will be located in the "target" directory; Maven will place the final JAR in this location regardless of the invocation method (IDE, plugin, or command-line).
+... and add the library as a dependency:
+
+	<dependency>
+		<groupId>edu.uw.bothell.css.dsl.mass</groupId>
+		<artifactId>mass-core</artifactId>
+		<version>1.0.0-RELEASE</version>
+		<scope>compile</scope>
+	</dependency>
+
+## Non-Maven Project
+You may download the JAR from the "Downloads" section of this repository. All dependencies that MASS requires are built into the JAR; you do not need to add anything else to your project.
