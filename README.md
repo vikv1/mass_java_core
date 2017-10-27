@@ -30,4 +30,4 @@ If you are using Maven, add the following repository to your POM:
 	</dependency>
 
 ## Non-Maven Project
-You may download the JAR from the "Downloads" section of this repository. All dependencies that MASS requires are built into the JAR; you do not need to add anything else to your project.
+You may download the JAR from the [Downloads](https://bitbucket.org/mass_library_developers/mass_java_core/downloads/) section of this repository. All dependencies that MASS requires are built into the JAR; you do not need to add anything else to your project.
