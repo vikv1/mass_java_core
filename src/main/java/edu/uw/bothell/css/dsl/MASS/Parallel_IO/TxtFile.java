@@ -72,13 +72,12 @@ public class TxtFile extends File {
 
     private void openForWrite(int size) throws IOException {
         String tempFileName = filepath.toString();
-        tempFileName = tempFileName.replace(".txt", "xx.txt");
+        tempFileName = tempFileName.replace(".txt", "_.txt");
         java.io.File newFile = new java.io.File(tempFileName);
         if(newFile.createNewFile()) {
             Path tempFilePath = Paths.get(tempFileName);
             fileChannel = FileChannel.open(tempFilePath, OpenOperations[1]);
             //dataOut = ByteBuffer.allocateDirect(size);
-            logger.debug("JAS  size = " +size);
             dataOut = ByteBuffer.allocate(size);
         }
     }
@@ -91,9 +90,7 @@ public class TxtFile extends File {
             numberOfPreparedPlace++;
 
             if(numberOfPreparedPlace == myTotalPlaces) {
-                logger.debug("JAS -- I am in " + placeOrder);
                 byte[] b = dataOut.array();
-                logger.debug("JAS -- last place print array = " + Arrays.toString(b));
                 dataOut.rewind();
                 fileChannel.write(dataOut);
                 return true;
@@ -104,13 +101,10 @@ public class TxtFile extends File {
     }
 
     private void fillBufferWithByteData(byte[] dataToWrite, int placeOrder) throws InvalidNumberOfPlacesException {
-        logger.debug("JAS I am here place order = " + placeOrder);
         int placeOffset = getPlaceReadOffset(dataToWrite.length);
         int placeReadLength = getCurrentPlaceReadLength(dataToWrite.length, placeOffset, placeOrder);
         int offset = placeOffset * placeOrder;
         for(int i = offset; i < (offset+placeReadLength); i++) {
-            logger.debug("JAS - Order = " + placeOrder + " i = " + i + " data = " + dataToWrite[i]);
-            logger.debug("JAS - dataOutSize = " + dataOut.array().length);
             dataOut.put(i, dataToWrite[i]);
         }
 

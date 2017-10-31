@@ -75,7 +75,7 @@ public class NetcdfFile extends File {
 
     private void openForWrite(String variableName, int[] shape) throws IOException, InvalidRangeException {
         String tempFilePath = filepath.toString();
-        tempFilePath = tempFilePath.replace(".nc", "xx.nc");
+        tempFilePath = tempFilePath.replace(".nc", "_.nc");
         netcdfFileWriter = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, tempFilePath,null);
 
         prepareAndCreateNetCDFWriteFile(variableName, shape);
@@ -216,6 +216,7 @@ public class NetcdfFile extends File {
             );
 
             if (float.class == variableArray.getElementType()) {
+                logger.debug("JAS JAS JAS getShortName() = " + currentUnreadVariable.getDimensionsString() + " " + currentUnreadVariable.getShortName() + " " + Arrays.toString(currentUnreadVariable.getShape()));
                 float[] allVariableData = (float[]) variableArray.copyTo1DJavaArray();
                 float[] thisNodesVariableData = getIndividualNodeVariableData(allVariableData);
                 readVariables.put(currentUnreadVariable.getShortName(), thisNodesVariableData);

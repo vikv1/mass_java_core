@@ -171,14 +171,15 @@ public class Place {
      */
 	private void openFile(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
-
+		logger.debug("JAS JAS JAS --- N");
 		if (ioType != 0 && ioType != 1) {
 			throw new IllegalArgumentException("ioType must be either 0 (for read) or 1 (for write)");
 		}
-
+		logger.debug("JAS JAS JAS --- O");
 		Path path = Paths.get(filepath);
-
+		logger.debug("JAS JAS JAS --- !Files.exists(path) " + (!Files.exists(path)));
 		if (!Files.exists(path)) {
+			logger.debug("JAS JAS JAS --- P");
 			String filename = filepath.substring(filepath.lastIndexOf('/') + 1, filepath.length());
 			getFileFromHDFS(filename);
 			if (!Files.exists(path)) {
@@ -190,11 +191,15 @@ public class Place {
 				logFormattedDebug(String.format("**************************************************"));
 			}
 		}
-
+		logger.debug("JAS JAS JAS --- Q");
 		edu.uw.bothell.css.dsl.MASS.Parallel_IO.File file = edu.uw.bothell.css.dsl.MASS.Parallel_IO.File.factory(path);
+		logger.debug("JAS JAS JAS --- R");
 		file.open(ioType); // either NetCDFFile open or TxtFile open
+		logger.debug("JAS JAS JAS --- S");
 		incrementFileDescriptors();
+		logger.debug("JAS JAS JAS --- Before " + allPlaceFileDescriptor);
 		fileTable.put(allPlaceFileDescriptor, file);
+		logger.debug("JAS JAS JAS --- After " + allPlaceFileDescriptor);
 
 		logFormattedDebug(
 				this + " or Place %d on node %d opened the file %s with the fd %d",
