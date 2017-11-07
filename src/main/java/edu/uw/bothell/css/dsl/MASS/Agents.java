@@ -192,7 +192,7 @@ public class Agents extends AgentsBase implements Serializable {
   /**
    * Calls the method specified with functionId of all agents. Done in
    * parallel among multi-processes/threads
-   * @param functionId
+   * @param functionId The ID of the Agent method to call
    */
   public void callAll(int functionId) {
     callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
@@ -203,7 +203,7 @@ public class Agents extends AgentsBase implements Serializable {
    * (void) argument to the method. Done in parallel among 
    * multi-processes/threads.
    * @param functionId
-   * @param argument
+   * @param argument The argument to pass to the method when called
    */  public void callAll(int functionId, Object argument) {
     callAllSetup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
@@ -212,14 +212,14 @@ public class Agents extends AgentsBase implements Serializable {
    /**
     * Calls the method specified with functionId of all agents as passing
     * arguments[i] to agent[i]’s method, and receives a return value from it
-    * into (void *)[i] whose element’s size is return_value. Done in parallel
+    * into an array [i] whose element’s size is return_value. Done in parallel
     * among multi-processes/threads. The order of agents depends on the
     * index of a place where they resides, starts from the place[0][0]…[0],
     * and gets increased with the right-most index first and the left-most
     * index last.
-    * @param functionId
-    * @param argument
-    * @return 
+    * @param functionId The ID of the Agent method to call
+    * @param argument The argument to pass to the method when called
+    * @return An array containing return values from the Agents
     */
   public Object callAll(int functionId, Object[] argument) {
     return callAllSetup(functionId, argument,
