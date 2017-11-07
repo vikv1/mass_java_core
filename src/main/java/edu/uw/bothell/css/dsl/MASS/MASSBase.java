@@ -54,7 +54,7 @@ public class MASSBase {
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
 	private static PlacesBase currentPlacesBase = null;
 	private static AgentsBase currentAgentsBase = null;
-	private static ExchangeHelper exchange = new ExchangeHelper( );
+	private static ExchangeHelper exchange;// = new ExchangeHelper( );
 	private static PlacesBase destinationPlaces;
 	private static int currentFunctionId;
 	private static Object currentArgument;
@@ -214,7 +214,20 @@ public class MASSBase {
 	 * @return The ExchangeHelper used by this instance
 	 */
 	public static ExchangeHelper getExchange() {
+		
+		if ( exchange == null ) exchange = new ExchangeHelper();
 		return exchange;
+	
+	}
+
+	/**
+	 * Set the ExchangeHelper used by this instance of MASS_base
+	 * @param The ExchangeHelper used by this instance
+	 */
+	protected static void setExchange( ExchangeHelper exchangeHelper ) {
+		
+		exchange = exchangeHelper;
+	
 	}
 
 	/**
@@ -233,6 +246,10 @@ public class MASSBase {
 		return masterNode;
 	}
 	
+	/**
+	 * Get any outstanding Agent migration requests
+	 * @return Current Agent migration requests
+	 */
 	public static Vector<Vector<AgentMigrationRequest>> getMigrationRequests() {
 		return migrationRequests;
 	}
@@ -248,7 +265,11 @@ public class MASSBase {
 		
 	};
 	
-	
+	/**
+	 * Get Places object for a specific handle ID
+	 * @param handle The ID of the Places object to retrieve
+	 * @return The Places object with the matching handle ID
+	 */
 	public static Places getPlaces( int handle ) {
     	return ( Places )placesMap.get( new Integer( handle ) );
     }
@@ -269,6 +290,10 @@ public class MASSBase {
     	return remoteNodes;
     }
 	
+	/**
+	 * Get any outstanding Remote Agent migration requests
+	 * @return Current Remote Agent migration requests
+	 */
     public static Vector<Vector<RemoteExchangeRequest>> getRemoteRequests() {
 		return remoteRequests;
 	}
@@ -291,6 +316,10 @@ public class MASSBase {
 
 	}
 	
+	/**
+	 * Get the collection of threads managed by MThread
+	 * @return The threads currently being managed by MThread
+	 */
 	public static MThread[] getThreads() {
 		return threads;
 	}
@@ -303,6 +332,11 @@ public class MASSBase {
 		return thisNode.getMassHome();
 	}
 
+	/**
+	 * Initialize MThread and start child execution threads
+	 * @param nThr The number of threads to start (will default to the number of CPU cores at a minimum)
+	 * @return The number of threads to start
+	 */
 	public static boolean initializeThreads( int nThr ) {
 		
 		if ( initialized ) {
@@ -521,6 +555,7 @@ public class MASSBase {
     	}
 
     	// establish inter-MASS connection
+    	if ( exchange == null) exchange = new ExchangeHelper();
     	exchange.establishConnection( getSystemSize(), thisNode.getPid(), hosts, thisNode.getPort() );
 
     }
@@ -533,12 +568,20 @@ public class MASSBase {
 		MASSBase.initialized = initialized;
 	}
     
+	/**
+	 * Set outstanding Agent migration requests
+	 * @param migrationRequests Current Agent migration requests
+	 */
     public static void setMigrationRequests(
 			Vector<Vector<AgentMigrationRequest>> migrationRequests) {
 		MASSBase.migrationRequests = migrationRequests;
 	}
     
-    public static void setRemoteRequests(
+	/**
+	 * Set outstanding Remote Agent migration requests
+	 * @param reportRequests Current Remote Agent migration requests
+	 */
+   public static void setRemoteRequests(
 			Vector<Vector<RemoteExchangeRequest>> remoteRequests) {
 		MASSBase.remoteRequests = remoteRequests;
 	}
