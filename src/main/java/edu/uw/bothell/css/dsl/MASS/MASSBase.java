@@ -71,9 +71,6 @@ public class MASSBase {
 	// for performance, collection of all remote nodes
     private static Vector<MNode> remoteNodes = new Vector<MNode>();
 
-	// for performance, the master node
-    private static MNode masterNode = null;
-
 	// remember the last PID used
     private static int lastPid = 0;
     
@@ -102,7 +99,6 @@ public class MASSBase {
     	if (node.isMaster()) {
 
     		node.setPid(0);		// master node ALWAYS has a PID of zero
-    		masterNode = node;
 
     		logger.debug("This node is the MASTER node");
     		
@@ -243,7 +239,7 @@ public class MASSBase {
 	 * @return The MNode representation of the master node
 	 */
 	public static MNode getMasterNode() {
-		return masterNode;
+		return allNodes.stream().filter( node -> node.isMaster() ).findFirst().orElse( null );
 	}
 	
 	/**
