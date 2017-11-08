@@ -216,7 +216,6 @@ public class NetcdfFile extends File {
             );
 
             if (float.class == variableArray.getElementType()) {
-                logger.debug("JAS JAS JAS getShortName() = " + currentUnreadVariable.getDimensionsString() + " " + currentUnreadVariable.getShortName() + " " + Arrays.toString(currentUnreadVariable.getShape()));
                 float[] allVariableData = (float[]) variableArray.copyTo1DJavaArray();
                 float[] thisNodesVariableData = getIndividualNodeVariableData(allVariableData);
                 readVariables.put(currentUnreadVariable.getShortName(), thisNodesVariableData);
