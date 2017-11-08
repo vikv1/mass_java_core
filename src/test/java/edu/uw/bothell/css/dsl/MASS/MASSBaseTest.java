@@ -40,8 +40,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.easymock.Mock;
-import org.easymock.TestSubject;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -49,9 +48,6 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 public class MASSBaseTest extends AbstractTest {
 
-	@TestSubject
-	private MASSBase massBase = new MASSBase();
-	
 	@Mock
 	private AgentsBase agentsBase;
 	
@@ -470,12 +466,9 @@ public class MASSBaseTest extends AbstractTest {
 
 	}
 
-	@After
-	public void tearDown() {
+	@Before
+	public void setUp() {
 
-		// perform normal cleanup activities
-		super.tearDown();
-		
 		// reset test subject fields
 		MASSBase.getAllNodes().clear();
 		MASSBase.setCurrentArgument( null );
