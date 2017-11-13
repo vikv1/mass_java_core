@@ -45,42 +45,16 @@ import java.util.Vector;
 @SuppressWarnings("serial")
 public class Place implements Serializable {
 
-	/**
-	  * Defines the size of the matrix that consists of application-specific
-	  * places. Intuitively, size[0], size[1], and size[2] correspond to the size
-	  * of x, y, and z, or that of i, j, and k.
-	  */
 	private int[] size;
-	
-	 /**  
-	  * Is an array that maintains each place’s coordinates. Intuitively,
-	  * index[0], index[1], and index[2] correspond to coordinates of x, y, and
-	  * z, or those of i, j, and k. 
-	  */
 	private int[] index;
-	
-	 /** Stores a set arguments to be passed to a set of remote-cell functions
-	  * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
-	  * nearest future. The argument size must be specified with
-	  * outMessage_size. 
-	  */
 	private Object outMessage = null;
-	
-	 /** Receives a return value in inMessages[i] from a function call made to
-	  * the i-th remote cell through exchangeAll( ) and exchangeSome( ).
-	  * Each element size must be specified with inMessage_size. 
-	  */
 	private Object[] inMessages = null;
 	
-	/**
-	 *  Includes all the agents residing locally on this place.
-	 *  Synchronized set is NOT serializable !
-	 *  */
+	// Includes all the agents residing locally on this place. Synchronized set is NOT serializable !
 	private transient Set<Agent> agents = Collections.synchronizedSet( new HashSet<Agent>( ) );
 	
 	private Vector< int[] > neighbors = null;
 
-	/** Specifies if this place is already visited */
 	private boolean visited;
 
 	/**
@@ -145,40 +119,81 @@ public class Place implements Serializable {
 		return agents;
 	}
 	
+	/**
+	 * Get the number of Agents residing in this Place
+	 * @return The number of Agents associated with this Place
+	 */
 	public int getNumAgents() {
 		return agents.size();
 	}
 
+	/**
+	 * To be overridden by a developer - return debug data from this Place
+	 * @return Debug data contained by this Place
+	 */
 	public Number getDebugData()
 	{
 		return null;
 	}
-	
-	// To be overridden by developer - for debugging
+
+	/**
+	 * To be overridden by a developer - set debug data for this Place
+	 * @param argument Debug data for this Place
+	 */
 	public void setDebugData(Number argument) {
 	}
 
+	/**  
+	 * Get the array that maintains each place’s coordinates. Intuitively,
+	 * index[0], index[1], and index[2] correspond to coordinates of x, y, and
+	 * z, or those of i, j, and k.
+	 * @return The coordinates of this Place as an array of indices 
+	 */
 	public int[] getIndex() {
 		return index;
 	}
 
+	/** 
+	 * Get incoming Messages received by this Place
+	 * @return Received incoming messages 
+	 */
 	public Object[] getInMessages() {
 		return inMessages;
 	}
 
+	/**
+	 * Get a collection of indexes representing the location of neighboring Places
+	 * @return Index arrays representing neighboring Places
+	 */
 	public Vector<int[]> getNeighbours() {
 		return neighbors;
 	}
 
+	/**
+	 * Set the collection of indexes representing the location of neighboring Places
+	 * @param neighbors Index arrays representing neighboring Places
+	 */
 	public void setNeighbors(Vector<int[]> neighbors)
 	{
 		this.neighbors = neighbors;
 	}
 
+	/** 
+	 * Get the arguments to be passed to a set of remote-cell functions
+	 * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
+	 * nearest future.
+	 * @return The message to be passed during exchange 
+	 */
 	protected Object getOutMessage() {
 		return outMessage;
 	}
 
+	/**
+	 * Get the out Message destined for a specific Place, given by the offsetIndex
+	 * @param handle The handle ID of the Place
+	 * @param offsetIndex The offset index
+	 * @return The message intended for the specified Place/Index
+	 */
 	public Object getOutMessage( int handle, int[] offsetIndex ) {
 
 		Place dstPlace = findDstPlace( handle, offsetIndex );
@@ -198,6 +213,10 @@ public class Place implements Serializable {
 		return size;
 	}
 
+	/**
+	 * Get the visit status - i.e. if this Place has been visited by an Agent
+	 * @return TRUE if visited by an Agent
+	 */
 	public boolean getVisited()
 	{
 		return visited;
@@ -213,28 +232,56 @@ public class Place implements Serializable {
 	
 	}
 
+	 /**  
+	  * Set the array that maintains each place’s coordinates. Intuitively,
+	  * index[0], index[1], and index[2] correspond to coordinates of x, y, and
+	  * z, or those of i, j, and k.
+	  * @param index The coordinates of this Place as an array of indices 
+	  */
 	protected void setIndex(int[] index) {
 		this.index = index.clone();
 	}
 
-	// To be overridden by developer - for debugging
+	/**
+	 * To be overridden by a developer - set debug data for this Place
+	 * @param argument Debug data for this Place
+	 */
 	public void setDebugData(Object argument) {
 	}
 
+	/** 
+	 * Set incoming Messages received by this Place
+	 * @param inMessages Collection of incoming Messages 
+	 */
 	public void setInMessages(Object[] inMessages) {
 		this.inMessages = inMessages;
 	}
 
+	/** 
+	 * Stores a set of arguments to be passed to a set of remote-cell functions
+	 * that will be invoked by exchangeAll( ) or exchangeSome( ) in the
+	 * nearest future.
+	 * @param outMessage The message to be passed during exchange 
+	 */
 	public void setOutMessage(Object outMessage) {
 		this.outMessage = outMessage;
 	}
 
+	/**
+	 * Set the size of the matrix that consists of application-specific places.
+	 * @param size Matrix size
+	 */
 	protected void setSize(int[] size) {
 		this.size = size.clone();
 	}
 
+	/**
+	 * Set the visit status of this Place by an Agent
+	 * @param visited Set TRUE if visited by an Agent
+	 */
 	public void setVisited(boolean visited)
 	{
 		this.visited = visited;
 	}
+	
 }
