@@ -36,6 +36,9 @@ import java.util.Vector;
 @SuppressWarnings("serial")
 public class Message implements Serializable {
 
+	// until a valid handle ID is supplied, this value is used
+	public static final int VOID_HANDLE = -1;
+
 	/**
 	 * ACTION_TYPE
 	 * A list of actions assigned to numbers.
@@ -77,7 +80,6 @@ public class Message implements Serializable {
     	}
 	}
     
-	private static final int VOID_HANDLE = -1;
     private ACTION_TYPE action;
     private int[] size = null;
     private int handle = VOID_HANDLE;
@@ -92,13 +94,11 @@ public class Message implements Serializable {
     private Vector<RemoteExchangeRequest> exchangeReqList = null;
     private Vector<AgentMigrationRequest> migrationReqList = null;
 
-    // EMPTY
     public Message( ) { }
 
     /**
-     * FINISH
-     * ACK
-     * @param action
+     * Create a new Message with a specified ACTION_TYPE
+     * @param action The ACTION_TYPE of this Message
      */
     public Message( ACTION_TYPE action ) {
 
@@ -108,8 +108,8 @@ public class Message implements Serializable {
 
     /**
      * ACK used for AGENTS_INITIALIZE and AGENTS_CALL_ALL_VOID_OBJECT
-     * @param action
-     * @param localPopulation
+     * @param action The ACTION_TYPE of this Message
+     * @param localPopulation The Agent population
      */
     public Message( ACTION_TYPE action, int localPopulation ) {
 
@@ -119,10 +119,10 @@ public class Message implements Serializable {
     }
 
     /**
-     * AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY
-     * @param action
-     * @param handle
-     * @param dummy
+     * AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY type Message
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID (also used as destination handle ID)
+     * @param dummy Not used (presumably to have a unique signature for this constructor?)
      */
     public Message( ACTION_TYPE action, int handle, int dummy ) {
 
@@ -132,6 +132,13 @@ public class Message implements Serializable {
     
     }	
     
+    /**
+     * Construct a Message with a given ACTION_TYPE, handle ID, destination handle ID, and function ID
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param destHandle The destination handle ID
+     * @param funcID The ID of the function to call/was called
+     */
     public Message( ACTION_TYPE action, int handle, int destHandle, int funcID ) {
     	this.action = action;
     	this.handle = handle;
@@ -140,13 +147,13 @@ public class Message implements Serializable {
     }
 
     /**
-     * AGENTS_INITIALIZE
-     * @param action
-     * @param initPopulation
-     * @param handle
-     * @param placeHandle
-     * @param className
-     * @param argument
+     * Construct a Message primarily used for AGENTS_INITIALIZE action
+     * @param action The ACTION_TYPE of this Message
+     * @param initPopulation The initial Agent population
+     * @param handle The source handle ID
+     * @param placeHandle The handle ID for the referenced Place
+     * @param className The name of the class representing the Agent
+     * @param argument An argument to be passed to the Agent during initialization
      */
     public Message( ACTION_TYPE action, int initPopulation, int handle, int placeHandle, String className, Object argument ) {
 
@@ -160,12 +167,12 @@ public class Message implements Serializable {
     }
 
     /**
-     * PLACES_EXCHANGE_ALL
-     * @param action
-     * @param handle
-     * @param dest_handle
-     * @param functionId
-     * @param destinations
+     * Construct a Message primarily used for PLACES_EXCHANGE_ALL action
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param destHandle The destination handle ID
+     * @param functionId The ID of the function to call/was called
+     * @param destinations A collection of destinations to perform the function ID
      */
     public Message( ACTION_TYPE action, int handle, int dest_handle, int functionId, Vector<int[]> destinations ) {
 
@@ -178,13 +185,13 @@ public class Message implements Serializable {
     }
 
     /**
-     * PLACES_EXCHANGE_ALL_REMOTE_REQUEST
-     * @param action
-     * @param handle
-     * @param destinationHandle
-     * @param functionId
-     * @param exchangeReqList
-     * @param dummy
+     * Construct a Message primarily used for PLACES_EXCHANGE_ALL_REMOTE_REQUEST action
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param destinationHandle The destination handle ID
+     * @param functionId The ID of the function to call/was called
+     * @param exchangeReqList A collection of RemoteExchangeRequests
+     * @param dummy Not used (presumably to have a unique signature for this constructor?)
      */
     public Message( ACTION_TYPE action, int handle, int destinationHandle, int functionId, Vector<RemoteExchangeRequest> exchangeReqList, int dummy ) {
 
@@ -197,14 +204,12 @@ public class Message implements Serializable {
     }
 
     /**
-     * PLACES_CALL_ALL_VOID_OBJECT,
-     * PLACES_CALL_ALL_RETURN_OBJECT,
-     * AGENTS_CALL_ALL_VOID_OBJECT,
-     * AGENTS_CALL_ALL_RETURN_OBJECT
-     * @param action
-     * @param handle
-     * @param functionId
-     * @param argument
+     * Construct a Message primarily used for PLACES_CALL_ALL_VOID_OBJECT, PLACES_CALL_ALL_RETURN_OBJECT,
+     * AGENTS_CALL_ALL_VOID_OBJECT, and AGENTS_CALL_ALL_RETURN_OBJECT actions
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param functionId The ID of the function to call/was called
+     * @param argument An argument to be passed to the Agent during initialization
      */
     public Message( ACTION_TYPE action, int handle, int functionId, Object argument ) {
 
@@ -216,11 +221,11 @@ public class Message implements Serializable {
     }
 
     /**
-     * AGENTS_MIGRATION_REMOTE_REQUEST
-     * @param action
-     * @param agentHandle
-     * @param placeHandle
-     * @param migrationReqList
+     * Construct a Message primarily used for AGENTS_MIGRATION_REMOTE_REQUEST action
+     * @param action The ACTION_TYPE of this Message
+     * @param agentHandle The handle ID of the Agent to send to the request to
+     * @param placeHandle The source Place handle ID
+     * @param migrationReqList A collection of requests to forward to the Agent
      */
     public Message( ACTION_TYPE action, int agentHandle, int placeHandle, Vector<AgentMigrationRequest> migrationReqList ) {
 
@@ -232,14 +237,14 @@ public class Message implements Serializable {
     }
 
     /**
-     * PLACES_INITIALIZE
-     * @param action
-     * @param size
-     * @param handle
-     * @param classname
-     * @param argument
-     * @param boundaryWidth
-     * @param hosts
+     * Construct a Message primarily used for PLACES_INITIALIZE
+     * @param action The ACTION_TYPE of this Message
+     * @param size The simulation space sizes/dimensions
+     * @param handle The source handle ID
+     * @param className The name of the class representing the Place
+     * @param argument An argument to be passed to the Place during initialization
+     * @param boundaryWidth The boundary width of the Place
+     * @param hosts A collection of hostnames that are members of the cluster
      */
     public Message( ACTION_TYPE action, int[] size, int handle,  String classname, Object argument, int boundaryWidth, Vector<String> hosts ) {
 
@@ -254,11 +259,10 @@ public class Message implements Serializable {
     }
 
     /**
-     * PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT and 
-     * PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST
-     * ACK used for PLACES_CALL_ALL_RETURN_OBJECT
-     * @param action
-     * @param retVals
+     * Construct a Message primarily used for PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT and 
+     * PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, and as an ACK for PLACES_CALL_ALL_RETURN_OBJECT
+     * @param action The ACTION_TYPE of this Message
+     * @param retVals Return values from the affected Places or Agents
      */
     public Message( ACTION_TYPE action, Object retVals ) {
 
@@ -269,9 +273,9 @@ public class Message implements Serializable {
 
     /**
      * ACK used for AGENTS_CALL_ALL_RETURN_OBJECT and AGENT_ASYNC_RESULT
-     * @param action
-     * @param argument
-     * @param localPopulation
+     * @param action The ACTION_TYPE of this Message
+     * @param argument An argument to be passed to the Agent
+     * @param localPopulation The number of local Agents
      */
     public Message( ACTION_TYPE action, Object argument, int localPopulation ) {
 
@@ -282,8 +286,8 @@ public class Message implements Serializable {
     }
     
     /**
-     * Get the action
-     * @return action
+     * Get the action represented by this Message
+     * @return action The ACTION_TYPE of this message
      */
    public ACTION_TYPE getAction( ) { 
     	return action;
@@ -291,15 +295,15 @@ public class Message implements Serializable {
     
    /**
     * Get the Agent Populations
-    * @return agent_population
+    * @return Agent population
     */
     public int getAgentPopulation( ) { 
     	return agentPopulation;
     }
     
     /**
-     * Get the argument
-     * @return argument
+     * Get the argument supplied to the recipient(s) of the Message
+     * @return argument The argument to supply to the recipient
      */
     public Object getArgument( ) { 
     	return argument;
@@ -307,15 +311,15 @@ public class Message implements Serializable {
     
     /**
      * Get the Boundary Width
-     * @return boundary_width
+     * @return Boundary width
      */
     public int getBoundaryWidth( ) { 
     	return boundaryWidth;
     }
     
     /**
-     * Get the class name
-     * @return classname
+     * Get the class name used to instantiate Places and Agents
+     * @return classname The name of the class to be used for instantiation
      */
     public String getClassname( ) { 
     	return classname;
@@ -323,59 +327,63 @@ public class Message implements Serializable {
     
     /**
      * Get the destination handle
-     * @return dest_handle
+     * @return Destination handle ID
      */
     public int getDestHandle( ) { 
     	return destinationHandle;
     }
     
     /**
-     * Get the destinations
-     * @return destinations
+     * Get the destinations for the Message, as a collection of handle IDs
+     * @return Destinations for the Message
      */
     public Vector<int[]> getDestinations( ) { 
     	return destinations;
     }
     
+    /**
+     * Get the collection of RemoteExchangeRequests to be performed by the recipient
+     * @return The RemoteExchangeRequests to be performed
+     */
     public Vector<RemoteExchangeRequest> getExchangeReqList( ) {
     	return exchangeReqList;
     }
     
     /**
-     * Get the functionId
-     * @return functionId
+     * Get the ID number of the function to execute by the recipient of this Message
+     * @return The ID of the function to execute
      */
     public int getFunctionId( ) { 
     	return functionId;
     }
     
     /**
-     * Get the handle
-     * @return handle
+     * Get the handle ID of the Agent or Place referred to by this Message
+     * @return The handle ID
      */
     public int getHandle( ) { 
     	return handle; 
     }
     
     /**
-     * Get the hosts
-     * @return *hosts
+     * Get the hostnames of the nodes participating in the MASS cluster
+     * @return Node participants as network hostnames
      */
     public Vector<String> getHosts( ) { 
     	return hosts;
     }
     
     /**
-     * Get the Agent Migration Request List
-     * @return migrationReqList
+     * Get the Agent Migration Request List supplied to the Message recipient
+     * @return The collection of AgentMigrationRequests
      */
     public Vector<AgentMigrationRequest> getMigrationReqList( ) {
     	return migrationReqList;
     }
     
     /**
-     * Get the size
-     * @return size
+     * Get the size of the simulation space, defined as size/dimension
+     * @return Simulation space sizes
      */
     public int[] getSize( ) { 
     	return size; 
@@ -383,13 +391,22 @@ public class Message implements Serializable {
     
     /**
      * Check if argument is valid
-     * @return (argument != NULL)
+     * @return TRUE if the argument supplied is valid
      */
     public boolean isArgumentValid( ) { 
     	return ( argument != null );
     }
 
+    /**
+     * Get the verbose name of the action to be performed upon receipt of this Message
+     * @return The verbose action name
+     */
     public String getActionString() {
-      return action.getValue();
+      
+    	if ( action != null) return action.getValue();
+    	
+    	return "UNDEFINED";
+    	
     }
+    
 }
