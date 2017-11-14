@@ -505,7 +505,11 @@ public class MASS extends MASSBase {
 	}
 
 	/**
-	 * Set the number of threads to spawn on each node
+	 * Set the number of threads to spawn on each node.
+	 * <p>
+	 * The default number of threads per node is one. If set to a number
+	 * greater than one, then that number of threads will be launched on
+	 * each node. 
 	 * @param numThreads The number of threads to spawn
 	 */
 	public static void setNumThreads(int numThreads) {

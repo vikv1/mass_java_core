@@ -37,12 +37,6 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
-	/** 
-	 * Is this agent’s identifier. It is calculated as: 
-	 * the sequence number * the size of this agent’s belonging 
-	 * matrix + the index of the current place when all
-	 * places are flattened to a single dimensional array.
-	 */
 	private int agentId;
 
 	/**
@@ -90,6 +84,13 @@ public class Agent implements Serializable {
 		 return null;
 	 }
 
+	/** 
+	 * Get this agent’s identifier. It is calculated as: 
+	 * the sequence number * the size of this agent’s belonging 
+	 * matrix + the index of the current place when all
+	 * places are flattened to a single dimensional array.
+	 * @return This Agent's ID
+	 */
 	public int getAgentId() {
 		return agentId;
 	}
@@ -100,7 +101,7 @@ public class Agent implements Serializable {
 
 	/**
 	 * Get debug data from the agent 
-	 * @return Debug data
+	 * @return This Agent's debug data
 	 */
 	public Number getDebugData(){
 		return null;
@@ -143,6 +144,9 @@ public class Agent implements Serializable {
 	  * The map( ) method may be overloaded by an application-specific method.
 	  * A user-provided map( ) method may ignore maxAgents when creating
 	  * agents.
+	  * @param initPopulation
+	  * @param size
+	  * @param index
 	  */	
 	public int map( int initPopulation, int[] size, int[] index ) {
 
