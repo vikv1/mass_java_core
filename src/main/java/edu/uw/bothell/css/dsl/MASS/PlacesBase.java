@@ -58,6 +58,14 @@ public class PlacesBase {
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
+	/**
+	 * Instantiate a PlacesBase for this node
+	 * @param handle The Handle ID identifying this PlacesBase
+	 * @param className The class that represents a Place
+	 * @param boundary_width The width of the boundary between nodes, used to calculate shadow space
+	 * @param argument The argument to supply to the Place during initialization
+	 * @param size Matrix dimensions, as an array of integers representing dimension sizes
+	 */
 	public PlacesBase( int handle, String className, int boundary_width, Object argument, int[] size ) {
 		
 		this.handle = handle;
@@ -370,6 +378,12 @@ public class PlacesBase {
     
     }
 
+    /**
+     * Execute a function (specified by ID) on each Place, with a single argument
+     * @param functionId The function (method) to execute
+     * @param argument Optional argument to be supplied to the method
+     * @param tid The ID of the thread that should execute the method
+     */
     public void callAll( int functionId, Object argument, int tid ) {
     	
     	int[] range = new int[2];
@@ -398,6 +412,13 @@ public class PlacesBase {
     
     }
 
+    /**
+     * Execute a function (specified by ID) on each Place, with multiple arguments
+     * @param functionId The function (method) to execute
+     * @param arguments Optional arguments to be supplied to the method
+     * @param length The number of arguments supplied
+     * @param tid The ID of the thread that should execute the method
+     */
     public Object callAll( int functionId, Object[] arguments, int length, int tid ) {
 
     	int[] range = new int[2];
@@ -431,6 +452,12 @@ public class PlacesBase {
     
     }
     
+    /**
+     * Perform an ExchangeAll operation on Places
+     * @param dstPlaces The Places on which to perform the Exchange All
+     * @param functionId The function/method ID to execute
+     * @param tid The ID of the thread that should execute the method
+     */
     public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
     	int[] range = new int[2];
     	getLocalRange( range, tid );
@@ -595,6 +622,9 @@ public class PlacesBase {
     	}
     }
 
+    /**
+     * Exchange boundaries between neighboring Places
+     */
     public void exchangeBoundary( ) {
     	
     	if ( shadowSize == 0 ) { // no boundary, no exchange
@@ -651,14 +681,18 @@ public class PlacesBase {
     
     }
 
+    /**
+     * Get the name of the class used for a Place
+     * @return The Place implementation class name
+     */
     protected String getClassName() {
 		return className;
 	}
     
     /** 
      * Converts a given plain single index into a multidimensional index.
-     * @param singleIndex An index in a plain single dimension that will be
-     *                        converted in a multidimensional index.
+     * @param singleIndex An index in a plain single dimension that will
+     * be converted in a multidimensional index.
      * @return a multidimensional index			   
      */
     protected int[] getGlobalArrayIndex( int singleIndex ) {
@@ -672,8 +706,16 @@ public class PlacesBase {
     	}
 
     	return index;
+    	
     }
     
+    /**
+     * Given an array index, and a matrix size (as an array index), determine the
+     * corresponding global index value
+     * @param index The location within the matrix
+     * @param size Matrix dimensions
+     * @return The unique index value within the global matrix where the specified index location resides
+     */
     protected int getGlobalLinearIndexFromGlobalArrayIndex( int index[], int size[] ) {
     	
     	int retVal = 0;
@@ -696,12 +738,15 @@ public class PlacesBase {
     
     }
 
+    /**
+     * Get the index array representing neighboring locations
+     * @param src_index The source index
+     * @param offset An offset into the source index
+     * @param dst_size The destination index array (populated by this method)
+     * @param dest_index The destination index
+     */
     @SuppressWarnings("unused")
-    protected void getGlobalNeighborArrayIndex( int src_index[], 
-
-    		int offset[],
-    		int dst_size[], 
-    		int dest_index[] ) {
+    protected void getGlobalNeighborArrayIndex( int src_index[], int offset[], int dst_size[], int dest_index[] ) {
     	
     	for (int i = 0; i < dest_index.length; i++ ) {
     		dest_index[i] = src_index[i] + offset[i]; // calculate dest index
@@ -721,10 +766,18 @@ public class PlacesBase {
     
     }
     
+    /**
+     * Get the handle (ID) for PlacesBase on this node
+     * @return PlacesBase handle ID
+     */
     public int getHandle( ) {
     	return handle;
     }
 
+	/**
+	 * Get the "leftmost" Places shared with the adjacent node (lower rank number)
+	 * @return The leftmost shared Places
+	 */
     protected Place[] getLeftShadow() {
 		return leftShadow;
 	}
@@ -777,18 +830,36 @@ public class PlacesBase {
 
     }
 
+	/**
+	 * Get the lower limit array element number of Places located on this node
+	 * @return The lowest number Place element located on this node
+	 */
 	protected int getLowerBoundary() {
 		return lowerBoundary;
 	}
 
+	/**
+	 * Get the Places located on this node
+	 * @return The actual Places on this node
+	 */
 	public Place[] getPlaces() {
 		return places;
 	}
 
+	/**
+	 * Get the number of Places located on this node
+	 * @return The number of Places on this node
+	 */
 	protected int getPlacesSize( ) {
     	return placesSize;
     }
 
+	/**
+	 * Given a Place index, referenced to a gloabl index of Places, return the "rank"
+	 * or node number where the Place is actually located
+	 * @param globalLinearIndex The array index for which to obtain the node or rank number
+	 * @return The node/rank number associated with that Place
+	 */
 	protected int getRankFromGlobalLinearIndex( int globalLinearIndex ) {
 
     	if ( total == 0 ) {
@@ -815,18 +886,34 @@ public class PlacesBase {
     
     }
 
+	/**
+	 * Get the "rightmost" Places shared with the adjacent node (higher rank number)
+	 * @return The rightmost shared Places
+	 */
 	protected Place[] getRightShadow() {
 		return rightShadow;
 	}
 
+	/**
+	 * Get the size of the shadow space, "left" or "right" (same size)
+	 * @return The size of the shadow space
+	 */
 	protected int getShadowSize() {
 		return shadowSize;
 	}
 
+	/**
+	 * Get the total size of the simulation space, as an array of matrix dimensions
+	 * @return Simulation space size, as matrix dimensions
+	 */
 	public int[] getSize() {
 		return size;
 	}
 
+	/**
+	 * Get the upper limit array element number of Places located on this node
+	 * @return The highest number Place element located on this node
+	 */
 	protected int getUpperBoundary() {
 		return upperBoundary;
 	}
@@ -910,6 +997,7 @@ public class PlacesBase {
     		for ( int i = 0; i < shadowSize; i++ ) {
 
     			// left shadow initialization
+    			// TODO - this check should be made before entering the loop to init leftShadow or rightShadow - no point looping to init shadows that dont exist
     			if ( leftShadow != null ) {
 
     				// instantiate a new place
