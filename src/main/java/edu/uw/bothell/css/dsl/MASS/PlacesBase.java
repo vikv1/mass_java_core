@@ -784,13 +784,13 @@ public class PlacesBase {
 
     /** 
      * Returns the first and last of the range that should be allocated
-     *        to a given thread
+     * to a given thread
      *
-     * @param tid An id of the thread that calls this function.
-     * @return An array of two integers: element 0 = the first and 
+     * @param range An array of two integers: element 0 = the first and 
      *           element 1 = the last
+     * @param tid An id of the thread that calls this function.
      */
-    private void getLocalRange( int[] range, int tid ) {
+    protected void getLocalRange( int[] range, int tid ) {
 
     	int nThreads = MASSBase.getThreads().length;
     	int portion = placesSize / nThreads; // per-thread allocated  range

@@ -33,14 +33,20 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
+/**
+ * Perform a series of unit tests against the PlacesBase class to verify proper
+ * and consistent behavior of the class / methods
+ */
 public class PlacesBaseTest extends AbstractTest {
 
 	// class under test
@@ -61,6 +67,14 @@ public class PlacesBaseTest extends AbstractTest {
 		masterNode.setMaster( true );
 		MASSBase.addNode( masterNode );
 		MASSBase.initMASSBase( masterNode );
+		
+		// init MASSBase with three threads for these tests
+		if ( !MASSBase.isInitialized() ) {
+
+			assertTrue( MASSBase.initializeThreads( 3 ) );
+			assertTrue( MASSBase.isInitialized() );
+
+		}
 		
 	}
 
@@ -272,6 +286,95 @@ public class PlacesBaseTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void getLocalRange() throws Exception {
+		
+		int[] range = new int[ 2 ];
+
+		// with three threads, first third of Places should be serviced by thread ID 0, plus the "odd" Place not evenly divisible
+		placesBase.getLocalRange( range, 0 );
+		assertEquals( 0, range[ 0 ] );
+		assertEquals( 333, range[ 1 ] );
+		
+		// second thread should get the next third
+		placesBase.getLocalRange( range, 1 );
+		assertEquals( 334, range[ 0 ] );
+		assertEquals( 666, range[ 1 ] );
+		
+		// last thread should get the rest
+		placesBase.getLocalRange( range, 2 );
+		assertEquals( 667, range[ 0 ] );
+		assertEquals( 999, range[ 1 ] );
+		
+		// reset matrix to less than the number of threads
+		int[] newMatrix = new int[]{ 1 };
+		placesBase = new PlacesBase( handle, SimpleTestPlace.class.getName(), 1, null, newMatrix );
+
+		// more threads than Places, local range should be set to zero (TID = 0)
+		placesBase.getLocalRange( range, 0 );
+		assertEquals( 0, range[ 0 ] );
+		assertEquals( 0, range[ 1 ] );
+
+		// more threads than Places, local range should be set to negative values (TID = 1)
+		placesBase.getLocalRange( range, 1 );
+		assertEquals( -1, range[ 0 ] );
+		assertEquals( -1, range[ 1 ] );
+
+	}
+
+	@Test
+	public void getRankFromGlobalLinearIndex() throws Exception {
+
+		// TODO - should test with a system size > 1 node!
+		
+		// all Places should be located on the master node for this test configuration
+		for ( int i = 0; i < 1000; i ++ ) {
+			assertEquals( 0, placesBase.getRankFromGlobalLinearIndex( i ) );
+		}
+		
+	}
 	
+	@Ignore
+	@Test
+	public void getGlobalNeighborArrayIndex() throws Exception {
+		
+//		int souceIndex[];
+//		int offset[];
+//		int destinationSize[];
+//		int destinationIndex[];
+		
+		// TODO - there is a bug in this method - it returns before setting all elements to -1
+		
+	}
 	
+	@Test
+	public void callAllSingleArgument() throws Exception {
+
+		// no exceptions should be thrown
+		
+		// TODO - should inject a mock object as a Place and make sure it's really being called
+		placesBase.callAll( 0, new String(), 0 );
+		
+	}
+
+	@Test
+	public void callAllMultipleArgument() throws Exception {
+
+		// there will be 334 Places for the first thread to service, need 334 Objects for callAll
+		Object[] arguments = new Object[ 334 ];
+		for ( int i = 0; i < arguments.length; i ++ ) {
+			arguments[ i ] = new String();
+		}
+		
+		// need a spot to put the result from each call to a Place
+		Object[] results = new Object[ 334 ];
+		MASSBase.setCurrentReturns( results );
+		
+		// no exceptions should be thrown
+		
+		// TODO - should inject a mock object as a Place and make sure it's really being called
+		placesBase.callAll( 0, arguments, arguments.length, 0 );
+		
+	}
+
 }
