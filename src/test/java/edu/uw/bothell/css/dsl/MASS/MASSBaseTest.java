@@ -41,11 +41,14 @@ import java.util.Vector;
 
 import org.easymock.Mock;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
+/**
+ * Perform a series of unit tests against the MASSBase class to verify proper
+ * and consistent behavior of the class / methods
+ */
 public class MASSBaseTest extends AbstractTest {
 
 	@Mock
@@ -488,15 +491,24 @@ public class MASSBaseTest extends AbstractTest {
 
 	}
 
-	// TODO - can be tested?
-	@Ignore
 	@Test
 	public void initializeThreads() throws Exception {
 		
 		replayAll();
+
+		// if not initialized already, test init here
+		if ( !MASSBase.isInitialized() ) {
 		
-		// try init'ing zero threads
-		assertTrue( MASSBase.initializeThreads( 0 ) );
+			// try init'ing
+			assertTrue( MASSBase.initializeThreads( 3 ) );
+			
+			// attempt to init again should fail
+			assertFalse( MASSBase.initializeThreads( 3 ) );
+			
+			// MASS should think it is init'd
+			assertTrue( MASSBase.isInitialized() );
+		
+		}
 		
 	}
 
