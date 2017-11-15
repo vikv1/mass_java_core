@@ -222,6 +222,16 @@ public class MASSBaseTest extends AbstractTest {
 	}
 
 	@Test
+	public void setInvalidCommunicationPort() throws Exception {
+		
+		replayAll();
+
+		// TODO - this should result in an IllegalArgumentException
+		MASSBase.setCommunicationPort( 0 );
+		
+	}
+
+	@Test
 	public void getSetCurrentAgentsBase() throws Exception {
 
 		replayAll();
@@ -416,6 +426,16 @@ public class MASSBaseTest extends AbstractTest {
 
 		// verify, simple check of init
 		assertEquals( port, MASSBase.getCommunicationPort() );
+		
+	}
+
+	@Test
+	public void initMASSBaseNullMNode() throws Exception {
+
+		replayAll();
+
+		// TODO - doesn't throw an exception at this time, but probably should!
+		MASSBase.initMASSBase( null );
 		
 	}
 

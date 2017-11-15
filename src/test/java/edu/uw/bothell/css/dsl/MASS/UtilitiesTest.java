@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2017 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ import java.io.ObjectOutputStream;
 import java.util.Properties;
 
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Test;
@@ -97,7 +98,7 @@ public class UtilitiesTest extends AbstractTest {
 		mockJsch.addIdentity( remoteNode.getPrivateKey() );
 		
 		// Session will have a configuration property added to disable strict host checking
-		Capture<Properties> capturedProperties = new Capture<Properties>();
+		Capture<Properties> capturedProperties = EasyMock.newCapture();
 		mockSession.setConfig( capture(capturedProperties) );
 		
 		// connection will be completed, via Session
@@ -174,6 +175,12 @@ public class UtilitiesTest extends AbstractTest {
 	public void launchRemoteProcessZeroLengthExecCommand() throws Exception {
 		replayAll();
 		utilities.launchRemoteProcess( "" , null );
+	}
+
+	@Test( expected = IllegalArgumentException.class)
+	public void launchRemoteProcessNullMNode() throws Exception {
+		replayAll();
+		utilities.launchRemoteProcess( "exec command" , null );
 	}
 
 	@Test
