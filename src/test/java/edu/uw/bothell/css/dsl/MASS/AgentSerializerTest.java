@@ -111,7 +111,6 @@ public class AgentSerializerTest extends AbstractTest {
 		
 		// fields should match original settings
 		assertEquals( agent.getAgentId(), deserializedAgent.getAgentId() );
-		assertEquals( agent.getIndex()[ 0 ], deserializedAgent.getIndex()[ 0 ] );
 		
 	}
 	

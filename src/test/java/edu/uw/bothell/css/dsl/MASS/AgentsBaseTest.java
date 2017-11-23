@@ -66,6 +66,7 @@ public class AgentsBaseTest extends AbstractTest {
 		int[] placesMatrix = new int[]{ 1, 1, 1 };
 		placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
 		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		MASSBase.setCurrentPlacesBase( placesBase );
 
 	}
 

@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -142,14 +143,20 @@ public class PlaceTest extends AbstractTest {
 	@Test
 	public void getSetSize() throws Exception {
 
-		int[] size = new int[]{ 42, 88, 89 };
+		// MASSBase should be made ready for use before this test runs
+		MNode masterNode = new MNode();
+		masterNode.setHostName( randomString() );
+		masterNode.setMaster( true );
+		MASSBase.addNode( masterNode );
+		MASSBase.initMASSBase( masterNode );
 
-		place.setSize( size );
+		int[] size = new int[]{ 1, 1, 1 };
+
+		// Places get size info from PlacesBase
+		@SuppressWarnings("unused")
+		PlacesBase placesBase = new PlacesBase( 1, SimpleTestPlace.class.getName(), 1, null, size );
 		
-		assertEquals( size.length, place.getSize().length );
-		assertEquals( size[ 0 ], place.getSize()[ 0 ] );
-		assertEquals( size[ 1 ], place.getSize()[ 1 ] );
-		assertEquals( size[ 2 ], place.getSize()[ 2 ] );
+		assertArrayEquals( size, place.getSize() );
 		
 	}
 

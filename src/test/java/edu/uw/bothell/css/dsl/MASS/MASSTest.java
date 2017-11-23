@@ -35,6 +35,8 @@ import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+
 public class MASSTest extends AbstractTest {
 
 	@Test
@@ -97,4 +99,12 @@ public class MASSTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void setLoggingLevel() throws Exception {
+		
+		// should not result in an Exception
+		MASS.setLoggingLevel( LogLevel.DEBUG );
+		
+	}
+
 }

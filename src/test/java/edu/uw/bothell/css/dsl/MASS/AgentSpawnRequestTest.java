@@ -31,6 +31,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -40,6 +43,8 @@ import org.junit.Test;
  */
 public class AgentSpawnRequestTest extends AbstractTest {
 
+	private static final int MAX_AGENTS = 10;
+	
 	@Test
 	public void getSetSerializedAgent() throws Exception {
 		
@@ -49,6 +54,84 @@ public class AgentSpawnRequestTest extends AbstractTest {
 		request.setSerializedAgent( serializedAgent );
 
 		assertEquals( serializedAgent, request.getSerializedAgent() );
+		
+	}
+	
+	@Test
+	public void constructorInvalidMaxActiveSize() throws Exception {
+		
+		// should not result in an Exception - will default to reasonable settings
+		@SuppressWarnings("unused")
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( 0 );
+		
+	}
+	
+	@Test
+	public void defaultConstructor() throws Exception {
+		
+		// should not result in an Exception - will default to reasonable settings
+		@SuppressWarnings("unused")
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( );
+		
+	}
+
+	@Test
+	public void shouldAgentRunInTheSystemEmpty() throws Exception {
+		
+		// make the agent spawn request manager think there is room for this one to run
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
+		assertTrue( manager.shouldAgentRunInTheSystem( new SimpleTestAgent( new String() ), 0 ) );
+		
+	}
+	
+	@Test
+	public void shouldAgentRunInTheSystemFull() throws Exception {
+		
+		// make the agent spawn request manager think there is no room for this one to run
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
+		assertFalse( manager.shouldAgentRunInTheSystem( new SimpleTestAgent( new String() ), MAX_AGENTS ) );
+		
+	}
+	
+	@Test
+	public void getNextAgentSpawnRequestNoSerializedAgents() throws Exception {
+		
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
+
+		// should not be any agents in the queue for spawning
+		assertNull( manager.getNextAgentSpawnRequest() );
+		
+	}
+
+	@Test
+	public void getSetNextAvailableAgentId() throws Exception {
+		
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
+
+		// at first, should not be any agents in the queue for spawning
+		assertEquals( -1, manager.getNextAvailableAgentId().intValue() );
+		
+		// add an agent ID, check for return
+		manager.addAvailabeAgentId( new Integer( 42 ) );
+		assertEquals( 42, manager.getNextAvailableAgentId().intValue() );
+		
+	}
+
+	@Test
+	public void getNextAgentSpawnRequest() throws Exception {
+		
+		SimpleTestAgent agent = new SimpleTestAgent( new String() );
+		agent.setAgentId( randomInt() );
+		
+		// make the agent spawn request manager think there is no room for this one to run
+		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
+		manager.shouldAgentRunInTheSystem( agent, MAX_AGENTS );
+		
+		// the agent should be returned when requested to get the next available
+		Agent nextAgent = manager.getNextAgentSpawnRequest();
+		
+		// is it the same one?
+		assertEquals( agent.getAgentId(), nextAgent.getAgentId() );
 		
 	}
 	
