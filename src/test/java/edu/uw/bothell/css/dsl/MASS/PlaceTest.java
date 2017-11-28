@@ -38,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Vector;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -48,6 +49,20 @@ public class PlaceTest extends AbstractTest {
 
 	// class under test
 	Place place = new Place();
+	
+	@Before
+	public void onSetUp() {
+		
+		// MASSBase should be made ready for use before tests are run
+		if ( MASSBase.getSystemSize() == 0 ) {
+			MNode masterNode = new MNode();
+			masterNode.setHostName( randomString() );
+			masterNode.setMaster( true );
+			MASSBase.addNode( masterNode );
+			MASSBase.initMASSBase( masterNode );
+		}
+
+	}
 	
 	@After
 	public void onTearDown() {
@@ -143,18 +158,11 @@ public class PlaceTest extends AbstractTest {
 	@Test
 	public void getSetSize() throws Exception {
 
-		// MASSBase should be made ready for use before this test runs
-		MNode masterNode = new MNode();
-		masterNode.setHostName( randomString() );
-		masterNode.setMaster( true );
-		MASSBase.addNode( masterNode );
-		MASSBase.initMASSBase( masterNode );
-
 		int[] size = new int[]{ 1, 1, 1 };
 
 		// Places get size info from PlacesBase
-		@SuppressWarnings("unused")
 		PlacesBase placesBase = new PlacesBase( 1, SimpleTestPlace.class.getName(), 1, null, size );
+		MASSBase.setCurrentPlacesBase(placesBase);
 		
 		assertArrayEquals( size, place.getSize() );
 		
@@ -166,6 +174,63 @@ public class PlaceTest extends AbstractTest {
 		place.setVisited( true );
 		
 		assertTrue( place.getVisited() );
+		
+	}
+	
+	@Test
+	public void getOutMessage() throws Exception {
+
+		// matrix dimensions
+		int[] size = new int[]{ 1, 1, 1 };
+		
+		PlacesBase placesBase = new PlacesBase( 1, SimpleTestPlace.class.getName(), 1, null, size );
+		
+		// force the PlacesBase into collections
+		MASSBase.setCurrentPlacesBase( placesBase );
+		MASSBase.getPlacesMap().put( 1, placesBase );
+		Place localPlace = placesBase.getPlaces()[ 0 ];
+		
+		// the test place needs an index
+		int[] index = new int[]{ 0, 0, 0 };
+		localPlace.setIndex( index );
+
+		// a message for the Place
+		String message = new String( "Candygram for Mongo!" );
+		localPlace.setOutMessage( message );
+		
+		// get the message, by index
+		Object returnObject = localPlace.getOutMessage( 1 , new int[]{ 0, 0, 0 } );
+		
+		// the message returned should be the one set in the Place
+		assertEquals( message, returnObject );
+		
+	}
+	
+	@Test
+	public void putInMessage() throws Exception {
+
+		// matrix dimensions
+		int[] size = new int[]{ 1, 1, 1 };
+
+		PlacesBase placesBase = new PlacesBase( 1, SimpleTestPlace.class.getName(), 1, null, size );
+		
+		// force the PlacesBase into collections
+		MASSBase.setCurrentPlacesBase( placesBase );
+		MASSBase.getPlacesMap().put( 1, placesBase );
+		Place localPlace = placesBase.getPlaces()[ 0 ];
+		
+		// the test place needs an index
+		int[] index = new int[]{ 0, 0, 0 };
+		localPlace.setIndex( index );
+
+		// and a message collection
+		Object[] messages = new Object[]{ new Message() };
+		localPlace.setInMessages( messages );
+
+		// a message for the Place
+		String message = new String( "Too close for missiles, switching to guns!" );
+		localPlace.putInMessage( 1, new int[]{0, 0, 0},  0, message );
+		
 		
 	}
 	
