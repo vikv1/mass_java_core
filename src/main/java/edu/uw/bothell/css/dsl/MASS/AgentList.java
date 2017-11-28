@@ -32,6 +32,10 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
+/**
+ * AgentList is a container for a collection of Agents, with a simple iterator and automatic
+ * resize capability 
+ */
 public class AgentList {
 
 	private final int CAPACITY_X = 1000; // max agent population = 1 million
@@ -48,14 +52,25 @@ public class AgentList {
 	// logging
 	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
+	/**
+	 * Instantiate an AgentList with default storage size
+	 */
 	public AgentList( ) {
 		init( CAPACITY_Y );
 	}
 
+	/**
+	 * Instantiate an AgentList with an initial capacity
+	 * @param init_capacity The number of Agents to store in this collection
+	 */
 	public AgentList( int init_capacity ) {
 		init( init_capacity );
 	}
 
+	/**
+	 * Add an Agent to the collection
+	 * @param item The Agent to add
+	 */
 	public synchronized void add( Agent item ) {
 		
 		if ( nextY == capacityY ) {
@@ -67,9 +82,9 @@ public class AgentList {
 	}
 		
 	/**
-	 * 
-	 * @param item
-	 * @param index
+	 * Add an Agent to the collection, at a specified index position
+	 * @param item The Agent to add
+	 * @param index The position at which to add the Agent
 	 */
 	public void add(Agent item, int index) {
 	  int xindex = index / CAPACITY_X;
@@ -80,6 +95,10 @@ public class AgentList {
 	  array[xindex][yindex] = item;
 	}
 
+	/**
+	 * Send contents of the AgentList to the logger for debugging
+	 */
+	@Deprecated
 	public void checkInternal( ) {
 		
 		for ( int x = 0; x < currentX * capacityY + nextY; x++ )
@@ -87,6 +106,9 @@ public class AgentList {
 	
 	}
 
+	/**
+	 * Remove all Agents from the collection
+	 */
 	public void clear( ) {
 		
 		for ( int i = 0; i < size_unreduced( ); i++ )
@@ -95,6 +117,11 @@ public class AgentList {
 
 	}
 
+	/**
+	 * Get an Agent at a specified index position
+	 * @param linear_index The position for retrieving the Agent
+	 * @return The Agent at the specified position, or NULL if the position contains no Agent or the index is invalid
+	 */
 	public synchronized Agent get( int linear_index ) {
 		
 		if ( linear_index <= size_unreduced( ) ) {
@@ -107,6 +134,10 @@ public class AgentList {
 	
 	}
 
+	/**
+	 * Determine if the next index position pointed to by the iterator has an Agent
+	 * @return TRUE if the next position contains an Agent
+	 */
 	public synchronized boolean hasNext( ) {
 		return ( iterator < size_unreduced( ) );
 	}
@@ -121,6 +152,11 @@ public class AgentList {
 	
 	}
 
+	/**
+	 * Get the index position of a specified Agent
+	 * @param item The Agent to search for
+	 * @return The index position containing the Agent, or -1 if the Agent was not found within the collection
+	 */
 	public synchronized int indexOf( Agent item ) {
 		
 		for ( int i = 0; i < array.length && array[i] != null; i++ ) {
@@ -156,10 +192,17 @@ public class AgentList {
 		increaseX( );
 	}
 
+	/**
+	 * Get the Agent at the next iterator position
+	 * @return The Agent at the index position pointed to after the iterator is incremented
+	 */
 	public synchronized Agent next( ) {
 		return get( iterator++ );
 	}
 
+	/**
+	 * Adjust the collection capacity to match the current population of Agents
+	 */
 	public synchronized void reduce( ) {
 		reduceHelper( );
 	}
@@ -211,6 +254,10 @@ public class AgentList {
 	
 	}
 
+	/**
+	 * Remove an Agent from the collection
+	 * @param item The Agent to remove
+	 */
 	public synchronized void remove( Agent item ) {
 		
 		for ( int i = 0; i < array.length && array[i] != null; i++ ) {
@@ -235,6 +282,10 @@ public class AgentList {
 	
 	}
 
+	/**
+	 * Remove an Agent by index position
+	 * @param linear_index The index position at which the Agent will be removed
+	 */
 	public synchronized void remove( int linear_index ) {
 		
 		if ( linear_index <= size_unreduced( ) ) {
@@ -252,16 +303,27 @@ public class AgentList {
 		}	
 	}
 
+	/**
+	 * Reset the iterator to the start of the collection (index position zero)
+	 */
 	public synchronized void setIterator( ) {
 		reduceHelper( );
 		iterator = 0;
 	}
 
+	/**
+	 * Get the current number of Agents in the collection
+	 * @return The number of Agents in the collection
+	 */
 	public synchronized int size( ) {
 		reduceHelper( );
 		return currentX * capacityY + nextY;
 	}
 
+	/**
+	 * Get the current capacity of the collection
+	 * @return The current capacity
+	 */
 	public int size_unreduced( ) {
 		return currentX * capacityY + nextY;
 	}
