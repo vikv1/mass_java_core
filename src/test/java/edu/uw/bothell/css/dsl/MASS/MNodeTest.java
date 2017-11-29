@@ -64,9 +64,6 @@ public class MNodeTest extends AbstractTest {
 	@After
 	public void tearDown() {
 
-		// perform normal cleanup activities
-		super.tearDown();
-		
 		// reset test subject fields
 		mNode.setHostName( null );
 		mNode.setJavaHome( null );

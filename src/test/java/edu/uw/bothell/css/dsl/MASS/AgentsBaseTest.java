@@ -38,8 +38,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
-
 /**
  * Perform a series of unit tests against the AgentsBase class to verify proper
  * and consistent behavior of the class / methods
@@ -52,11 +50,11 @@ public class AgentsBaseTest extends AbstractTest {
 	private static PlacesBase placesBase;
 	private static final int PLACES_HANDLE = randomInt();
 	private static final int AGENTS_HANDLE = randomInt();
-	
+
 	@BeforeClass
 	public static void beforeAll() {
-		
-		// MASSBase should be made ready for use before any test runs
+
+		// force MASSBase to contain a single node
 		MNode masterNode = new MNode();
 		masterNode.setHostName( randomString() );
 		masterNode.setMaster( true );
@@ -74,24 +72,22 @@ public class AgentsBaseTest extends AbstractTest {
 	public static void afterAll() {
 		
 		// clean up MASSBase
-		MASSBase.getAllNodes().clear();
-		MASSBase.setCurrentArgument( null );
-		MASSBase.setCurrentFunctionId( 0 );
-		MASSBase.setCurrentMsgType( null );
-		MASSBase.setCurrentAgentsBase( null );
-		MASSBase.setCurrentAgentsBase( null );
-		MASSBase.setCurrentReturns( null );
-		MASSBase.setDestinationPlaces( null );
-		MASSBase.getPlacesMap().clear();
-		MASSBase.getRemoteNodes().clear();
-		MASSBase.getHosts().clear();
-		MASSBase.getLogger().setLogLevel(LogLevel.OFF);
+		resetMASSBase();
 		
 	}
 
 	@Before
 	public void onSetUp() {
 		
+		// MASSBase should be made ready for use before tests are run
+		if ( MASSBase.getSystemSize() == 0 ) {
+			MNode masterNode = new MNode();
+			masterNode.setHostName( randomString() );
+			masterNode.setMaster( true );
+			MASSBase.addNode( masterNode );
+			MASSBase.initMASSBase( masterNode );
+		}
+
 		// start with new instances for each test
 		agentsBase = new AgentsBase( AGENTS_HANDLE, SimpleTestAgent.class.getName(), null, PLACES_HANDLE, 1 );
 		
@@ -145,6 +141,18 @@ public class AgentsBaseTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void callAllSingleArgument() throws Exception {
+		
+		//do this!
+		
+	}
 	
-	
+	@Test
+	public void callAllMultipleArgument() throws Exception {
+		
+		//do this!
+		
+	}
+
 }

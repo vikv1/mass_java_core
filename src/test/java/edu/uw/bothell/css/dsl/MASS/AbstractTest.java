@@ -35,8 +35,11 @@ import java.util.Random;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
+
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
@@ -53,11 +56,41 @@ public class AbstractTest extends EasyMockSupport {
 
     private static Random random = new Random(System.currentTimeMillis());
 
+    /**
+     * Perform actions that will reset MASSBase for another test
+     */
+    public static void resetMASSBase() {
+    	
+    		MASSBase.getAllNodes().clear();
+    		MASSBase.setCurrentArgument( null );
+    		MASSBase.setCurrentFunctionId( 0 );
+    		MASSBase.setCurrentMsgType( null );
+    		MASSBase.setCurrentAgentsBase( null );
+    		MASSBase.setCurrentAgentsBase( null );
+    		MASSBase.setCurrentReturns( null );
+    		MASSBase.setDestinationPlaces( null );
+    		MASSBase.getPlacesMap().clear();
+    		MASSBase.getRemoteNodes().clear();
+    		MASSBase.getHosts().clear();
+    		MASSBase.getLogger().setLogLevel(LogLevel.OFF);
+    		
+    }
+    
+    /**
+     * Perform any necessary operations before every unit test
+     */
+    @Before
+    public void abstractSetUp() {
+    	
+    	MASSBase.getLogger().setLogLevel( LogLevel.DEBUG );
+
+    }
+    
 	/**
 	 * Perform any necessary cleanup and final verifications after EVERY test 
 	 */
 	@After
-	public void tearDown() {
+	public void abstractTearDown() {
 
 		// make sure all mock objects were called as expected
 		verifyAll();

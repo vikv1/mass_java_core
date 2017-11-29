@@ -38,10 +38,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  * Perform a series of unit tests against the PlacesBase class to verify proper
@@ -61,13 +58,13 @@ public class PlacesBaseTest extends AbstractTest {
 	@BeforeClass
 	public static void beforeAll() {
 		
-		// MASSBase should be made ready for use before any test runs
+		// MASSBase should be made ready for use before tests are run
 		MNode masterNode = new MNode();
 		masterNode.setHostName( randomString() );
 		masterNode.setMaster( true );
 		MASSBase.addNode( masterNode );
 		MASSBase.initMASSBase( masterNode );
-		
+
 		// init MASSBase with three threads for these tests
 		if ( !MASSBase.isInitialized() ) {
 
@@ -82,18 +79,7 @@ public class PlacesBaseTest extends AbstractTest {
 	public static void afterAll() {
 		
 		// clean up MASSBase
-		MASSBase.getAllNodes().clear();
-		MASSBase.setCurrentArgument( null );
-		MASSBase.setCurrentFunctionId( 0 );
-		MASSBase.setCurrentMsgType( null );
-		MASSBase.setCurrentAgentsBase( null );
-		MASSBase.setCurrentAgentsBase( null );
-		MASSBase.setCurrentReturns( null );
-		MASSBase.setDestinationPlaces( null );
-		MASSBase.getPlacesMap().clear();
-		MASSBase.getRemoteNodes().clear();
-		MASSBase.getHosts().clear();
-		MASSBase.getLogger().setLogLevel(LogLevel.OFF);
+		resetMASSBase();
 		
 	}
 
@@ -334,19 +320,40 @@ public class PlacesBaseTest extends AbstractTest {
 		
 	}
 	
-	@Ignore
 	@Test
 	public void getGlobalNeighborArrayIndex() throws Exception {
 		
-//		int souceIndex[];
-//		int offset[];
-//		int destinationSize[];
-//		int destinationIndex[];
+		int sourceIndex[] = new int[]{ 2, 3, 4 };
+		int offset[] = new int[]{ 1, 1, 1 };
+		int destinationSize[] = new int[]{ 6, 6, 6 };
+		int destinationIndex[] = new int[ 3 ];
 		
-		// TODO - there is a bug in this method - it returns before setting all elements to -1
+		placesBase.getGlobalNeighborArrayIndex( sourceIndex, offset, destinationSize, destinationIndex );
+		
+		// destination should be original location (sourceIndex) plus offsets
+		assertEquals( 3, destinationIndex[ 0 ] );
+		assertEquals( 4, destinationIndex[ 1 ] );
+		assertEquals( 5, destinationIndex[ 2 ] );
 		
 	}
-	
+
+	@Test
+	public void getGlobalNeighborArrayIndexOutOfBounds() throws Exception {
+		
+		int sourceIndex[] = new int[]{ 2, 3, 4 };
+		int offset[] = new int[]{ 1, 1, 1 };
+		int destinationSize[] = new int[]{ 5, 5, 5 };
+		int destinationIndex[] = new int[ 3 ];
+		
+		placesBase.getGlobalNeighborArrayIndex( sourceIndex, offset, destinationSize, destinationIndex );
+		
+		// destination should be original location (sourceIndex) plus offsets, except first location
+		assertEquals( -1, destinationIndex[ 0 ] );
+		assertEquals( 4, destinationIndex[ 1 ] );
+		assertEquals( 5, destinationIndex[ 2 ] );
+		
+	}
+
 	@Test
 	public void callAllSingleArgument() throws Exception {
 

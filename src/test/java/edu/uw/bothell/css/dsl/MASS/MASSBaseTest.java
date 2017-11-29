@@ -40,6 +40,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.easymock.Mock;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -294,19 +295,16 @@ public class MASSBaseTest extends AbstractTest {
 	@Test
 	public void getSetCurrentPlacesBase() throws Exception {
 
-		// add a single master node
-		MNode masterNode = new MNode();
-		masterNode.setHostName( randomString() );
-		masterNode.setMaster( true );
-		MASSBase.addNode( masterNode );
-		
-		// "init" MASSBase to set it's own node
-		MASSBase.initMASSBase( masterNode );
+		// MASSBase should be made ready for use before tests are run
+		if ( MASSBase.getSystemSize() == 0 ) {
+			MNode masterNode = new MNode();
+			masterNode.setHostName( randomString() );
+			masterNode.setMaster( true );
+			MASSBase.addNode( masterNode );
+			MASSBase.initMASSBase( masterNode );
+		}
 
 		replayAll();
-
-		// should not be an existing association
-		assertNull( MASSBase.getCurrentPlacesBase() );
 
 		// force PlacesMap to something to prevent NPE
 		PlacesBase pb = new PlacesBase( randomInt() , null, 0, null, new int[0] );
@@ -529,6 +527,14 @@ public class MASSBaseTest extends AbstractTest {
 			assertTrue( MASSBase.isInitialized() );
 		
 		}
+		
+	}
+
+	@AfterClass
+	public static void afterAll() {
+		
+		// clean up MASSBase
+		resetMASSBase();
 		
 	}
 

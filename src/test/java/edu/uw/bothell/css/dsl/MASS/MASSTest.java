@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
@@ -104,6 +105,14 @@ public class MASSTest extends AbstractTest {
 		
 		// should not result in an Exception
 		MASS.setLoggingLevel( LogLevel.DEBUG );
+		
+	}
+	
+	@AfterClass
+	public static void afterAll() {
+		
+		// clean up MASSBase
+		resetMASSBase();
 		
 	}
 

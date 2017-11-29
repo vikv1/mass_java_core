@@ -38,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Vector;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -209,6 +210,13 @@ public class PlaceTest extends AbstractTest {
 	@Test
 	public void putInMessage() throws Exception {
 
+		// need to force MASSBase to contain a single node for this test
+		MNode masterNode = new MNode();
+		masterNode.setHostName( randomString() );
+		masterNode.setMaster( true );
+		MASSBase.addNode( masterNode );
+		MASSBase.initMASSBase( masterNode );
+
 		// matrix dimensions
 		int[] size = new int[]{ 1, 1, 1 };
 
@@ -231,7 +239,17 @@ public class PlaceTest extends AbstractTest {
 		String message = new String( "Too close for missiles, switching to guns!" );
 		localPlace.putInMessage( 1, new int[]{0, 0, 0},  0, message );
 		
+		assertEquals( 1, localPlace.getInMessages().length );
+		assertEquals( message, localPlace.getInMessages()[ 0 ] );
 		
 	}
-	
+
+	@AfterClass
+	public static void afterAll() {
+		
+		// clean up MASSBase
+		resetMASSBase();
+		
+	}
+
 }
