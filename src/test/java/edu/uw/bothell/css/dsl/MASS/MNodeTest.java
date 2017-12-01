@@ -217,7 +217,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void initialize() throws Exception {
+	public void initializeWithoutHostname() throws Exception {
 
 		replayAll();
 
@@ -234,6 +234,26 @@ public class MNodeTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void initializeWithHostname() throws Exception {
+
+		replayAll();
+
+		String hostname = randomString();
+		
+		// force a hostname
+		mNode.setHostName( hostname );
+		
+		// verify that it was set
+		assertEquals( hostname, mNode.getHostName() );
+		
+		// initialize the node
+		mNode.initialize();
+		
+		// original hostname should have stuck
+		assertEquals( hostname, mNode.getHostName() );
+		
+	}
 
 	@Test
 	public void getSetMasterNodeStatus() throws Exception {

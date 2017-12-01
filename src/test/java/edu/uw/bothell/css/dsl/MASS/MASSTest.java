@@ -30,19 +30,26 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import org.junit.AfterClass;
+import org.easymock.Mock;
+import org.junit.After;
 import org.junit.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 public class MASSTest extends AbstractTest {
 
+	@Mock
+	private MNode mnode;
+	
 	@Test
 	public void getSetNumThreads() throws Exception {
-		
+
+		replayAll();
+
 		// by default, only one
 		assertEquals( 1, MASS.getNumThreads() );
 		
@@ -67,7 +74,9 @@ public class MASSTest extends AbstractTest {
 		
 		String newUsername = randomString();
 		String originalUsername = MASS.getDefaultUsername();
-		
+
+		replayAll();
+
 		// set new value, and test
 		MASS.setDefaultUsername( newUsername );
 		assertEquals( newUsername, MASS.getDefaultUsername() );
@@ -82,7 +91,9 @@ public class MASSTest extends AbstractTest {
 		
 		String newPath = randomString();
 		String originalPath = MASS.getNodeFilePath();
-		
+
+		replayAll();
+
 		// set new value, and test
 		MASS.setNodeFilePath( newPath );
 		assertEquals( newPath, MASS.getNodeFilePath() );
@@ -94,7 +105,9 @@ public class MASSTest extends AbstractTest {
 
 	@Test
 	public void isConsoleLoggingEnabled() throws Exception {
-		
+
+		replayAll();
+
 		// should NOT be enabled!
 		assertFalse( MASS.isConsoleLoggingEnabled() );
 		
@@ -102,17 +115,69 @@ public class MASSTest extends AbstractTest {
 	
 	@Test
 	public void setLoggingLevel() throws Exception {
-		
+
+		replayAll();
+
 		// should not result in an Exception
 		MASS.setLoggingLevel( LogLevel.DEBUG );
 		
 	}
 	
-	@AfterClass
-	public static void afterAll() {
+	@After
+	public void afterEach() {
 		
 		// clean up MASSBase
 		resetMASSBase();
+		
+	}
+	
+	@Test
+	public void barrierAllSlavesNoArgumentsNoAgents() throws Exception {
+
+		replayAll();
+
+		// should not throw an Exception...
+		MASS.barrierAllSlaves();
+		
+	}
+
+	@Test
+	public void barrierAllSlavesNoArgumentsWithAgents() throws Exception {
+
+		Message ack = new Message( Message.ACTION_TYPE.ACK );
+		
+		// use mock MNode as the single remote
+		MASS.getRemoteNodes().add( mnode );
+		
+		// should receive an ACK message from the node
+		expect( mnode.receiveMessage() ).andReturn( ack );
+		
+		replayAll();
+		
+		MASS.barrierAllSlaves();
+		
+		
+	}
+
+	@Test
+	public void barrierAllSlavesWithArgumentsWithAgents() throws Exception {
+
+		Message ack = new Message( Message.ACTION_TYPE.ACK, new String[]{ "arg1", "arg2" }, 0 );
+		
+		// need an array containing enough elements for the message argument and stripe size
+		Object[] returnValues = new Object[ 4 ];
+		
+		// use mock MNode as the single remote
+		MASS.getRemoteNodes().add( mnode );
+		
+		// should receive an ACK message from the node
+		expect( mnode.receiveMessage() ).andReturn( ack );
+		
+		replayAll();
+		
+		MASS.barrierAllSlaves( returnValues, 1 );
+		
+		// should not have thrown an exception
 		
 	}
 

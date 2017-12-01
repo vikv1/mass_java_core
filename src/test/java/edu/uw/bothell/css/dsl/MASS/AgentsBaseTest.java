@@ -141,18 +141,4 @@ public class AgentsBaseTest extends AbstractTest {
 		
 	}
 	
-	@Test
-	public void callAllSingleArgument() throws Exception {
-		
-		//do this!
-		
-	}
-	
-	@Test
-	public void callAllMultipleArgument() throws Exception {
-		
-		//do this!
-		
-	}
-
 }
