@@ -30,6 +30,8 @@
 
 package edu.uw.bothell.css.dsl.MASS.matrix;
 
+import java.util.Arrays;
+
 /**
  * MatrixUtilities contains helper methods designed to centralize matrix operations
  * @since 1.0.1
@@ -115,5 +117,17 @@ public class MatrixUtilities {
     	
     }
 
+    /**
+     * Return the sum of all elements in an integer array
+     * @param array The source array
+     * @return The total of all integers within the source array
+     */
+    public static int sumArrayElements( int[] array ) {
+    	
+    	if ( array == null ) return 0;
+    	
+    	return Arrays.stream( array ).reduce( 0, ( x, y ) -> x + y );
+    
+    }
 	
 }

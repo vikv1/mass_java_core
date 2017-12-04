@@ -42,123 +42,115 @@ import edu.uw.bothell.css.dsl.MASS.AbstractTest;
  */
 public class MatrixUtilitiesTest extends AbstractTest {
 
-	// class under test
-	private MatrixUtilities matrixUtilities = new MatrixUtilities();
-
 	@Test
-	@SuppressWarnings("static-access")
 	public void getMatrixSizeBadArrays() throws Exception {
 		
 		// should not result in an Exception
-		assertEquals( 0, matrixUtilities.getMatrixSize( null ) );
-		assertEquals( 0, matrixUtilities.getMatrixSize( new int[ 0 ] ) );
+		assertEquals( 0, MatrixUtilities.getMatrixSize( null ) );
+		assertEquals( 0, MatrixUtilities.getMatrixSize( new int[ 0 ] ) );
 		
 	}
 	
 	@Test
-	@SuppressWarnings("static-access")
 	public void getMatrixSize() throws Exception {
 		
 		// single dimension
-		assertEquals( 1, matrixUtilities.getMatrixSize( new int[]{ 1 } ) );
+		assertEquals( 1, MatrixUtilities.getMatrixSize( new int[]{ 1 } ) );
 		
 		// multiple dimensions
-		assertEquals( 1, matrixUtilities.getMatrixSize( new int[]{ 1, 1, 1 } ) );
-		assertEquals( 27, matrixUtilities.getMatrixSize( new int[]{ 3, 3, 3 } ) );
+		assertEquals( 1, MatrixUtilities.getMatrixSize( new int[]{ 1, 1, 1 } ) );
+		assertEquals( 27, MatrixUtilities.getMatrixSize( new int[]{ 3, 3, 3 } ) );
 		
 	}
 	
 	@Test
-	@SuppressWarnings("static-access")
 	public void getLinearIndexBadArrays() throws Exception {
 		
 		// mismatched sizes or null arrays should return min integer value
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( null, null ) );
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( null, new int[ 0 ] ) );
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[ 0 ], null ) );
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[ 1 ], new int[ 2 ] ) );
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[ 2 ], new int[ 1 ] ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( null, null ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( null, new int[ 0 ] ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[ 0 ], null ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[ 1 ], new int[ 2 ] ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[ 2 ], new int[ 1 ] ) );
 		
 	}
 
 	@Test
-	@SuppressWarnings("static-access")
 	public void getLinearIndex() throws Exception {
 		
 		// one-dimensional matrix, first element, index should be zero
-		assertEquals( 0, matrixUtilities.getLinearIndex( new int[]{ 1 }, new int[]{ 0 } ) );
+		assertEquals( 0, MatrixUtilities.getLinearIndex( new int[]{ 1 }, new int[]{ 0 } ) );
 		
 		// two-dimensional matrix, first element, index should be zero
-		assertEquals( 0, matrixUtilities.getLinearIndex( new int[]{ 1, 1 }, new int[]{ 0, 0 } ) );
+		assertEquals( 0, MatrixUtilities.getLinearIndex( new int[]{ 1, 1 }, new int[]{ 0, 0 } ) );
 		
 		// three-dimensional matrix, first element, index should be zero
-		assertEquals( 0, matrixUtilities.getLinearIndex( new int[]{ 1, 1, 1 }, new int[]{ 0, 0, 0 } ) );
+		assertEquals( 0, MatrixUtilities.getLinearIndex( new int[]{ 1, 1, 1 }, new int[]{ 0, 0, 0 } ) );
 		
 		// one-dimensional matrix, last element, index should be 1
-		assertEquals( 1, matrixUtilities.getLinearIndex( new int[]{ 2 }, new int[]{ 1 } ) );
+		assertEquals( 1, MatrixUtilities.getLinearIndex( new int[]{ 2 }, new int[]{ 1 } ) );
 		
 		// two-dimensional matrix, last element, index should be 3
-		assertEquals( 3, matrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 1, 1 } ) );
+		assertEquals( 3, MatrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 1, 1 } ) );
 		
 		// three-dimensional matrix, last element, index should be 7
-		assertEquals( 7, matrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, 1, 1 } ) );
+		assertEquals( 7, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, 1, 1 } ) );
 
 		// one-dimensional matrix, middle element, index should be 2
-		assertEquals( 2, matrixUtilities.getLinearIndex( new int[]{ 3 }, new int[]{ 2 } ) );
+		assertEquals( 2, MatrixUtilities.getLinearIndex( new int[]{ 3 }, new int[]{ 2 } ) );
 		
 		// two-dimensional matrix, middle element, index should be 2
-		assertEquals( 2, matrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 1, 0 } ) );
+		assertEquals( 2, MatrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 1, 0 } ) );
 		
 		// three-dimensional matrix, middle element, index should be 6
-		assertEquals( 6, matrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, 1, 0 } ) );
+		assertEquals( 6, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, 1, 0 } ) );
 		
 		// one-dimensional matrix, element out of bounds, index should be minimum integer value
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[]{ 2 }, new int[]{ 2 } ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2 }, new int[]{ 2 } ) );
 
 		// two-dimensional matrix, element out of bounds, index should be minimum integer value
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 2, 2 } ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 2 }, new int[]{ 2, 2 } ) );
 
 		// three-dimensional matrix, element out of bounds, index should be minimum integer value
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 2, 2, 2 } ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 2, 2, 2 } ) );
 
 		// zero size for a dimension should be ignored
-		assertEquals( 3, matrixUtilities.getLinearIndex( new int[]{ 2, 0, 2 }, new int[]{ 1, 0, 1 } ) );
+		assertEquals( 3, MatrixUtilities.getLinearIndex( new int[]{ 2, 0, 2 }, new int[]{ 1, 0, 1 } ) );
 		
 		// negative location should return minimum integer value
-		assertEquals( Integer.MIN_VALUE, matrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, -1, 1 } ) );
+		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, -1, 1 } ) );
 		
 	}
 
 	@Test
-	@SuppressWarnings("static-access")
 	public void getIndex() throws Exception {
 		
 		// an index at zero in all dimensions is the first linear index
-		int[] firstElement = matrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 0 );
+		int[] firstElement = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 0 );
 		assertEquals( 0, firstElement[ 0 ] );
 		assertEquals( 0, firstElement[ 1 ] );
 		assertEquals( 0, firstElement[ 2 ] );
 		
 		// an index at maximum in all dimensions is the last liner index
-		int[] lastElement = matrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 999 );
+		int[] lastElement = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 999 );
 		assertEquals( 9, lastElement[ 0 ] );
 		assertEquals( 9, lastElement[ 1 ] );
 		assertEquals( 9, lastElement[ 2 ] );
 		
 		// maximum index for first dimension
-		int[] firstDimension = matrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 9 );
+		int[] firstDimension = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 9 );
 		assertEquals( 0, firstDimension[ 0 ] );
 		assertEquals( 0, firstDimension[ 1 ] );
 		assertEquals( 9, firstDimension[ 2 ] );
 
 		// maximum index for second dimension
-		int[] secondDimension = matrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 90 );
+		int[] secondDimension = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 90 );
 		assertEquals( 0, secondDimension[ 0 ] );
 		assertEquals( 9, secondDimension[ 1 ] );
 		assertEquals( 0, secondDimension[ 2 ] );
 
 		// maximum index for third dimension
-		int[] thirdDimension = matrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 900 );
+		int[] thirdDimension = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 900 );
 		assertEquals( 9, thirdDimension[ 0 ] );
 		assertEquals( 0, thirdDimension[ 1 ] );
 		assertEquals( 0, thirdDimension[ 2 ] );
@@ -186,4 +178,16 @@ public class MatrixUtilitiesTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void sumArrayElements() throws Exception {
+		
+		// should not result in an Exception
+		assertEquals( 0, MatrixUtilities.sumArrayElements( null ) );
+		
+		// simple additive operations
+		assertEquals( 3, MatrixUtilities.sumArrayElements( new int[]{ 3 } ) );
+		assertEquals( 3, MatrixUtilities.sumArrayElements( new int[]{ 1, 1, 1 } ) );
+		
+	}
+	
 }

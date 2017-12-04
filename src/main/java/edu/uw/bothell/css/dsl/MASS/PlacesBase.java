@@ -863,10 +863,7 @@ public class PlacesBase {
     	try {
 
     		// calculate "total", which is equal to the number of dimensions in "size" 
-    		total = 1;
-    		for (int i : size) {
-    			total *= i;
-    		}
+    		total = MatrixUtilities.getMatrixSize( size );
 
     		// stripe size is total number of places divided by the number of nodes
     		MASSBase.getLogger().debug( "Calculating stripe size, total number of Places is {}", total );

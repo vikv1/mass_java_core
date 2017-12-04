@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
@@ -71,9 +73,7 @@ public class Agents extends AgentsBase implements Serializable {
   Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
 
     // calculate the total number of agents
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++)
-      total += localAgents[i];
+    total = nAgents();
 
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
@@ -168,17 +168,7 @@ public class Agents extends AgentsBase implements Serializable {
     // Synchronized with all slave processes by main thread.
     MASS.barrierAllSlaves(MASSBase.getCurrentReturns(), 0, localAgents);
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled())
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-
-    }
+    total = nAgents();
 
     return MASSBase.getCurrentReturns();
 
@@ -247,13 +237,7 @@ public class Agents extends AgentsBase implements Serializable {
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-      MASS.getLogger().debug("rank[" + i + "]'s local agent population = " + localAgents[i]);
-
-    }
+    total = nAgents();
 
     // register this agents in the places hash map
     MASSBase.getAgentsMap().put(new Integer(getHandle()), this);
@@ -296,17 +280,7 @@ public class Agents extends AgentsBase implements Serializable {
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled() == true)
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-
-    }
+    total = nAgents();
 
   }
 
@@ -380,11 +354,17 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public int nAgents() {
 
-    int nAgents = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++)
-      nAgents += localAgents[i];
+	  int numAgents = MatrixUtilities.sumArrayElements( localAgents );
 
-    return nAgents;
+	  // for debugging
+	  if ( MASS.isConsoleLoggingEnabled() ) {
+		  for (int i = 0; i < MASSBase.getSystemSize(); i++) {
+			  MASSBase.getLogger().debug( "rank[{}]'s local agent population = ", localAgents[i] );
+		  }
+	  }
+
+	  return numAgents;
 
   }
+  
 }
