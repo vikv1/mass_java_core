@@ -32,15 +32,10 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 /**
  * Places manages all Place elements within the simulation space.
  */
 public class Places extends PlacesBase {
-
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
 	 * Places constructor that creates places with a given dimension.
@@ -112,7 +107,7 @@ public class Places extends PlacesBase {
 				
 				m = new Message( type, this.getHandle(), functionId, partialArguments );
 				
-			    logger.debug( "Places.callAll: arg_size = " + 
+				MASSBase.getLogger().debug( "Places.callAll: arg_size = " + 
 						   (partialArguments == null ? 0 : partialArguments.length) +
 						   " stripe = " + stripe + 
 						   " i + 1 = " + (i + 1) );
@@ -121,7 +116,7 @@ public class Places extends PlacesBase {
 		    // send it
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
-		    logger.debug( "PLACES_CALL_ALL " + m.getAction( ) +
+		    MASSBase.getLogger().debug( "PLACES_CALL_ALL " + m.getAction( ) +
 				       " sent to {}", MASS.getRemoteNodes().get(i).getHostName() );
 		
 		}
@@ -153,9 +148,9 @@ public class Places extends PlacesBase {
 		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
-		logger.debug("Attempting to barrierAllSlaves...");
+		MASSBase.getLogger().debug("Attempting to barrierAllSlaves...");
 		MASS.barrierAllSlaves( MASSBase.getCurrentReturns(), stripe );
-		logger.debug("barrierAllSlaves completed!");
+		MASSBase.getLogger().debug("barrierAllSlaves completed!");
 		
 		return MASSBase.getCurrentReturns();
     
@@ -179,7 +174,7 @@ public class Places extends PlacesBase {
 	 */
 	public void callAll( int functionId, Object argument ) {
 	
-	    logger.debug( "callAll void object" );
+		MASSBase.getLogger().debug( "callAll void object" );
 		
 		ca_setup( functionId, argument, 
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
@@ -200,7 +195,7 @@ public class Places extends PlacesBase {
 	 */
 	public Object[] callAll( int functionId, Object argument[] ) {
 	
-	    logger.debug( "callAll return object" );
+		MASSBase.getLogger().debug( "callAll return object" );
 		
 		return ca_setup( functionId, ( Object )argument,
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
@@ -226,7 +221,7 @@ public class Places extends PlacesBase {
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
 		
-	    logger.debug( "dest_handle = {}", destinationHandle );
+		MASSBase.getLogger().debug( "dest_handle = {}", destinationHandle );
 		
 		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
@@ -324,7 +319,7 @@ public class Places extends PlacesBase {
 		try {
 		    hosts.add( MASS.getMasterNode().getHostName() );
 		} catch ( Exception e ) {
-		    logger.error( "init_master: InetAddress.getLocalHost( ) ", e );
+			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
 		    System.exit( -1 );
 		}
 		
@@ -343,7 +338,7 @@ public class Places extends PlacesBase {
 		    
 			node.sendMessage( m );
 		    
-			logger.debug( "PLACES_INITIALIZE sent to {}", node.getPid() );
+			MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to {}", node.getPid() );
 		
 		}
 		

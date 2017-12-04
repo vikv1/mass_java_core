@@ -42,8 +42,6 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 /**
  * MASS Utilities
  * 
@@ -63,9 +61,6 @@ class Utilities {
 	
 	// keep track of all remote sessions, so that MNode does not need library-specific references
 	private Map<MNode, Channel> remoteSessions = new HashMap<MNode, Channel>();
-	
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
 	
 	/**
 	 * Compatibility method to prevent breakage until "launchRemoteProcess" is used instead
@@ -106,49 +101,49 @@ class Utilities {
     		if ( jsch == null ) jsch = new JSch( );
     		
     		// add reference to SSH key
-    		logger.debug( "Adding private key: {}", remoteNode.getPrivateKey() );
+    		MASSBase.getLogger().debug( "Adding private key: {}", remoteNode.getPrivateKey() );
     		jsch.addIdentity( remoteNode.getPrivateKey() );
     		
             // set SSH connection properties
-    		logger.debug( "Setting hostname to {}", remoteNode.getHostName() );
-    		logger.debug( "Setting username to {}", remoteNode.getUserName() );
-    		logger.debug( "Connecting to port {}", SSH_PORT );
+    		MASSBase.getLogger().debug( "Setting hostname to {}", remoteNode.getHostName() );
+    		MASSBase.getLogger().debug( "Setting username to {}", remoteNode.getUserName() );
+    		MASSBase.getLogger().debug( "Connecting to port {}", SSH_PORT );
             Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
 
-            logger.debug( "Setting preferred authentication method");
+            MASSBase.getLogger().debug( "Setting preferred authentication method");
             config.put("PreferredAuthentications", "publickey");
 
-            logger.debug( "Disabling strict host key checking" );
+            MASSBase.getLogger().debug( "Disabling strict host key checking" );
             config.put( "StrictHostKeyChecking", "no" );  
             
             // authenticate and complete connection sequence to the remote host
-            logger.debug( "Attempting to connect and authenticate..." );
+            MASSBase.getLogger().debug( "Attempting to connect and authenticate..." );
             session.setConfig( config );
             session.connect( );
-            logger.debug( "Connected!" );
+            MASSBase.getLogger().debug( "Connected!" );
 
             // set the command to be executed upon channel connection
-            logger.debug( "Executing remote command: {}", command );
+            MASSBase.getLogger().debug( "Executing remote command: {}", command );
             channel = ( ChannelExec ) session.openChannel( "exec" );
             channel.setCommand( command );
-            logger.debug( "Command executed!" );
+            MASSBase.getLogger().debug( "Command executed!" );
 
-            logger.debug( "Setting object input/output streams with remote node..." );
+            MASSBase.getLogger().debug( "Setting object input/output streams with remote node..." );
     		channel.connect( CONNECT_TIMEOUT_MILLISECONDS );
     		remoteNode.setOutputStream( channel.getOutputStream() );
     		remoteNode.setInputStream( channel.getInputStream() );
     		// TODO - error stream?
-    		logger.debug( "Streams set!" );
+    		MASSBase.getLogger().debug( "Streams set!" );
     		
     		// keep track of this session for orderly disconnect later
     		remoteSessions.put( remoteNode, channel );
-    		logger.debug( "Communications established with remote node" );
+    		MASSBase.getLogger().debug( "Communications established with remote node" );
 
     		
     	} catch ( Exception e ) {
     		
     		// log the error message
-    		logger.error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
+    		MASSBase.getLogger().error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
     		
     	}
     	
@@ -162,7 +157,7 @@ class Utilities {
     	
     	if ( remoteNode == null ) return;
     	
-    	logger.debug( "Attempting to terminate communcations with node PID: {}", remoteNode.getPid() );
+    	MASSBase.getLogger().debug( "Attempting to terminate communcations with node PID: {}", remoteNode.getPid() );
     	
     	// close streams in use by MNode
     	remoteNode.closeMainConnection();
@@ -178,12 +173,12 @@ class Utilities {
                 channel.disconnect();
                 session.disconnect();
 
-            	logger.debug( "Communcations terminated!" );
+                MASSBase.getLogger().debug( "Communcations terminated!" );
             	
     		} catch (JSchException e) {
 
         		// log the error message
-        		logger.error("Caught exception while attempting to disconnect from remote node", e);
+    			MASSBase.getLogger().error("Caught exception while attempting to disconnect from remote node", e);
 
     		}
     		
@@ -207,7 +202,7 @@ class Utilities {
 		catch (UnknownHostException e) {
 
 			// no biggie, at least not now, but should be logged at least
-			logger.warning("Unable to determine hostname when requested");
+			MASSBase.getLogger().warning("Unable to determine hostname when requested");
 			
 		}
 

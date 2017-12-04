@@ -34,8 +34,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Vector;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 /**
  *	MProcess exists to facilitate message-passing between remote and master nodes. 
  */
@@ -48,9 +46,6 @@ public class MProcess {
   private int myPid; // my pid or rank
   private ObjectInputStream MAIN_IOS; // input from the master process
   private ObjectOutputStream MAIN_OOS; // output to the master process
-
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
    * Main MASS function that launches MProcess
@@ -99,7 +94,7 @@ public class MProcess {
 	  MASSBase.setSystemSize( nProc ); 	// must force system size since we don't have visibility to all nodes
 	  MASSBase.initMASSBase( thisNode );
 	  
-	  logger.debug("Launching MProcess... (" + "hostname = " + hostName
+	  MASSBase.getLogger().debug("Launching MProcess... (" + "hostname = " + hostName
 			  + ", myPid = " + myPid + ", nProc = " + nProc + ", nThr = " + nThr
 			  + ", port = " + port + ", curDir = " + curDir + ")");
 
@@ -117,7 +112,7 @@ public class MProcess {
 
 	  } catch (Exception e) {
 
-		  logger.error("MProcess.Mprocess: detected ", e);
+		  MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
 		  System.exit(-1);
 
 	  }
@@ -129,7 +124,7 @@ public class MProcess {
     try {
       return (Message) MAIN_IOS.readObject();
     } catch (Exception e) {
-      logger.error("MProcess.receiveMessage: detected ", e);
+    	MASSBase.getLogger().error("MProcess.receiveMessage: detected ", e);
       System.exit(-1);
     }
 
@@ -145,7 +140,7 @@ public class MProcess {
   private void sendAck(int localPopulation) {
 
     Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
-    logger.debug( "msg.getAgentPopulation = {}", msg.getAgentPopulation( ) );
+    MASSBase.getLogger().debug( "msg.getAgentPopulation = {}", msg.getAgentPopulation( ) );
 
     sendMessage(msg);
 
@@ -160,7 +155,7 @@ public class MProcess {
 
     } catch (Exception e) {
 
-      logger.error("MProcess.sendMessage: ", e);
+    	MASSBase.getLogger().error("MProcess.sendMessage: ", e);
       System.exit(-1);
 
     }
@@ -181,7 +176,7 @@ public class MProcess {
   @SuppressWarnings("incomplete-switch")
   public void start() {
 
-    logger.debug("MProcess started");
+	  MASSBase.getLogger().debug("MProcess started");
 
     // Synchronize with the master node first.
     sendAck();
@@ -192,7 +187,7 @@ public class MProcess {
       // receive a new message from the master
       Message m = receiveMessage();
 
-      logger.debug( "A new message received: action = {}", m.getAction( ) );
+      MASSBase.getLogger().debug( "A new message received: action = {}", m.getAction( ) );
 
       // get prepared for the following arguments for PLACES_INITIALIZE
       int[] size; // size[]
@@ -212,7 +207,7 @@ public class MProcess {
 
       case EMPTY:
         if (MASS.isConsoleLoggingEnabled())
-          logger.debug("EMPTY received!!!!");
+        	MASSBase.getLogger().debug("EMPTY received!!!!");
         sendAck();
         break;
 
@@ -223,12 +218,12 @@ public class MProcess {
         MASSBase.getExchange().terminateConnection(this.myPid);
         sendAck();
         alive = false;
-        logger.debug( "FINISH received and ACK sent" );
+        MASSBase.getLogger().debug( "FINISH received and ACK sent" );
         break;
 
       case PLACES_INITIALIZE:
 
-        logger.debug("PLACES_INITIALIZE received");
+    	  MASSBase.getLogger().debug("PLACES_INITIALIZE received");
 
         // create a new Places
         size = m.getSize();
@@ -243,12 +238,12 @@ public class MProcess {
 
         MASSBase.getPlacesMap().put(new Integer(m.getHandle()), places);
         sendAck();
-        logger.debug("PLACES_INITIALIZE completed and ACK sent");
+        MASSBase.getLogger().debug("PLACES_INITIALIZE completed and ACK sent");
         break;
 
       case PLACES_CALL_ALL_VOID_OBJECT:
 
-        logger.debug("PLACES_CALL_ALL_VOID_OBJECT received");
+    	  MASSBase.getLogger().debug("PLACES_CALL_ALL_VOID_OBJECT received");
 
         // retrieve the corresponding places
         MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
@@ -271,7 +266,7 @@ public class MProcess {
 
       case PLACES_CALL_ALL_RETURN_OBJECT:
 
-        logger.debug("PLACES_CALL_ALL_RETURN_OBJECT received");
+    	  MASSBase.getLogger().debug("PLACES_CALL_ALL_RETURN_OBJECT received");
 
         // retrieve the corresponding places
         MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
@@ -298,7 +293,7 @@ public class MProcess {
 
       case PLACES_EXCHANGE_ALL:
 
-        logger.debug("PLACES_EXCHANGE_ALL recweived handle = "
+    	  MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL recweived handle = "
               + m.getHandle() + " dest_handle = " + m.getDestHandle());
 
         // retrieve the corresponding places
@@ -326,17 +321,17 @@ public class MProcess {
         // confirm all threads are done with places.exchangeall.
         MThread.barrierThreads(0);
 
-        logger.debug("barrier done");
+        MASSBase.getLogger().debug("barrier done");
 
         sendAck();
 
-        logger.debug("PLACES_EXCHANGE_ALL sent ACK");
+        MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL sent ACK");
 
         break;
 
       case PLACES_EXCHANGE_BOUNDARY:
 
-        logger.debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
+    	  MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
 
         // retrieve the corresponding places
         MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(new Integer(m.getHandle())));
@@ -349,7 +344,7 @@ public class MProcess {
 
         sendAck();
 
-        logger.debug("PLACES_EXCHANGE_BOUNDARY completed and ACK sent");
+        MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY completed and ACK sent");
 
         break;
 
@@ -360,7 +355,7 @@ public class MProcess {
 
       case AGENTS_INITIALIZE:
 
-        logger.debug("AGENTS_INITIALIZE received");
+    	  MASSBase.getLogger().debug("AGENTS_INITIALIZE received");
 
         agents = new AgentsBase(m.getHandle(), m.getClassname(), argument,
             m.getDestHandle(), m.getAgentPopulation());
@@ -369,13 +364,13 @@ public class MProcess {
 
         sendAck(agents.getLocalPopulation());
 
-        logger.debug("AGENTS_INITIALIZE completed and ACK sent");
+        MASSBase.getLogger().debug("AGENTS_INITIALIZE completed and ACK sent");
 
         break;
 
       case AGENTS_CALL_ALL_VOID_OBJECT:
 
-        logger.debug("AGENTS_CALL_ALL_VOID_OBJECT received");
+    	  MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
         MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
@@ -394,14 +389,14 @@ public class MProcess {
         // confirm all threads are done with agents.callAll
         MThread.barrierThreads(0);
 
-        logger.debug("barrier done");
+        MASSBase.getLogger().debug("barrier done");
 
         sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
         break;
 
       case AGENTS_CALL_ALL_RETURN_OBJECT:
 
-        logger.debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
+    	  MASSBase.getLogger().debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
 
         MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
@@ -423,7 +418,7 @@ public class MProcess {
         // confirm all threads are done with agnets.callAll with
         // return objects
         MThread.barrierThreads(0);
-        logger.debug("barrier done");
+        MASSBase.getLogger().debug("barrier done");
 
         sendReturnValues(MASSBase.getCurrentReturns(), MASSBase
             .getCurrentAgentsBase().getLocalPopulation());
@@ -432,7 +427,7 @@ public class MProcess {
 
       case AGENTS_MANAGE_ALL:
 
-        logger.debug("AGENTS_MANAGE_ALL received");
+    	  MASSBase.getLogger().debug("AGENTS_MANAGE_ALL received");
 
         MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
             new Integer(m.getHandle())));
@@ -446,7 +441,7 @@ public class MProcess {
         // confirm all threads are done with agents.manageAll.
         MThread.barrierThreads(0);
 
-        logger.debug("sendAck will send localPopulation = {}", MASSBase.getCurrentAgentsBase().getLocalPopulation());
+        MASSBase.getLogger().debug("sendAck will send localPopulation = {}", MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
         sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
 

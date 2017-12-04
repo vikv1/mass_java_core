@@ -32,8 +32,6 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
@@ -44,9 +42,6 @@ public class Agents extends AgentsBase implements Serializable {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
   private int total;
-
-	// logging
-	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
    * Instantiates a set of agents from the "className" class, passes the
@@ -155,7 +150,7 @@ public class Agents extends AgentsBase implements Serializable {
     }
 
     // resume threads
-    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
+    MASS.getLogger().debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
 
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
@@ -244,7 +239,7 @@ public class Agents extends AgentsBase implements Serializable {
     for (MNode node : MASS.getRemoteNodes()) {
 
       node.sendMessage(m);
-      logger.debug("AGENT_INITIALIZE sent to {}", node.getPid());
+      MASS.getLogger().debug("AGENT_INITIALIZE sent to {}", node.getPid());
     
     }
 
@@ -256,7 +251,7 @@ public class Agents extends AgentsBase implements Serializable {
     for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 
       total += localAgents[i];
-      logger.debug("rank[" + i + "]'s local agent population = " + localAgents[i]);
+      MASS.getLogger().debug("rank[" + i + "]'s local agent population = " + localAgents[i]);
 
     }
 

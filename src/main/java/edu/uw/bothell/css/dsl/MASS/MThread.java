@@ -30,8 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 public class MThread extends Thread {
 
 	/**
@@ -55,9 +53,6 @@ public class MThread extends Thread {
     private static int barrierPhases;
     private int tid;                  // this mthread's id
 
-	// logging
-	private static Log4J2Logger logger = Log4J2Logger.getInstance();
-
     public MThread( int id ) {
     	this.tid = id;
     }
@@ -68,13 +63,13 @@ public class MThread extends Thread {
     		
     		if ( ++barrierCount < MASSBase.getThreads().length ) {
     			
-   				logger.debug( "tid[" + tid + "] waiting: barrier = " + barrierPhases );
+    			MASSBase.getLogger().debug( "tid[" + tid + "] waiting: barrier = " + barrierPhases );
     			
     			try {
     				lock.wait( );
     			} 
     			catch( Exception e ) {
-    				logger.error("Unknown exception thrown in barrierThreads", e);
+    				MASSBase.getLogger().error("Unknown exception thrown in barrierThreads", e);
     			}
     		
     		} 
@@ -82,11 +77,11 @@ public class MThread extends Thread {
     			
     			barrierCount = 0;
     			status = STATUS_TYPE.STATUS_READY;
-   				logger.debug( "tid[" + tid + "] woke up all: barrier = " + barrierPhases );
+    			MASSBase.getLogger().debug( "tid[" + tid + "] woke up all: barrier = " + barrierPhases );
     			barrierPhases++;
-    			logger.debug("Attempting to notifyAll...");
+    			MASSBase.getLogger().debug("Attempting to notifyAll...");
     			lock.notifyAll( );
-    			logger.debug("notifyAll success!");
+    			MASSBase.getLogger().debug("notifyAll success!");
     		
     		}
     	
@@ -120,7 +115,7 @@ public class MThread extends Thread {
     	}
 
     	// breath message
-   		logger.debug( "Mthread[{}] invoked", tid );
+    	MASSBase.getLogger().debug( "Mthread[{}] invoked", tid );
 
     	// the following variables are used to call callAll( )
     	PlacesBase places = null;
@@ -144,7 +139,7 @@ public class MThread extends Thread {
     			}
 
     			// wake-up message
-   				logger.debug( "Mthread[" + tid + "] woken up " + status );
+    			MASSBase.getLogger().debug( "Mthread[" + tid + "] woken up " + status );
     		
     		}
 
@@ -153,7 +148,7 @@ public class MThread extends Thread {
     		
     		case STATUS_READY:
     			
-   				logger.error( "Mthread reached STATUS_READY in switch" );
+    			MASSBase.getLogger().error( "Mthread reached STATUS_READY in switch" );
     			System.exit( -1 );
     			break;
     		
@@ -169,7 +164,7 @@ public class MThread extends Thread {
     			argument = MASSBase.getCurrentArgument( );
     			msgType = MASSBase.getCurrentMsgType( );
 
-   				logger.debug( "Mthread[" +tid + "] works on CALLALL:" +
+    			MASSBase.getLogger().debug( "Mthread[" +tid + "] works on CALLALL:" +
     						" placese = " + places +
     						" functionId = " + functionId +
     						" argument = " + argument +
@@ -186,7 +181,7 @@ public class MThread extends Thread {
 
     		case STATUS_EXCHANGEALL:
     			
-   				logger.debug( "Mthread[{}] works on EXCHANGEALL", tid );
+    			MASSBase.getLogger().debug( "Mthread[{}] works on EXCHANGEALL", tid );
 
     			places = MASSBase.getCurrentPlacesBase( );
     			functionId = MASSBase.getCurrentFunctionId( );
@@ -201,7 +196,7 @@ public class MThread extends Thread {
     			argument = MASSBase.getCurrentArgument( );
     			msgType = MASSBase.getCurrentMsgType( );
 
-   				logger.debug( "Mthread[" + tid + 
+    			MASSBase.getLogger().debug( "Mthread[" + tid + 
     						"] works on AGENST_CALLALL:" +
     						" agents = " + agents +
     						" functionId = " + functionId +
@@ -226,7 +221,7 @@ public class MThread extends Thread {
     			agents = MASSBase.getCurrentAgentsBase( );
 
     			//Send logging message
-   				logger.debug( "Mthread[" + tid + "] works on MANAGEALL: agents = " + agents );
+    			MASSBase.getLogger().debug( "Mthread[" + tid + "] works on MANAGEALL: agents = " + agents );
 
     			//Sent message for manageall
     			agents.manageAll( tid );
@@ -237,11 +232,11 @@ public class MThread extends Thread {
     		barrierThreads( tid );
     	}
       }catch(Exception e) {
-        logger.error("Thread {} fails", tid, e);
+    	  MASSBase.getLogger().error("Thread {} fails", tid, e);
       }
     
     	// last message
-   		logger.debug( "Mthread[{}] terminated", tid );
+      MASSBase.getLogger().debug( "Mthread[{}] terminated", tid );
     
     }
 

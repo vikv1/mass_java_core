@@ -32,8 +32,6 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
@@ -67,10 +65,6 @@ public class Agent implements Serializable {
 	 * Is an array of arguments, each passed to a different new child.
 	 */
 	private transient Object[] arguments = null;
-
-	// logging (okay to suppress unused warning for now - it will be used later!)
-	@SuppressWarnings("unused")
-	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with

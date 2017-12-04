@@ -43,7 +43,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -78,7 +77,6 @@ public class MNode {
 	private ObjectInputStream mainIOS;  // from remote to master
 	private ObjectOutputStream mainOOS; // from master to remote
 	private int resetCounter = 0;
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
     
     /**
 	 * Terminate all communications channels to the remote Node
@@ -93,7 +91,7 @@ public class MNode {
 
 		} catch( Exception e ) {
 
-			logger.warning( "closeMainConnection error with rank[" + pid + "] at " + hostName );
+			MASSBase.getLogger().warning( "closeMainConnection error with rank[" + pid + "] at " + hostName );
 
 		}
 		
@@ -183,7 +181,7 @@ public class MNode {
 		// TODO - need better method of handling errors here rather than terminating application
 		catch( Exception e ) {	
 
-			logger.error( "ERROR: mNode: Pid: {}", pid, e);
+			MASSBase.getLogger().error( "ERROR: mNode: Pid: {}", pid, e);
 			System.exit( -1 );
 		
 		}
@@ -210,15 +208,15 @@ public class MNode {
 
 		try {
 
-			logger.debug("Awaiting receipt of message...");
+			MASSBase.getLogger().debug("Awaiting receipt of message...");
 			m = ( Message ) mainIOS.readObject( );
-			logger.debug("Message received!");
+			MASSBase.getLogger().debug("Message received!");
 
 		}
 
 		catch ( Exception e ) {
 
-			logger.error( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "receivMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 			
 			e.printStackTrace();
@@ -239,19 +237,19 @@ public class MNode {
 
 		try {
 
-			logger.debug("Sending message to {}", getHostName());
+			MASSBase.getLogger().debug("Sending message to {}", getHostName());
 			mainOOS.writeObject( m );
-			logger.debug("Message sent!");
+			MASSBase.getLogger().debug("Message sent!");
 			mainOOS.flush( );
-			logger.debug("Object outputstream flushed");
+			MASSBase.getLogger().debug("Object outputstream flushed");
             
 			// is it time to reset the outputstream?
 			// TODO - this is a kludge! Do we really need to do this?
 			resetCounter++;
 			if ( resetCounter == RESET_OUTPUTSTREAM_COUNT ) {
-				logger.debug( "Resetting object outputstream... ");
+				MASSBase.getLogger().debug( "Resetting object outputstream... ");
 				mainOOS.reset();
-				logger.debug( "Stream reset!" );
+				MASSBase.getLogger().debug( "Stream reset!" );
 				resetCounter = 0;
 			}
 
@@ -259,7 +257,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			logger.error( "sendMessage error to rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "sendMessage error to rank[" + pid + "] at " +
 					hostName );
 
 			System.exit( -1 );

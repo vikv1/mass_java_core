@@ -54,7 +54,6 @@ import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -81,9 +80,6 @@ public class MASS extends MASSBase {
     // yes - unused at this point right now...
     @SuppressWarnings("unused")
 	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-
-	// Logging
-	private static Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
@@ -349,7 +345,7 @@ public class MASS extends MASSBase {
     			
     		} catch ( Exception e ) {
 
-    			logger.error( "Wrong host name: {}", node.getHostName(), e );
+    			MASS.getLogger().error( "Wrong host name: {}", node.getHostName(), e );
     			System.exit( -1 );
 
     		}
@@ -523,7 +519,7 @@ public class MASS extends MASSBase {
 	 * @param level The logging level
 	 */
 	public static void setLoggingLevel(LogLevel level) {
-		logger.setLogLevel(level);
+		MASS.getLogger().setLogLevel(level);
 	}
 	
 	/**

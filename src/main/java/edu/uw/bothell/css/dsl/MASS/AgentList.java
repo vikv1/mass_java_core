@@ -30,8 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 /**
  * AgentList is a container for a collection of Agents, with a simple iterator and automatic
  * resize capability 
@@ -48,9 +46,6 @@ public class AgentList {
 	private int currentX = -1;
 	private int nextY = 0;
 	private int iterator = 0;
-
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
 	 * Instantiate an AgentList with default storage size
@@ -102,7 +97,7 @@ public class AgentList {
 	public void checkInternal( ) {
 		
 		for ( int x = 0; x < currentX * capacityY + nextY; x++ )
-			logger.debug( "AgentList[{}]", get( x ) );
+			MASS.getLogger().debug( "AgentList[{}]", get( x ) );
 	
 	}
 
@@ -244,7 +239,7 @@ public class AgentList {
 		currentX = xNull;
 		nextY = yNull;
 		reduceDone = true;
-		logger.debug( "Reduce done to {}", size_unreduced( ) );
+		MASS.getLogger().debug( "Reduce done to {}", size_unreduced( ) );
 	
 	}
 
