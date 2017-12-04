@@ -40,7 +40,7 @@ public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
     private int total;
-    
+    private int[] nextIndex;
     private int stripeSize;
     private final int handle;
     private final String className;
@@ -103,7 +103,6 @@ public class PlacesBase {
     					+ ", handle = " + handle
     					+ ", places_size = " + places_size 
     					+ ", shadow_size = " + shadow_size
-    					//+ ", outMessage_size = " + outMessage_size
     					);
     	
     	}
@@ -399,11 +398,6 @@ public class PlacesBase {
     		
     		for ( int i = range[0]; i <= range[1]; i++ ) {
     			
-    			// TODO - what is being logged here? A Places object?
-//    			if ( logger.isDebugEnabled() )
-//    				logger.debug( "thread[" + tid + "]: places[i] = " + 
-//    						places[i] );
-
     			places[i].callMethod( functionId, argument );
     		
     		}
@@ -565,11 +559,7 @@ public class PlacesBase {
     										remoteRequests.size( ) );
     						}
     					}
-    				} else {
-    					//This just fills the log with junk
-    					// logger.error( " to destination invalid" );
-    				}
-    			}
+    				}    			}
     		}
     	}
 
@@ -920,6 +910,9 @@ public class PlacesBase {
 
     private void init_all( Object argument ) {
     	
+    	// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
+    	if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
+    	
     	// For debugging
     	logger.debug( "init_all handle = " + handle + 
     				", class = " + className + 
@@ -955,10 +948,12 @@ public class PlacesBase {
     		// initialize all Places objects
     		for ( int i = 0; i < placesSize; i++ ) {
     			
+    			// TODO - hack! should be able to set index on a Place without having to resort to calling back for it (should be pushed, not pulled)
+    			nextIndex = getGlobalArrayIndex(lowerBoundary + i);
+    			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
-				newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				newPlace.setSize(size);
+				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
 				places[i] = newPlace;
 
     		}
@@ -1001,9 +996,10 @@ public class PlacesBase {
     			if ( leftShadow != null ) {
 
     				// instantiate a new place
-					Place newPlace = objectFactory.getInstance(className, argument);
-					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(lowerBoundary - shadowSize + i));
+    				// TODO - see "hack" comments above
+    				nextIndex = getGlobalArrayIndex(lowerBoundary - shadowSize + i);
+    				Place newPlace = objectFactory.getInstance(className, argument);
+					newPlace.setIndex( nextIndex );
 					leftShadow[i] = newPlace;
 
     			}
@@ -1012,9 +1008,10 @@ public class PlacesBase {
     			if ( rightShadow != null ) {
 
     				// instantiate a new place
+    				// TODO - see "hack" comments above
+    				nextIndex = getGlobalArrayIndex(upperBoundary + i);
 					Place newPlace = objectFactory.getInstance(className, argument);
-					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(upperBoundary + i));
+					newPlace.setIndex( nextIndex );
 					rightShadow[i] = newPlace;
 
     			}
@@ -1028,6 +1025,21 @@ public class PlacesBase {
         	logger.error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
     	} 
     
+    }
+
+    /**
+     * During instantiation of Places, the "index" must be set. To preserve compatibility with classes derived from Place
+     * that require an index value when the constructor is called, this method is provided. This method returns the "index"
+     * that should be used for the next Place instantiated.
+     * <p>
+     * When the Place is instantiated, it's constructor calls this method to get the index value so that the derived class
+     * may use it in it's constructor.
+     * @return The index value the next Place instantiation will need
+     */
+    public int[] getNextIndex() {
+    	
+    	return nextIndex;
+    	
     }
 
 }

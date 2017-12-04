@@ -49,8 +49,6 @@ public class AgentsBase implements Serializable {
 		Currently we are using STARTING_CHILD_ASYNC_INDEX, however in the future
 		 we are supposed to use currentAgentId.
 	*/
-	//public static final int MAX_AGENTS_PER_NODE = 100000000; // 100 million
-	//public static final int MAX_AGENTS_PER_NODE = 40;
 	public static final int MAX_AGENTS_PER_NODE = AgentSerializer.getInstance().getMaxNumberOfAgents();
 
 
@@ -113,17 +111,11 @@ public class AgentsBase implements Serializable {
     	PlacesBase curPlaces = 
     			MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
 
-    		// TODO - what is really being logged here?
-//   		logger.debug( "Agents_base constructor: placesClass = " 
-//    				+ " curPlaces = " + (Object)curPlaces );
-
     	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
 
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
 
-   			// logger.debug( "Agent_base constructor place[{}]", i );
-    		
     		// create as many new agents as nColonists
     		for ( int nColonists =
     				protoAgent.map( initPopulation, curPlace.getSize(), 
@@ -145,10 +137,6 @@ public class AgentsBase implements Serializable {
     				logger.error( "Agents_base.constructor: {} not instaitated ", className, e );    			
     			}
 
-    			// TODO - what is being logged here?
-//   				logger.debug( " newAgent[" + localPopulation + "] = " + 
-//    						(Object)newAgent );
-
     			newAgent.setPlace(curPlace);
     			newAgent.setIndex(curPlace.getIndex());
 
@@ -161,18 +149,6 @@ public class AgentsBase implements Serializable {
     	}
     }
 
-    protected static int getAgentInitAgentId() {
-		return agentInitAgentId;
-	}
-    
-    protected static Object processAgentMigrationRequest( Object param ) {
-    	return null;
-    }
-    
-    protected static Object sendMessageByChild( Object param ) {
-    	return null;
-    }
-    
     public void callAll( int functionId, Object argument, int tid ) {
 
     	int numOfOriginalVectors = MThread.getAgentBagSize();
@@ -311,10 +287,18 @@ public class AgentsBase implements Serializable {
     
     }
 
+    /**
+     * Get the AgentList representation of all Agents located on this node
+     * @return AgentList for this node
+     */
 	public AgentList getAgents() {
 		return agents;
 	}
 	
+    /**
+     * Get the name of the class used for a Agent
+     * @return The Agent implementation class name
+     */
 	protected String getClassName() {
 		return className;
 	}
@@ -341,22 +325,34 @@ public class AgentsBase implements Serializable {
     
     }
 
+	/**
+	 * Get the Handle/ID number for this AgentsBase
+	 * @return This AgentsBase ID
+	 */
 	public int getHandle() {
 		return handle;
 	}
 
+	/**
+	 * Get the number of Agents that were initially located on this node
+	 * @return Number of local Agents present immediately after initialization
+	 */
 	protected int getInitPopulation() {
 		return initPopulation;
 	}
 
+	/**
+	 * Get the number of Agents located on this node
+	 * @return Number of local Agents
+	 */
 	protected int getLocalPopulation() {
 		return localPopulation;
 	}
 	
-	protected void setLocalPopulation(int population) {
-	  localPopulation = population;
-	}
-
+	/**
+	 * Get the Places handle ID located on this node
+	 * @return The local Places ID
+	 */
 	protected int getPlacesHandle() {
 		return placesHandle;
 	}
@@ -424,44 +420,22 @@ public class AgentsBase implements Serializable {
 
     				synchronized( this ) {
 
-						/*
-						// check if there is available agent id
-						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId > -1)
-						{
-							agentInitAgentId = availableAgentId;
-						}
-						// assign a never used id
-						else
-						{
-							agentInitAgentId = this.currentAgentId++;
-						}
-						*/
 						addAgent =
 								(Agent) (// validate the correspondance of arguments and
 										// argumentcounter
 										(evaluationAgent.getArguments().length >
 												argumentcounter) ?
 												// yes: this child agent should recieve an argument.
-												//    									( Agent )agentConstructor.
-												//    									newInstance( evaluationAgent.
-												//    											getArguments()[argumentcounter++] )
 												objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
 												:
-												// no:  this child agent should not receive an arg.
-												//    												( Agent )agentConstructor.
-												//    												newInstance( dummyArgument ));
 												objectFactory.getInstance(className, dummyArgument)
 								);
 
 					}
 
 					// Index SHOULD be set using getplace not agent.getindex()
-    				//addAgent.setIndex(evaluationAgent.getIndex());
 					addAgent.setIndex(evaluationAgent.getPlace().getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
-					//System.out.println("agent is about to be spawned and its index: " + addAgent.getIndex()[0] + " " + addAgent.getIndex()[1]);
-					//System.out.println("agent is about to be spawned and place index: " + addAgent.getPlace().getIndex()[0] + " " + addAgent.getPlace().getIndex()[1]);
 
 					/** Agent population control work begins, execution order is important! **/
 
@@ -473,7 +447,6 @@ public class AgentsBase implements Serializable {
 						if (availableAgentId > -1)
 						{
 							addAgent.setAgentId(availableAgentId);
-							//addAgent.setAgentId(this.currentAgentId++);
 						}
 						// assign a never used id
 						else
@@ -491,13 +464,6 @@ public class AgentsBase implements Serializable {
     				// TODO - now what? What to do when an exception is thrown?
     				logger.error( "Agents_base.manageAll: {} not instantiated", this.className, e );
     			}
-
-				/*
-    			// Push the created agent into our bag for returns and 
-    			// update the counter needed to keep track of our agents.
-    			addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-    			this.agents.add( addAgent );           // auto syn
-    			*/
 
     			// Decrement the newChildren counter once an Agent has been 
     			// spawned
@@ -544,14 +510,11 @@ public class AgentsBase implements Serializable {
 				{
 					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
 
-					//System.out.println("agent spawn request became to an agent and is added to the agent bag");
-
 					// check if there is available agent id
 					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
 					if (availableAgentId > -1)
 					{
 						agentSpawnRequest.setAgentId(availableAgentId);
-						//agentSpawnRequest.setAgentId(this.currentAgentId++);
 					}
 					// assign a never used id
 					else
@@ -559,8 +522,6 @@ public class AgentsBase implements Serializable {
 						agentSpawnRequest.setAgentId(this.currentAgentId++);
 					}
 
-					//System.out.println("agent spawn request's new agent id is: " + agentSpawnRequest.getAgentId());
-					//System.out.println("agent spawn request's index is: " + agentSpawnRequest.getIndex()[0] + " " + agentSpawnRequest.getIndex()[1]);
 					// retrieve the corresponding places
 					PlacesBase curPlaces =
 							MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
@@ -572,15 +533,6 @@ public class AgentsBase implements Serializable {
 
 					// push this agent into the place and the entire agent bag.
 					agentSpawnRequest.setPlace(curPlace);
-					//System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
-					//System.out.println("agent spawn request's place's index is: " + curPlace.getIndex()[0] + " " + curPlace.getIndex()[1]);
-
-					//agent.setIndex(dstPlace.getIndex());
-					//dstPlace.getAgents().add( agent ); // auto sync
-					//agents.add( agent );          // auto sync
-					//agentSpawnRequest.setPlace(evaluationPlace);
-					//System.out.println("agent spawn request's place is: " + agentSpawnRequest.getPlace().toString());
-					//System.out.println("agent spawn request's place's agents are: " + agentSpawnRequest.getPlace().getAgents().toString());
 
 					// Push the created agent into our bag for returns and
 					// update the counter needed to keep track of our agents.
@@ -659,9 +611,6 @@ public class AgentsBase implements Serializable {
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
     						get( new Integer( placesHandle ) ).
     						getPlaces()[destinationLocalLinearIndex]);
-
-    				// TODO - what is the purpose of logging an object?
-//   					logger.debug( "evaluationAgent.place = {}", evaluationAgent.getPlace() );
 
     				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
 
@@ -804,6 +753,10 @@ public class AgentsBase implements Serializable {
     
     }
 
+	/**
+	 * Get the number of Agents located on this node
+	 * @return Number of local Agents
+	 */
 	public int nLocalAgents( ) {
     	return localPopulation; 
     }
@@ -831,25 +784,6 @@ public class AgentsBase implements Serializable {
 
     		// pick up the next rank to process
     		orgRequest = MASSBase.getMigrationRequests().get( destRank );
-
-    		// for debugging
-//    			synchronized( orgRequest ) {
-//    				
-//    				logger.debug( "tid[" + destRank + 
-//    						"] sends an exhange request to rank: " + 
-//    						destRank + " size() = " + 
-//    						orgRequest.size( ) );
-//
-//    				for ( int i = 0; i < orgRequest.size( ); i++ ) {
-//    					logger.debug( "send " +
-//    							orgRequest.get(i).agent + " to " +
-//    							orgRequest.get(i).
-//    							destGlobalLinearIndex );
-//    				}
-//    			
-//    			}
-    		
-//    		}
 
     		// now compose and send a message by a child
     		Message messageToDest = 

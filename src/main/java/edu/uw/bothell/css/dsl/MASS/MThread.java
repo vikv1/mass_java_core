@@ -191,10 +191,6 @@ public class MThread extends Thread {
     			places = MASSBase.getCurrentPlacesBase( );
     			functionId = MASSBase.getCurrentFunctionId( );
     			destinationPlaces = MASSBase.getDestinationPlaces( );
-    			//destinations = MASS_base.getCurrentDestinations( );
-
-    			//		places.exchangeAll( destinationPlaces, functionId, 
-    			//			    destinations, tid );
     			places.exchangeAll( destinationPlaces, functionId, tid );
     			break;
 
@@ -214,17 +210,11 @@ public class MThread extends Thread {
 
     			if( msgType==Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
     				
-    				//System.err.println( "Mthread[" + tid + 
-    				//			"] call all agent void object" );
-
     				agents.callAll( functionId, argument, tid );
     			
     			}
     			else {
     				
-    				//System.err.println( "Mthread[" + tid + 
-    				//			"] call all agents return object" );
-
     				agents.callAll( functionId, (Object[])argument, tid) ;
     			
     			}

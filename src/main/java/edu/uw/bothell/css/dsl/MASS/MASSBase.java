@@ -459,11 +459,6 @@ public class MASSBase {
 		//requestCounter = 0;
 	}
 	
-	// TODO - remove this method - it doesn't appear to be used
-//	public static void setAgentsMap(Hashtable<Integer, AgentsBase> agentsMap) {
-//		MASSBase.agentsMap = agentsMap;
-//	}
-
 	/**
 	 * Set the current AgentsBase this node is working with
 	 * @param currentAgents The current AgentsBase object

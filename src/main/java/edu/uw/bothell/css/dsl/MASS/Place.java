@@ -31,7 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
-import java.util.Collections; // for synchronized set
+import java.util.Collections;
 import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
@@ -45,7 +45,6 @@ import java.util.Vector;
 @SuppressWarnings("serial")
 public class Place implements Serializable {
 
-	private int[] size;
 	private int[] index;
 	private Object outMessage = null;
 	private Object[] inMessages = null;
@@ -57,6 +56,14 @@ public class Place implements Serializable {
 
 	private boolean visited;
 
+	
+	public Place() {
+		
+		// TODO - hack! "pulling" index is bad practice - should be supplied during init
+		if ( MASS.getCurrentPlacesBase() != null ) index = MASS.getCurrentPlacesBase().getNextIndex();
+		
+	}
+	
 	/**
 	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
 	 * exchangeSome( ), and invoke the function specified with functionId as
@@ -210,7 +217,7 @@ public class Place implements Serializable {
 	 * @return Matrix size
 	 */
 	public int[] getSize() {
-		return size;
+		return MASSBase.getCurrentPlacesBase().getSize();
 	}
 
 	/**
@@ -271,8 +278,9 @@ public class Place implements Serializable {
 	 * Set the size of the matrix that consists of application-specific places.
 	 * @param size Matrix size
 	 */
+	@Deprecated
 	protected void setSize(int[] size) {
-		this.size = size.clone();
+		// Cannot change matrix size here - PlacesBase is the authority for this
 	}
 
 	/**

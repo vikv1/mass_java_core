@@ -42,14 +42,14 @@ public class Agent implements Serializable {
 	/**
 	 * The current place where this Agent resides
 	 */
-	private Place place = null;
+	private transient Place place = null;
 	
 	/**
 	 * Is an array that maintains the coordinates of where this agent resides.
 	 * Intuitively, index[0], index[1], and index[2] correspond to coordinates of
 	 * x, y, and z, or those of i, j, and k.
 	 */
-	private int[] index = null;
+	private transient int[] index = null;
 	
 	/** 
 	 * Is true while this agent is active. Once it is set false, this agent is 
@@ -61,12 +61,12 @@ public class Agent implements Serializable {
 	 * Is the number of new children created by this agent upon a next call to
 	 * Agents.manageAll( ).
 	 */
-	private int newChildren = 0;
+	private transient int newChildren = 0;
 	
 	/** 
 	 * Is an array of arguments, each passed to a different new child.
 	 */
-	private Object[] arguments = null;
+	private transient Object[] arguments = null;
 
 	// logging (okay to suppress unused warning for now - it will be used later!)
 	@SuppressWarnings("unused")

@@ -232,12 +232,6 @@ public class AgentList {
 			array[xNull][yNull] = array[x_full][y_full];
 			array[x_full][y_full] = null;
 
-			/*
-	    	System.out.println( "swaped[" + x_null + "][" + y_null + 
-				"] and [" + x_full + "][" + y_full + "] = " +
-				array[x_null][y_null] );
-			 */
-			//MASS.log("AgentList reduced done");
 		}
 
 		// reduce
@@ -294,12 +288,7 @@ public class AgentList {
 			int y = linear_index % capacityY;
 			array[x][y] = null;
 			reduceDone = false;
-			/*
-	    	System.out.println( "AgentList.remove: " +
-				"linear_index = " + linear_index +
-				" array[" + x + "][" + y + "] = " +
-				array[x][y] );
-			 */
+
 		}	
 	}
 

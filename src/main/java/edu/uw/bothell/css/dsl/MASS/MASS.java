@@ -197,7 +197,6 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-//    		node.closeMainConnection( );
     		util.disconnectRemoteNode(node);
 
     	System.err.println( "MASS::finish: done" );
@@ -341,7 +340,6 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-    		//if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
     		
     		// retrieve each canonical remote machine name
     		try {
@@ -472,7 +470,6 @@ public class MASS extends MASSBase {
     	setNodeFilePath(args[2]);
     	setCommunicationPort(Integer.parseInt( args[3] ));
     	setNumThreads(nThr);
-		//MASS.nProc = nProc;
 
     	// after parameters have been set, perform initialization
     	init();
@@ -558,7 +555,6 @@ public class MASS extends MASSBase {
 		MASSRequest request;
 
 		try {
-			//request = ( MASSRequest ) (( ObjectInputStream )inputStream ).readObject();
 			request = ( MASSRequest )inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
 			e.printStackTrace();
@@ -606,7 +602,6 @@ public class MASS extends MASSBase {
 		iniData.placeOverloadsGetDebugData( overloadsPlaceData );
 		iniData.agentOverloadsGetDebugData( overloadsAgentData );
 
-		//( (ObjectOutputStream )outputStream ).writeObject( iniData );
 		outputStream.writeObject( iniData );
 		outputStream.flush();
 	}
@@ -671,7 +666,6 @@ public class MASS extends MASSBase {
 		}
 
 		try {
-			// ( ObjectOutputStream )outputStream ).writeObject( new UpdatePackage() );
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
@@ -691,7 +685,6 @@ public class MASS extends MASSBase {
 		}
 
 		try {
-			//( ( ObjectOutputStream )outputStream ).writeObject( new UpdatePackage() );
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
@@ -701,16 +694,12 @@ public class MASS extends MASSBase {
 
 	private static void sendUpdate() {
 		Place[] places = MASS.getCurrentPlacesBase().getPlaces();
-		//Place[] places = MASSBase.getPlaces(placesHandle).getPlaces();
-		//System.out.println(places.length);
 		PlaceData[] updatedPlaces = new PlaceData[places.length];
 
 		AgentData[] agentDataArr;
 
 		for ( int i = 0; i < places.length; i++ ) {
 			Number placeData = places[i].getDebugData();
-			
-			//if (placeData == null) System.out.println("placeData == null");
 			
 			Set<Agent> agents = places[i].getAgents();
 			int j = 0;
@@ -730,18 +719,13 @@ public class MASS extends MASSBase {
 			updatedPlaces[i].setAgentDataOnThisPlace( agentDataArr );
 			updatedPlaces[i].setThisPlaceData( placeData );
 			updatedPlaces[i].setHasAgents( agents.size() != 0 );
-			//updatedPlaces[i] = new PlaceData( placeData, i, agents.size() != 0, agentDataArr );
 		}
 
 		UpdatePackage newPackage = new UpdatePackage();
 		newPackage.setPlaceData( updatedPlaces );
 		
-		
-		
-
 		//write package
 		try {
-			//( ( ObjectOutputStream )outputStream ).writeObject( newPackage );
 			outputStream.writeObject( newPackage );
 			outputStream.flush();
 		} catch ( IOException e ) {
@@ -749,7 +733,4 @@ public class MASS extends MASSBase {
 		}
 	}
 
-	/**
-	 * END MASS DEBUGGER METHODS
-	 */
 }
