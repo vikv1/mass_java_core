@@ -119,7 +119,7 @@ public class MProcess {
 
   }
 
-  Message receiveMessage() {
+  private Message receiveMessage() {
 
     try {
       return (Message) MAIN_IOS.readObject();
