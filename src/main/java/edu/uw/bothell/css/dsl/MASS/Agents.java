@@ -70,7 +70,7 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
-  Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
+  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
 
     // calculate the total number of agents
     total = nAgents();
@@ -244,7 +244,13 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
-  private void manageAllSetup() {
+  /**
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll. Done in parallel among multi-processes/threads 
+   */
+  public void manageAll() {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
@@ -285,16 +291,6 @@ public class Agents extends AgentsBase implements Serializable {
   }
 
   /**
-   * Updates each agent’s status, based on each of its latest migrate( ),
-   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
-   * class and may be invoked from other functions through callAll and
-   * exchangeAll. Done in parallel among multi-processes/threads 
-   */
-  public void manageAll() {
-    manageAllSetup();
-  }
-
-  /**
    * Calls callAll and manageAll functions consecutively without responding
    *  back to user application in each iteration.
    *
@@ -307,7 +303,7 @@ public class Agents extends AgentsBase implements Serializable {
       for (int i=0; i<numberOfIterations; i++)
       {
           callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
+          manageAll();
       }
   }
 
@@ -325,7 +321,7 @@ public class Agents extends AgentsBase implements Serializable {
       for (int i=0; i<numberOfIterations; i++)
       {
           callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
+          manageAll();
       }
   }
 
@@ -343,7 +339,7 @@ public class Agents extends AgentsBase implements Serializable {
       for (int i=0; i<numberOfIterations; i++)
       {
           returnObject = callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
+          manageAll();
       }
       return returnObject;
   }
