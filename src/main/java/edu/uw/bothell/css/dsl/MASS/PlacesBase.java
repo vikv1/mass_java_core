@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public class PlacesBase {
 
@@ -490,9 +491,7 @@ public class PlacesBase {
     				if ( neighborCoord[0] != -1 ) { 
     					
     					// destination valid
-    					int globalLinearIndex = getGlobalLinearIndexFromGlobalArrayIndex( 
-    									neighborCoord,
-    									dstPlaces.size );
+    					int globalLinearIndex = MatrixUtilities.getLinearIndex(dstPlaces.size, neighborCoord);
 
     					if ( MASSBase.getLogger().isDebugEnabled() ) 
     						MASSBase.getLogger().debug( " linear = " + globalLinearIndex
@@ -527,8 +526,7 @@ public class PlacesBase {
     						int destRank = getRankFromGlobalLinearIndex( globalLinearIndex );
 
     						// create a request
-    						int orgGlobalLinearIndex =
-    								getGlobalLinearIndexFromGlobalArrayIndex( srcPlace.getIndex(), size );
+    						int orgGlobalLinearIndex = MatrixUtilities.getLinearIndex( size, srcPlace.getIndex() );
     						RemoteExchangeRequest request = new
     								RemoteExchangeRequest( globalLinearIndex,
     										orgGlobalLinearIndex,
@@ -671,55 +669,6 @@ public class PlacesBase {
 		return className;
 	}
     
-    /** 
-     * Converts a given plain single index into a multidimensional index.
-     * @param singleIndex An index in a plain single dimension that will
-     * be converted in a multidimensional index.
-     * @return a multidimensional index			   
-     */
-    protected int[] getGlobalArrayIndex( int singleIndex ) {
-
-    	int[] index = new int[size.length];
-
-    	for ( int i = size.length - 1; i >= 0; i-- ) {
-    		// calculate from lower dimensions
-    		index[i] = singleIndex % size[i];
-    		singleIndex /= size[i];
-    	}
-
-    	return index;
-    	
-    }
-    
-    /**
-     * Given an array index, and a matrix size (as an array index), determine the
-     * corresponding global index value
-     * @param index The location within the matrix
-     * @param size Matrix dimensions
-     * @return The unique index value within the global matrix where the specified index location resides
-     */
-    protected int getGlobalLinearIndexFromGlobalArrayIndex( int index[], int size[] ) {
-    	
-    	int retVal = 0;
-
-    	for ( int i = 0; i < index.length; i++ ) {
-    		
-    		if ( size[i] <= 0 )
-    			continue;
-    		
-    		if ( index[i] >= 0 && index[i] < size[i] ) {
-    			retVal = retVal * size[i];
-    			retVal += index[i];
-    		}
-    		else
-    			return Integer.MIN_VALUE; // out of space
-    	
-    	}
-
-    	return retVal;
-    
-    }
-
     /**
      * Get the index array representing neighboring locations
      * @param src_index The source index
@@ -941,7 +890,7 @@ public class PlacesBase {
     		for ( int i = 0; i < placesSize; i++ ) {
     			
     			// TODO - hack! should be able to set index on a Place without having to resort to calling back for it (should be pushed, not pulled)
-    			nextIndex = getGlobalArrayIndex(lowerBoundary + i);
+    			nextIndex = MatrixUtilities.getIndex( size, lowerBoundary + i);
     			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
@@ -989,7 +938,7 @@ public class PlacesBase {
 
     				// instantiate a new place
     				// TODO - see "hack" comments above
-    				nextIndex = getGlobalArrayIndex(lowerBoundary - shadowSize + i);
+    				nextIndex = MatrixUtilities.getIndex( size, lowerBoundary - shadowSize + i);
     				Place newPlace = objectFactory.getInstance(className, argument);
 					newPlace.setIndex( nextIndex );
 					leftShadow[i] = newPlace;
@@ -1001,7 +950,7 @@ public class PlacesBase {
 
     				// instantiate a new place
     				// TODO - see "hack" comments above
-    				nextIndex = getGlobalArrayIndex(upperBoundary + i);
+    				nextIndex = MatrixUtilities.getIndex( size, upperBoundary + i);
 					Place newPlace = objectFactory.getInstance(className, argument);
 					newPlace.setIndex( nextIndex );
 					rightShadow[i] = newPlace;

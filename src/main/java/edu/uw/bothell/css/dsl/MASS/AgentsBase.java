@@ -35,6 +35,7 @@ import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
 public class AgentsBase implements Serializable {
@@ -521,7 +522,7 @@ public class AgentsBase implements Serializable {
 					// retrieve the corresponding places
 					PlacesBase curPlaces =
 							MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
-					int globalLinearIndex = curPlaces.getGlobalLinearIndexFromGlobalArrayIndex(agentSpawnRequest.getIndex(), curPlaces.getSize());
+					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
 					// local destination
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
 
@@ -562,11 +563,7 @@ public class AgentsBase implements Serializable {
     		if( destCoord[0] != -1 ) { 
     			
     			// destination valid
-    			int globalLinearIndex = 
-    					evaluatedPlaces.
-    					getGlobalLinearIndexFromGlobalArrayIndex( destCoord,
-    							evaluatedPlaces.
-    							getSize() );
+    			int globalLinearIndex = MatrixUtilities.getLinearIndex( evaluatedPlaces.getSize(), destCoord );
 
     			MASS.getLogger().debug( " linear = " + globalLinearIndex +
     						" lower = " + evaluatedPlaces.getLowerBoundary()

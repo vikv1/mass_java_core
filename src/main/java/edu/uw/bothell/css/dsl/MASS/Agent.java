@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
@@ -145,18 +147,10 @@ public class Agent implements Serializable {
 	public int map( int initPopulation, int[] size, int[] index ) {
 
 		// compute the total # places
-		int placeTotal = 1;
-		for ( int x = 0; x < size.length; x++ )
-			placeTotal *= size[x];
-
+		int placeTotal = MatrixUtilities.getMatrixSize( size );
+		
 		// compute the global linear index
-		int linearIndex = 0;
-		for ( int i = 0; i < index.length; i++ ) {
-			if ( index[i] >= 0 && size[i] > 0 && index[i] < size[i] ) {
-				linearIndex = linearIndex * size[i];
-				linearIndex += index[i];
-			}
-		}
+		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
 
 		// compute #agents per place a.k.a. colonists
 		int colonists = initPopulation / placeTotal;

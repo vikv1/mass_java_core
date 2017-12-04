@@ -1,0 +1,119 @@
+/*
+
+ 	MASS Java Software License
+	© 2012-2015 University of Washington
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
+
+	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	Washington Bothell.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+
+*/
+
+package edu.uw.bothell.css.dsl.MASS.matrix;
+
+/**
+ * MatrixUtilities contains helper methods designed to centralize matrix operations
+ * @since 1.0.1
+ */
+public class MatrixUtilities {
+	
+	/**
+	 * Given an array of integers representing dimensions of a matrix, determine the total number of elements
+	 * @param size Matrix dimensions and sizes
+	 * @return The total number of elements (places) in the matrix
+	 */
+	public static int getMatrixSize( int[] size ) {
+		
+		// obvious calculations
+		if ( size == null ) return 0;
+		if ( size.length == 0 ) return 0;
+		
+		int placeTotal = 1;
+
+		// iterate through each dimension and multiply
+		for ( int x : size ) {
+			placeTotal *= x;
+		}
+		
+		return placeTotal;
+		
+	}
+	
+	/**
+	 * Given matrix dimensions and a position within the matrix, calculate the global index position
+	 * based on a single linear representation of all elements
+	 * @param size Matrix dimensions
+	 * @param index A position within the matrix
+	 * @return The index position, as represented in a global, flattened, single-dimensional array, or
+	 * minimum integer value if the position could not be calculated (problem in size or index arrays) 
+	 */
+	public static int getLinearIndex( int[] size, int[] index ) {
+	
+		// bounds checks
+		if ( size == null || index == null ) return Integer.MIN_VALUE;
+		if ( size.length != index.length ) return Integer.MIN_VALUE;
+		
+    	int linearIndex = 0;
+
+		// determine position by iterating through each dimension and adding each position within the dimension
+    	for ( int i = 0; i < index.length; i++ ) {
+    		
+    		if ( size[i] <= 0 )
+    			continue;
+    		
+    		if ( index[i] >= 0 && index[i] < size[i] ) {
+    			linearIndex = linearIndex * size[i];
+    			linearIndex += index[i];
+    		}
+    		else
+    			return Integer.MIN_VALUE; // out of space
+    	
+    	}
+
+    	return linearIndex;
+
+	}
+	
+    /** 
+     * Converts a given global index into a multidimensional index representation
+     * @param size Matrix dimensions
+     * @param linearIndex An index in a linear single dimension that will be converted into a multidimensional index
+     * @return A multidimensional index corresponding to the given linear index position 			   
+     */
+    public static int[] getIndex( int[] size, int linearIndex ) {
+
+    	int[] index = new int[ size.length ];
+
+    	for ( int i = size.length - 1; i >= 0; i-- ) {
+    		
+    		// calculate from lower dimensions
+    		index[i] = linearIndex % size[i];
+    		linearIndex /= size[i];
+    	
+    	}
+
+    	return index;
+    	
+    }
+
+	
+}

@@ -36,6 +36,8 @@ import java.util.HashSet;     // implementation for Agent bag
 import java.util.Set;         // local Agent bag
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+
 /**
  *	Place represents a single element from a collection of places distributed
  *	among all cluster nodes. A Place may contain a collection of Agents that
@@ -84,12 +86,8 @@ public class Place implements Serializable {
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
 				neighborCoord );
-		int globalLinearIndex
-		= places.getGlobalLinearIndexFromGlobalArrayIndex( neighborCoord,
-				places.getSize() );
-
-		if ( globalLinearIndex == Integer.MIN_VALUE )
-			return null;
+		int globalLinearIndex = MatrixUtilities.getLinearIndex( places.getSize(), neighborCoord );
+		if ( globalLinearIndex == Integer.MIN_VALUE ) return null;
 
 		// identify the destination place  
 		int destinationLocalLinearIndex

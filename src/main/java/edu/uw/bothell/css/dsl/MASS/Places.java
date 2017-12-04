@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+
 /**
  * Places manages all Place elements within the simulation space.
  */
@@ -74,13 +76,9 @@ public class Places extends PlacesBase {
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
-		int total = 1; // the total number of place elements
-		for ( int i = 0; i < getSize().length; i++ )
-		    total *= getSize()[i];
+		int total = MatrixUtilities.getMatrixSize( getSize() ); // the total number of place elements
 		int stripe = total / MASSBase.getSystemSize();
 		
-
-	
 		// send a PLACES_CALLALL message to each slave
 		Message m = null;
 		
@@ -230,7 +228,6 @@ public class Places extends PlacesBase {
 		MASSBase.setCurrentPlacesBase(this);
 		MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get( new Integer( destinationHandle ) ));
 		MASSBase.setCurrentFunctionId(functionId);
-		//MASS_base.currentDestinations = destinations;
 		
 		// reset requestCounter by the main thread
 		MASSBase.resetRequestCounter();
