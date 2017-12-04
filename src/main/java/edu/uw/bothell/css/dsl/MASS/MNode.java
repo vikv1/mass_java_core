@@ -56,10 +56,6 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
-	// reset the object outputstream (Message sender) after this many transmits
-	private static final int RESET_OUTPUTSTREAM_COUNT = 5;
-	
-	
 	@SuppressWarnings("unused")
 	private LogLevel logLevel;			// TODO - custom logging level for this node
 	
@@ -76,7 +72,6 @@ public class MNode {
 	private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
 	private ObjectInputStream mainIOS;  // from remote to master
 	private ObjectOutputStream mainOOS; // from master to remote
-	private int resetCounter = 0;
     
     /**
 	 * Terminate all communications channels to the remote Node
@@ -243,16 +238,6 @@ public class MNode {
 			mainOOS.flush( );
 			MASSBase.getLogger().debug("Object outputstream flushed");
             
-			// is it time to reset the outputstream?
-			// TODO - this is a kludge! Do we really need to do this?
-			resetCounter++;
-			if ( resetCounter == RESET_OUTPUTSTREAM_COUNT ) {
-				MASSBase.getLogger().debug( "Resetting object outputstream... ");
-				mainOOS.reset();
-				MASSBase.getLogger().debug( "Stream reset!" );
-				resetCounter = 0;
-			}
-
 		}
 
 		catch ( Exception e ) {
