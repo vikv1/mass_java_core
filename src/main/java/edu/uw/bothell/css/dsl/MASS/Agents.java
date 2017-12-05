@@ -30,8 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.Serializable;
-
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
@@ -39,8 +37,7 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
  * operations on objects contained by the Place, and possibly migrate
  * to another Place. 
  */
-@SuppressWarnings("serial")
-public class Agents extends AgentsBase implements Serializable {
+public class Agents extends AgentsBase {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
   private int total;

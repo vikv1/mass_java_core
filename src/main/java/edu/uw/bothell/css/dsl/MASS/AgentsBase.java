@@ -30,15 +30,13 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.Serializable;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
-@SuppressWarnings("serial")
-public class AgentsBase implements Serializable {
+public class AgentsBase {
 
 
 	/*
@@ -244,10 +242,6 @@ public class AgentsBase implements Serializable {
     			// note that myIndex = agentId + 1
     			Agent tmpAgent = agents.get( myIndex - 1 );
     			
-    			MASS.getLogger().debug( "Thread[" + tid + "]: agent("+ myIndex + 
-    						"): MASS_base::currentReturns  = " + 
-    						MASSBase.getCurrentReturns() );
-
     			//Use the Agents' callMethod to have it begin running
     			( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
     					tmpAgent.callMethod( functionId, 

@@ -273,8 +273,8 @@ public class MASS extends MASSBase {
             		}
     			} catch (JAXBException e) {
 
-        			System.err.println( "Error initializing JAXB parser..." +
-		    				e.getStackTrace());
+        			System.err.println( "Error initializing JAXB parser..." );
+		    		e.printStackTrace();
 
 		    		System.exit( -1 );
 				}
@@ -612,22 +612,24 @@ public class MASS extends MASSBase {
 			e.printStackTrace();
 		}
 
+		if ( request != null ) {
 		switch( request.getRequest() ) {
-			case INITIAL_DATA:
-				//TODO - remove debugInit, handle from here
-				break;
-			case UPDATE_PACKAGE:
-				sendUpdate();
-				break;
-			case INJECT_PLACE:
-				injectPlace( request );
-				break;
-			case INJECT_AGENT:
-				injectAgent( request );
-				break;
-			case TERMINATE:
-				closeDebugConnection();
-				break;
+				case INITIAL_DATA:
+					//TODO - remove debugInit, handle from here
+					break;
+				case UPDATE_PACKAGE:
+					sendUpdate();
+					break;
+				case INJECT_PLACE:
+					injectPlace( request );
+					break;
+				case INJECT_AGENT:
+					injectAgent( request );
+					break;
+				case TERMINATE:
+					closeDebugConnection();
+					break;
+			}
 		}
 	}
 

@@ -43,9 +43,9 @@ import java.util.Vector;
 
 public class ExchangeHelper {
 
-    private static Socket[] sockets;
-    private static InputStream[] inputs;
-    private static OutputStream[] outputs;
+    private Socket[] sockets;
+    private InputStream[] inputs;
+    private OutputStream[] outputs;
 
     @SuppressWarnings("static-access")
     public void establishConnection( int size, int rank, Vector<String> hosts, int port ) {
