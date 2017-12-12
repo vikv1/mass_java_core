@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -554,6 +555,7 @@ public class PlacesBase {
     	MThread.barrierThreads( tid );
     	
     	if ( tid == 0 ) {
+    		
     		MASSBase.getLogger().debug( "tid[{}] now enters processRemoteExchangeRequest", tid );
 
     		// the main thread spawns as many communication threads as 
@@ -676,7 +678,6 @@ public class PlacesBase {
      * @param dst_size The destination index array (populated by this method)
      * @param dest_index The destination index
      */
-    @SuppressWarnings("unused")
     protected void getGlobalNeighborArrayIndex( int src_index[], int offset[], int dst_size[], int dest_index[] ) {
     	
     	for (int i = 0; i < dest_index.length; i++ ) {
@@ -686,12 +687,14 @@ public class PlacesBase {
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
     			
     			// out of range
-    			for ( int j = 0; j < dest_index.length; j++ ) {
-    				// all index must be set -1
-    				dest_index[j] = -1;
-    				return;
-    			}
-    		
+//    			for ( int j = 0; j < dest_index.length; j++ ) {
+//    				// all index must be set -1
+//    				dest_index[j] = -1;
+//    				return;
+//    			}
+    			Arrays.fill( dest_index, -1 );
+    			return;
+    			
     		}
     	
     	}

@@ -528,9 +528,9 @@ public class MASSBase {
     	}
 
     	// register all hosts including myself
-    	for ( int i = 0; i < host_args.size( ); i++ ) {
-   			logger.debug("MASS_base.setHosts: Adding host {}", host_args.get(i) );
-    		hosts.add( host_args.get(i) );
+    	for ( String host : host_args ) {
+   			logger.debug("MASS_base.setHosts: Adding host {}", host );
+    		hosts.add( host );
     	}
     	
 		logger.debug( "MASS_base.setHosts: System size = {}", getSystemSize() );

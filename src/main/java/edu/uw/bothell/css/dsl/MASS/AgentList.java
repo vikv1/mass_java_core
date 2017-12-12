@@ -177,14 +177,12 @@ public class AgentList {
 		// create array[capacity_x][]
 		array = new Agent[CAPACITY_X][];
 		
-		for ( int i = 1; i < array.length; i++ )
-			array[i] = null;
-
 		// create only array[0][capacity_y]
 		capacityY = ( init_capacity > CAPACITY_Y ) ? 
 				init_capacity : CAPACITY_Y;
 		
 		increaseX( );
+		
 	}
 
 	/**

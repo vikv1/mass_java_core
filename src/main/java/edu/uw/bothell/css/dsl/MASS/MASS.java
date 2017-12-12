@@ -651,14 +651,10 @@ public class MASS extends MASSBase {
 		
 		AgentData updates = ( AgentData )request.getPacket();
 
-		//fantastic complexity...
-		for( int i = 0; i < MASS.getCurrentPlacesBase().getPlaces().length; i++ ) {
-			for( int j = 0; j < MASS.getCurrentPlacesBase().getPlaces()[i].getAgents().size(); j++ ) {
-				Set<Agent> agents = MASS.getCurrentPlacesBase().getPlaces()[i].getAgents();
-				for(Agent agent : agents) {
-					if( updates.getId() == agent.getAgentId() ) {
-						agent.setDebugData( updates.getDebugData() );
-					}
+		for ( Place place : MASS.getCurrentPlacesBase().getPlaces() ) {
+			for( Agent agent : place.getAgents() ) {
+				if( updates.getId() == agent.getAgentId() ) {
+					agent.setDebugData( updates.getDebugData() );
 				}
 			}
 		}
@@ -669,6 +665,7 @@ public class MASS extends MASSBase {
 		} catch ( IOException e ) {
 			e.printStackTrace();
 		}
+
 	}
 
 	private static void closeDebugConnection() {

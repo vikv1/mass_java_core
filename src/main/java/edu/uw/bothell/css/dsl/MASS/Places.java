@@ -221,8 +221,7 @@ public class Places extends PlacesBase {
 		
 		MASSBase.getLogger().debug( "dest_handle = {}", destinationHandle );
 		
-		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
-		    MASS.getRemoteNodes().get(i).sendMessage( m );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 		
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
@@ -239,8 +238,7 @@ public class Places extends PlacesBase {
 		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
 		
 		// exchangeall implementation
-		super.exchangeAll( MASSBase.getDestinationPlaces(),
-				   functionId, 0 );
+		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
 		
 		// confirm all threads are done with exchangeAll.
 		MThread.barrierThreads( 0 );
@@ -273,10 +271,11 @@ public class Places extends PlacesBase {
 	 * @param neighbors The vector to set
 	 */
 	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
-		for(int i = 0; i < this.getPlacesSize(); i++)
-		{
-			this.getPlaces()[i].setNeighbors(neighbors);
+		
+		for ( Place place : getPlaces() ) {
+			place.setNeighbors( neighbors );
 		}
+		
 	}
     
     public void exchangeBoundary( ) {
@@ -285,8 +284,7 @@ public class Places extends PlacesBase {
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY, 
 					 this.getHandle(),  0 ); // 0 is dummy
 		
-		for ( MNode node : MASS.getRemoteNodes() )
-		    node.sendMessage( m );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 	
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
@@ -331,13 +329,8 @@ public class Places extends PlacesBase {
 					 argument, boundaryWidth, hosts );
 		
 		// send a PLACES_INITIALIZE message to each slave
-		for ( MNode node : MASS.getRemoteNodes() ) {
-		    
-			node.sendMessage( m );
-		    
-			MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to {}", node.getPid() );
-		
-		}
+		MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to all remote nodes" );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 		
 		// establish all inter-node connections within setHosts( )
 		MASSBase.setHosts( hosts );

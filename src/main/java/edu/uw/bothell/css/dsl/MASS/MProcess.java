@@ -231,8 +231,8 @@ public class MProcess {
         places = new PlacesBase(m.getHandle(), m.getClassname(),
             m.getBoundaryWidth(), argument, size);
 
-        for (int i = 0; i < m.getHosts().size(); i++)
-          hosts.add(m.getHosts().get(i));
+        hosts.addAll( m.getHosts() );
+        
         // establish all inter-node connections within setHosts( )
         MASSBase.setHosts(hosts);
 

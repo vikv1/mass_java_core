@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -303,11 +304,11 @@ public class AgentsBase {
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
     			
     			// out of range
-    			for ( int j = 0; j < dest_index.length; j++ ) {
-    				// all index must be set -1
-    				dest_index[j] = -1;
-    			}
-    			
+//    			for ( int j = 0; j < dest_index.length; j++ ) {
+//    				// all index must be set -1
+//    				dest_index[j] = -1;
+//    			}
+    			Arrays.fill( dest_index, -1 );
     			return;
     		
     		}
@@ -763,14 +764,12 @@ public class AgentsBase {
     	@SuppressWarnings("unused")
     	public void run( ) {
 
-    		Vector<AgentMigrationRequest> orgRequest = null;
-
     		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
     					"] rank[" + destRank + 
     					"]: starts processAgentMigrationRequest" );
 
     		// pick up the next rank to process
-    		orgRequest = MASSBase.getMigrationRequests().get( destRank );
+    		Vector<AgentMigrationRequest> orgRequest = MASSBase.getMigrationRequests().get( destRank );
 
     		// now compose and send a message by a child
     		Message messageToDest = 
