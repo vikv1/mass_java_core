@@ -91,6 +91,10 @@ public class Agent implements Serializable {
 		return agentId;
 	}
 
+	/**
+	 * Get the array of arguments passed to this Agent
+	 * @return The arguments supplied to this Agent
+	 */
 	public Object[] getArguments() {
 		return arguments;
 	}
@@ -103,20 +107,41 @@ public class Agent implements Serializable {
 		return null;
 	}
 	
+	/**
+	 * Intended for subclasses of Agent to override - set debug data for this Agent
+	 * @param data Debug data
+	 */
 	public void setDebugData(Number data) {}
 
+	/**
+	 * Get the current location of this Agent, or prior to migration, the new location
+	 * where this Agent is to migrate to
+	 * @return The current or migration destination for this Agent
+	 */
 	public int[] getIndex() {
 		return index;
 	}
 
+	/**
+	 * Get the number of new child Agents spawned by this Agent
+	 * @return The number of new children
+	 */
 	public int getNewChildren() {
 		return newChildren;
 	}
 
+	/**
+	 * Get the current Place where this Agent resides
+	 * @return The current Place where this Agent is now located
+	 */
 	public Place getPlace() {
 		return place;
 	}
 
+	/**
+	 * Returns the "live" status of this Agent
+	 * @return TRUE if this Agent is still alive, FALSE if not
+	 */
 	public boolean isAlive() {
 		return alive;
 	}
@@ -181,18 +206,35 @@ public class Agent implements Serializable {
 
 	}
 
+	/**
+	 * Set the ID number for this Agent
+	 * @param agentId This Agent's new ID number
+	 */
 	protected void setAgentId(Integer agentId) {
 		this.agentId = agentId;
 	}
 
+	/**
+	 * Set the current location or intended destination after migration
+	 * for this Agent
+	 * @param index The current location or destination after migration
+	 */
 	protected void setIndex(int[] index) {
 		this.index = index;
 	}
 
+	/**
+	 * Set the number of new child Agents created
+	 * @param newChildren The number of new children created
+	 */
 	protected void setNewChildren(int newChildren) {
 		this.newChildren = newChildren;
 	}
 
+	/**
+	 * Set the reference to the Place where this Agent is located
+	 * @param place The current Place where this Agent resides
+	 */
 	protected void setPlace(Place place) {
 		this.place = place;
 	}
