@@ -41,13 +41,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
+/**
+ * ExchangeHelper contains methods for communicating with peers
+ */
 public class ExchangeHelper {
 
     private Socket[] sockets;
     private InputStream[] inputs;
     private OutputStream[] outputs;
 
-    @SuppressWarnings("static-access")
+    /**
+     * Establish connections to peers for exchanging Messages
+     * @param size The number of nodes in the cluster
+     * @param rank The rank ID of this node
+     * @param hosts The peer hosts with which to establish connections
+     * @param port The port number used by all nodes on which to receive connections
+     */
     public void establishConnection( int size, int rank, Vector<String> hosts, int port ) {
     	
     	inputs = new InputStream[size];
@@ -129,7 +138,7 @@ public class ExchangeHelper {
     						"-th try to connect to" +
     						"rank [" + i + "]: " + hosts.get(i) );
     				try {
-    					Thread.currentThread( ).sleep( 1000 );
+    					Thread.sleep( 1000 );
     				} 
     				
     				catch ( Exception e2 ) { 
@@ -150,6 +159,11 @@ public class ExchangeHelper {
     
     }
 
+    /**
+     * Receive a serialized Message from a given peer
+     * @param rank The rank ID of the peer from which to receive the Message
+     * @return The received Message
+     */
     public Message receiveMessage( int rank ) {
 
     	MASS.getLogger().debug( "exchange.receiveMessage will receive from rank: {}", rank );
@@ -206,6 +220,11 @@ public class ExchangeHelper {
     
     }
 
+    /**
+     * Send a Message to a peer
+     * @param rank The rank ID of the node that will receive the Message
+     * @param exchangeReq The Message to send to the peer
+     */
     public void sendMessage( int rank, Message exchangeReq ) {
 
     	MASS.getLogger().debug( "exchange.sendMessage will be sent to rank: " +
@@ -245,6 +264,10 @@ public class ExchangeHelper {
     
     }
 
+    /**
+     * Disconnect from all lower-ranked peers
+     * @param rank This node's rank ID number
+     */
     public void terminateConnection( int rank ) {
 
     	// disconnect to lower ranks

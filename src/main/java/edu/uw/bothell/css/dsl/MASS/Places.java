@@ -278,6 +278,9 @@ public class Places extends PlacesBase {
 		
 	}
     
+	/**
+	 * Send an "Exchange Boundary" request to all nodes
+	 */
     public void exchangeBoundary( ) {
 	
 		// send a PLACES_EXCHANGE_BOUNDARY message to each slave

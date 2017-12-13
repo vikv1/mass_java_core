@@ -38,6 +38,11 @@ class AgentMigrationRequest implements Serializable {
 	int destGlobalLinearIndex;
     Agent agent;
    
+    /**
+     * Construct a migration request for an Agent
+     * @param destIndex The destination for the Agent
+     * @param agent The Agent to be migrated
+     */
 	public AgentMigrationRequest( int destIndex, Agent agent ) {
 		
 		this.destGlobalLinearIndex = destIndex;

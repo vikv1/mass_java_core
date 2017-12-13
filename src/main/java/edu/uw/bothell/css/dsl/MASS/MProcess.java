@@ -49,7 +49,8 @@ public class MProcess {
 
   /**
    * Main MASS function that launches MProcess
-   * @param args
+   * @param args Required arguments for launching MProcess (hostname, my PID, number of cluster nodes,
+   * number of threads to start, port number for communications, and the working directory to use)
    */
   public static void main(String[] args) throws Exception {
     
@@ -173,6 +174,9 @@ public class MProcess {
     sendMessage(msg);
   }
 
+  /**
+   * Start this MProcess
+   */
   @SuppressWarnings("incomplete-switch")
   public void start() {
 
