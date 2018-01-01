@@ -40,9 +40,7 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
-    private int total;
     private int[] nextIndex;
-    private int stripeSize;
     private final int handle;
     private final String className;
     private int lowerBoundary;
@@ -635,11 +633,6 @@ public class PlacesBase {
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
     			
     			// out of range
-//    			for ( int j = 0; j < dest_index.length; j++ ) {
-//    				// all index must be set -1
-//    				dest_index[j] = -1;
-//    				return;
-//    			}
     			Arrays.fill( dest_index, -1 );
     			return;
     			
@@ -744,26 +737,7 @@ public class PlacesBase {
 	 * @return The node/rank number associated with that Place
 	 */
 	protected int getRankFromGlobalLinearIndex( int globalLinearIndex ) {
-
-    	if ( total == 0 ) {
-    		
-    		// first time computation
-    		total = MatrixUtilities.getMatrixSize( size );
-    		stripeSize = total / MASSBase.getSystemSize();
-    	
-    	}
-
-    	int rank, scope;
-    	for ( rank = 0, scope = stripeSize ; rank < MASSBase.getSystemSize(); 
-    			rank++, scope += stripeSize ) {
-    		
-    		if ( globalLinearIndex < scope )
-    			break;
-    	
-    	}
-
-    	return ( rank == MASSBase.getSystemSize() ) ? rank - 1 : rank;
-    
+		return MatrixUtilities.getRankFromGlobalLinearIndex( globalLinearIndex, size, MASSBase.getSystemSize() );
     }
 
 	/**
@@ -808,16 +782,17 @@ public class PlacesBase {
     				", class = " + className + 
     				", argument = " + argument );
 
+		// calculate "total", which is equal to the number of dimensions in "size" 
+		int total = MatrixUtilities.getMatrixSize( size );
+
+		// stripe size is total number of places divided by the number of nodes
+		MASSBase.getLogger().debug( "Calculating stripe size, total number of Places is {}", total );
+		MASSBase.getLogger().debug( "Calculating stripe size, system size (number of nodes) is {}", MASSBase.getSystemSize() );
+		int stripeSize = total / MASSBase.getSystemSize();
+
     	// load the place constructor
     	try {
 
-    		// calculate "total", which is equal to the number of dimensions in "size" 
-    		total = MatrixUtilities.getMatrixSize( size );
-
-    		// stripe size is total number of places divided by the number of nodes
-    		MASSBase.getLogger().debug( "Calculating stripe size, total number of Places is {}", total );
-    		MASSBase.getLogger().debug( "Calculating stripe size, system size (number of nodes) is {}", MASSBase.getSystemSize() );
-    		stripeSize = total / MASSBase.getSystemSize();
 
     		// lower_boundary is the first place managed by this node
     		lowerBoundary = stripeSize * MASSBase.getMyPid();

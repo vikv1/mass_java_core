@@ -206,18 +206,6 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void getRankFromGlobalLinearIndex() throws Exception {
-
-		// TODO - should test with a system size > 1 node!
-		
-		// all Places should be located on the master node for this test configuration
-		for ( int i = 0; i < 1000; i ++ ) {
-			assertEquals( 0, placesBase.getRankFromGlobalLinearIndex( i ) );
-		}
-		
-	}
-	
-	@Test
 	public void getGlobalNeighborArrayIndex() throws Exception {
 		
 		int sourceIndex[] = new int[]{ 2, 3, 4 };

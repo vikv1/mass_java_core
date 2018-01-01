@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS.matrix;
 
 import java.util.Arrays;
 
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
+
 /**
  * MatrixUtilities contains helper methods designed to centralize matrix operations
  * @since 1.0.1
@@ -127,6 +129,31 @@ public class MatrixUtilities {
     	if ( array == null ) return 0;
     	
     	return Arrays.stream( array ).reduce( 0, ( x, y ) -> x + y );
+    
+    }
+    
+	/**
+	 * Given an index, referenced to a global index of Places, return the "rank"
+	 * or node number where the Place should be located
+	 * @param globalLinearIndex The array index for which to obtain the node or rank number
+	 * @param size Matrix dimensions
+	 * @param systemSize The number of nodes in the cluster
+	 * @return The node/rank number associated with that Place
+	 */
+	public static int getRankFromGlobalLinearIndex( int globalLinearIndex, int[] size, int systemSize ) {
+
+   		int stripeSize = MatrixUtilities.getMatrixSize( size ) / systemSize;
+    	
+    	int rank, scope;
+    	for ( rank = 0, scope = stripeSize ; rank < systemSize; 
+    			rank++, scope += stripeSize ) {
+    		
+    		if ( globalLinearIndex < scope )
+    			break;
+    	
+    	}
+
+    	return ( rank == systemSize ) ? rank - 1 : rank;
     
     }
 	

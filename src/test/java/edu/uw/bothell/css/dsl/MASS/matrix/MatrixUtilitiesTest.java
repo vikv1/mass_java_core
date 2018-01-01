@@ -190,4 +190,40 @@ public class MatrixUtilitiesTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void getRankFromGlobalLinearIndexSingleNode() throws Exception {
+
+		// test matrix of 27 places
+		int matrix[] = new int[]{ 3, 3, 3 };
+		
+		// all Places should be located on the master node for this test configuration
+		for ( int i = 0; i < 27; i ++ ) {
+			assertEquals( 0, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 1 ) );
+		}
+		
+	}
+
+	@Test
+	public void getRankFromGlobalLinearIndexMultipleNodes() throws Exception {
+
+		// test matrix of 27 places
+		int matrix[] = new int[]{ 3, 3, 3 };
+		
+		// indexes 0-8 should be on master node
+		for ( int i = 0; i < 9; i ++ ) {
+			assertEquals( 0, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 3 ) );
+		}
+		
+		// indexes 9-17 should be on second node
+		for ( int i = 9; i < 18; i ++ ) {
+			assertEquals( 1, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 3 ) );
+		}
+		
+		// indexes 18-26 should be on third node
+		for ( int i = 18; i < 27; i ++ ) {
+			assertEquals( 2, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 3 ) );
+		}
+		
+	}
+
 }
