@@ -131,28 +131,13 @@ public class PlacesBase {
     		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction + ", rankNmessage.rank = " + destRank );
 
     		// send it to my neighbor with a child
-    		SendMessageByChild thread_ref = new SendMessageByChild( destRank, messageToDest );
-    		thread_ref.start( );
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
 
     		// receive a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message from my neighbor
     		Message messageFromDest = MASSBase.getExchange().receiveMessage( destRank );
 
     		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction
     				+ ", messageFromDest = " + messageFromDest );
-
-    		// wait for the child termination
-    		if ( thread_ref != null ) {
-
-    			try {
-    				thread_ref.join( );
-    			} 
-    			catch ( Exception e ) {
-    				MASSBase.getLogger().error("Unknown exception caught waiting for child termination", e);
-    			}
-
-    			MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = {}, sendMessageByChild terminated", direction );
-
-    		}
 
     		// extract the message received and copy it to the corresponding shadow
     		Place[] shadow = ( direction == 'L' ) ? leftShadow : rightShadow;
@@ -229,19 +214,10 @@ public class PlacesBase {
     						srcHandle, destHandle_at_src, functionId, 
     						orgRequest, 0 ); // 0 = dummy
 
-    		SendMessageByChild thread_ref = new SendMessageByChild( destRank, messageToDest );
-    		thread_ref.start( );
-
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
+    		
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
-
-    		// at this point, the message must be exchanged.
-    		try {
-    			thread_ref.join( );
-    		} catch ( Exception e ) {
-    			// TODO - should do something when this exception is caught - not just swallow it
-    			MASSBase.getLogger().error("Exception during message exchanging in PlacesBase", e);
-    		}
 
     		// process a message
     		Vector<RemoteExchangeRequest> receivedRequest = messageFromSrc.getExchangeReqList( );
@@ -290,26 +266,14 @@ public class PlacesBase {
     		}
 
     		// send return values by a child thread
-    		Message messageToSrc = 
-    				new Message( Message.ACTION_TYPE.
-    						PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
-    						retVals );
-    		thread_ref = new SendMessageByChild( destRank, messageToSrc );
-    		thread_ref.start( );
-
+    		Message messageToSrc = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, retVals );
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToSrc ) ).start();
+    		
     		// receive return values by myself in parallel
     		Message messageFromDest = MASSBase.getExchange().receiveMessage( destRank );
 
-    		// at this point, the message must be exchanged.
-    		try {
-    			thread_ref.join( );
-    		} catch ( Exception e ) {
-    			// TODO - need to so something once this exception is thrown
-    			MASSBase.getLogger().debug("Exception thrown while exchanging messages in PlacesBase", e);
-    		}
-
     		// store return values to the orignal places
-    		Object[] argument = (Object[])messageFromDest.getArgument( );
+    		Object[] argument = ( Object[] ) messageFromDest.getArgument( );
 
     		for ( int i = 0; i < orgRequest.size( ); i++ ) {
     			
@@ -341,22 +305,6 @@ public class PlacesBase {
     
     }
     
-    private class SendMessageByChild extends Thread {
-
-    	int rank;
-    	Message message;
-    	
-    	public SendMessageByChild( int rank, Message message ) {
-    		this.rank = rank;
-    		this.message = message;
-    	}
-    	
-    	public void run( ) {
-    		MASSBase.getExchange().sendMessage( rank, message );
-    	}
-    
-    }
-
     /**
      * Execute a function (specified by ID) on each Place, with a single argument
      * @param functionId The function (method) to execute
