@@ -347,9 +347,8 @@ public class AgentsBase {
 
 	public void manageAll( int tid ) {
 
-    	//Create the dllclass to access our agents from, out agentsDllClass 
-    	// for agent instantiation, and our bag for Agent objects after they 
-    	// have finished processing
+    	// Get the PlacesBase to access our agents fromvfor agent instantiation,
+		// and our bag for Agent objects after they have finished processing
     	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
 
     	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
@@ -663,8 +662,6 @@ public class AgentsBase {
     		// the main thread spawns as many communication threads as the 
     		// number of remote computing nodes and let each invoke 
     		// processAgentMigrationReq. 
-    		// args to threads: rank, agentHandle, placeHandle, lower_boundary
-    		int[][] comThrArgs = new int[MASSBase.getSystemSize()][4];
 
     		// communication thread id
     		ProcessAgentMigrationRequest[] thread_ref
@@ -674,15 +671,8 @@ public class AgentsBase {
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;
 
-    			// set arguments 
-    			comThrArgs[rank][0] = rank;
-    			comThrArgs[rank][1] = handle; // agents' handle
-    			comThrArgs[rank][2] = evaluatedPlaces.getHandle();
-    			comThrArgs[rank][3] = evaluatedPlaces.getLowerBoundary();
-
     			// start a communication thread
-    			thread_ref[rank] 
-    					= new ProcessAgentMigrationRequest( comThrArgs[rank] );
+    			thread_ref[rank] = new ProcessAgentMigrationRequest( rank, handle, evaluatedPlaces.getHandle() );
     			thread_ref[rank].start( );
 
     			MASS.getLogger().debug( "Agents_base.manageAll will start " +
@@ -749,10 +739,10 @@ public class AgentsBase {
     	private int agentHandle;
     	private int placeHandle;
 
-    	public ProcessAgentMigrationRequest( int[] params ) {
-    		destRank = params[0];
-    		agentHandle = params[1];
-    		placeHandle = params[2];
+    	public ProcessAgentMigrationRequest( int destRank, int agentHandle, int placeHandle ) {
+    		this.destRank = destRank;
+    		this.agentHandle = agentHandle;
+    		this.placeHandle = placeHandle;
     	}
 
     	@SuppressWarnings("unused")
