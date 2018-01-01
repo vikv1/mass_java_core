@@ -82,20 +82,17 @@ public class PlacesBase {
 	private class ExchangeBoundary_helper extends Thread {
 
     	int direction;
-    	int handle;
     	int places_size;
     	int shadow_size;
 
-    	public ExchangeBoundary_helper( int[] param ) {
+    	public ExchangeBoundary_helper( int direction, int placesSize, int shadowSize ) {
     	
     		// identify the boundary space;
-    		direction = param[0];
-    		handle = param[1];
-    		places_size = param[2];
-    		shadow_size = param[3];
+    		this.direction = direction;
+    		this.places_size = placesSize;
+    		this.shadow_size = shadowSize;
 
     		MASSBase.getLogger().debug( "Places_base.ExchangeBoundary_helper direction = " + direction
-    					+ ", handle = " + handle
     					+ ", places_size = " + places_size 
     					+ ", shadow_size = " + shadow_size
     					);
@@ -566,17 +563,12 @@ public class PlacesBase {
 
     	MASSBase.getLogger().debug( "exchangeBoundary starts" );
 
-    	int[][] param = new int[2][4];
     	if ( MASSBase.getMyPid() < MASSBase.getSystemSize() - 1 ) {
     		
     		// create a child in charge of handling the right shadow.
-    		param[0][0] = 'R';
-    		param[0][1] = handle;
-    		param[0][2] = placesSize;
-    		param[0][3] = shadowSize;
     		MASSBase.getLogger().debug( "exchangeBoundary: pthreacd_create( helper, R ) places_size= {}", placesSize );
 
-    		thread_ref = new ExchangeBoundary_helper( param[0] );
+    		thread_ref = new ExchangeBoundary_helper( 'R', placesSize, shadowSize );
     		thread_ref.start( );
     	
     	}
@@ -584,14 +576,8 @@ public class PlacesBase {
     	if ( MASSBase.getMyPid() > 0 ) {
     		
     		// the main takes charge of handling the left shadow.
-    		param[1][0] = 'L';
-    		param[1][1] = handle;    
-    		param[1][2] = placesSize;
-    		param[1][3] = shadowSize;
-
     		MASSBase.getLogger().debug( "exchangeBoundary: main thread( helper, L ) places_size = {}", placesSize );
-
-    		( new ExchangeBoundary_helper( param[1] ) ).run( );
+    		( new ExchangeBoundary_helper( 'L', placesSize, shadowSize ) ).run( );
     	
     	}
 
