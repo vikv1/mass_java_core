@@ -304,10 +304,6 @@ public class AgentsBase {
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
     			
     			// out of range
-//    			for ( int j = 0; j < dest_index.length; j++ ) {
-//    				// all index must be set -1
-//    				dest_index[j] = -1;
-//    			}
     			Arrays.fill( dest_index, -1 );
     			return;
     		
@@ -617,9 +613,7 @@ public class AgentsBase {
     				agents.remove( myIndex - 1 );
 
     				// find the destination node
-    				int destRank 
-    				= evaluatedPlaces.
-    				getRankFromGlobalLinearIndex( globalLinearIndex );
+    				int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
 
     				// relinquish the old place
     				evaluationAgent.setPlace(null);
@@ -780,28 +774,16 @@ public class AgentsBase {
     		MASS.getLogger().debug( "tid[" + destRank + 
     					"] made messageToDest to rank: " + destRank ); 
 
-    		SendMessageByChild thread_ref =
-    				new SendMessageByChild( destRank, messageToDest );
-    		thread_ref.start( );
+    		// send the message
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
 
     		// receive a message by myself
-    		Message messageFromSrc = 
-    				MASSBase.getExchange().receiveMessage( destRank );
+    		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
-    		// at this point, the message must be exchanged.
-    		try {
-    			thread_ref.join( );
-    			orgRequest.clear( );
-    		} 
-    		catch ( Exception e ) {
-    			// TODO - what to do if an exception is thrown?
-    			MASS.getLogger().error("Exception thrown while exchanging async message", e);
-    		}
+    		// at this point, the message must be exchanged
+    		orgRequest.clear( );
 
-
-    		MASS.getLogger().debug( "pthread id = " + thread_ref +
-    					"pthread_join completed for rank[" +
-    					destRank );
+    		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
 
     		// process a message
     		Vector<AgentMigrationRequest> receivedRequest 
@@ -849,28 +831,4 @@ public class AgentsBase {
     
     }
 
-    private class SendMessageByChild extends Thread {
-
-    	int rank;
-    	Message message;
-
-    	public SendMessageByChild( int rank, Message message ) {
-    		this.rank = rank;
-    		this.message = message;
-    	}
-
-    	public void run( ) {
-    		
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"] sendMessageByChild to " + rank + " starts" );
-
-    		MASSBase.getExchange().sendMessage( rank, message );
-
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"] sendMessageByChild to " + rank + 
-    					" finished" );
-    	
-    	}
-    
-    }
 }
