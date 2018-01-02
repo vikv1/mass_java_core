@@ -32,6 +32,8 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -40,57 +42,60 @@ import org.junit.Test;
  */
 public class MThreadTest extends AbstractTest {
 
+	private Object originalLock;
+	private int originalThread;
+	private int originalSize;
+
+	@Before
+	public void setUp() {
+
+		// get original values before testing starts
+		originalLock = MThread.getLock();
+		originalThread = MThread.getThreadCreated();
+		originalSize = MThread.getAgentBagSize();
+
+	}
+
+	@After
+	public void tearDown() {
+
+		// reset back to original state
+		MThread.setLock( originalLock );
+		MThread.setThreadCreated( originalThread );
+		MThread.setAgentBagSize( originalSize );
+
+	}
+	
 	@Test
-	@SuppressWarnings("static-access")
 	public void getSetLock() throws Exception {
 
-		MThread mthread = new MThread( randomInt() );
-
-		Object originalLock = mthread.getLock();
 		String lockObj = new String();
 		
 		// set a lock object
-		mthread.setLock( lockObj );
-		assertEquals( lockObj, mthread.getLock() );
-		
-		// reset back to original state
-		mthread.setLock( originalLock );
+		MThread.setLock( lockObj );
+		assertEquals( lockObj, MThread.getLock() );
 		
 	}
 
 	@Test
-	@SuppressWarnings("static-access")
 	public void getSetThreadCreated() throws Exception {
 
-		MThread mthread = new MThread( randomInt() );
-
-		int originalThread = mthread.getThreadCreated();
 		int newThreadNumber = randomInt();
 		
 		// set a new thread ID number
-		mthread.setThreadCreated( newThreadNumber );
-		assertEquals( newThreadNumber, mthread.getThreadCreated() );
-		
-		// reset back to original state
-		mthread.setThreadCreated( originalThread );
+		MThread.setThreadCreated( newThreadNumber );
+		assertEquals( newThreadNumber, MThread.getThreadCreated() );
 		
 	}
 
 	@Test
-	@SuppressWarnings("static-access")
 	public void getSetAgentBagSize() throws Exception {
 
-		MThread mthread = new MThread( randomInt() );
-
-		int originalSize = mthread.getAgentBagSize();
 		int newSize = randomInt();
 		
 		// set a new size
-		mthread.setAgentBagSize( newSize );
-		assertEquals( newSize, mthread.getAgentBagSize() );
-		
-		// reset back to original state
-		mthread.setAgentBagSize( originalSize );
+		MThread.setAgentBagSize( newSize );
+		assertEquals( newSize, MThread.getAgentBagSize() );
 		
 	}
 

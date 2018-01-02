@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,7 +51,8 @@ public class AgentsBaseTest extends AbstractTest {
 	private static PlacesBase placesBase;
 	private static final int PLACES_HANDLE = randomInt();
 	private static final int AGENTS_HANDLE = randomInt();
-
+	private Object originalMThreadLock;
+	
 	@BeforeClass
 	public static void beforeAll() {
 
@@ -90,7 +92,18 @@ public class AgentsBaseTest extends AbstractTest {
 
 		// start with new instances for each test
 		agentsBase = new AgentsBase( AGENTS_HANDLE, SimpleTestAgent.class.getName(), null, PLACES_HANDLE, 1 );
-		
+
+		// remember initial MThread parameters for reset later
+		originalMThreadLock = MThread.getLock();
+
+	}
+
+	@After
+	public void tearDown() {
+
+		// reset MThread back to original state
+		MThread.setLock( originalMThreadLock );
+
 	}
 
 	@Test
@@ -141,4 +154,39 @@ public class AgentsBaseTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void manageAllLockRelease() throws Exception {
+
+		// must provide something for MThread to lock against
+		String lockObj = new String();
+		MThread.setLock( lockObj );
+		
+		// should not result in an Exception (locks should release!)
+		agentsBase.manageAll( 0 );
+		
+	}
+
+	@Test
+	public void manageAllSingleLiveAgent() throws Exception {
+
+		// must provide something for MThread to lock against
+		String lockObj = new String();
+		MThread.setLock( lockObj );
+		
+		// need an Agent to "manage"
+		Agent agent = new SimpleTestAgent( new String() );
+		MThread.setAgentBagSize( 1 );
+		agentsBase.getAgents().add( agent );
+		
+		// make the call (should not throw an Exception)
+		agentsBase.manageAll( 0 );
+		
+		// Agent bag size should not be zero in MThread
+		assertEquals( 0, MThread.getAgentBagSize() );
+
+		// remove test agent
+		agentsBase.getAgents().clear();
+		
+	}
+
 }

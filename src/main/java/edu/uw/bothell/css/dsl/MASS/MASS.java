@@ -61,6 +61,9 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
  */
 public class MASS extends MASSBase {
 
+    // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
+    public static final int LOCK_TIMEOUT = 10000;
+
 	private static boolean printOutput = false;
 	//private static boolean printOutput = true;
 

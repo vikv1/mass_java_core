@@ -45,7 +45,7 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
  */
 public class MASSBase {
 
-    private static MThread[] threads;          // including main and children
+    private static MThread[] threads = new MThread[0];          // including main and children
     private static boolean initialized;  	// check if Mthreads are initialized
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, PlacesBase> placesMap = new Hashtable<Integer, PlacesBase>( );

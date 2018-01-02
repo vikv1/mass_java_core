@@ -66,7 +66,7 @@ public class MThread extends Thread {
     			MASSBase.getLogger().debug( "tid[" + tid + "] waiting: barrier = " + barrierPhases );
     			
     			try {
-    				lock.wait( );
+    				lock.wait( MASS.LOCK_TIMEOUT );
     			} 
     			catch( Exception e ) {
     				MASSBase.getLogger().error("Unknown exception thrown in barrierThreads", e);
