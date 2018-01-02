@@ -240,7 +240,7 @@ public class MProcess {
         // establish all inter-node connections within setHosts( )
         MASSBase.setHosts(hosts);
 
-        MASSBase.getPlacesMap().put(new Integer(m.getHandle()), places);
+        MASSBase.getPlacesMap().put( m.getHandle(), places);
         sendAck();
         MASSBase.getLogger().debug("PLACES_INITIALIZE completed and ACK sent");
         break;
@@ -250,8 +250,7 @@ public class MProcess {
     	  MASSBase.getLogger().debug("PLACES_CALL_ALL_VOID_OBJECT received");
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
-            new Integer(m.getHandle())));
+        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
@@ -273,8 +272,7 @@ public class MProcess {
     	  MASSBase.getLogger().debug("PLACES_CALL_ALL_RETURN_OBJECT received");
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
-            new Integer(m.getHandle())));
+        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         MASSBase.setCurrentArgument(argument);
         MASSBase.setCurrentMsgType(m.getAction());
@@ -301,10 +299,8 @@ public class MProcess {
               + m.getHandle() + " dest_handle = " + m.getDestHandle());
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(
-            new Integer(m.getHandle())));
-        MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get(
-            new Integer(m.getDestHandle())));
+        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
+        MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( m.getDestHandle() ) );
         MASSBase.setCurrentFunctionId(m.getFunctionId());
         // MASS_base.currentDestinations = m.getDestinations( );
 
@@ -338,7 +334,7 @@ public class MProcess {
     	  MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
 
         // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(new Integer(m.getHandle())));
+        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
 
         // for debug
         MASSBase.showHosts();
@@ -364,7 +360,7 @@ public class MProcess {
         agents = new AgentsBase(m.getHandle(), m.getClassname(), argument,
             m.getDestHandle(), m.getAgentPopulation());
 
-        MASSBase.getAgentsMap().put(new Integer(m.getHandle()), agents);
+        MASSBase.getAgentsMap().put( m.getHandle(), agents );
 
         sendAck(agents.getLocalPopulation());
 
@@ -433,8 +429,7 @@ public class MProcess {
 
     	  MASSBase.getLogger().debug("AGENTS_MANAGE_ALL received");
 
-        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
-            new Integer(m.getHandle())));
+        MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
         MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
             .size_unreduced());
 

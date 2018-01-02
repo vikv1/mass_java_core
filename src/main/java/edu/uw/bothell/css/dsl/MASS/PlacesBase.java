@@ -218,7 +218,7 @@ public class PlacesBase {
     		Vector<RemoteExchangeRequest> receivedRequest = messageFromSrc.getExchangeReqList( );
 
     		int destHandle_at_dst = messageFromSrc.getDestHandle( );
-    		PlacesBase dstPlaces = MASSBase.getPlacesMap().get( new Integer( destHandle_at_dst ) );
+    		PlacesBase dstPlaces = MASSBase.getPlacesMap().get( destHandle_at_dst );
 
     		MASSBase.getLogger().debug( "request from rank[" + destRank + "] = ", receivedRequest );
     		MASSBase.getLogger().debug( " size( ) = " + receivedRequest.size( ) );
@@ -278,7 +278,7 @@ public class PlacesBase {
 
     			// locate a local place
     			PlacesBase srcPlaces = 
-    					MASSBase.getPlacesMap().get( new Integer( srcHandle ) );
+    					MASSBase.getPlacesMap().get( srcHandle );
     			Place srcPlace = srcPlaces.places[orgLocalLinearIndex];
 
     			// store a return value to it

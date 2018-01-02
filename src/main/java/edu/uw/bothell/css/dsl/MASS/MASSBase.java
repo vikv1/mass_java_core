@@ -122,7 +122,7 @@ public class MASSBase {
      * @return The Agents class having the specified Handle ID
      */
 	public static Agents getAgents( int handle ) {
-    	return ( Agents )agentsMap.get( new Integer( handle ) );
+    	return ( Agents )agentsMap.get( handle );
     }
 	
 	/**
@@ -267,7 +267,7 @@ public class MASSBase {
 	 * @return The Places object with the matching handle ID
 	 */
 	public static Places getPlaces( int handle ) {
-    	return ( Places )placesMap.get( new Integer( handle ) );
+    	return ( Places )placesMap.get( handle );
     }
 	
 	/**

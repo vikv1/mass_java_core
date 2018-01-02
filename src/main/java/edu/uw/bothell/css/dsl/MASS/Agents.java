@@ -120,7 +120,7 @@ public class Agents extends AgentsBase {
             .println("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
         System.err.println("Bag Size is: "
-            + MASSBase.getAgentsMap().get(new Integer(getHandle()))
+            + MASSBase.getAgentsMap().get( getHandle() )
                 .getAgents().size_unreduced());
 
       }
@@ -128,7 +128,7 @@ public class Agents extends AgentsBase {
     }
 
     MThread.setAgentBagSize(MASSBase.getAgentsMap()
-        .get(new Integer(getHandle())).getAgents().size_unreduced());
+        .get( getHandle() ).getAgents().size_unreduced());
 
     // Check for correct behavior post-Agents_base implementation
     // retrieve the corresponding agents
@@ -238,7 +238,7 @@ public class Agents extends AgentsBase {
     total = nAgents();
 
     // register this agents in the places hash map
-    MASSBase.getAgentsMap().put(new Integer(getHandle()), this);
+    MASSBase.getAgentsMap().put( getHandle(), this);
 
   }
 

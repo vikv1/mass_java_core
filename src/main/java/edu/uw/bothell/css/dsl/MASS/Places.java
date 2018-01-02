@@ -47,7 +47,8 @@ public class Places extends PlacesBase {
 	 * @param boundaryWidth
 	 * @param argument
 	 * @param size
-	 */	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
+	 */	
+	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
     	
 		super( handle, className, boundaryWidth, argument, size );
 		init_master( argument, boundaryWidth );
@@ -225,7 +226,7 @@ public class Places extends PlacesBase {
 		
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
-		MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get( new Integer( destinationHandle ) ));
+		MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( destinationHandle ) );
 		MASSBase.setCurrentFunctionId(functionId);
 		
 		// reset requestCounter by the main thread
@@ -339,7 +340,7 @@ public class Places extends PlacesBase {
 		MASSBase.setHosts( hosts );
 	
 		// register this places in the places hash map
-		MASSBase.getPlacesMap().put( new Integer( getHandle() ), this );
+		MASSBase.getPlacesMap().put( getHandle(), this );
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );

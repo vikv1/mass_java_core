@@ -55,7 +55,7 @@ public class AgentsBase {
     private final String className;
     private final int placesHandle;
     private int initPopulation;
-    private int localPopulation;
+    private int localPopulation = 0;
     private int currentAgentId;
     private AgentList agents;
     private static int agentInitAgentsHandle;
@@ -88,7 +88,6 @@ public class AgentsBase {
 
     	// initialize currentAgentId and localPopulation
     	currentAgentId = MASSBase.getMyPid() * MAX_AGENTS_PER_NODE;
-    	localPopulation = 0;
 
     	// instantiate just one agent to call its map( ) function
     	agentInitAgentsHandle = handle;
@@ -105,7 +104,7 @@ public class AgentsBase {
 
     	// retrieve the corresponding places
     	PlacesBase curPlaces = 
-    			MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+    			MASSBase.getPlacesMap().get( placesHandle );
 
     	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
 
@@ -203,7 +202,7 @@ public class AgentsBase {
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
     		MASS.getLogger().debug( "Agents_base:callAll: agents.size = {}",
-    					MASSBase.getAgentsMap().get( new Integer(handle) ).
+    					MASSBase.getAgentsMap().get( handle ).
     					agents.size_unreduced( ) );
     		MASS.getLogger().debug( "Agents_base:callAll: agentsBagSize = {}", MThread.getAgentBagSize() );
     	
@@ -270,7 +269,7 @@ public class AgentsBase {
     		MThread.setAgentBagSize(numOfOriginalVectors);
 
     		MASS.getLogger().debug( "Agents_base:callAll: agents.size = {}", 
-   					MASSBase.getAgentsMap().get( new Integer(handle) ).
+   					MASSBase.getAgentsMap().get( handle ).
    					agents.size_unreduced( ) );
    			
     		MASS.getLogger().debug( "Agents_base:callAll: agentsBagSize = {}", MThread.getAgentBagSize() );
@@ -349,7 +348,7 @@ public class AgentsBase {
 
     	// Get the PlacesBase to access our agents fromvfor agent instantiation,
 		// and our bag for Agent objects after they have finished processing
-    	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+    	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
 
     	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
     	// agents  sequentially.
@@ -420,7 +419,6 @@ public class AgentsBase {
 
 					}
 
-					// Index SHOULD be set using getplace not agent.getindex()
 					addAgent.setIndex(evaluationAgent.getPlace().getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
 
@@ -511,7 +509,7 @@ public class AgentsBase {
 
 					// retrieve the corresponding places
 					PlacesBase curPlaces =
-							MASSBase.getPlacesMap().get( new Integer( placesHandle ) );
+							MASSBase.getPlacesMap().get( placesHandle );
 					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
 					// local destination
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
@@ -592,7 +590,7 @@ public class AgentsBase {
     				MASS.getLogger().debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
 
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
-    						get( new Integer( placesHandle ) ).
+    						get( placesHandle ).
     						getPlaces()[destinationLocalLinearIndex]);
 
     				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
@@ -782,7 +780,7 @@ public class AgentsBase {
     		int agentsHandle = messageFromSrc.getHandle( );
     		int placesHandle = messageFromSrc.getDestHandle( );
     		PlacesBase dstPlaces = MASSBase.getPlacesMap().
-    				get( new Integer( placesHandle ) );
+    				get( placesHandle );
 
     		MASS.getLogger().debug( "request from rank[" + destRank + "] = " + 
     					receivedRequest + " size( ) = " + 
