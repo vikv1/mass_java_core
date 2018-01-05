@@ -112,7 +112,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 		assertEquals( -1, manager.getNextAvailableAgentId().intValue() );
 		
 		// add an agent ID, check for return
-		manager.addAvailabeAgentId( new Integer( 42 ) );
+		manager.addAvailableAgentId( new Integer( 42 ) );
 		assertEquals( 42, manager.getNextAvailableAgentId().intValue() );
 		
 	}

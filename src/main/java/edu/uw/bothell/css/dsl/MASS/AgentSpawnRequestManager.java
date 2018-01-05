@@ -31,6 +31,10 @@ public class AgentSpawnRequestManager
         MAX_ACTIVE_AGENT_SIZE = MAX_ACTIVE_AGENT_SIZE_DEFAULT_VALUE;
     }
 
+    /**
+     * Initialize the manager specifying maximum number of active Agents
+     * @param maxActiveAgentSize The maximum number of active Agents to allow
+     */
     public AgentSpawnRequestManager(int maxActiveAgentSize)
     {
         agentSerializer = AgentSerializer.getInstance();
@@ -126,7 +130,7 @@ public class AgentSpawnRequestManager
      *
      * @param availableAgentId agent id to be added.
      */
-    protected void addAvailabeAgentId(Integer availableAgentId)
+    protected void addAvailableAgentId(Integer availableAgentId)
     {
         availableAgentIdsQueue.add(availableAgentId);
     }

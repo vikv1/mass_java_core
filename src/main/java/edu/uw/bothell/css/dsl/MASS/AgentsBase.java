@@ -487,7 +487,7 @@ public class AgentsBase {
 				/** Agent population control work begins, execution order is important! **/
 
 				// every time we kill an agent, we should add its id to the available ids queue
-				agentSpawnRequestManager.addAvailabeAgentId(evaluationAgent.getAgentId());
+				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
 
 				// then we check if there is any agent spawn request
 				Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
