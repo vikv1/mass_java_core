@@ -1,20 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.*;
-import com.esotericsoftware.minlog.Log;
-
-import org.objenesis.strategy.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 
 /**
  * Created by utku on 1/25/17.
@@ -25,16 +14,17 @@ import java.util.ArrayList;
 public class AgentSerializer
 {
     // Shared instance
-    private static AgentSerializer instance = null;
+//    private static AgentSerializer instance = null;
 
     // Serialized object extension (must be unique)
     // private static final String KRYO_SERIALIZATION_EXTENSION = "kryo.ser";
 
     // Classes to be registered (Kryo-only)
-    private Class[] classes;
+    @SuppressWarnings("rawtypes")
+	private Class[] classes;
 
     // Class registration base id - important: 0-9 are used by Kryo
-    private static final int KRYO_SERIALIZATION_CLASS_REG_BASE_ID = 10;
+//    private static final int KRYO_SERIALIZATION_CLASS_REG_BASE_ID = 10;
 
     // Max number of agent (default 40)
     private int maxNumberOfAgents = 40;
@@ -75,6 +65,11 @@ public class AgentSerializer
         return LazyHolder.INSTANCE;
     }
 
+    /**
+     * Serialize an Agent
+     * @param agent The Agent to serialize
+     * @return An array of bytes representing the Agent
+     */
     public byte[] serializeAgent(Agent agent)
     {
         /*
@@ -135,6 +130,11 @@ public class AgentSerializer
 
     }
 
+    /**
+     * Deserialize an Agent
+     * @param serializedAgent An array of bytes representing the serialized form of the Agent
+     * @return The Agent, deserialized from the byte array
+     */
     public Agent deserializeAgent(byte[] serializedAgent)
     {
         /*
@@ -192,19 +192,41 @@ public class AgentSerializer
 
     }
 
-    /** Getter and Setters for private fields **/
-
-    protected Class[] getRegisteredClasses()
+    /**
+     * Get the classes registered with this serializer
+     * @return The classes that this serializer will be able to serialize/deserialize
+     */
+    @SuppressWarnings("rawtypes")
+	protected Class[] getRegisteredClasses()
     {
         return this.classes;
     }
 
-    protected int getMaxNumberOfAgents() { return this.maxNumberOfAgents; }
+    /**
+     * Get the maximum number of Agents that this serializer will support 
+     * @return The maximum number of supported Agents
+     */
+    protected int getMaxNumberOfAgents() { 
+    	return this.maxNumberOfAgents;
+    }
 
-    protected void setRegisteredClasses(Class[] classes)
-    {
+    /**
+     * Set the classes that this serializer will support
+     * @param classes The classes to support
+     */
+    @SuppressWarnings("rawtypes")
+	protected void setRegisteredClasses(Class[] classes) {
         this.classes = classes;
     }
 
-    protected void setMaxNumberOfAgents(int maxNumberOfAgents) { if (maxNumberOfAgents > 0) this.maxNumberOfAgents = maxNumberOfAgents; }
+    /**
+     * Set the maximum number of Agents to support
+     * @param maxNumberOfAgents The maximum number of supported Agents
+     */
+    protected void setMaxNumberOfAgents(int maxNumberOfAgents) { 
+    	
+    	if (maxNumberOfAgents > 0) this.maxNumberOfAgents = maxNumberOfAgents;
+    	
+    }
+
 }
