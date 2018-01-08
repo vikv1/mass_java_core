@@ -30,6 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import org.easymock.EasyMockRunner;
@@ -256,4 +260,25 @@ public class AbstractTest extends EasyMockSupport {
         
     }
 
+    /**
+     * Using Java native serialization, return an array of bytes representing
+     * the serialized form of the supplied object
+     * @param objectToSerialize The object to serialize
+     * @return An array of bytes representing the serialized object
+     * @throws IOException
+     */
+    protected static byte[] serializeObject( Object objectToSerialize ) throws IOException {
+
+    	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    	ObjectOutput out = new ObjectOutputStream( bos );
+
+    	// serialize to the byte array
+    	out.writeObject( objectToSerialize );
+    	out.flush();
+
+    	// return the array
+    	return bos.toByteArray();
+
+    }
+    
 }
