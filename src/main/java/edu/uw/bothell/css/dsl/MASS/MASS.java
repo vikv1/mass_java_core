@@ -52,8 +52,6 @@ import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
 import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
-import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -78,11 +76,6 @@ public class MASS extends MASSBase {
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-
-	// object factories are singletons, so we'll use this opportunity to initialize it
-    // yes - unused at this point right now...
-    @SuppressWarnings("unused")
-	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
