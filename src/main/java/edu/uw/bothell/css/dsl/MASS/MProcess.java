@@ -30,426 +30,452 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Vector;
+import java.io.OutputStream;
 
 /**
- *	MProcess exists to facilitate message-passing between remote and master nodes. 
+ * MProcess exists to facilitate message-passing between remote and master
+ * nodes.
  */
 public class MProcess {
 
 	// representation of this remote node, containing all configuration info and object streams
 	private MNode thisNode;
-	
-	
-  private int myPid; // my pid or rank
-  private ObjectInputStream MAIN_IOS; // input from the master process
-  private ObjectOutputStream MAIN_OOS; // output to the master process
-
-  /**
-   * Main MASS function that launches MProcess
-   * @param args Required arguments for launching MProcess (hostname, my PID, number of cluster nodes,
-   * number of threads to start, port number for communications, and the working directory to use)
-   */
-  public static void main(String[] args) throws Exception {
-    
-	  String hostName = args[0];
-	  int myPid = Integer.parseInt(args[1]);
-	  int nProc = Integer.parseInt(args[2]);
-	  int nThreads = Integer.parseInt(args[3]);
-	  int serverPort = Integer.parseInt(args[4]);
-	  String curDir = args[5];
-
-    MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads,
-        serverPort, curDir);
-    mprocess.start();
-
-  }
-
-  /**
-   * MProcesses are the MASS threads executing on various machines.  They are 
-   * responsible for maintaining some number of the total Places being used by
-   * the entire MASS program, as well as the associated Agents.  Each MProcess
-   * is referred to by its rank.
-   * @param hostName The hostname or IP address of this node
-   * @param myPid The PID assigned to this node
-   * @param nProc The total number of nodes in the cluster
-   * @param nThr The number of threads to start on this remote node
-   * @param port The port number to use for communications with this node
-   * @param curDir The working directory this remote node should use
-   */
-  public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
-
-	  this.myPid = myPid;
-
-	  // create a MNode representation of this node for init purposes
-	  thisNode = new MNode();
-	  thisNode.setHostName( hostName );
-	  thisNode.setPid( myPid );
-	  thisNode.setPort( port );    	
-	  thisNode.setMassHome( curDir );
-	  
-	  MASS.setNumThreads( nThr );
-	  MASSBase.setWorkingDirectory( curDir ); // mprocess manually changes it.
-	  MASSBase.setSystemSize( nProc ); 	// must force system size since we don't have visibility to all nodes
-	  MASSBase.initMASSBase( thisNode );
-	  
-	  MASSBase.getLogger().debug("Launching MProcess... (" + "hostname = " + hostName
-			  + ", myPid = " + myPid + ", nProc = " + nProc + ", nThr = " + nThr
-			  + ", port = " + port + ", curDir = " + curDir + ")");
-
-	  MASSBase.initializeThreads(MASS.getNumThreads());
-
-	  /*
-	   * Set up a connection with the master process on the master node
-	   * (communications at this point to/from master node are channeled through
-	   * SSH connection)
-	   */
-	  try {
-
-		  MAIN_IOS = new ObjectInputStream(System.in);
-		  MAIN_OOS = new ObjectOutputStream(System.out);
-
-	  } catch (Exception e) {
-
-		  MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
-		  System.exit(-1);
-
-	  }
-
-  }
-
-  private Message receiveMessage() {
-
-    try {
-      return (Message) MAIN_IOS.readObject();
-    } catch (Exception e) {
-    	MASSBase.getLogger().error("MProcess.receiveMessage: detected ", e);
-      System.exit(-1);
-    }
-
-    return null;
-
-  }
-
-  private void sendAck() {
-    Message msg = new Message(Message.ACTION_TYPE.ACK);
-    sendMessage(msg);
-  }
-
-  private void sendAck(int localPopulation) {
-
-    Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
-    MASSBase.getLogger().debug( "msg.getAgentPopulation = {}", msg.getAgentPopulation( ) );
 
-    sendMessage(msg);
+	private int myPid; // my pid or rank
+	private ObjectInputStream MAIN_IOS = null; 	// input from the master process
+	private ObjectOutputStream MAIN_OOS = null; // output to the master process
+
+	/**
+	 * MProcesses are the MASS threads executing on various machines. They are
+	 * responsible for maintaining some number of the total Places being used by
+	 * the entire MASS program, as well as the associated Agents. Each MProcess
+	 * is referred to by its rank.
+	 * 
+	 * @param hostName The hostname or IP address of this node
+	 * @param myPid The PID assigned to this node
+	 * @param nProc The total number of nodes in the cluster
+	 * @param nThr The number of threads to start on this remote node
+	 * @param port The port number to use for communications with this node
+	 * @param curDir The working directory this remote node should use
+	 * @param in An InputStream override for message communication to this node
+	 * @param out an OutputStream override for message communications from this node
+	 */
+	public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir, InputStream in, OutputStream out ) {
+		
+		// override console input/output, primarily for unit testing
+		try {
+
+			if ( in != null) MAIN_IOS = new ObjectInputStream( in );
+			if ( out != null) MAIN_OOS = new ObjectOutputStream( out );
+
+		} catch (Exception e) {
+
+			MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
+			System.exit(-1);
+
+		}
+
+		// perform normal init
+		init( hostName, myPid, nProc, nThr, port, curDir );
+		
+	}
+
+	/**
+	 * MProcesses are the MASS threads executing on various machines. They are
+	 * responsible for maintaining some number of the total Places being used by
+	 * the entire MASS program, as well as the associated Agents. Each MProcess
+	 * is referred to by its rank.
+	 * @param hostName The hostname or IP address of this node
+	 * @param myPid The PID assigned to this node
+	 * @param nProc The total number of nodes in the cluster
+	 * @param nThr The number of threads to start on this remote node
+	 * @param port The port number to use for communications with this node
+	 * @param curDir The working directory this remote node should use
+	 */
+	public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
+		init( hostName, myPid, nProc, nThr, port, curDir );
+	}
+
+	/**
+	 * Main MASS function that launches MProcess
+	 * 
+	 * @param args
+	 *            Required arguments for launching MProcess (hostname, my PID,
+	 *            number of cluster nodes, number of threads to start, port
+	 *            number for communications, and the working directory to use)
+	 */
+	public static void main(String[] args) throws Exception {
+
+		String hostName = args[0];
+		int myPid = Integer.parseInt(args[1]);
+		int nProc = Integer.parseInt(args[2]);
+		int nThreads = Integer.parseInt(args[3]);
+		int serverPort = Integer.parseInt(args[4]);
+		String curDir = args[5];
 
-  }
+		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+		mprocess.start();
+
+	}
+
+	// Initialize this MProcess (this used to be handled by a single constructor)
+	private void init(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
 
-  private void sendMessage(Message msg) {
+		this.myPid = myPid;
 
-    try {
+		// create a MNode representation of this node for init purposes
+		thisNode = new MNode();
+		thisNode.setHostName(hostName);
+		thisNode.setPid(myPid);
+		thisNode.setPort(port);
+		thisNode.setMassHome(curDir);
 
-      MAIN_OOS.writeObject(msg);
-      MAIN_OOS.flush();
+		MASS.setNumThreads(nThr);
+		MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
+		MASSBase.setSystemSize(nProc); // must force system size since we don't
+										// have visibility to all nodes
+		MASSBase.initMASSBase(thisNode);
 
-    } catch (Exception e) {
+		MASSBase.getLogger().debug("Launching MProcess... (" + "hostname = " + hostName + ", myPid = " + myPid
+				+ ", nProc = " + nProc + ", nThr = " + nThr + ", port = " + port + ", curDir = " + curDir + ")");
 
-    	MASSBase.getLogger().error("MProcess.sendMessage: ", e);
-      System.exit(-1);
+		MASSBase.initializeThreads(MASS.getNumThreads());
 
-    }
+		/*
+		 * Set up a connection with the master process on the master node
+		 * (communications at this point to/from master node are channeled
+		 * through SSH connection), but only if the streams have not already been
+		 * instantiated.
+		 */
+		try {
 
-  }
+			if ( MAIN_IOS == null) MAIN_IOS = new ObjectInputStream( System.in );
+			if ( MAIN_OOS == null) MAIN_OOS = new ObjectOutputStream( System.out );
 
-  private void sendReturnValues(Object argument) {
-    Message msg = new Message(Message.ACTION_TYPE.ACK, argument);
-    sendMessage(msg);
-  }
+		} catch (Exception e) {
 
-  private void sendReturnValues(Object argument, int localPopulation) {
-    Message msg = new Message(Message.ACTION_TYPE.ACK, argument,
-        localPopulation);
-    sendMessage(msg);
-  }
+			MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
+			System.exit(-1);
 
-  /**
-   * Start this MProcess
-   */
-  @SuppressWarnings("incomplete-switch")
-  public void start() {
+		}
 
-	  MASSBase.getLogger().debug("MProcess started");
+	}
 
-    // Synchronize with the master node first.
-    sendAck();
+	private Message receiveMessage() {
 
-    boolean alive = true;
-    while (alive) {
+		try {
+			return (Message) MAIN_IOS.readObject();
+		} catch (Exception e) {
+			MASSBase.getLogger().error("MProcess.receiveMessage: detected ", e);
+			System.exit(-1);
+		}
 
-      // receive a new message from the master
-      Message m = receiveMessage();
+		return null;
 
-      MASSBase.getLogger().debug( "A new message received: action = {}", m.getAction( ) );
+	}
 
-      // get prepared for the following arguments for PLACES_INITIALIZE
-      int[] size; // size[]
-      Vector<String> hosts = new Vector<String>();
-      Object argument = null;
-      PlacesBase places = null; // new Places
-      AgentsBase agents = null; // new Agents
+	private void sendAck() {
+		Message msg = new Message(Message.ACTION_TYPE.ACK);
+		sendMessage(msg);
+	}
 
-      // retrieve an argument
-      argument = m.getArgument();
+	private void sendAck(int localPopulation) {
 
-      switch (m.getAction()) {
+		Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
+		MASSBase.getLogger().debug("msg.getAgentPopulation = {}", msg.getAgentPopulation());
 
-      case ACK:
-        sendAck();
-        break;
+		sendMessage(msg);
 
-      case EMPTY:
-        if (MASS.isConsoleLoggingEnabled())
-        	MASSBase.getLogger().debug("EMPTY received!!!!");
-        sendAck();
-        break;
+	}
 
-      case FINISH:
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_TERMINATE);
-        // confirm all threads are done with finish
-        MThread.barrierThreads(0);
-        MASSBase.getExchange().terminateConnection(this.myPid);
-        sendAck();
-        alive = false;
-        MASSBase.getLogger().debug( "FINISH received and ACK sent" );
-        break;
+	private void sendMessage(Message msg) {
 
-      case PLACES_INITIALIZE:
+		try {
 
-    	  MASSBase.getLogger().debug("PLACES_INITIALIZE received");
+			MAIN_OOS.writeObject(msg);
+			MAIN_OOS.flush();
 
-        // create a new Places
-        size = m.getSize();
+		} catch (Exception e) {
 
-        places = new PlacesBase(m.getHandle(), m.getClassname(),
-            m.getBoundaryWidth(), argument, size);
+			MASSBase.getLogger().error("MProcess.sendMessage: ", e);
+			System.exit(-1);
 
-        hosts.addAll( m.getHosts() );
-        
-        // establish all inter-node connections within setHosts( )
-        MASSBase.setHosts(hosts);
+		}
 
-        MASSBase.getPlacesMap().put( m.getHandle(), places);
-        sendAck();
-        MASSBase.getLogger().debug("PLACES_INITIALIZE completed and ACK sent");
-        break;
+	}
 
-      case PLACES_CALL_ALL_VOID_OBJECT:
+	private void sendReturnValues(Object argument) {
+		sendMessage( new Message( Message.ACTION_TYPE.ACK, argument ) );
+	}
 
-    	  MASSBase.getLogger().debug("PLACES_CALL_ALL_VOID_OBJECT received");
+	private void sendReturnValues(Object argument, int localPopulation) {
+		sendMessage( new Message( Message.ACTION_TYPE.ACK, argument, localPopulation ) );
+	}
 
-        // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
-        MASSBase.setCurrentFunctionId(m.getFunctionId());
-        MASSBase.setCurrentArgument(argument);
-        MASSBase.setCurrentMsgType(m.getAction());
+	/**
+	 * Start this MProcess
+	 */
+	public void start() {
 
-        // resume threads to work on call all.
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+		MASSBase.getLogger().debug("MProcess started");
 
-        // 3rd arg: 0 = the main thread id
-        MASSBase.getCurrentPlacesBase().callAll(m.getFunctionId(), argument, 0);
+		// Synchronize with the master node first.
+		sendAck();
 
-        // confirm all threads are done with places.callAll
-        MThread.barrierThreads(0);
+		boolean alive = true;
+		while (alive) {
 
-        sendAck();
-        break;
+			// receive a new message from the master
+			Message m = receiveMessage();
 
-      case PLACES_CALL_ALL_RETURN_OBJECT:
+			MASSBase.getLogger().debug("A new message received: action = {}", m.getAction());
 
-    	  MASSBase.getLogger().debug("PLACES_CALL_ALL_RETURN_OBJECT received");
+			// get prepared for the following arguments for PLACES_INITIALIZE
+			PlacesBase places = null; // new Places
+			AgentsBase agents = null; // new Agents
 
-        // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
-        MASSBase.setCurrentFunctionId(m.getFunctionId());
-        MASSBase.setCurrentArgument(argument);
-        MASSBase.setCurrentMsgType(m.getAction());
-        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase()
-            .getPlacesSize()]);
+			// retrieve an argument
+			Object argument = m.getArgument();
 
-        // resume threads to work on call all.
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+			switch ( m.getAction() ) {
 
-        // 3rd arg: 0 = the main thread id
-        MASSBase.getCurrentPlacesBase().callAll(MASSBase.getCurrentFunctionId(),
-            (Object[]) (MASSBase.getCurrentArgument()),
-            ((Object[]) (MASSBase.getCurrentArgument())).length, 0);
+			// NOOPs
+			case AGENTS_MIGRATION_REMOTE_REQUEST:
+			case PLACES_EXCHANGE_ALL_REMOTE_REQUEST:
+			case PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
+			case PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST:
+			case PLACES_CALL_SOME_VOID_OBJECT:
+				break;
+			
+			case ACK:
+				sendAck();
+				break;
 
-        // confirm all threads are done with places.callAll w/ return
-        MThread.barrierThreads(0);
+			case EMPTY:
+				MASSBase.getLogger().debug("EMPTY received!!!!");
+				sendAck();
+				break;
 
-        sendReturnValues(MASSBase.getCurrentReturns());
-        break;
+			case FINISH:
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_TERMINATE);
+				// confirm all threads are done with finish
+				MThread.barrierThreads(0);
+				MASSBase.getExchange().terminateConnection(this.myPid);
+				sendAck();
+				alive = false;
+				MASSBase.getLogger().debug("FINISH received and ACK sent");
+				break;
 
-      case PLACES_EXCHANGE_ALL:
+			case PLACES_INITIALIZE:
 
-    	  MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL recweived handle = "
-              + m.getHandle() + " dest_handle = " + m.getDestHandle());
+				MASSBase.getLogger().debug("PLACES_INITIALIZE received");
 
-        // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
-        MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( m.getDestHandle() ) );
-        MASSBase.setCurrentFunctionId(m.getFunctionId());
-        // MASS_base.currentDestinations = m.getDestinations( );
+				// create a new Places
+				places = new PlacesBase( m.getHandle(), m.getClassname(), m.getBoundaryWidth(), argument, m.getSize() );
 
-        // reset requestCounter by the main thread
-        MASSBase.resetRequestCounter();
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+				MASSBase.getPlacesMap().put( m.getHandle(), places );
 
-        // for debug
-        MASSBase.showHosts();
+				sendAck();
+				MASSBase.getLogger().debug("PLACES_INITIALIZE completed and ACK sent");
+				
+				break;
 
-        // resume threads to work on call all.
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
+			case PLACES_CALL_ALL_VOID_OBJECT:
 
-        // exchangeall implementation
-        MASSBase.getCurrentPlacesBase().exchangeAll(
-            MASSBase.getDestinationPlaces(), MASSBase.getCurrentFunctionId(),
-            0);
+				MASSBase.getLogger().debug("PLACES_CALL_ALL_VOID_OBJECT received");
 
-        // confirm all threads are done with places.exchangeall.
-        MThread.barrierThreads(0);
+				// retrieve the corresponding places
+				MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(m.getHandle()));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
 
-        MASSBase.getLogger().debug("barrier done");
+				// resume threads to work on call all.
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
-        sendAck();
+				// 3rd arg: 0 = the main thread id
+				MASSBase.getCurrentPlacesBase().callAll(m.getFunctionId(), argument, 0);
 
-        MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL sent ACK");
+				// confirm all threads are done with places.callAll
+				MThread.barrierThreads(0);
 
-        break;
+				sendAck();
+				break;
 
-      case PLACES_EXCHANGE_BOUNDARY:
+			case PLACES_CALL_ALL_RETURN_OBJECT:
 
-    	  MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
+				MASSBase.getLogger().debug("PLACES_CALL_ALL_RETURN_OBJECT received");
 
-        // retrieve the corresponding places
-        MASSBase.setCurrentPlacesBase( MASSBase.getPlacesMap().get( m.getHandle() ) );
+				// retrieve the corresponding places
+				MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(m.getHandle()));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
+				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase().getPlacesSize()]);
 
-        // for debug
-        MASSBase.showHosts();
+				// resume threads to work on call all.
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
-        // exchange boundary implementation
-        MASSBase.getCurrentPlacesBase().exchangeBoundary();
+				// 3rd arg: 0 = the main thread id
+				MASSBase.getCurrentPlacesBase().callAll(MASSBase.getCurrentFunctionId(),
+						(Object[]) (MASSBase.getCurrentArgument()), ((Object[]) (MASSBase.getCurrentArgument())).length,
+						0);
 
-        sendAck();
+				// confirm all threads are done with places.callAll w/ return
+				MThread.barrierThreads(0);
 
-        MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY completed and ACK sent");
+				sendReturnValues(MASSBase.getCurrentReturns());
+				break;
 
-        break;
+			case PLACES_EXCHANGE_ALL:
 
-      case PLACES_EXCHANGE_ALL_REMOTE_REQUEST:
-      case PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
-      case PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST:
-        break;
+				MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL received handle = " + m.getHandle() + " dest_handle = "
+						+ m.getDestHandle());
 
-      case AGENTS_INITIALIZE:
+				// retrieve the corresponding places
+				MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(m.getHandle()));
+				MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get(m.getDestHandle()));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				// MASS_base.currentDestinations = m.getDestinations( );
 
-    	  MASSBase.getLogger().debug("AGENTS_INITIALIZE received");
+				// reset requestCounter by the main thread
+				MASSBase.resetRequestCounter();
 
-        agents = new AgentsBase(m.getHandle(), m.getClassname(), argument,
-            m.getDestHandle(), m.getAgentPopulation());
+				// for debug
+				MASSBase.showHosts();
 
-        MASSBase.getAgentsMap().put( m.getHandle(), agents );
+				// resume threads to work on call all.
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
-        sendAck(agents.getLocalPopulation());
+				// exchangeall implementation
+				MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
+						MASSBase.getCurrentFunctionId(), 0);
 
-        MASSBase.getLogger().debug("AGENTS_INITIALIZE completed and ACK sent");
+				// confirm all threads are done with places.exchangeall.
+				MThread.barrierThreads(0);
+				MASSBase.getLogger().debug("barrier done");
 
-        break;
+				sendAck();
+				MASSBase.getLogger().debug("PLACES_EXCHANGE_ALL sent ACK");
 
-      case AGENTS_CALL_ALL_VOID_OBJECT:
+				break;
 
-    	  MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
+			case PLACES_EXCHANGE_BOUNDARY:
 
-        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
-            new Integer(m.getHandle())));
-        MASSBase.setCurrentFunctionId(m.getFunctionId());
-        MASSBase.setCurrentArgument(argument);
-        MASSBase.setCurrentMsgType(m.getAction());
+				MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY received handle = {}", m.getHandle());
 
-        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
-            .size_unreduced());
+				// retrieve the corresponding places
+				MASSBase.setCurrentPlacesBase(MASSBase.getPlacesMap().get(m.getHandle()));
 
-        // resume threads to work on call all
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+				// for debug
+				MASSBase.showHosts();
 
-        MASSBase.getCurrentAgentsBase().callAll(m.getFunctionId(), argument, 0);
+				// exchange boundary implementation
+				MASSBase.getCurrentPlacesBase().exchangeBoundary();
 
-        // confirm all threads are done with agents.callAll
-        MThread.barrierThreads(0);
+				sendAck();
 
-        MASSBase.getLogger().debug("barrier done");
+				MASSBase.getLogger().debug("PLACES_EXCHANGE_BOUNDARY completed and ACK sent");
 
-        sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
-        break;
+				break;
 
-      case AGENTS_CALL_ALL_RETURN_OBJECT:
+			case AGENTS_INITIALIZE:
 
-    	  MASSBase.getLogger().debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE received");
 
-        MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(
-            new Integer(m.getHandle())));
-        MASSBase.setCurrentFunctionId(m.getFunctionId());
-        MASSBase.setCurrentArgument(argument);
-        MASSBase.setCurrentMsgType(m.getAction());
-        MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgentsBase()
-            .getLocalPopulation()]);
+				agents = new AgentsBase(m.getHandle(), m.getClassname(), argument, m.getDestHandle(),
+						m.getAgentPopulation());
 
-        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
-            .size_unreduced());
+				MASSBase.getAgentsMap().put(m.getHandle(), agents);
 
-        // resume threads to work on call all with return objects
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+				sendAck(agents.getLocalPopulation());
 
-        MASSBase.getCurrentAgentsBase().callAll(MASSBase.getCurrentFunctionId(),
-            (Object[]) (MASSBase.getCurrentArgument()), 0);
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE completed and ACK sent");
 
-        // confirm all threads are done with agnets.callAll with
-        // return objects
-        MThread.barrierThreads(0);
-        MASSBase.getLogger().debug("barrier done");
+				break;
 
-        sendReturnValues(MASSBase.getCurrentReturns(), MASSBase
-            .getCurrentAgentsBase().getLocalPopulation());
+			case AGENTS_CALL_ALL_VOID_OBJECT:
 
-        break;
+				MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-      case AGENTS_MANAGE_ALL:
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
 
-    	  MASSBase.getLogger().debug("AGENTS_MANAGE_ALL received");
+				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
-        MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
-        MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents()
-            .size_unreduced());
+				// resume threads to work on call all
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
-        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				MASSBase.getCurrentAgentsBase().callAll(m.getFunctionId(), argument, 0);
 
-        MASSBase.getCurrentAgentsBase().manageAll(0); // 0 = the main tid
+				// confirm all threads are done with agents.callAll
+				MThread.barrierThreads(0);
 
-        // confirm all threads are done with agents.manageAll.
-        MThread.barrierThreads(0);
+				MASSBase.getLogger().debug("barrier done");
 
-        MASSBase.getLogger().debug("sendAck will send localPopulation = {}", MASSBase.getCurrentAgentsBase().getLocalPopulation());
+				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
+				break;
 
-        sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
+			case AGENTS_CALL_ALL_RETURN_OBJECT:
 
-        break;
+				MASSBase.getLogger().debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
 
-      }
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
+				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgentsBase().getLocalPopulation()]);
 
-    }
+				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
-  }
+				// resume threads to work on call all with return objects
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
+
+				MASSBase.getCurrentAgentsBase().callAll(MASSBase.getCurrentFunctionId(),
+						(Object[]) (MASSBase.getCurrentArgument()), 0);
+
+				// confirm all threads are done with agnets.callAll with
+				// return objects
+				MThread.barrierThreads(0);
+				MASSBase.getLogger().debug("barrier done");
+
+				sendReturnValues(MASSBase.getCurrentReturns(), MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				break;
+
+			case AGENTS_MANAGE_ALL:
+
+				MASSBase.getLogger().debug("AGENTS_MANAGE_ALL received");
+
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(m.getHandle()));
+				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
+
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+				MASSBase.getCurrentAgentsBase().manageAll(0); // 0 = the main
+																// tid
+
+				// confirm all threads are done with agents.manageAll.
+				MThread.barrierThreads(0);
+
+				MASSBase.getLogger().debug("sendAck will send localPopulation = {}",
+						MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				break;
+
+			}
+
+		}
+
+	}
 
 }
