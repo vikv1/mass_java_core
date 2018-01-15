@@ -296,7 +296,6 @@ public class MProcessTest extends AbstractTest {
 		// should get an ACK for the test message we sent
 		returnedMessage = (Message) in.readObject();
 		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
-//		assertTrue( returnedMessage.getAgentPopulation() > 0 );
 
 		// should get a final ACK for the termination ("FINISH") message we sent
 		returnedMessage = (Message) in.readObject();
@@ -307,5 +306,244 @@ public class MProcessTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void receivePlacesCallAllVoidObjectMessage() throws Exception {
+		
+		// need a PlacesBase to work with
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		
+		// test message
+		Message m = new Message( Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT, PLACES_HANDLE, 0, null );
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
+
+	@Test
+	public void receivePlacesCallAllReturnObjectMessage() throws Exception {
+		
+		// need a PlacesBase to work with
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		
+		// test message
+		Message m = new Message( Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT, PLACES_HANDLE, 0, new Object[ 5 ] );
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
+
+	@Test
+	public void receivePlacesExchangeAllMessage() throws Exception {
+		
+		// need a PlacesBase to work with, and a neighbors vector
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		Place[] places = placesBase.getPlaces();
+		places[ 0 ].setNeighbors( new Vector<int[]>() );
+		
+		// test message
+		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, PLACES_HANDLE, PLACES_HANDLE, 0, null );
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
+
+	@Test
+	public void receivePlacesExchangeBoundaryMessage() throws Exception {
+		
+		// need a PlacesBase to work with, and a neighbors vector
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		
+		// test message, containing action and handle (third argument is ignored)
+		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY, PLACES_HANDLE, 0 );		
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
+
+	@Test
+	public void receiveAgentsCallAllVoidObjectMessage() throws Exception {
+
+		// need an AgentsBase and PlacesBase to work with
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		AgentsBase agentsBase = new AgentsBase( AGENTS_HANDLE, SimpleTestAgent.class.getName(), null, PLACES_HANDLE, 1 );
+		MASSBase.getAgentsMap().put( AGENTS_HANDLE, agentsBase );
+		
+		// test message, containing action and handle (third argument is ignored)
+		Message m = new Message( Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT, AGENTS_HANDLE, 0, null );		
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
+
+	@Test
+	public void receiveAgentsCallAllReturnObjectMessage() throws Exception {
+
+		// need an AgentsBase and PlacesBase to work with
+		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
+		MASSBase.getPlacesMap().put( PLACES_HANDLE, placesBase );
+		AgentsBase agentsBase = new AgentsBase( AGENTS_HANDLE, SimpleTestAgent.class.getName(), null, PLACES_HANDLE, 1 );
+		MASSBase.getAgentsMap().put( AGENTS_HANDLE, agentsBase );
+		
+		// test message, containing action and handle (third argument is ignored)
+		Message m = new Message( Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT, AGENTS_HANDLE, 0, (Object[]) new String[]{"Argument"} );		
+		
+		// send MProcess the test message
+    	out = new ObjectOutputStream( receiveCBB.getOutputStream() );
+		out.writeObject( m );
+		
+		// finish up the test by instructing MProcess to terminate
+		out.writeObject( new Message( Message.ACTION_TYPE.FINISH ) );
+		
+		// init and start MProcess
+		MProcess mprocess = new MProcess( "localhost", 0, 0, 0, 0, null, receiveCBB.getInputStream(), transmitCBB.getOutputStream() );
+		mprocess.start();
+		
+		// should get an ACK after start is called
+		in = new ObjectInputStream( transmitCBB.getInputStream() );
+		Message returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get an ACK for the test message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// should get a final ACK for the termination ("FINISH") message we sent
+		returnedMessage = (Message) in.readObject();
+		assertEquals( Message.ACTION_TYPE.ACK, returnedMessage.getAction() );
+
+		// MProcess should not have sent anything else after terminating
+		assertEquals( 0, transmitCBB.getAvailable() );
+		
+	}
 
 }
