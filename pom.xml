@@ -82,6 +82,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+    		<groupId>org.ostermiller</groupId>
+    		<artifactId>utils</artifactId>
+    		<version>1.07.00</version>
+		</dependency>
+
 		<!-- For SSH connectivity to remote hosts -->
 		<dependency>
 			<groupId>com.jcraft</groupId>
