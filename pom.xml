@@ -86,6 +86,7 @@
     		<groupId>org.ostermiller</groupId>
     		<artifactId>utils</artifactId>
     		<version>1.07.00</version>
+    		<scope>test</scope>
 		</dependency>
 
 		<!-- For SSH connectivity to remote hosts -->
