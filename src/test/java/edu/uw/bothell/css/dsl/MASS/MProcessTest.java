@@ -80,6 +80,9 @@ public class MProcessTest extends AbstractTest {
 
 	@BeforeClass
 	public static void beforeAll() {
+
+		// make sure MASS is not running before starting these tests
+		if (MASSBase.isInitialized() ) MASS.finish();
 		
 		// MASSBase should be made ready for use before tests are run
 		MNode masterNode = new MNode();
