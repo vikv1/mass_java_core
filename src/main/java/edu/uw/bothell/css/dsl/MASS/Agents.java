@@ -40,7 +40,6 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 public class Agents extends AgentsBase {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
-  private int total;
 
   /**
    * Instantiates a set of agents from the "className" class, passes the
@@ -68,9 +67,6 @@ public class Agents extends AgentsBase {
   }
 
   private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
-
-    // calculate the total number of agents
-    total = nAgents();
 
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
@@ -142,13 +138,11 @@ public class Agents extends AgentsBase {
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
       MASSBase.setCurrentReturns(null);
     } else {
-      MASSBase.setCurrentReturns(new Object[total]); // prepare an entire
-                                                      // return space
+      MASSBase.setCurrentReturns( new Object[ nAgents() ] ); // prepare an entire return space
     }
 
     // resume threads
     MASS.getLogger().debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
-
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
     // callall implementation
@@ -164,8 +158,6 @@ public class Agents extends AgentsBase {
 
     // Synchronized with all slave processes by main thread.
     MASS.barrierAllSlaves(MASSBase.getCurrentReturns(), 0, localAgents);
-
-    total = nAgents();
 
     return MASSBase.getCurrentReturns();
 
@@ -235,8 +227,6 @@ public class Agents extends AgentsBase {
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
-    total = nAgents();
-
     // register this agents in the places hash map
     MASSBase.getAgentsMap().put( getHandle(), this);
 
@@ -283,8 +273,6 @@ public class Agents extends AgentsBase {
     // Synchronized with all slave processes
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
-
-    total = nAgents();
 
   }
 
