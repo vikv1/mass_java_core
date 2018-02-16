@@ -209,7 +209,7 @@ public class MASSBase {
 	 * Get the ExchangeHelper used by this instance of MASS_base
 	 * @return The ExchangeHelper used by this instance
 	 */
-	public static ExchangeHelper getExchange() {
+	public synchronized static ExchangeHelper getExchange() {
 		
 		if ( exchange == null ) exchange = new ExchangeHelper();
 		return exchange;
@@ -519,7 +519,7 @@ public class MASSBase {
      * Sets the hosts that MASS is using.
      * @param host_args
      */
-    public static void setHosts( Vector<String> host_args ) {
+    public synchronized static void setHosts( Vector<String> host_args ) {
 
     	if ( !hosts.isEmpty( ) ) {
     		// already initialized
