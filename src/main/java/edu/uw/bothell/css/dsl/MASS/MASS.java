@@ -62,9 +62,6 @@ public class MASS extends MASSBase {
     // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
     public static final int LOCK_TIMEOUT = 10000;
 
-	private static boolean printOutput = false;
-	//private static boolean printOutput = true;
-
 	private static Utilities util = new Utilities( );  // used for channel creation
 
 	// the number of threads to spawn on each node (default to 1)
@@ -72,7 +69,7 @@ public class MASS extends MASSBase {
 
 	// default user credentials (can be overridden via XML)
     private static String defaultUsername;
-	private static String defaultPassword;
+//	private static String defaultPassword;
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
@@ -96,24 +93,26 @@ public class MASS extends MASSBase {
 
     	// Synchronize with all slave processes
     	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		if( printOutput == true )
-    			System.err.println( "barrier waits for ack from " +
+    		
+    		MASS.getLogger().debug( "barrier waits for ack from " +
     					getRemoteNodes().get(i).getHostName( ) );
 
     		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    		if( printOutput == true )
-    			System.err.println( "barrier received a message from " +
+    		MASS.getLogger().debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
     					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " +
+    			
+    			MASS.getLogger().error( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
+    			
     			System.exit( -1 );
+    		
     		}
 
     		// retrieve arguments back from each Mprocess
@@ -146,19 +145,16 @@ public class MASS extends MASSBase {
     			}
 
     		// retrieve agent population from each Mprocess
-    		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) +
+    		MASS.getLogger().debug( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
-    		}
 
     		if ( localAgents != null ) {
     			localAgents[i + 1] = m.getAgentPopulation( );
     			nAgentsSoFar += localAgents[i + 1];
     		}
 
-    		if ( printOutput == true )
-    			System.err.println( "message deleted" );
+    		MASS.getLogger().debug( "message deleted" );
 
     	}
 
@@ -175,8 +171,7 @@ public class MASS extends MASSBase {
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		System.err.println( "MASS::finish: all MASS threads terminated" );
+    	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
@@ -191,18 +186,18 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
-    	System.err.println( "MASS::finish: done" );
+    	MASS.getLogger().debug( "MASS::finish: done" );
 
     }
     
-    /**
-	 * Get the default password for connecting to remote nodes
-	 * @return The default login password
-	 */
- 	@Deprecated
-	protected static String getDefaultPassword() {
-		return defaultPassword;
-	}
+//    /**
+//	 * Get the default password for connecting to remote nodes
+//	 * @return The default login password
+//	 */
+// 	@Deprecated
+//	protected static String getDefaultPassword() {
+//		return defaultPassword;
+//	}
     
     /**
 	 * Get the default username for connecting to remote nodes
@@ -228,12 +223,6 @@ public class MASS extends MASSBase {
 		return numThreads;
 	}
 
-	// TODO - replace with a logger library hopefully
-	public static boolean isConsoleLoggingEnabled() {
-		return printOutput;
-	}
-	
-	
 	/**
 	 * Initialize the MASS library (using settings made previously via setters).
 	 * Calling this method effectively begins computation.
@@ -303,9 +292,9 @@ public class MASS extends MASSBase {
 		}
     	
     	// For debugging
-    	if ( printOutput == true ) {
+    	if ( MASSBase.getLogger().isDebugEnabled() ) {
     		for ( MNode node : getRemoteNodes() )
-    			System.err.println( "rank " + node.getPid() + ": " + 
+    			MASSBase.getLogger().debug( "rank " + node.getPid() + ": " + 
     					node.getHostName() );
     	}
 
@@ -347,8 +336,7 @@ public class MASS extends MASSBase {
     		}
 
     		// For debugging
-    		if ( printOutput == true )
-    			System.err.println( "curHostName = " + node.getHostName() );
+    		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 
     		// Start a remote process
     		// java attributes and its jar files
@@ -401,9 +389,7 @@ public class MASS extends MASSBase {
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
-    		if ( printOutput == true )
-    			System.err.println( "init: wait for ack from " + 
-    					node.getHostName( ) );
+    		MASSBase.getLogger().debug( "init: wait for ack from " + node.getHostName( ) );
 
     		Message m = node.receiveMessage( );
 
@@ -458,7 +444,7 @@ public class MASS extends MASSBase {
     	
     	// variable assignment
     	setDefaultUsername(args[0]);
-    	setDefaultPassword(args[1]);
+//    	setDefaultPassword(args[1]);
     	setNodeFilePath(args[2]);
     	setCommunicationPort(Integer.parseInt( args[3] ));
     	setNumThreads(nThr);
@@ -468,14 +454,14 @@ public class MASS extends MASSBase {
     	
 	}
 
-    /**
-	 * Set the default password for connecting to remote nodes
-	 * @param defaultPassword The default password
-	 */
-	@Deprecated
-	protected static void setDefaultPassword(String defaultPassword) {
-		MASS.defaultPassword = defaultPassword;
-	}
+//    /**
+//	 * Set the default password for connecting to remote nodes
+//	 * @param defaultPassword The default password
+//	 */
+//	@Deprecated
+//	protected static void setDefaultPassword(String defaultPassword) {
+//		MASS.defaultPassword = defaultPassword;
+//	}
 
     /**
 	 * Set the default username for connecting to remote nodes

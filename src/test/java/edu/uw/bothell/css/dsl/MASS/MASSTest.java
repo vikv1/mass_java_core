@@ -32,7 +32,6 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 import org.easymock.Mock;
 import org.junit.After;
@@ -104,16 +103,6 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void isConsoleLoggingEnabled() throws Exception {
-
-		replayAll();
-
-		// should NOT be enabled!
-		assertFalse( MASS.isConsoleLoggingEnabled() );
-		
-	}
-	
-	@Test
 	public void setLoggingLevel() throws Exception {
 
 		replayAll();
@@ -180,5 +169,24 @@ public class MASSTest extends AbstractTest {
 		// should not have thrown an exception
 		
 	}
+	
+	@Test
+	public void barrierAllSlavesAgentIDsOnly() throws Exception {
+
+		Message ack = new Message( Message.ACTION_TYPE.ACK );
+		
+		// use mock MNode as the single remote
+		MASS.getRemoteNodes().add( mnode );
+		
+		// should receive an ACK message from the node
+		expect( mnode.receiveMessage() ).andReturn( ack );
+		
+		replayAll();
+		
+		MASS.barrierAllSlaves( null );
+		
+		
+	}
+
 
 }

@@ -85,9 +85,7 @@ public class Agents extends AgentsBase {
         for (int dest = 0; dest <= i; dest++) {
           argumentPosition += localAgents[dest];
 
-          if (MASS.isConsoleLoggingEnabled())
-            System.err
-                .println("Agents.callAll: calc arg_pos = " + argumentPosition
+          MASS.getLogger().debug("Agents.callAll: calc arg_pos = " + argumentPosition
                     + " localAgents[" + (dest + 1) + "] = "
                     + localAgents[dest + 1]);
 
@@ -101,8 +99,7 @@ public class Agents extends AgentsBase {
         m = new Message(type, this.getHandle(), functionId,
             partitionedArgument);
 
-        if (MASS.isConsoleLoggingEnabled())
-          System.err.println("Agents.callAll: to rank[" + (i + 1)
+        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)
               + "] arg_pos = " + argumentPosition);
 
       }
@@ -110,16 +107,11 @@ public class Agents extends AgentsBase {
       // send it
       MASS.getRemoteNodes().get(i).sendMessage(m);
 
-      if (MASS.isConsoleLoggingEnabled()) {
+      MASS.getLogger().debug("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
-        System.err
-            .println("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
-
-        System.err.println("Bag Size is: "
+      MASS.getLogger().debug("Bag Size is: "
             + MASSBase.getAgentsMap().get( getHandle() )
                 .getAgents().size_unreduced());
-
-      }
 
     }
 
@@ -321,7 +313,7 @@ public class Agents extends AgentsBase {
 	  int numAgents = MatrixUtilities.sumArrayElements( localAgents );
 
 	  // for debugging
-	  if ( MASS.isConsoleLoggingEnabled() ) {
+	  if ( MASSBase.getLogger().isDebugEnabled() ) {
 		  for (int i = 0; i < MASSBase.getSystemSize(); i++) {
 			  MASSBase.getLogger().debug( "rank[{}]'s local agent population = ", localAgents[i] );
 		  }
