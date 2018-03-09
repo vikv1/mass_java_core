@@ -137,7 +137,11 @@ public class MASSTest extends AbstractTest {
 		
 		// use mock MNode as the single remote
 		MASS.getRemoteNodes().add( mnode );
-		
+
+		// with logging enabled, there will be a couple of hostname lookups
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+
 		// should receive an ACK message from the node
 		expect( mnode.receiveMessage() ).andReturn( ack );
 		
@@ -159,6 +163,10 @@ public class MASSTest extends AbstractTest {
 		// use mock MNode as the single remote
 		MASS.getRemoteNodes().add( mnode );
 		
+		// with logging enabled, there will be a couple of hostname lookups
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+		
 		// should receive an ACK message from the node
 		expect( mnode.receiveMessage() ).andReturn( ack );
 		
@@ -177,7 +185,11 @@ public class MASSTest extends AbstractTest {
 		
 		// use mock MNode as the single remote
 		MASS.getRemoteNodes().add( mnode );
-		
+
+		// with logging enabled, there will be a couple of hostname lookups
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+		expect( mnode.getHostName() ).andReturn( "localhost" );
+
 		// should receive an ACK message from the node
 		expect( mnode.receiveMessage() ).andReturn( ack );
 		
