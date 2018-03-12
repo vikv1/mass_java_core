@@ -869,7 +869,7 @@ public class PlacesBase {
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
 				newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				newPlace.setSize(size);
+				//newPlace.setSize(size); 
 				places[i] = newPlace;
     		}
     	} 

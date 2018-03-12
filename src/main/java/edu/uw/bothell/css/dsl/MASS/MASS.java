@@ -374,9 +374,9 @@ public class MASS extends MASSBase {
     		commandBuilder.append("-Xmx20g ");
     		
        		// add MASS home directory itself as part of the classpath
-      			if (node.getMassHome() != null) {
-    	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
-      			}
+			if (node.getMassHome() != null) {
+				commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
+			}
 			// add MASS home directory itself as part of the classpath
 			// if (node.getMassHome() != null) {
 			// 	commandBuilder.append("-cp \"");

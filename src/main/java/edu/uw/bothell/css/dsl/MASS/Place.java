@@ -72,7 +72,7 @@ public class Place {
 	 * places. Intuitively, size[0], size[1], and size[2] correspond to the size
 	 * of x, y, and z, or that of i, j, and k.
 	 */
-	private int[] size;
+	//private int[] size;
 
 	/**
 	 * Is an array that maintains each place’s coordinates. Intuitively,
@@ -152,14 +152,12 @@ public class Place {
      */
 	private void openFileUsingOnePlace(String filepath, int ioType)
 			throws InvalidNumberOfNodesException, InvalidRangeException, IOException, UnsupportedFileTypeException, InterruptedException {
-		logFormattedDebug("Before My place order = " + getPlaceOrderPerNode() + " allPlaceFileDescriptor = " + allPlaceFileDescriptor);
 		if (!fileTable.containsKey(thisPlaceFileDescriptor)) {
 			openFile(filepath, ioType);
 		} else {
 
 			thisPlaceFileDescriptor++;
 		}
-		logFormattedDebug("After My place order = " + getPlaceOrderPerNode() + " allPlaceFileDescriptor = " + allPlaceFileDescriptor);
 
 	}
 
@@ -403,15 +401,18 @@ public class Place {
      */
 	protected int getPlaceOrderPerNode() {
 		int totalNodes = MASSBase.getSystemSize();
-		int xDimSize = size[0] / totalNodes;
+		//int xDimSize = size[0] / totalNodes;
+		int xDimSize = getSize()[0] / totalNodes;
 
 		if (MASSBase.getMyPid() == totalNodes - 1) {
-			xDimSize += size[0] % totalNodes;
+			//xDimSize += size[0] % totalNodes;
+			xDimSize += getSize()[0] % totalNodes;
 		}
 
 		int xIndex = index[0] % xDimSize;
 
-		return (xDimSize * size[1] * index[2]) + (xDimSize * index[1]) + xIndex;
+		//return (xDimSize * size[1] * index[2]) + (xDimSize * index[1]) + xIndex;
+		return (xDimSize * getSize()[1] * index[2]) + (xDimSize * index[1]) + xIndex;
 	}
 
 	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
@@ -554,7 +555,8 @@ public class Place {
 	 * @return 
 	 */
 	public int[] getSize() {
-		return size;
+		return MASSBase.getCurrentPlacesBase().getSize();
+		//return size;
 	}
 
 	protected void putInMessage( int handle, int[] offsetIndex, int position, Object value ) {
@@ -584,7 +586,7 @@ public class Place {
 	}
 
 	protected void setSize(int[] size) {
-		this.size = size.clone();
+		//this.size = size.clone();
 	}
 
 	private void logFormattedDebug(String formattedLog, Object... args) {
