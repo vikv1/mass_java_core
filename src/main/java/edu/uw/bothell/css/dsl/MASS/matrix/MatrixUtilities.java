@@ -32,8 +32,6 @@ package edu.uw.bothell.css.dsl.MASS.matrix;
 
 import java.util.Arrays;
 
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
-
 /**
  * MatrixUtilities contains helper methods designed to centralize matrix operations
  * @since 1.0.1

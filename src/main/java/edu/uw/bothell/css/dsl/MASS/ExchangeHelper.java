@@ -67,6 +67,7 @@ public class ExchangeHelper {
     		// prepare a server socket
     		@SuppressWarnings("resource")
     		ServerSocket server = new ServerSocket( port );
+    		MASS.getLogger().debug( "bound to port " + port );
 
     		// create sockets[]
     		sockets = new Socket[size];

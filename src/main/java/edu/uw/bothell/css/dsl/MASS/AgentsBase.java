@@ -58,10 +58,18 @@ public class AgentsBase {
     private int localPopulation = 0;
     private int currentAgentId;
     private AgentList agents;
-    private static int agentInitAgentsHandle;
-    private static int agentInitPlacesHandle;
-    private static int agentInitAgentId;
-    private static int agentInitParentId;
+    
+    @SuppressWarnings("unused")
+	private static int agentInitAgentsHandle;
+
+    @SuppressWarnings("unused")
+	private static int agentInitPlacesHandle;
+    
+    @SuppressWarnings("unused")
+	private static int agentInitAgentId;
+    
+    @SuppressWarnings("unused")
+	private static int agentInitParentId;
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
@@ -103,11 +111,11 @@ public class AgentsBase {
     	}
 
     	// retrieve the corresponding places
-    	PlacesBase curPlaces = 
-    			MASSBase.getPlacesMap().get( placesHandle );
+    	PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
 
-    	for ( int i = 0; i < curPlaces.getPlacesSize( ); i++ ) {
-
+    	//for (int i = 0; i < curPlaces.getNumberOfPlacesOnCurrentNode( ); i++ ) {
+    	for (int i = 0; i < curPlaces.getPlacesSize(); i++ ) {
+    			
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
 

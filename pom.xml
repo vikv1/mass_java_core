@@ -18,6 +18,7 @@
 		<!-- Dependency properties -->
 		<slf4j.version>1.7.13</slf4j.version>
 		<log4j.version>2.4.1</log4j.version>
+		<netcdf-java.version>4.5.0</netcdf-java.version>
 	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -63,6 +64,11 @@
 			<name>UWB CSS Distributed Systems Lab Maven Repository Manager - Release Only</name>
 			<url>http://depts.washington.edu/dslab/maven</url>
 		</repository>
+    	<repository>
+        	<id>unidata-all</id>
+        	<name>Unidata All</name>
+        	<url>https://artifacts.unidata.ucar.edu/repository/unidata-all/</url>
+    	</repository>
 	</repositories>
 
 	<dependencies>
@@ -156,6 +162,15 @@
 			<version>2.5.1</version>
 			<scope>compile</scope>
 		</dependency>
+  		
+  		<!-- NetCDF File Format Support -->
+  		<dependency>
+            <groupId>edu.ucar</groupId>
+            <artifactId>netcdf4</artifactId>
+            <version>${netcdf-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+  		
   		
   	</dependencies>
 

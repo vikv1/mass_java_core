@@ -1,0 +1,11 @@
+testTxt.txt is being read
+
+
+p
+r
+o
+p
+e
+r
+l
+y

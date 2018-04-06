@@ -51,6 +51,7 @@ public class Places extends PlacesBase {
 	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
     	
 		super( handle, className, boundaryWidth, argument, size );
+
 		init_master( argument, boundaryWidth );
     
     }
@@ -277,6 +278,13 @@ public class Places extends PlacesBase {
 			place.setNeighbors( neighbors );
 		}
 		
+		// From Jas' and Michael's additions
+		// TODO - is it better to use this method than the Place iterator above?
+		//		for(int i = 0; i < this.getNumberOfPlacesOnCurrentNode(); i++)
+//		{
+//			this.getPlaces()[i].setNeighbors(neighbors);
+//		}
+		
 	}
     
 	/**
@@ -346,5 +354,4 @@ public class Places extends PlacesBase {
 		MASS.barrierAllSlaves( );
 
     }
-
 }

@@ -712,7 +712,7 @@ public class PlacesBase {
 	 * Get the number of Places located on this node
 	 * @return The number of Places on this node
 	 */
-	protected int getPlacesSize( ) {
+	public int getPlacesSize( ) {
     	return placesSize;
     }
 
@@ -801,11 +801,14 @@ public class PlacesBase {
     			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
+
 				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
+
+				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
+				//newPlace.setSize(size); 
 				places[i] = newPlace;
 
     		}
-    	
     	} 
     	
     	// TODO - what to do when this exception is caught?
@@ -881,9 +884,7 @@ public class PlacesBase {
      * @return The index value the next Place instantiation will need
      */
     public int[] getNextIndex() {
-    	
     	return nextIndex;
-    	
     }
 
 }

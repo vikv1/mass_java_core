@@ -318,6 +318,10 @@ public class MProcess {
 				MASSBase.setCurrentMsgType(m.getAction());
 				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase().getPlacesSize()]);
 
+				// From Jas' and Michael's implementation
+				// TODO - better to use this than "getPlacesSize" ?
+				// MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase().getNumberOfPlacesOnCurrentNode()]);
+				
 				// resume threads to work on call all.
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
 
