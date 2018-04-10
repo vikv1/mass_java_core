@@ -65,8 +65,7 @@ public class AgentsBase {
     @SuppressWarnings("unused")
 	private static int agentInitPlacesHandle;
     
-    @SuppressWarnings("unused")
-	private static int agentInitAgentId;
+    private static int agentInitAgentId;
     
     @SuppressWarnings("unused")
 	private static int agentInitParentId;
@@ -125,7 +124,7 @@ public class AgentsBase {
     						curPlace.getIndex() );
     				nColonists > 0; nColonists--, localPopulation++ ) {
 
-    			// agent instanstantiation and initialization
+    			// agent instantiation and initialization
     			Agent newAgent = null;
     			try {
     				
@@ -134,6 +133,7 @@ public class AgentsBase {
     				agentInitAgentId = currentAgentId++;
     				agentInitParentId = -1; // no parent
     				newAgent = objectFactory.getInstance(className, argument);
+    				newAgent.setAgentId( agentInitAgentId );
     			
     			} catch ( Exception e ) {
     				// TODO - now what? What to do when there is an exception?
