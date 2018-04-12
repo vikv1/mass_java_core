@@ -305,6 +305,27 @@ public class Agents extends AgentsBase {
   }
 
   /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionIdList the function id list that is executed
+   * @param argumentList the arguments to pass to each Agent
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll(int[] functionIdList, Object[] argumentList, int numberOfIterations)
+  {
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          Object argument = (argumentList != null && i < argumentList.length) ? argumentList[i] : null;
+          for (int j=0; j<functionIdList.length; j++)
+          {
+              callAllSetup(functionIdList[j], argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+              manageAll();
+          }
+      }
+  }
+
+  /**
    * Returns the current number of agents.
    * @return nAgents
    */
