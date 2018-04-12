@@ -49,7 +49,7 @@ public class Agent implements Serializable {
 	 * Intuitively, index[0], index[1], and index[2] correspond to coordinates of
 	 * x, y, and z, or those of i, j, and k.
 	 */
-	private transient int[] index = null;
+	private int[] index = null;
 	
 	/** 
 	 * Is true while this agent is active. Once it is set false, this agent is 
