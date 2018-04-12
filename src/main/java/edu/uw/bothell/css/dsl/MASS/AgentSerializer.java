@@ -180,12 +180,12 @@ public class AgentSerializer
         }
         catch(java.io.IOException ex)
         {
-            System.out.println("IOException at deserializeAgent");
+            MASS.getLogger().error( "IOException at deserializeAgent", ex );
             return null;
         }
         catch(ClassNotFoundException c)
         {
-            System.out.println("ClassNotFoundException at deserializeAgent");
+            MASS.getLogger().error( "ClassNotFoundException at deserializeAgent", c );
             return null;
         }
 

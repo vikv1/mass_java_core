@@ -261,8 +261,10 @@ public class MASS extends MASSBase {
         			System.err.println( "Error initializing JAXB parser..." );
 		    		e.printStackTrace();
 
+		    		MASS.getLogger().error( "Error initializing JAXB parser...", e );
 		    		System.exit( -1 );
-				}
+
+    			}
     		} else {   			
     			// no - this machine file is the classic one-line-per-node format
             	BufferedReader fileReader = null;
@@ -280,10 +282,12 @@ public class MASS extends MASSBase {
             		}
             		fileReader.close();
             	} catch( Exception e ) {
+
             		System.err.println( "machine file: " + getNodeFilePath() +
             				" could not open." );
-
+		    		MASS.getLogger().error( "Machine file: {} could not be opened!", getNodeFilePath(), e );
             		System.exit( -1 );
+
             	}
     		}  		
     	} else {
@@ -398,6 +402,7 @@ public class MASS extends MASSBase {
     			System.err.println( "init didn't receive ack from rank " +
     					( node.getPid() ) + " at " +
     					node.getHostName( ) );
+    			MASSBase.getLogger().error( "init didn't receive ack from rank " + ( node.getPid() ) + " at " + node.getHostName( ) );
     			System.exit( -1 );
     		}
     	}
@@ -518,6 +523,7 @@ public class MASS extends MASSBase {
 	static int agentsHandle = 0;
 	
 	public static void debugInit( int pHandle, int aHandle, int port ) throws IOException {
+		
 		//TODO - get rid of all params
 		agentsHandle = aHandle;
 		placesHandle = pHandle;
@@ -535,8 +541,9 @@ public class MASS extends MASSBase {
 		try {
 			request = ( MASSRequest )inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "Class not found exception caught in debugInit!", e );
 		}
+		
 		//end completely unnecessary stuff
 
 		String placesName = null;
@@ -591,7 +598,7 @@ public class MASS extends MASSBase {
 		try {
 			request = ( MASSRequest ) inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "Class not found exception caught in debugUpdate!", e );
 		}
 
 		if ( request != null ) {
@@ -625,7 +632,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject(new UpdatePackage());
 			outputStream.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in injectPlace!", e );
 		}
 	}
 
@@ -645,12 +652,20 @@ public class MASS extends MASSBase {
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in injectAgent!", e );
 		}
 
 	}
 
 	private static void closeDebugConnection() {
+
+		try {
+			outputStream.writeObject( new UpdatePackage() );
+			outputStream.flush();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while sending UpdatePackage!", e );
+		}
+
 		try {
 			//todo - send null MASSPackage back first to prevent blocking
 			outputStream.close();
@@ -658,15 +673,9 @@ public class MASS extends MASSBase {
 			client.close();
 			socket.close();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while closing streams!", e );
 		}
 
-		try {
-			outputStream.writeObject( new UpdatePackage() );
-			outputStream.flush();
-		} catch ( IOException e ) {
-			e.printStackTrace();
-		}
 	}
 
 	private static void sendUpdate() {
@@ -706,7 +715,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject( newPackage );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
 		}
 	}
 

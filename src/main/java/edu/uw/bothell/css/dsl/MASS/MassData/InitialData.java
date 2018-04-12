@@ -37,6 +37,8 @@ import java.io.Serializable;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.uw.bothell.css.dsl.MASS.MASS;
+
 /**
  *
  * @author Nicolas
@@ -138,7 +140,7 @@ public class InitialData extends MASSPacket implements Serializable
             } 
             catch (ClassNotFoundException | ClassCastException ex) 
             {
-                System.out.println("No such class: " + pDataType);
+            	MASS.getLogger().error( "Class not found exception caught in InitialData, placeDataType: {} ", pDataType, ex );
                 this.placeDataType = null;
             }
         }
@@ -155,7 +157,7 @@ public class InitialData extends MASSPacket implements Serializable
             } 
             catch (ClassNotFoundException | ClassCastException ex) 
             {
-                System.out.println("No such class: " + aDataType);
+            	MASS.getLogger().error( "Class not found exception caught in InitialData, agentDataType: {} ", agentDataType, ex );
                 this.agentDataType = null;
             }
         }

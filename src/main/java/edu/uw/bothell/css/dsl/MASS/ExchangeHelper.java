@@ -199,7 +199,7 @@ public class ExchangeHelper {
     		
     		MASS.getLogger().debug( "exchange.receiveMessage from rank: " + rank + 
     				". Error: " + e + ", inputs[rank] = " + 
-    				inputs[rank] );
+    				inputs[rank], e );
     	
     	}
 
@@ -257,7 +257,7 @@ public class ExchangeHelper {
     		MASS.getLogger().debug ( "exchange.sendMessage to rank: " + rank + 
     				". Error: " + e + ", outputs[rank] = " + 
     				outputs[rank] + 
-    				", exchangeReq" + exchangeReq );
+    				", exchangeReq" + exchangeReq, e );
     	
     	}
 

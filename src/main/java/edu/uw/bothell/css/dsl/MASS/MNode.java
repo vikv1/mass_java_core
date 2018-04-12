@@ -243,7 +243,7 @@ public class MNode {
 		catch ( Exception e ) {
 
 			MASSBase.getLogger().error( "sendMessage error to rank[" + pid + "] at " +
-					hostName );
+					hostName, e );
 
 			System.exit( -1 );
 
