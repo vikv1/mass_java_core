@@ -102,23 +102,28 @@ public class PlacesBase {
     	public void run( ) {
 
     		int startIndex = ( direction == 'L' ) ? 0 : places_size -shadow_size;
-    		Object[] buffer = new Object[ shadow_size ];
+    		Object[] outBuffer = new Object[ shadow_size ];
+		Object[][] inBuffer  = new Object[ shadow_size ][];
 
-    		// copy all the outMessages into the buffer
-    		for ( int i = 0; i < shadow_size; i++ )
-    			buffer[i] = places[startIndex + i].getOutMessage();
+    		// copy all the outMessages into the outBuffer
+    		for ( int i = 0; i < shadow_size; i++ ) {
+    			outBuffer[i] = places[startIndex + i].getOutMessage();
+			inBuffer[i]  = ( direction == 'L' ) ? leftShadow[i].getInMessages() : rightShadow[i].getInMessages();;
+		}
 
     		if ( MASSBase.getLogger().isDebugEnabled() ) {
     			
     			MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = {}", direction );
 
-    			for ( int i = 0; i < shadow_size; i++ )
-    				MASSBase.getLogger().debug( "buffer[" + i + "] = " + buffer[i] );
-
+    			for ( int i = 0; i < shadow_size; i++ ) {
+    				MASSBase.getLogger().debug( "outBuffer[" + i + "] = " + outBuffer[i] );
+    				MASSBase.getLogger().debug( "inBuffer[" + i + "] = " + inBuffer[i] );				
+			}
     		}
 
     		// create a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message
-    		Message messageToDest = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, buffer );
+    		Message outMessageToDest = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, outBuffer );
+		Message inMessageToDest = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, inBuffer );
 
     		// compose a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message
     		int destRank = ( direction == 'L' ) ? MASSBase.getMyPid() - 1 : MASSBase.getMyPid() + 1;
@@ -126,31 +131,49 @@ public class PlacesBase {
     		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction + ", rankNmessage.rank = " + destRank );
 
     		// send it to my neighbor with a child
-    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
+		Thread sendThr = null;
+    		( sendThr = new Thread( () -> {
+			MASSBase.getExchange().sendMessage( destRank, outMessageToDest );
+			MASSBase.getExchange().sendMessage( destRank, inMessageToDest );
+		    } ) ).start();
 
     		// receive a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message from my neighbor
-    		Message messageFromDest = MASSBase.getExchange().receiveMessage( destRank );
+    		Message outMessageFromDest = MASSBase.getExchange().receiveMessage( destRank );
+		Message inMessageFromDest = MASSBase.getExchange().receiveMessage( destRank );
 
     		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction
-    				+ ", messageFromDest = " + messageFromDest );
+					    + ", outMessageFromDest = " + outMessageFromDest
+					    + ", inMessageFromDest = " + inMessageFromDest );
 
-    		// extract the message received and copy it to the corresponding shadow
+		// synch with sendTrh
+		try {
+		    sendThr.join( );
+		} catch ( Exception e ) { }
+
+    		// extract the outMessage received and copy it to the corresponding shadow
     		Place[] shadow = ( direction == 'L' ) ? leftShadow : rightShadow;
-    		buffer = ( Object[] )( messageFromDest.getArgument( ) );
+    		outBuffer = ( Object[] )( outMessageFromDest.getArgument( ) );
 
-    		// copy the buffer contents into the corresponding shadow
+    		// copy the outBuffer contents into the corresponding shadow
     		for ( int i = 0; i < shadow_size; i++ ) {
 
-    			shadow[i].setOutMessage(buffer[i]);
+    			shadow[i].setOutMessage(outBuffer[i]);
 
     			if ( MASSBase.getLogger().isDebugEnabled() ) 
     				MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction +
     						", shadow[" + i + "].outMessage = " +
     						shadow[i].getOutMessage() +
-    						", buffer = " + buffer[i] );
+    						", outBuffer = " + outBuffer[i] );
 
-    		}  
+    		}
 
+		// extract the inMessage received and copy it to the boundary places
+    		inBuffer = ( Object[][] )( inMessageFromDest.getArgument( ) );		
+    		// copy the inBuffer into all the inMessages 
+    		for ( int i = 0; i < shadow_size; i++ ) {
+		    MASSBase.getLogger().debug( "place[" + (startIndex + i ) + "].inMessages = " + inBuffer[i] );
+		    places[startIndex + i].setInMessages( inBuffer[i] );
+		}
     	}
     
     }

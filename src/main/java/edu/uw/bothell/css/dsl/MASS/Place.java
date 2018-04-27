@@ -479,9 +479,14 @@ public class Place implements Serializable {
 			destintationPlace = places.getPlaces()[ destinationLocalLinearIndex ];
 		else if ( destinationLocalLinearIndex < 0 &&
 				( shadowIndex = destinationLocalLinearIndex + 
-				places.getShadowSize() ) >= 0 )
+				  places.getShadowSize() ) >= 0 ) {
+		    /////
+		    logger.debug( "shadowIndex = " + shadowIndex );
+		    logger.debug( "places.getLeftShaow = " + places.getLeftShadow( ) );
+		    logger.debug( "places.getLeftShaow = " + places.getLeftShadow( )[ shadowIndex ] );
 			destintationPlace = places.getLeftShadow()[ shadowIndex ];
 		//else if ( (shadowIndex = destinationLocalLinearIndex - places.getNumberOfPlacesOnCurrentNode()) >= 0
+		}
 		else if ( (shadowIndex = destinationLocalLinearIndex - places.getPlacesSize() ) >= 0 && shadowIndex < places.getShadowSize() )
 			destintationPlace = places.getRightShadow()[ shadowIndex ];
 
@@ -609,6 +614,13 @@ public class Place implements Serializable {
 		Place dstPlace = findDstPlace( handle, offsetIndex );
 
 		// Write to the destination inMessage[position]
+		if ( dstPlace == null )                                 // 4-12-18 by Fukuda
+		    // out of range
+		    return;                                             // 4-12-18 by Fukuda
+		logger.debug( "dstPlace.inMessages = " + dstPlace.inMessages );
+		if ( dstPlace.inMessages == null )                      // 4-12-18 by Fukuda
+		    dstPlace.setInMessages( new Object[position + 1] ); // 4-12-18 by Fukuda
+		logger.debug( "dstPlace.inMessages.length = " + dstPlace.inMessages.length );
 		if ( dstPlace != null && position < dstPlace.inMessages.length )
 			dstPlace.inMessages[position] = value;
 	
