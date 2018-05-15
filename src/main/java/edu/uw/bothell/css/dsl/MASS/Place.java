@@ -403,19 +403,10 @@ public class Place implements Serializable {
 	 * @return this place's order number determined by its index
      */
 	protected int getPlaceOrderPerNode() {
-		int totalNodes = MASSBase.getSystemSize();
-		//int xDimSize = size[0] / totalNodes;
-		int xDimSize = getSize()[0] / totalNodes;
-
-		if (MASSBase.getMyPid() == totalNodes - 1) {
-			//xDimSize += size[0] % totalNodes;
-			xDimSize += getSize()[0] % totalNodes;
-		}
-
-		int xIndex = index[0] % xDimSize;
-
-		//return (xDimSize * size[1] * index[2]) + (xDimSize * index[1]) + xIndex;
-		return (xDimSize * getSize()[1] * index[2]) + (xDimSize * index[1]) + xIndex;
+		
+		return MatrixUtilities.getLinearIndex( getSize( ), getIndex( ) )
+				- MASSBase.getCurrentPlacesBase().getLowerBoundary( );
+	
 	}
 
 	// TODO: 1/13/17 Once finished implementing and testing read(), add write() functionality
