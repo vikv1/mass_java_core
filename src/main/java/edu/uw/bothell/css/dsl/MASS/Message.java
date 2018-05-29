@@ -170,7 +170,7 @@ public class Message implements Serializable {
      * Construct a Message primarily used for PLACES_EXCHANGE_ALL action
      * @param action The ACTION_TYPE of this Message
      * @param handle The source handle ID
-     * @param destHandle The destination handle ID
+     * @param dest_handle The destination handle ID
      * @param functionId The ID of the function to call/was called
      * @param destinations A collection of destinations to perform the function ID
      */
@@ -241,7 +241,7 @@ public class Message implements Serializable {
      * @param action The ACTION_TYPE of this Message
      * @param size The simulation space sizes/dimensions
      * @param handle The source handle ID
-     * @param className The name of the class representing the Place
+     * @param classname The name of the class representing the Place
      * @param argument An argument to be passed to the Place during initialization
      * @param boundaryWidth The boundary width of the Place
      * @param hosts A collection of hostnames that are members of the cluster

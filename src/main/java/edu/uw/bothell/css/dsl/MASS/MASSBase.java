@@ -218,7 +218,7 @@ public class MASSBase {
 
 	/**
 	 * Set the ExchangeHelper used by this instance of MASS_base
-	 * @param The ExchangeHelper used by this instance
+	 * @param exchangeHelper The ExchangeHelper used by this instance
 	 */
 	protected static void setExchange( ExchangeHelper exchangeHelper ) {
 		
@@ -570,7 +570,7 @@ public class MASSBase {
     
 	/**
 	 * Set outstanding Remote Agent migration requests
-	 * @param reportRequests Current Remote Agent migration requests
+	 * @param remoteRequests Current Remote Agent migration requests
 	 */
    public static void setRemoteRequests(
 			Vector<Vector<RemoteExchangeRequest>> remoteRequests) {
