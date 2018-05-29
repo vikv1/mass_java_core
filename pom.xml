@@ -84,7 +84,7 @@
   		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
-			<version>3.4</version>
+			<version>3.6</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -178,7 +178,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.7.0</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -191,17 +191,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9</version>
+				<version>3.0.1</version>
 				<configuration>
 					<source>${java.version}</source>
 					<bottom>
-						"Copyright 2010-2017 University of Washington. All rights reserved."
+						"Copyright 2010-2018 University of Washington. All rights reserved."
 					</bottom>
-					<!--author>false</author-->
-					<!--excludePackageNames>
-						edu.uw.bothell.css.package_to_exclude,
-						edu.uw.bothell.css.another_package_to_exclude
-					</excludePackageNames-->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -218,14 +213,13 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<!--finalName>MASS</finalName-->
         			<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.5</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
