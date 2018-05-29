@@ -26,3 +26,4 @@ mass_log.log
 logs/
 docs/~$SS Java Developer Guide.docx
 /bin/
+/target/
