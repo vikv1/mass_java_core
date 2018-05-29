@@ -3,10 +3,10 @@
   
 	<modelVersion>4.0.0</modelVersion>
   	
-	<groupId>edu.uw.bothell.css.mass</groupId>
+	<groupId>edu.uw.bothell.css.dsl.mass</groupId>
   	<artifactId>mass-core</artifactId>
   	<packaging>jar</packaging>
-	<version>1.0.0-RELEASE</version>
+	<version>1.2.0-RELEASE</version>
 
 	<name>MASS Java Core Library</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
@@ -18,6 +18,7 @@
 		<!-- Dependency properties -->
 		<slf4j.version>1.7.13</slf4j.version>
 		<log4j.version>2.4.1</log4j.version>
+		<netcdf-java.version>4.5.0</netcdf-java.version>
 	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -59,29 +60,15 @@
 
 	<repositories>
 		<repository>
-    		<id>uwb-css-artifactory-release</id>
-    		<name>UWB CSS Artifactory Maven Repository Manager - Release Only</name>
-    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-release</url>
-    		<snapshots>
-        		<enabled>false</enabled>
-    		</snapshots>
+			<id>uwb-css-release</id>
+			<name>UWB CSS Distributed Systems Lab Maven Repository Manager - Release Only</name>
+			<url>http://depts.washington.edu/dslab/maven</url>
 		</repository>
-		<repository>
-    		<id>uwb-css-artifactory-snapshot</id>
-    		<name>UWB CSS Artifactory Maven Repository Manager - Snapshot Only</name>
-    		<url>http://fukuda-cent-01.css.uwb.edu/artifactory/libs-snapshot</url>
-    		<releases>
-        		<enabled>false</enabled>
-    		</releases>
-    		<snapshots>
-        		<enabled>true</enabled>
-    		</snapshots>
-		</repository>  
-		<!-- backup repository - in case MASS build server not responding -->
-		<repository>
-     			<id>MVNRepository</id>
-     			<url>http://http://mvnrepository.com</url>
-		</repository>
+    	<repository>
+        	<id>unidata-all</id>
+        	<name>Unidata All</name>
+        	<url>https://artifacts.unidata.ucar.edu/repository/unidata-all/</url>
+    	</repository>
 	</repositories>
 
 	<dependencies>
@@ -90,15 +77,22 @@
 		<dependency>
       		<groupId>junit</groupId>
       		<artifactId>junit</artifactId>
-      		<version>4.11</version>
+      		<version>4.12</version>
       		<scope>test</scope>
    		</dependency>
   	
   		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
-			<version>3.2</version>
+			<version>3.6</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+    		<groupId>org.ostermiller</groupId>
+    		<artifactId>utils</artifactId>
+    		<version>1.07.00</version>
+    		<scope>test</scope>
 		</dependency>
 
 		<!-- For SSH connectivity to remote hosts -->
@@ -169,13 +163,22 @@
 			<scope>compile</scope>
 		</dependency>
   		
+  		<!-- NetCDF File Format Support -->
+  		<dependency>
+            <groupId>edu.ucar</groupId>
+            <artifactId>netcdf4</artifactId>
+            <version>${netcdf-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+  		
+  		
   	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.7.0</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -188,21 +191,17 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9</version>
+				<version>3.0.1</version>
 				<configuration>
 					<source>${java.version}</source>
 					<bottom>
-						"Copyright 2010-2017 University of Washington. All rights reserved."
+						"Copyright 2010-2018 University of Washington. All rights reserved."
 					</bottom>
-					<!--author>false</author-->
-					<!--excludePackageNames>
-						edu.uw.bothell.css.package_to_exclude,
-						edu.uw.bothell.css.another_package_to_exclude
-					</excludePackageNames-->
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -215,14 +214,13 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<!--finalName>MASS</finalName-->
         			<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.5</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>

@@ -32,15 +32,12 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
  * Places manages all Place elements within the simulation space.
  */
 public class Places extends PlacesBase {
-
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	/**
 	 * Places constructor that creates places with a given dimension.
@@ -50,9 +47,11 @@ public class Places extends PlacesBase {
 	 * @param boundaryWidth
 	 * @param argument
 	 * @param size
-	 */	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
+	 */	
+	public Places( int handle, String className, int boundaryWidth, Object argument, int... size ) {
     	
 		super( handle, className, boundaryWidth, argument, size );
+
 		init_master( argument, boundaryWidth );
     
     }
@@ -79,13 +78,9 @@ public class Places extends PlacesBase {
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
-		int total = 1; // the total number of place elements
-		for ( int i = 0; i < getSize().length; i++ )
-		    total *= getSize()[i];
+		int total = MatrixUtilities.getMatrixSize( getSize() ); // the total number of place elements
 		int stripe = total / MASSBase.getSystemSize();
 		
-
-	
 		// send a PLACES_CALLALL message to each slave
 		Message m = null;
 		
@@ -112,7 +107,7 @@ public class Places extends PlacesBase {
 				
 				m = new Message( type, this.getHandle(), functionId, partialArguments );
 				
-			    logger.debug( "Places.callAll: arg_size = " + 
+				MASSBase.getLogger().debug( "Places.callAll: arg_size = " + 
 						   (partialArguments == null ? 0 : partialArguments.length) +
 						   " stripe = " + stripe + 
 						   " i + 1 = " + (i + 1) );
@@ -121,7 +116,7 @@ public class Places extends PlacesBase {
 		    // send it
 		    MASS.getRemoteNodes().get(i).sendMessage( m );
 		    
-		    logger.debug( "PLACES_CALL_ALL " + m.getAction( ) +
+		    MASSBase.getLogger().debug( "PLACES_CALL_ALL " + m.getAction( ) +
 				       " sent to {}", MASS.getRemoteNodes().get(i).getHostName() );
 		
 		}
@@ -153,9 +148,9 @@ public class Places extends PlacesBase {
 		MThread.barrierThreads( 0 );
 		
 		// Synchronized with all slave processes
-		logger.debug("Attempting to barrierAllSlaves...");
+		MASSBase.getLogger().debug("Attempting to barrierAllSlaves...");
 		MASS.barrierAllSlaves( MASSBase.getCurrentReturns(), stripe );
-		logger.debug("barrierAllSlaves completed!");
+		MASSBase.getLogger().debug("barrierAllSlaves completed!");
 		
 		return MASSBase.getCurrentReturns();
     
@@ -179,7 +174,7 @@ public class Places extends PlacesBase {
 	 */
 	public void callAll( int functionId, Object argument ) {
 	
-	    logger.debug( "callAll void object" );
+		MASSBase.getLogger().debug( "callAll void object" );
 		
 		ca_setup( functionId, argument, 
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
@@ -200,7 +195,7 @@ public class Places extends PlacesBase {
 	 */
 	public Object[] callAll( int functionId, Object argument[] ) {
 	
-	    logger.debug( "callAll return object" );
+		MASSBase.getLogger().debug( "callAll return object" );
 		
 		return ca_setup( functionId, ( Object )argument,
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
@@ -226,16 +221,14 @@ public class Places extends PlacesBase {
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
 		
-	    logger.debug( "dest_handle = {}", destinationHandle );
+		MASSBase.getLogger().debug( "dest_handle = {}", destinationHandle );
 		
-		for ( int i =0; i < MASS.getRemoteNodes().size( ); i++ )
-		    MASS.getRemoteNodes().get(i).sendMessage( m );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 		
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
-		MASSBase.setDestinationPlaces(MASSBase.getPlacesMap().get( new Integer( destinationHandle ) ));
+		MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( destinationHandle ) );
 		MASSBase.setCurrentFunctionId(functionId);
-		//MASS_base.currentDestinations = destinations;
 		
 		// reset requestCounter by the main thread
 		MASSBase.resetRequestCounter();
@@ -247,8 +240,7 @@ public class Places extends PlacesBase {
 		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
 		
 		// exchangeall implementation
-		super.exchangeAll( MASSBase.getDestinationPlaces(),
-				   functionId, 0 );
+		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
 		
 		// confirm all threads are done with exchangeAll.
 		MThread.barrierThreads( 0 );
@@ -281,20 +273,30 @@ public class Places extends PlacesBase {
 	 * @param neighbors The vector to set
 	 */
 	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
-		for(int i = 0; i < this.getPlacesSize(); i++)
-		{
-			this.getPlaces()[i].setNeighbors(neighbors);
+		
+		for ( Place place : getPlaces() ) {
+			place.setNeighbors( neighbors );
 		}
+		
+		// From Jas' and Michael's additions
+		// TODO - is it better to use this method than the Place iterator above?
+		//		for(int i = 0; i < this.getNumberOfPlacesOnCurrentNode(); i++)
+//		{
+//			this.getPlaces()[i].setNeighbors(neighbors);
+//		}
+		
 	}
     
+	/**
+	 * Send an "Exchange Boundary" request to all nodes
+	 */
     public void exchangeBoundary( ) {
 	
 		// send a PLACES_EXCHANGE_BOUNDARY message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY, 
 					 this.getHandle(),  0 ); // 0 is dummy
 		
-		for ( MNode node : MASS.getRemoteNodes() )
-		    node.sendMessage( m );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 	
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
@@ -324,7 +326,7 @@ public class Places extends PlacesBase {
 		try {
 		    hosts.add( MASS.getMasterNode().getHostName() );
 		} catch ( Exception e ) {
-		    logger.error( "init_master: InetAddress.getLocalHost( ) ", e );
+			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
 		    System.exit( -1 );
 		}
 		
@@ -339,23 +341,17 @@ public class Places extends PlacesBase {
 					 argument, boundaryWidth, hosts );
 		
 		// send a PLACES_INITIALIZE message to each slave
-		for ( MNode node : MASS.getRemoteNodes() ) {
-		    
-			node.sendMessage( m );
-		    
-			logger.debug( "PLACES_INITIALIZE sent to {}", node.getPid() );
-		
-		}
+		MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to all remote nodes" );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
 		
 		// establish all inter-node connections within setHosts( )
 		MASSBase.setHosts( hosts );
 	
 		// register this places in the places hash map
-		MASSBase.getPlacesMap().put( new Integer( getHandle() ), this );
+		MASSBase.getPlacesMap().put( getHandle(), this );
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
 
     }
-
 }

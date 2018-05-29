@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -44,7 +45,7 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
  */
 public class MASSBase {
 
-    private static MThread[] threads;          // including main and children
+    private static MThread[] threads = new MThread[0];          // including main and children
     private static boolean initialized;  	// check if Mthreads are initialized
 	private static Vector<String> hosts = new Vector<String>( );    // all host names
 	private static Hashtable<Integer, PlacesBase> placesMap = new Hashtable<Integer, PlacesBase>( );
@@ -53,7 +54,7 @@ public class MASSBase {
 	private static Vector<Vector<AgentMigrationRequest>> migrationRequests = new Vector<Vector<AgentMigrationRequest>>( );
 	private static PlacesBase currentPlacesBase = null;
 	private static AgentsBase currentAgentsBase = null;
-	private static ExchangeHelper exchange = new ExchangeHelper( );
+	private static ExchangeHelper exchange;// = new ExchangeHelper( );
 	private static PlacesBase destinationPlaces;
 	private static int currentFunctionId;
 	private static Object currentArgument;
@@ -70,9 +71,6 @@ public class MASSBase {
 	// for performance, collection of all remote nodes
     private static Vector<MNode> remoteNodes = new Vector<MNode>();
 
-	// for performance, the master node
-    private static MNode masterNode = null;
-
 	// remember the last PID used
     private static int lastPid = 0;
     
@@ -84,15 +82,6 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
-
-//    /**
-//     *  Agents async migrate out and into this node
-//     */
-    //private static volatile int[] outAgents, inAgents;
-    
-//    /**
-//     * END Async vars section
-//     */
 
 	/**
      * Add a new node to the cluster
@@ -110,7 +99,6 @@ public class MASSBase {
     	if (node.isMaster()) {
 
     		node.setPid(0);		// master node ALWAYS has a PID of zero
-    		masterNode = node;
 
     		logger.debug("This node is the MASTER node");
     		
@@ -128,10 +116,19 @@ public class MASSBase {
     	
     }
 
+    /**
+     * Get Agents class for a specific Agents Handle ID
+     * @param handle The Agents Handle ID to retrieve
+     * @return The Agents class having the specified Handle ID
+     */
 	public static Agents getAgents( int handle ) {
-    	return ( Agents )agentsMap.get( new Integer( handle ) );
+    	return ( Agents )agentsMap.get( handle );
     }
 	
+	/**
+	 * Get the collection of Agents currently residing on this node (as AgentsBase)
+	 * @return The Agents (as AgentsBase) located on this node
+	 */
 	public static Hashtable<Integer, AgentsBase> getAgentsMap() {
 		return agentsMap;
 	}
@@ -152,18 +149,34 @@ public class MASSBase {
 		return Runtime.getRuntime().availableProcessors();
     }
 	
+	/**
+	 * Get the current AgentsBase this node is working with
+	 * @return The current AgentsBase this node is using
+	 */
 	public static AgentsBase getCurrentAgentsBase( ) {
     	return currentAgentsBase;
     }
 	
+	/**
+	 * Get the current argument (supplied to MProcess)
+	 * @return The current argument used by MProcess
+	 */
 	public static Object getCurrentArgument( ) { 
     	return currentArgument;
     }
 	
+	/**
+	 * Get the current function ID that Agents are executing
+	 * @return The current Agents function ID
+	 */
 	public static int getCurrentFunctionId( ) { 
     	return currentFunctionId; 
     }
 	
+	/**
+	 * Get the current Message type enumeration, used by MThread
+	 * @return The current Message type enumeration
+	 */
 	public static Message.ACTION_TYPE getCurrentMsgType( ) { 
     	return currentMsgType;
     }
@@ -176,10 +189,18 @@ public class MASSBase {
     	return currentPlacesBase;
     }
 	
+    /**
+     * Get the current returns from Places or Agents resulting from the last callAll
+     * @return Current returns array
+     */
     public static Object[] getCurrentReturns() {
 		return currentReturns;
 	}
 
+    /**
+     * Get the PlacesBase representing the destination for an Agent
+     * @return Destination PlacesBase
+     */
 	public static PlacesBase getDestinationPlaces( ) { 
     	return destinationPlaces; 
     }
@@ -188,12 +209,29 @@ public class MASSBase {
 	 * Get the ExchangeHelper used by this instance of MASS_base
 	 * @return The ExchangeHelper used by this instance
 	 */
-	public static ExchangeHelper getExchange() {
+	public synchronized static ExchangeHelper getExchange() {
+		
+		if ( exchange == null ) exchange = new ExchangeHelper();
 		return exchange;
-	}
 	
+	}
+
+	/**
+	 * Set the ExchangeHelper used by this instance of MASS_base
+	 * @param exchangeHelper The ExchangeHelper used by this instance
+	 */
+	protected static void setExchange( ExchangeHelper exchangeHelper ) {
+		
+		exchange = exchangeHelper;
+	
+	}
+
+	/**
+	 * Get all hosts, as a collection of host names
+	 * @return All host names used as MASS nodes
+	 */
 	public static Vector<String> getHosts() {
-		return hosts;
+		return new Vector<>( allNodes.stream().map( MNode::getHostName ).collect( Collectors.toList() ) );
 	}
 	
 	/**
@@ -201,9 +239,13 @@ public class MASSBase {
 	 * @return The MNode representation of the master node
 	 */
 	public static MNode getMasterNode() {
-		return masterNode;
+		return allNodes.stream().filter( node -> node.isMaster() ).findFirst().orElse( null );
 	}
 	
+	/**
+	 * Get any outstanding Agent migration requests
+	 * @return Current Agent migration requests
+	 */
 	public static Vector<Vector<AgentMigrationRequest>> getMigrationRequests() {
 		return migrationRequests;
 	}
@@ -219,9 +261,13 @@ public class MASSBase {
 		
 	};
 	
-	
+	/**
+	 * Get Places object for a specific handle ID
+	 * @param handle The ID of the Places object to retrieve
+	 * @return The Places object with the matching handle ID
+	 */
 	public static Places getPlaces( int handle ) {
-    	return ( Places )placesMap.get( new Integer( handle ) );
+    	return ( Places )placesMap.get( handle );
     }
 	
 	/**
@@ -240,6 +286,10 @@ public class MASSBase {
     	return remoteNodes;
     }
 	
+	/**
+	 * Get any outstanding Remote Agent migration requests
+	 * @return Current Remote Agent migration requests
+	 */
     public static Vector<Vector<RemoteExchangeRequest>> getRemoteRequests() {
 		return remoteRequests;
 	}
@@ -262,6 +312,10 @@ public class MASSBase {
 
 	}
 	
+	/**
+	 * Get the collection of threads managed by MThread
+	 * @return The threads currently being managed by MThread
+	 */
 	public static MThread[] getThreads() {
 		return threads;
 	}
@@ -274,6 +328,11 @@ public class MASSBase {
 		return thisNode.getMassHome();
 	}
 
+	/**
+	 * Initialize MThread and start child execution threads
+	 * @param nThr The number of threads to start (will default to the number of CPU cores at a minimum)
+	 * @return The number of threads to start
+	 */
 	public static boolean initializeThreads( int nThr ) {
 		
 		if ( initialized ) {
@@ -400,22 +459,34 @@ public class MASSBase {
 		//requestCounter = 0;
 	}
 	
-	public static void setAgentsMap(Hashtable<Integer, AgentsBase> agentsMap) {
-		MASSBase.agentsMap = agentsMap;
-	}
-
+	/**
+	 * Set the current AgentsBase this node is working with
+	 * @param currentAgents The current AgentsBase object
+	 */
 	public static void setCurrentAgentsBase(AgentsBase currentAgents) {
 		MASSBase.currentAgentsBase = currentAgents;
 	}
 	
+	/**
+	 * Set the current argument (supplied to MProcess)
+	 * @param currentArgument The current argument to be used by MProcess
+	 */
 	public static void setCurrentArgument(Object currentArgument) {
 		MASSBase.currentArgument = currentArgument;
 	}
 
+	/**
+	 * Set the current function ID that Agents will execute
+	 * @param currentFunctionId The current Agents function ID to execute
+	 */
 	public static void setCurrentFunctionId(int currentFunctionId) {
 		MASSBase.currentFunctionId = currentFunctionId;
 	}
 
+	/**
+	 * Set the current Message type enumeration, used by MThread
+	 * @param currentMsgType The Message type enumeration to be used by MThread
+	 */
     public static void setCurrentMsgType(Message.ACTION_TYPE currentMsgType) {
 		MASSBase.currentMsgType = currentMsgType;
 	}
@@ -428,10 +499,18 @@ public class MASSBase {
 		MASSBase.currentPlacesBase = currentPlaces;
 	};
 
+    /**
+     * set the current returns from Places or Agents resulting from the last callAll
+     * @param currentReturns Returns array result from callAll
+     */
     public static void setCurrentReturns(Object[] currentReturns) {
 		MASSBase.currentReturns = currentReturns;
 	}
     
+    /**
+     * Set the PlacesBase representing the destination for an Agent
+     * @param destinationPlaces The destination PlacesBase
+     */
     public static void setDestinationPlaces(PlacesBase destinationPlaces) {
 		MASSBase.destinationPlaces = destinationPlaces;
 	}
@@ -440,7 +519,7 @@ public class MASSBase {
      * Sets the hosts that MASS is using.
      * @param host_args
      */
-    public static void setHosts( Vector<String> host_args ) {
+    public synchronized static void setHosts( Vector<String> host_args ) {
 
     	if ( !hosts.isEmpty( ) ) {
     		// already initialized
@@ -449,9 +528,9 @@ public class MASSBase {
     	}
 
     	// register all hosts including myself
-    	for ( int i = 0; i < host_args.size( ); i++ ) {
-   			logger.debug("MASS_base.setHosts: Adding host {}", host_args.get(i) );
-    		hosts.add( host_args.get(i) );
+    	for ( String host : host_args ) {
+   			logger.debug("MASS_base.setHosts: Adding host {}", host );
+    		hosts.add( host );
     	}
     	
 		logger.debug( "MASS_base.setHosts: System size = {}", getSystemSize() );
@@ -467,6 +546,7 @@ public class MASSBase {
     	}
 
     	// establish inter-MASS connection
+    	if ( exchange == null) exchange = new ExchangeHelper();
     	exchange.establishConnection( getSystemSize(), thisNode.getPid(), hosts, thisNode.getPort() );
 
     }
@@ -479,12 +559,20 @@ public class MASSBase {
 		MASSBase.initialized = initialized;
 	}
     
+	/**
+	 * Set outstanding Agent migration requests
+	 * @param migrationRequests Current Agent migration requests
+	 */
     public static void setMigrationRequests(
 			Vector<Vector<AgentMigrationRequest>> migrationRequests) {
 		MASSBase.migrationRequests = migrationRequests;
 	}
     
-    public static void setRemoteRequests(
+	/**
+	 * Set outstanding Remote Agent migration requests
+	 * @param remoteRequests Current Remote Agent migration requests
+	 */
+   public static void setRemoteRequests(
 			Vector<Vector<RemoteExchangeRequest>> remoteRequests) {
 		MASSBase.remoteRequests = remoteRequests;
 	}
@@ -498,7 +586,6 @@ public class MASSBase {
 		// has MASS been initialized yet?
 		if (thisNode == null) return;
 		
-		//		System.err.println("setWorkingDir = " + workingDirectory);
 		thisNode.setMassHome( workingDirectory );
 		
 	}
@@ -512,8 +599,8 @@ public class MASSBase {
     		
     		String convert = "Hosts: ";
     		
-    		for ( int i = 0; i < hosts.size( ); i++ ) {
-    			convert += "rank[" + i + "] = " + hosts.get(i) + " ";
+    		for (MNode node : allNodes ) {
+    			convert += "rank[" + node.getPid() + "] = " + node.getHostName() + " ";
     		}
     		
     		logger.debug( convert );

@@ -43,7 +43,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -57,8 +56,12 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class MNode {
 
-	private LogLevel logLevel;			// custom logging level for this node
-	private String logFileName;			// custom logging filename for this node
+	@SuppressWarnings("unused")
+	private LogLevel logLevel;			// TODO - custom logging level for this node
+	
+	@SuppressWarnings("unused")
+	private String logFileName;			// TODO - custom logging filename for this node
+	
 	private String hostName;			// the host name of this node
 	private String userName;			// for SSH login, the username - optional
 	private String javaHome;			// where the JVM is installed on this node - optional
@@ -69,8 +72,6 @@ public class MNode {
 	private int port = 3400;			// the port number used for inter-node communications, defaults to 3400
 	private ObjectInputStream mainIOS;  // from remote to master
 	private ObjectOutputStream mainOOS; // from master to remote
-	private int resetCounter = 0;
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
     
     /**
 	 * Terminate all communications channels to the remote Node
@@ -85,11 +86,11 @@ public class MNode {
 
 		} catch( Exception e ) {
 
-			logger.error( "closeMainConnection error with rank[" + pid + 
-					"] at " + hostName, e );
-			System.exit( -1 );
+			MASSBase.getLogger().warning( "closeMainConnection error with rank[" + pid + "] at " + hostName );
 
 		}
+		
+		// don't stop MASS from executing, it may need to continue shutting down other nodes
 
 	}
 
@@ -175,7 +176,7 @@ public class MNode {
 		// TODO - need better method of handling errors here rather than terminating application
 		catch( Exception e ) {	
 
-			logger.error( "ERROR: mNode: Pid: {}", pid, e);
+			MASSBase.getLogger().error( "ERROR: mNode: Pid: {}", pid, e);
 			System.exit( -1 );
 		
 		}
@@ -202,15 +203,15 @@ public class MNode {
 
 		try {
 
-			logger.debug("Awaiting receipt of message...");
+			MASSBase.getLogger().debug("Awaiting receipt of message...");
 			m = ( Message ) mainIOS.readObject( );
-			logger.debug("Message received!");
+			MASSBase.getLogger().debug("Message received!");
 
 		}
 
 		catch ( Exception e ) {
 
-			logger.error( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "receivMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 			
 			e.printStackTrace();
@@ -231,26 +232,18 @@ public class MNode {
 
 		try {
 
-			logger.debug("Sending message to {}", getHostName());
+			MASSBase.getLogger().debug("Sending message to {}", getHostName());
 			mainOOS.writeObject( m );
-			logger.debug("Message sent!");
+			MASSBase.getLogger().debug("Message sent!");
 			mainOOS.flush( );
-			logger.debug("Object outputstream flushed");
-                        
-			resetCounter++;
-			if(resetCounter == 5){
-				logger.debug("Resetting object outputstream...");
-				mainOOS.reset();
-				logger.debug("Stream reset!");
-				resetCounter = 0;
-			}
-
+			MASSBase.getLogger().debug("Object outputstream flushed");
+            
 		}
 
 		catch ( Exception e ) {
 
-			logger.error( "sendMessage error to rank[" + pid + "] at " +
-					hostName );
+			MASSBase.getLogger().error( "sendMessage error to rank[" + pid + "] at " +
+					hostName, e );
 
 			System.exit( -1 );
 

@@ -30,19 +30,23 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
- * 
- * @author Matthew Sell
- *
  */
 @Ignore
 @RunWith(EasyMockRunner.class)
@@ -50,14 +54,47 @@ public class AbstractTest extends EasyMockSupport {
 
     // Toggle for enabling Unicode in unit Tests
     private static final boolean ENABLE_UNICODE = false;
+    
+    // when not specified, length of a random string
+    private static final int DEFAULT_RANDOM_STRING_LENGTH = 32;
 
     private static Random random = new Random(System.currentTimeMillis());
 
+    /**
+     * Perform actions that will reset MASSBase for another test
+     */
+    public static void resetMASSBase() {
+    	
+    		MASSBase.getAllNodes().clear();
+    		MASSBase.setCurrentArgument( null );
+    		MASSBase.setCurrentFunctionId( 0 );
+    		MASSBase.setCurrentMsgType( null );
+    		MASSBase.setCurrentAgentsBase( null );
+    		MASSBase.setCurrentAgentsBase( null );
+    		MASSBase.setCurrentReturns( null );
+    		MASSBase.setDestinationPlaces( null );
+    		MASSBase.getPlacesMap().clear();
+    		MASSBase.getRemoteNodes().clear();
+    		MASSBase.getHosts().clear();
+    		MASSBase.getLogger().setLogLevel(LogLevel.OFF);
+    		
+    }
+    
+    /**
+     * Perform any necessary operations before every unit test
+     */
+    @Before
+    public void abstractSetUp() {
+    	
+    	MASSBase.getLogger().setLogLevel( LogLevel.DEBUG );
+
+    }
+    
 	/**
 	 * Perform any necessary cleanup and final verifications after EVERY test 
 	 */
 	@After
-	public void tearDown() {
+	public void abstractTearDown() {
 
 		// make sure all mock objects were called as expected
 		verifyAll();
@@ -158,12 +195,20 @@ public class AbstractTest extends EasyMockSupport {
     }
 
     /**
-     * Generate a string of random characters
+     * Generate a string of random characters of default length
+     *@returns A string of random characters
+    */
+    protected static String randomString() {
+    	return randomString( DEFAULT_RANDOM_STRING_LENGTH );
+    }
+    
+    /**
+     * Generate a string of random characters of specified length
      *
      *@param length The length to the string to be generated
      *@returns A string of random characters of the length specified
     */
-    protected static synchronized String randomString(int length) {
+    protected static String randomString(int length) {
     
         StringBuffer returnString = new StringBuffer("");
         
@@ -215,4 +260,25 @@ public class AbstractTest extends EasyMockSupport {
         
     }
 
+    /**
+     * Using Java native serialization, return an array of bytes representing
+     * the serialized form of the supplied object
+     * @param objectToSerialize The object to serialize
+     * @return An array of bytes representing the serialized object
+     * @throws IOException
+     */
+    protected static byte[] serializeObject( Object objectToSerialize ) throws IOException {
+
+    	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    	ObjectOutput out = new ObjectOutputStream( bos );
+
+    	// serialize to the byte array
+    	out.writeObject( objectToSerialize );
+    	out.flush();
+
+    	// return the array
+    	return bos.toByteArray();
+
+    }
+    
 }

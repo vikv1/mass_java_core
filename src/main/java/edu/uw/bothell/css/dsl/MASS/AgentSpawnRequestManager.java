@@ -1,7 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by utku on 1/24/17.
@@ -13,10 +13,10 @@ import java.util.Queue;
 public class AgentSpawnRequestManager
 {
     // Queue for agent spawn requests
-    Queue<AgentSpawnRequest> agentSpawnRequestQueue = new LinkedList<AgentSpawnRequest>();
+    BlockingQueue<AgentSpawnRequest> agentSpawnRequestQueue = new LinkedBlockingQueue<AgentSpawnRequest>();
 
     // Set for available agent ids for new agents to be spawned
-    Queue<Integer> availableAgentIdsQueue = new LinkedList<>();
+    BlockingQueue<Integer> availableAgentIdsQueue = new LinkedBlockingQueue<>();
 
     // Agent serializer
     AgentSerializer agentSerializer;
@@ -31,6 +31,10 @@ public class AgentSpawnRequestManager
         MAX_ACTIVE_AGENT_SIZE = MAX_ACTIVE_AGENT_SIZE_DEFAULT_VALUE;
     }
 
+    /**
+     * Initialize the manager specifying maximum number of active Agents
+     * @param maxActiveAgentSize The maximum number of active Agents to allow
+     */
     public AgentSpawnRequestManager(int maxActiveAgentSize)
     {
         agentSerializer = AgentSerializer.getInstance();
@@ -126,7 +130,7 @@ public class AgentSpawnRequestManager
      *
      * @param availableAgentId agent id to be added.
      */
-    protected void addAvailabeAgentId(Integer availableAgentId)
+    protected void addAvailableAgentId(Integer availableAgentId)
     {
         availableAgentIdsQueue.add(availableAgentId);
     }

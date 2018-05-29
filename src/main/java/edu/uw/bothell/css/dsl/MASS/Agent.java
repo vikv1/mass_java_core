@@ -32,23 +32,17 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
 
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
 public class Agent implements Serializable {
 
-	/** 
-	 * Is this agent’s identifier. It is calculated as: 
-	 * the sequence number * the size of this agent’s belonging 
-	 * matrix + the index of the current place when all
-	 * places are flattened to a single dimensional array.
-	 */
 	private int agentId;
 
 	/**
 	 * The current place where this Agent resides
 	 */
-	private Place place = null;
+	private transient Place place = null;
 	
 	/**
 	 * Is an array that maintains the coordinates of where this agent resides.
@@ -67,63 +61,87 @@ public class Agent implements Serializable {
 	 * Is the number of new children created by this agent upon a next call to
 	 * Agents.manageAll( ).
 	 */
-	private int newChildren = 0;
+	private transient int newChildren = 0;
 	
 	/** 
 	 * Is an array of arguments, each passed to a different new child.
 	 */
-	private Object[] arguments = null;
-
-	// logging
-	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
-
-	public Agent ( ) {
-		//super();
-		//agentId = Agents.getAgentInitAgentId();
-	}
+	private transient Object[] arguments = null;
 
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
 	 * functionId as passing arguments to this function. A user-derived Agent
 	 * class must implement this method.
-	 * @param functionId
-	 * @param argument
-	 * @return 
+	 * @param functionId The ID number of the function to invoke
+	 * @param argument Argument (as Object) to pass to the invoked function
+	 * @return Always returns NULL
 	 */  	
 	public Object callMethod( int functionId, Object argument ) {
 		 return null;
 	 }
 
+	/** 
+	 * Get this agent’s identifier. It is calculated as: 
+	 * the sequence number * the size of this agent’s belonging 
+	 * matrix + the index of the current place when all
+	 * places are flattened to a single dimensional array.
+	 * @return This Agent's ID
+	 */
 	public int getAgentId() {
 		return agentId;
 	}
 
+	/**
+	 * Get the array of arguments passed to this Agent
+	 * @return The arguments supplied to this Agent
+	 */
 	public Object[] getArguments() {
 		return arguments;
 	}
 
 	/**
 	 * Get debug data from the agent 
-	 * @return Debug data
+	 * @return This Agent's debug data
 	 */
 	public Number getDebugData(){
 		return null;
 	}
 	
+	/**
+	 * Intended for subclasses of Agent to override - set debug data for this Agent
+	 * @param data Debug data
+	 */
 	public void setDebugData(Number data) {}
 
+	/**
+	 * Get the current location of this Agent, or prior to migration, the new location
+	 * where this Agent is to migrate to
+	 * @return The current or migration destination for this Agent
+	 */
 	public int[] getIndex() {
 		return index;
 	}
 
+	/**
+	 * Get the number of new child Agents spawned by this Agent
+	 * @return The number of new children
+	 */
 	public int getNewChildren() {
 		return newChildren;
 	}
 
+	/**
+	 * Get the current Place where this Agent resides
+	 * @return The current Place where this Agent is now located
+	 */
 	public Place getPlace() {
 		return place;
 	}
 
+	/**
+	 * Returns the "live" status of this Agent
+	 * @return TRUE if this Agent is still alive, FALSE if not
+	 */
 	public boolean isAlive() {
 		return alive;
 	}
@@ -150,23 +168,14 @@ public class Agent implements Serializable {
 	  * @param initPopulation
 	  * @param size
 	  * @param index
-	  * @return 
 	  */	
 	public int map( int initPopulation, int[] size, int[] index ) {
 
 		// compute the total # places
-		int placeTotal = 1;
-		for ( int x = 0; x < size.length; x++ )
-			placeTotal *= size[x];
-
+		int placeTotal = MatrixUtilities.getMatrixSize( size );
+		
 		// compute the global linear index
-		int linearIndex = 0;
-		for ( int i = 0; i < index.length; i++ ) {
-			if ( index[i] >= 0 && size[i] > 0 && index[i] < size[i] ) {
-				linearIndex = linearIndex * size[i];
-				linearIndex += index[i];
-			}
-		}
+		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
 
 		// compute #agents per place a.k.a. colonists
 		int colonists = initPopulation / placeTotal;
@@ -180,8 +189,6 @@ public class Agent implements Serializable {
 	/**
 	 * Initiates an agent migration upon a next call to Agents.manageAll( ). More
 	 * specifically, migrate( ) updates the calling agent’s index[].
-	 * @param index
-	 * @return 
 	 */
 	protected boolean migrate( int... index ) { 
 
@@ -199,18 +206,35 @@ public class Agent implements Serializable {
 
 	}
 
+	/**
+	 * Set the ID number for this Agent
+	 * @param agentId This Agent's new ID number
+	 */
 	protected void setAgentId(Integer agentId) {
 		this.agentId = agentId;
 	}
 
+	/**
+	 * Set the current location or intended destination after migration
+	 * for this Agent
+	 * @param index The current location or destination after migration
+	 */
 	protected void setIndex(int[] index) {
 		this.index = index;
 	}
 
+	/**
+	 * Set the number of new child Agents created
+	 * @param newChildren The number of new children created
+	 */
 	protected void setNewChildren(int newChildren) {
 		this.newChildren = newChildren;
 	}
 
+	/**
+	 * Set the reference to the Place where this Agent is located
+	 * @param place The current Place where this Agent resides
+	 */
 	protected void setPlace(Place place) {
 		this.place = place;
 	}
@@ -219,8 +243,8 @@ public class Agent implements Serializable {
 	 * Spawns a “numAgents’ of new agents, as passing arguments[i] (with arg_size) 
 	 * to the i-th new agent upon a next call to Agents.manageAll( ).
 	 * More specifically, spawn( ) changes the calling agent’s newChildren.
-	 * @param numAgents
-	 * @param arguments
+	 * @param numAgents The number of Agents to spawn
+	 * @param arguments Arguments to pass to the Agents
 	 */
 	protected void spawn( int numAgents, Object[] arguments ) { 
 

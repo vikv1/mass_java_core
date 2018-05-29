@@ -17,14 +17,20 @@ public class AgentSpawnRequest
     // index[0], index[1], and index[2] correspond to coordinates of x, y, and z, or those of i, j, and k.
     //private int[] index;
 
-    // Getters
+    /**
+     * Get the serialized Agent represented by this spawn request
+     * @return The serialized Agent referenced by this request
+     */
     public byte[] getSerializedAgent() { return serializedAgent; }
 
     //public String getSerializedAgentIdentifier() { return serializedAgentIdentifier; }
 
     //public int[] getIndex() { return index; }
 
-    // Setters
+    /**
+     * Set the serialized Agent created by this request
+     * @param serializedAgent The serialized Agent
+     */
     public void setSerializedAgent(byte[] serializedAgent) { this.serializedAgent = serializedAgent; }
 
     //public void setSerializedAgentIdentifier(String serializedAgentIdentifier) { this.serializedAgentIdentifier = serializedAgentIdentifier; }

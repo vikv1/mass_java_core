@@ -30,23 +30,16 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.Serializable;
-
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
  * to another Place. 
  */
-@SuppressWarnings("serial")
-public class Agents extends AgentsBase implements Serializable {
+public class Agents extends AgentsBase {
 
   private int[] localAgents; // localAgents[i] = # agents in rank[i]
-  private int total;
-
-	// logging
-	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
   /**
    * Instantiates a set of agents from the "className" class, passes the
@@ -73,12 +66,7 @@ public class Agents extends AgentsBase implements Serializable {
 
   }
 
-  Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
-
-    // calculate the total number of agents
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++)
-      total += localAgents[i];
+  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
 
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
@@ -97,9 +85,7 @@ public class Agents extends AgentsBase implements Serializable {
         for (int dest = 0; dest <= i; dest++) {
           argumentPosition += localAgents[dest];
 
-          if (MASS.isConsoleLoggingEnabled())
-            System.err
-                .println("Agents.callAll: calc arg_pos = " + argumentPosition
+          MASS.getLogger().debug("Agents.callAll: calc arg_pos = " + argumentPosition
                     + " localAgents[" + (dest + 1) + "] = "
                     + localAgents[dest + 1]);
 
@@ -113,8 +99,7 @@ public class Agents extends AgentsBase implements Serializable {
         m = new Message(type, this.getHandle(), functionId,
             partitionedArgument);
 
-        if (MASS.isConsoleLoggingEnabled())
-          System.err.println("Agents.callAll: to rank[" + (i + 1)
+        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)
               + "] arg_pos = " + argumentPosition);
 
       }
@@ -122,21 +107,16 @@ public class Agents extends AgentsBase implements Serializable {
       // send it
       MASS.getRemoteNodes().get(i).sendMessage(m);
 
-      if (MASS.isConsoleLoggingEnabled()) {
+      MASS.getLogger().debug("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
-        System.err
-            .println("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
-
-        System.err.println("Bag Size is: "
-            + MASSBase.getAgentsMap().get(new Integer(getHandle()))
+      MASS.getLogger().debug("Bag Size is: "
+            + MASSBase.getAgentsMap().get( getHandle() )
                 .getAgents().size_unreduced());
-
-      }
 
     }
 
     MThread.setAgentBagSize(MASSBase.getAgentsMap()
-        .get(new Integer(getHandle())).getAgents().size_unreduced());
+        .get( getHandle() ).getAgents().size_unreduced());
 
     // Check for correct behavior post-Agents_base implementation
     // retrieve the corresponding agents
@@ -150,13 +130,11 @@ public class Agents extends AgentsBase implements Serializable {
     if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
       MASSBase.setCurrentReturns(null);
     } else {
-      MASSBase.setCurrentReturns(new Object[total]); // prepare an entire
-                                                      // return space
+      MASSBase.setCurrentReturns( new Object[ nAgents() ] ); // prepare an entire return space
     }
 
     // resume threads
-    logger.debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
-
+    MASS.getLogger().debug("MASS_base.currentAgents = {}", MASSBase.getCurrentAgentsBase());
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_AGENTSCALLALL);
 
     // callall implementation
@@ -173,18 +151,6 @@ public class Agents extends AgentsBase implements Serializable {
     // Synchronized with all slave processes by main thread.
     MASS.barrierAllSlaves(MASSBase.getCurrentReturns(), 0, localAgents);
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled())
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-
-    }
-
     return MASSBase.getCurrentReturns();
 
   }
@@ -192,7 +158,7 @@ public class Agents extends AgentsBase implements Serializable {
   /**
    * Calls the method specified with functionId of all agents. Done in
    * parallel among multi-processes/threads
-   * @param functionId
+   * @param functionId The ID of the Agent method to call
    */
   public void callAll(int functionId) {
     callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
@@ -203,8 +169,9 @@ public class Agents extends AgentsBase implements Serializable {
    * (void) argument to the method. Done in parallel among 
    * multi-processes/threads.
    * @param functionId
-   * @param argument
-   */  public void callAll(int functionId, Object argument) {
+   * @param argument The argument to pass to the method when called
+   */  
+  public void callAll(int functionId, Object argument) {
     callAllSetup(functionId, argument,
         Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
   }
@@ -212,14 +179,14 @@ public class Agents extends AgentsBase implements Serializable {
    /**
     * Calls the method specified with functionId of all agents as passing
     * arguments[i] to agent[i]’s method, and receives a return value from it
-    * into (void *)[i] whose element’s size is return_value. Done in parallel
+    * into an array [i] whose element’s size is return_value. Done in parallel
     * among multi-processes/threads. The order of agents depends on the
     * index of a place where they resides, starts from the place[0][0]…[0],
     * and gets increased with the right-most index first and the left-most
     * index last.
-    * @param functionId
-    * @param argument
-    * @return 
+    * @param functionId The ID of the Agent method to call
+    * @param argument The argument to pass to the method when called
+    * @return An array containing return values from the Agents
     */
   public Object callAll(int functionId, Object[] argument) {
     return callAllSetup(functionId, argument,
@@ -244,7 +211,7 @@ public class Agents extends AgentsBase implements Serializable {
     for (MNode node : MASS.getRemoteNodes()) {
 
       node.sendMessage(m);
-      logger.debug("AGENT_INITIALIZE sent to {}", node.getPid());
+      MASS.getLogger().debug("AGENT_INITIALIZE sent to {}", node.getPid());
     
     }
 
@@ -252,20 +219,18 @@ public class Agents extends AgentsBase implements Serializable {
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-      logger.debug("rank[" + i + "]'s local agent population = " + localAgents[i]);
-
-    }
-
     // register this agents in the places hash map
-    MASSBase.getAgentsMap().put(new Integer(getHandle()), this);
+    MASSBase.getAgentsMap().put( getHandle(), this);
 
   }
 
-  private void manageAllSetup() {
+  /**
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll. Done in parallel among multi-processes/threads 
+   */
+  public void manageAll() {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
@@ -301,28 +266,6 @@ public class Agents extends AgentsBase implements Serializable {
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
 
-    total = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++) {
-
-      total += localAgents[i];
-
-      // for debugging
-      if (MASS.isConsoleLoggingEnabled() == true)
-        System.err.println("rank[" + i + "]'s local agent population = "
-            + localAgents[i]);
-
-    }
-
-  }
-
-  /**
-   * Updates each agent’s status, based on each of its latest migrate( ),
-   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
-   * class and may be invoked from other functions through callAll and
-   * exchangeAll. Done in parallel among multi-processes/threads 
-   */
-  public void manageAll() {
-    manageAllSetup();
   }
 
   /**
@@ -334,31 +277,11 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public void doAll(int functionId, int numberOfIterations)
   {
-      //System.out.println("public void doAll(int functionId, int numberOfIterations)");
       // consecutive calls for n-1 times
       for (int i=0; i<numberOfIterations; i++)
       {
           callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
-      }
-  }
-
-  /**
-   * Calls callAll and manageAll functions consecutively without responding
-   *  back to user application in each iteration.
-   *
-   * @param functionId the function id that is executed
-   * @param argument the argument to pass to each Agent
-   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
-   */
-  public void doAll(int functionId, Object argument, int numberOfIterations)
-  {
-      //System.out.println("public void doAll(int functionId, Object argument, int numberOfIterations)");
-      // consecutive calls for n times
-      for (int i=0; i<numberOfIterations; i++)
-      {
-          callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
+          manageAll();
       }
   }
 
@@ -372,14 +295,34 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public Object doAll(int functionId, Object[] argument, int numberOfIterations)
   {
-      //System.out.println("public Object doAll(int functionId, Object[] argument, int numberOfIterations)");
       Object returnObject = null;
       for (int i=0; i<numberOfIterations; i++)
       {
           returnObject = callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
-          manageAllSetup();
+          manageAll();
       }
       return returnObject;
+  }
+
+  /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionIdList the function id list that is executed
+   * @param argumentList the arguments to pass to each Agent
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll(int[] functionIdList, Object[] argumentList, int numberOfIterations)
+  {
+      for (int i=0; i<numberOfIterations; i++)
+      {
+          Object argument = (argumentList != null && i < argumentList.length) ? argumentList[i] : null;
+          for (int j=0; j<functionIdList.length; j++)
+          {
+              callAllSetup(functionIdList[j], argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
+              manageAll();
+          }
+      }
   }
 
   /**
@@ -388,11 +331,17 @@ public class Agents extends AgentsBase implements Serializable {
    */
   public int nAgents() {
 
-    int nAgents = 0;
-    for (int i = 0; i < MASSBase.getSystemSize(); i++)
-      nAgents += localAgents[i];
+	  int numAgents = MatrixUtilities.sumArrayElements( localAgents );
 
-    return nAgents;
+	  // for debugging
+	  if ( MASSBase.getLogger().isDebugEnabled() ) {
+		  for (int i = 0; i < MASSBase.getSystemSize(); i++) {
+			  MASSBase.getLogger().debug( "rank[{}]'s local agent population = ", localAgents[i] );
+		  }
+	  }
+
+	  return numAgents;
 
   }
+  
 }

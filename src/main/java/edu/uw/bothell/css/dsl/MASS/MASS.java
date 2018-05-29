@@ -52,9 +52,6 @@ import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
 import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
-import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -62,8 +59,8 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
  */
 public class MASS extends MASSBase {
 
-	private static boolean printOutput = false;
-	//private static boolean printOutput = true;
+    // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
+    public static final int LOCK_TIMEOUT = 10000;
 
 	private static Utilities util = new Utilities( );  // used for channel creation
 
@@ -72,18 +69,10 @@ public class MASS extends MASSBase {
 
 	// default user credentials (can be overridden via XML)
     private static String defaultUsername;
-	private static String defaultPassword;
+//	private static String defaultPassword;
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-
-	// object factories are singletons, so we'll use this opportunity to initialize it
-    // yes - unused at this point right now...
-    @SuppressWarnings("unused")
-	private static ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-
-	// Logging
-	private static Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
@@ -104,24 +93,26 @@ public class MASS extends MASSBase {
 
     	// Synchronize with all slave processes
     	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
-    		if( printOutput == true )
-    			System.err.println( "barrier waits for ack from " +
+    		
+    		MASS.getLogger().debug( "barrier waits for ack from " +
     					getRemoteNodes().get(i).getHostName( ) );
 
     		Message m = getRemoteNodes().get(i).receiveMessage( );
 
-    		if( printOutput == true )
-    			System.err.println( "barrier received a message from " +
+    		MASS.getLogger().debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
     					"...message = " + m );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
-    			System.err.println( "barrier didn't receive ack from rank " +
+    			
+    			MASS.getLogger().error( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
+    			
     			System.exit( -1 );
+    		
     		}
 
     		// retrieve arguments back from each Mprocess
@@ -154,19 +145,16 @@ public class MASS extends MASSBase {
     			}
 
     		// retrieve agent population from each Mprocess
-    		if( printOutput == true ) {
-    			System.err.println( "localAgents[" + (i + 1) +
+    		MASS.getLogger().debug( "localAgents[" + (i + 1) +
     					"] = m.getAgentPopulation: "
     					+ m.getAgentPopulation( ) );
-    		}
 
     		if ( localAgents != null ) {
     			localAgents[i + 1] = m.getAgentPopulation( );
     			nAgentsSoFar += localAgents[i + 1];
     		}
 
-    		if ( printOutput == true )
-    			System.err.println( "message deleted" );
+    		MASS.getLogger().debug( "message deleted" );
 
     	}
 
@@ -183,8 +171,7 @@ public class MASS extends MASSBase {
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
-    	if ( MASS.isConsoleLoggingEnabled() )
-    		System.err.println( "MASS::finish: all MASS threads terminated" );
+    	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
 
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
@@ -197,21 +184,20 @@ public class MASS extends MASSBase {
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
-//    		node.closeMainConnection( );
     		util.disconnectRemoteNode(node);
 
-    	System.err.println( "MASS::finish: done" );
+    	MASS.getLogger().debug( "MASS::finish: done" );
 
     }
     
-    /**
-	 * Get the default password for connecting to remote nodes
-	 * @return The default login password
-	 */
- 	@Deprecated
-	protected static String getDefaultPassword() {
-		return defaultPassword;
-	}
+//    /**
+//	 * Get the default password for connecting to remote nodes
+//	 * @return The default login password
+//	 */
+// 	@Deprecated
+//	protected static String getDefaultPassword() {
+//		return defaultPassword;
+//	}
     
     /**
 	 * Get the default username for connecting to remote nodes
@@ -237,12 +223,6 @@ public class MASS extends MASSBase {
 		return numThreads;
 	}
 
-	// TODO - replace with a logger library hopefully
-	public static boolean isConsoleLoggingEnabled() {
-		return printOutput;
-	}
-	
-	
 	/**
 	 * Initialize the MASS library (using settings made previously via setters).
 	 * Calling this method effectively begins computation.
@@ -278,11 +258,13 @@ public class MASS extends MASSBase {
             		}
     			} catch (JAXBException e) {
 
-        			System.err.println( "Error initializing JAXB parser..." +
-		    				e.getStackTrace());
+        			System.err.println( "Error initializing JAXB parser..." );
+		    		e.printStackTrace();
 
+		    		MASS.getLogger().error( "Error initializing JAXB parser...", e );
 		    		System.exit( -1 );
-				}
+
+    			}
     		} else {   			
     			// no - this machine file is the classic one-line-per-node format
             	BufferedReader fileReader = null;
@@ -300,10 +282,12 @@ public class MASS extends MASSBase {
             		}
             		fileReader.close();
             	} catch( Exception e ) {
+
             		System.err.println( "machine file: " + getNodeFilePath() +
             				" could not open." );
-
+		    		MASS.getLogger().error( "Machine file: {} could not be opened!", getNodeFilePath(), e );
             		System.exit( -1 );
+
             	}
     		}  		
     	} else {
@@ -312,9 +296,9 @@ public class MASS extends MASSBase {
 		}
     	
     	// For debugging
-    	if ( printOutput == true ) {
+    	if ( MASSBase.getLogger().isDebugEnabled() ) {
     		for ( MNode node : getRemoteNodes() )
-    			System.err.println( "rank " + node.getPid() + ": " + 
+    			MASSBase.getLogger().debug( "rank " + node.getPid() + ": " + 
     					node.getHostName() );
     	}
 
@@ -341,7 +325,6 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-    		//if (node.getPassWord() == null) node.setPassWord(getDefaultPassword());
     		
     		// retrieve each canonical remote machine name
     		try {
@@ -351,14 +334,13 @@ public class MASS extends MASSBase {
     			
     		} catch ( Exception e ) {
 
-    			logger.error( "Wrong host name: {}", node.getHostName(), e );
+    			MASS.getLogger().error( "Wrong host name: {}", node.getHostName(), e );
     			System.exit( -1 );
 
     		}
 
     		// For debugging
-    		if ( printOutput == true )
-    			System.err.println( "curHostName = " + node.getHostName() );
+    		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 
     		// Start a remote process
     		// java attributes and its jar files
@@ -411,9 +393,7 @@ public class MASS extends MASSBase {
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
-    		if ( printOutput == true )
-    			System.err.println( "init: wait for ack from " + 
-    					node.getHostName( ) );
+    		MASSBase.getLogger().debug( "init: wait for ack from " + node.getHostName( ) );
 
     		Message m = node.receiveMessage( );
 
@@ -422,6 +402,7 @@ public class MASS extends MASSBase {
     			System.err.println( "init didn't receive ack from rank " +
     					( node.getPid() ) + " at " +
     					node.getHostName( ) );
+    			MASSBase.getLogger().error( "init didn't receive ack from rank " + ( node.getPid() ) + " at " + node.getHostName( ) );
     			System.exit( -1 );
     		}
     	}
@@ -468,25 +449,24 @@ public class MASS extends MASSBase {
     	
     	// variable assignment
     	setDefaultUsername(args[0]);
-    	setDefaultPassword(args[1]);
+//    	setDefaultPassword(args[1]);
     	setNodeFilePath(args[2]);
     	setCommunicationPort(Integer.parseInt( args[3] ));
     	setNumThreads(nThr);
-		//MASS.nProc = nProc;
 
     	// after parameters have been set, perform initialization
     	init();
     	
 	}
 
-    /**
-	 * Set the default password for connecting to remote nodes
-	 * @param defaultPassword The default password
-	 */
-	@Deprecated
-	protected static void setDefaultPassword(String defaultPassword) {
-		MASS.defaultPassword = defaultPassword;
-	}
+//    /**
+//	 * Set the default password for connecting to remote nodes
+//	 * @param defaultPassword The default password
+//	 */
+//	@Deprecated
+//	protected static void setDefaultPassword(String defaultPassword) {
+//		MASS.defaultPassword = defaultPassword;
+//	}
 
     /**
 	 * Set the default username for connecting to remote nodes
@@ -505,7 +485,11 @@ public class MASS extends MASSBase {
 	}
 
 	/**
-	 * Set the number of threads to spawn on each node
+	 * Set the number of threads to spawn on each node.
+	 * <p>
+	 * The default number of threads per node is one. If set to a number
+	 * greater than one, then that number of threads will be launched on
+	 * each node. 
 	 * @param numThreads The number of threads to spawn
 	 */
 	public static void setNumThreads(int numThreads) {
@@ -522,7 +506,7 @@ public class MASS extends MASSBase {
 	 * @param level The logging level
 	 */
 	public static void setLoggingLevel(LogLevel level) {
-		logger.setLogLevel(level);
+		MASS.getLogger().setLogLevel(level);
 	}
 	
 	/**
@@ -539,6 +523,7 @@ public class MASS extends MASSBase {
 	static int agentsHandle = 0;
 	
 	public static void debugInit( int pHandle, int aHandle, int port ) throws IOException {
+		
 		//TODO - get rid of all params
 		agentsHandle = aHandle;
 		placesHandle = pHandle;
@@ -554,11 +539,11 @@ public class MASS extends MASSBase {
 		MASSRequest request;
 
 		try {
-			//request = ( MASSRequest ) (( ObjectInputStream )inputStream ).readObject();
 			request = ( MASSRequest )inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "Class not found exception caught in debugInit!", e );
 		}
+		
 		//end completely unnecessary stuff
 
 		String placesName = null;
@@ -602,7 +587,6 @@ public class MASS extends MASSBase {
 		iniData.placeOverloadsGetDebugData( overloadsPlaceData );
 		iniData.agentOverloadsGetDebugData( overloadsAgentData );
 
-		//( (ObjectOutputStream )outputStream ).writeObject( iniData );
 		outputStream.writeObject( iniData );
 		outputStream.flush();
 	}
@@ -614,25 +598,27 @@ public class MASS extends MASSBase {
 		try {
 			request = ( MASSRequest ) inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "Class not found exception caught in debugUpdate!", e );
 		}
 
+		if ( request != null ) {
 		switch( request.getRequest() ) {
-			case INITIAL_DATA:
-				//TODO - remove debugInit, handle from here
-				break;
-			case UPDATE_PACKAGE:
-				sendUpdate();
-				break;
-			case INJECT_PLACE:
-				injectPlace( request );
-				break;
-			case INJECT_AGENT:
-				injectAgent( request );
-				break;
-			case TERMINATE:
-				closeDebugConnection();
-				break;
+				case INITIAL_DATA:
+					//TODO - remove debugInit, handle from here
+					break;
+				case UPDATE_PACKAGE:
+					sendUpdate();
+					break;
+				case INJECT_PLACE:
+					injectPlace( request );
+					break;
+				case INJECT_AGENT:
+					injectAgent( request );
+					break;
+				case TERMINATE:
+					closeDebugConnection();
+					break;
+			}
 		}
 	}
 
@@ -646,7 +632,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject(new UpdatePackage());
 			outputStream.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in injectPlace!", e );
 		}
 	}
 
@@ -654,28 +640,32 @@ public class MASS extends MASSBase {
 		
 		AgentData updates = ( AgentData )request.getPacket();
 
-		//fantastic complexity...
-		for( int i = 0; i < MASS.getCurrentPlacesBase().getPlaces().length; i++ ) {
-			for( int j = 0; j < MASS.getCurrentPlacesBase().getPlaces()[i].getAgents().size(); j++ ) {
-				Set<Agent> agents = MASS.getCurrentPlacesBase().getPlaces()[i].getAgents();
-				for(Agent agent : agents) {
-					if( updates.getId() == agent.getAgentId() ) {
-						agent.setDebugData( updates.getDebugData() );
-					}
+		for ( Place place : MASS.getCurrentPlacesBase().getPlaces() ) {
+			for( Agent agent : place.getAgents() ) {
+				if( updates.getId() == agent.getAgentId() ) {
+					agent.setDebugData( updates.getDebugData() );
 				}
 			}
 		}
 
 		try {
-			// ( ObjectOutputStream )outputStream ).writeObject( new UpdatePackage() );
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in injectAgent!", e );
 		}
+
 	}
 
 	private static void closeDebugConnection() {
+
+		try {
+			outputStream.writeObject( new UpdatePackage() );
+			outputStream.flush();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while sending UpdatePackage!", e );
+		}
+
 		try {
 			//todo - send null MASSPackage back first to prevent blocking
 			outputStream.close();
@@ -683,30 +673,19 @@ public class MASS extends MASSBase {
 			client.close();
 			socket.close();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while closing streams!", e );
 		}
 
-		try {
-			//( ( ObjectOutputStream )outputStream ).writeObject( new UpdatePackage() );
-			outputStream.writeObject( new UpdatePackage() );
-			outputStream.flush();
-		} catch ( IOException e ) {
-			e.printStackTrace();
-		}
 	}
 
 	private static void sendUpdate() {
 		Place[] places = MASS.getCurrentPlacesBase().getPlaces();
-		//Place[] places = MASSBase.getPlaces(placesHandle).getPlaces();
-		//System.out.println(places.length);
 		PlaceData[] updatedPlaces = new PlaceData[places.length];
 
 		AgentData[] agentDataArr;
 
 		for ( int i = 0; i < places.length; i++ ) {
 			Number placeData = places[i].getDebugData();
-			
-			//if (placeData == null) System.out.println("placeData == null");
 			
 			Set<Agent> agents = places[i].getAgents();
 			int j = 0;
@@ -726,26 +705,18 @@ public class MASS extends MASSBase {
 			updatedPlaces[i].setAgentDataOnThisPlace( agentDataArr );
 			updatedPlaces[i].setThisPlaceData( placeData );
 			updatedPlaces[i].setHasAgents( agents.size() != 0 );
-			//updatedPlaces[i] = new PlaceData( placeData, i, agents.size() != 0, agentDataArr );
 		}
 
 		UpdatePackage newPackage = new UpdatePackage();
 		newPackage.setPlaceData( updatedPlaces );
 		
-		
-		
-
 		//write package
 		try {
-			//( ( ObjectOutputStream )outputStream ).writeObject( newPackage );
 			outputStream.writeObject( newPackage );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			e.printStackTrace();
+			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
 		}
 	}
 
-	/**
-	 * END MASS DEBUGGER METHODS
-	 */
 }

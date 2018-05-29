@@ -30,18 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
-    private int total;
-    
-    private int stripeSize;
+    private int[] nextIndex;
     private final int handle;
     private final String className;
     private int lowerBoundary;
@@ -55,9 +54,14 @@ public class PlacesBase {
     private Place[] rightShadow;
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-	// logging
-	private Log4J2Logger logger = Log4J2Logger.getInstance();
-
+	/**
+	 * Instantiate a PlacesBase for this node
+	 * @param handle The Handle ID identifying this PlacesBase
+	 * @param className The class that represents a Place
+	 * @param boundary_width The width of the boundary between nodes, used to calculate shadow space
+	 * @param argument The argument to supply to the Place during initialization
+	 * @param size Matrix dimensions, as an array of integers representing dimension sizes
+	 */
 	public PlacesBase( int handle, String className, int boundary_width, Object argument, int[] size ) {
 		
 		this.handle = handle;
@@ -65,7 +69,7 @@ public class PlacesBase {
 		this.boundaryWidth = boundary_width;
 		this.size = size;
 
-		logger.debug( "Places_base handle = " + handle
+		MASSBase.getLogger().debug( "Places_base handle = " + handle
 					+ ", class = " + className
 					+ ", argument = " + argument
 					+ ", boundary_width = " + boundary_width 
@@ -78,112 +82,98 @@ public class PlacesBase {
 	private class ExchangeBoundary_helper extends Thread {
 
     	int direction;
-    	int handle;
     	int places_size;
     	int shadow_size;
 
-    	public ExchangeBoundary_helper( int[] param ) {
+    	public ExchangeBoundary_helper( int direction, int placesSize, int shadowSize ) {
     	
     		// identify the boundary space;
-    		direction = param[0];
-    		handle = param[1];
-    		places_size = param[2];
-    		shadow_size = param[3];
+    		this.direction = direction;
+    		this.places_size = placesSize;
+    		this.shadow_size = shadowSize;
 
-   			logger.debug( "Places_base.ExchangeBoundary_helper direction"+
-    					" = " + direction
-    					+ ", handle = " + handle
+    		MASSBase.getLogger().debug( "Places_base.ExchangeBoundary_helper direction = " + direction
     					+ ", places_size = " + places_size 
     					+ ", shadow_size = " + shadow_size
-    					//+ ", outMessage_size = " + outMessage_size
     					);
     	
     	}
 
     	public void run( ) {
-    		
-    		int startIndex = 
-    				( direction == 'L' ) ? 0 : places_size -shadow_size;
-    		Object[] buffer = new Object[ shadow_size ];
 
-    		// copy all the outMessages into the buffer
-    		for ( int i = 0; i < shadow_size; i++ )
-    			buffer[i] = places[startIndex + i].getOutMessage();
+    		int startIndex = ( direction == 'L' ) ? 0 : places_size -shadow_size;
+    		Object[] outBuffer = new Object[ shadow_size ];
+		Object[][] inBuffer  = new Object[ shadow_size ][];
 
-    		if ( logger.isDebugEnabled() ) {
-    			logger.debug( "Places_base.exchangeBoundary_helper direction = {}", direction );
+    		// copy all the outMessages into the outBuffer
+    		for ( int i = 0; i < shadow_size; i++ ) {
+    			outBuffer[i] = places[startIndex + i].getOutMessage();
+			inBuffer[i]  = ( direction == 'L' ) ? leftShadow[i].getInMessages() : rightShadow[i].getInMessages();;
+		}
 
-    			for ( int i = 0; i < shadow_size; i++ )
-    				logger.debug( "buffer[" + i + "] = " + buffer[i] );
+    		if ( MASSBase.getLogger().isDebugEnabled() ) {
+    			
+    			MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = {}", direction );
 
+    			for ( int i = 0; i < shadow_size; i++ ) {
+    				MASSBase.getLogger().debug( "outBuffer[" + i + "] = " + outBuffer[i] );
+    				MASSBase.getLogger().debug( "inBuffer[" + i + "] = " + inBuffer[i] );				
+			}
     		}
 
     		// create a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message
-    		Message messageToDest = 
-    				new Message( Message.ACTION_TYPE.
-    						PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,
-    						buffer );
+    		Message outMessageToDest = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, outBuffer );
+		Message inMessageToDest = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, inBuffer );
 
     		// compose a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message
-    		int destRank = ( direction == 'L' ) ? 
-    				
-    				MASSBase.getMyPid() - 1 : MASSBase.getMyPid() + 1;
+    		int destRank = ( direction == 'L' ) ? MASSBase.getMyPid() - 1 : MASSBase.getMyPid() + 1;
 
-   					logger.debug( "Places_base.exchangeBoundary_helper direction"+
-    							" = " + direction + ", rankNmessage.rank = " + 
-    							destRank );
+    		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction + ", rankNmessage.rank = " + destRank );
 
-    				// send it to my neighbor with a child
-    				SendMessageByChild thread_ref = 
-    						new SendMessageByChild( destRank, messageToDest );
-    				thread_ref.start( );
+    		// send it to my neighbor with a child
+		Thread sendThr = null;
+    		( sendThr = new Thread( () -> {
+			MASSBase.getExchange().sendMessage( destRank, outMessageToDest );
+			MASSBase.getExchange().sendMessage( destRank, inMessageToDest );
+		    } ) ).start();
 
-    				// receive a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message from 
-    				// my neighbor
-    				Message messageFromDest 
-    				= MASSBase.getExchange().receiveMessage( destRank );
+    		// receive a PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST message from my neighbor
+    		Message outMessageFromDest = MASSBase.getExchange().receiveMessage( destRank );
+		Message inMessageFromDest = MASSBase.getExchange().receiveMessage( destRank );
 
-   					logger.debug( "Places_base.exchangeBoundary_helper direction"+
-    							" = " + direction
-    							+ ", messageFromDest = " + messageFromDest );
+    		MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction
+					    + ", outMessageFromDest = " + outMessageFromDest
+					    + ", inMessageFromDest = " + inMessageFromDest );
 
-    				// wait for the child termination
-    				if ( thread_ref != null ) {
-    					
-    					try {
-    						thread_ref.join( );
-    					} 
-    					catch ( Exception e ) {
-    						logger.error("Unknown exception caught waiting for child termination", e);
-    					}
-    					
-    					logger.debug( "Places_base.exchangeBoundary_helper direction = {}, sendMessageByChild terminated", direction );
-    				
-    				}
+		// synch with sendTrh
+		try {
+		    sendThr.join( );
+		} catch ( Exception e ) { }
 
-    				buffer = null;
-    				messageToDest = null;
+    		// extract the outMessage received and copy it to the corresponding shadow
+    		Place[] shadow = ( direction == 'L' ) ? leftShadow : rightShadow;
+    		outBuffer = ( Object[] )( outMessageFromDest.getArgument( ) );
 
-    				// extract the message received and copy it to the corresponding 
-    				// shadow.
-    				Place[] shadow = ( direction == 'L' ) ? 
-    						leftShadow : rightShadow;
-    				buffer = (Object[])( messageFromDest.getArgument( ) );
+    		// copy the outBuffer contents into the corresponding shadow
+    		for ( int i = 0; i < shadow_size; i++ ) {
 
-    				// copy the buffer contents into the corresponding shadow
-    				for ( int i = 0; i < shadow_size; i++ ) {
-    					
-    					shadow[i].setOutMessage(buffer[i]);
-    					
-    					if ( logger.isDebugEnabled() ) 
-    						logger.debug( "Places_base.exchangeBoundary_helper " +
-    								"direction = " + direction +
-    								", shadow[" + i + "].outMessage = " +
-    								shadow[i].getOutMessage() +
-    								", buffer = " + buffer[i] );
-    				
-    				}  
-    	
+    			shadow[i].setOutMessage(outBuffer[i]);
+
+    			if ( MASSBase.getLogger().isDebugEnabled() ) 
+    				MASSBase.getLogger().debug( "Places_base.exchangeBoundary_helper direction = " + direction +
+    						", shadow[" + i + "].outMessage = " +
+    						shadow[i].getOutMessage() +
+    						", outBuffer = " + outBuffer[i] );
+
+    		}
+
+		// extract the inMessage received and copy it to the boundary places
+    		inBuffer = ( Object[][] )( inMessageFromDest.getArgument( ) );		
+    		// copy the inBuffer into all the inMessages 
+    		for ( int i = 0; i < shadow_size; i++ ) {
+		    MASSBase.getLogger().debug( "place[" + (startIndex + i ) + "].inMessages = " + inBuffer[i] );
+		    places[startIndex + i].setInMessages( inBuffer[i] );
+		}
     	}
     
     }
@@ -208,64 +198,53 @@ public class PlacesBase {
 
     	public void run( ) {
 
-    		Vector<RemoteExchangeRequest> orgRequest = null;
-
-    		if ( MASS.isConsoleLoggingEnabled() )
-    			logger.debug( "rank[{}]: starts processRemoteExchangeRequest", destRank );
+   			MASSBase.getLogger().debug( "rank[{}]: starts processRemoteExchangeRequest", destRank );
 
     		// pick up the next rank to process
-    		orgRequest = MASSBase.getRemoteRequests().get(destRank);
+   			Vector<RemoteExchangeRequest> orgRequest = MASSBase.getRemoteRequests().get(destRank);
 
     		// for debugging
-    		if ( logger.isDebugEnabled() ) {
+    		if ( MASSBase.getLogger().isDebugEnabled() ) {
+    			
     			synchronized( orgRequest ) {
-    				logger.debug( "tid[" + destRank + 
+    			
+    				MASSBase.getLogger().debug( "tid[" + destRank + 
     						"] sends an exhange request to rank: " +
     						destRank + " size() = " + 
     						orgRequest.size( ) );
     				
     				for ( int i = 0; i < orgRequest.size( ); i++ )
-    					logger.debug( "send from " +
+    					MASSBase.getLogger().debug( "send from " +
     							orgRequest.get(i).
     							getOrgGlobalLinearIndex() + " to " +
     							orgRequest.get(i).
     							getDestGlobalLinearIndex() + " at " +
     							orgRequest.get(i).getInMessageIndex() );
+    			
     			}
+    		
     		}
     	
     		// now compose and send a message by a child
-    		Message messageToDest = 
+    		Message messageToDest =
     				new Message( Message.ACTION_TYPE.
     						PLACES_EXCHANGE_ALL_REMOTE_REQUEST,
     						srcHandle, destHandle_at_src, functionId, 
     						orgRequest, 0 ); // 0 = dummy
 
-    		SendMessageByChild thread_ref = new SendMessageByChild( destRank, messageToDest );
-    		thread_ref.start( );
-
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
+    		
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
-
-    		// at this point, the message must be exchanged.
-    		try {
-    			thread_ref.join( );
-    		} catch ( Exception e ) {
-    			// TODO - should do something when this exception is caught - not just swallow it
-    			logger.error("Exception during message exchanging in PlacesBase", e);
-    		}
 
     		// process a message
     		Vector<RemoteExchangeRequest> receivedRequest = messageFromSrc.getExchangeReqList( );
 
     		int destHandle_at_dst = messageFromSrc.getDestHandle( );
-    		PlacesBase dstPlaces = 
-    				MASSBase.getPlacesMap().get( new Integer( destHandle_at_dst ) );
+    		PlacesBase dstPlaces = MASSBase.getPlacesMap().get( destHandle_at_dst );
 
-    		if ( logger.isDebugEnabled() ) {
-    			logger.debug( "request from rank[" + destRank + "] = ", receivedRequest );
-    			logger.debug( " size( ) = " + receivedRequest.size( ) );
-    		}
+    		MASSBase.getLogger().debug( "request from rank[" + destRank + "] = ", receivedRequest );
+    		MASSBase.getLogger().debug( " size( ) = " + receivedRequest.size( ) );
 
     		// get prepared for a space to sotre return values
     		Object[] retVals = new Object[receivedRequest.size( )];
@@ -273,8 +252,8 @@ public class PlacesBase {
     		// for each place, call the corresponding callMethod( ).
     		for ( int i = 0; i < receivedRequest.size( ); i++ ) {
 
-    			if ( logger.isDebugEnabled() )
-    				logger.debug( "received from " +
+    			if ( MASSBase.getLogger().isDebugEnabled() )
+    				MASSBase.getLogger().debug( "received from " +
     						receivedRequest.get(i).
     						getOrgGlobalLinearIndex() + " to " +
     						receivedRequest.get(i).
@@ -285,47 +264,34 @@ public class PlacesBase {
     						" dstPlaces.upper = " + 
     						dstPlaces.upperBoundary );
 
-    			int globalLinearIndex = 
-    					receivedRequest.get(i).getDestGlobalLinearIndex();
+    			int globalLinearIndex = receivedRequest.get(i).getDestGlobalLinearIndex();
     			Object outMessage = receivedRequest.get(i).getOutMessage();
 
-    			if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
-    					globalLinearIndex <= dstPlaces.upperBoundary ) {
+    			if ( globalLinearIndex >= dstPlaces.lowerBoundary && globalLinearIndex <= dstPlaces.upperBoundary ) {
+    				
     				// local destination
-    				int destinationLocalLinearIndex = 
-    						globalLinearIndex - dstPlaces.lowerBoundary;
+    				int destinationLocalLinearIndex = globalLinearIndex - dstPlaces.lowerBoundary;
 
-    				logger.debug( " dstLocal = ", destinationLocalLinearIndex );
+    				MASSBase.getLogger().debug( " dstLocal = ", destinationLocalLinearIndex );
 
     				Place dstPlace = dstPlaces.places[destinationLocalLinearIndex];
 
     				// call the destination function
     				retVals[i] = dstPlace.callMethod( functionId, outMessage );
+    			
     			}
+    		
     		}
 
     		// send return values by a child thread
-    		Message messageToSrc = 
-    				new Message( Message.ACTION_TYPE.
-    						PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
-    						retVals );
-    		thread_ref = new SendMessageByChild( destRank, messageToSrc );
-    		thread_ref.start( );
-
+    		Message messageToSrc = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, retVals );
+    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToSrc ) ).start();
+    		
     		// receive return values by myself in parallel
-    		Message messageFromDest = 
-    				MASSBase.getExchange().receiveMessage( destRank );
-
-    		// at this point, the message must be exchanged.
-    		try {
-    			thread_ref.join( );
-    		} catch ( Exception e ) {
-    			// TODO - need to so something once this exception is thrown
-    			logger.debug("Exception thrown while exchanging messages in PlacesBase", e);
-    		}
+    		Message messageFromDest = MASSBase.getExchange().receiveMessage( destRank );
 
     		// store return values to the orignal places
-    		Object[] argument = (Object[])messageFromDest.getArgument( );
+    		Object[] argument = ( Object[] ) messageFromDest.getArgument( );
 
     		for ( int i = 0; i < orgRequest.size( ); i++ ) {
     			
@@ -335,7 +301,7 @@ public class PlacesBase {
 
     			// locate a local place
     			PlacesBase srcPlaces = 
-    					MASSBase.getPlacesMap().get( new Integer( srcHandle ) );
+    					MASSBase.getPlacesMap().get( srcHandle );
     			Place srcPlace = srcPlaces.places[orgLocalLinearIndex];
 
     			// store a return value to it
@@ -345,67 +311,60 @@ public class PlacesBase {
     			srcPlace.getInMessages()[orgRequest.get(i).getInMessageIndex()] = 
     					inMessage;
 
-    			if ( logger.isDebugEnabled() )
-    				logger.debug( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
+    			if ( MASSBase.getLogger().isDebugEnabled() )
+    				MASSBase.getLogger().debug( "srcPlace[" + srcPlace.getIndex()[0]+ "][" 
     						+ srcPlace.getIndex()[1] + "] inserted " 
     						+ "at " 
     						+ orgRequest.get(i).getInMessageIndex() );
+    		
     		}
-    	}
-    }
-    
-    private class SendMessageByChild extends Thread {
-
-    	int rank;
-    	Message message;
     	
-    	public SendMessageByChild( int rank, Message message ) {
-    		this.rank = rank;
-    		this.message = message;
-    	}
-    	
-    	public void run( ) {
-    		MASSBase.getExchange().sendMessage( rank, message );
     	}
     
     }
-
+    
+    /**
+     * Execute a function (specified by ID) on each Place, with a single argument
+     * @param functionId The function (method) to execute
+     * @param argument Optional argument to be supplied to the method
+     * @param tid The ID of the thread that should execute the method
+     */
     public void callAll( int functionId, Object argument, int tid ) {
     	
     	int[] range = new int[2];
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( logger.isDebugEnabled() )
-    		logger.debug( "thread[" + tid + "] callAll functionId = " + 
+    	if ( MASSBase.getLogger().isDebugEnabled() )
+    		MASSBase.getLogger().debug( "thread[" + tid + "] callAll functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] );
 
     	if ( range[0] >= 0 && range[1] >= 0 ) {
     		
     		for ( int i = range[0]; i <= range[1]; i++ ) {
-    			
-    			// TODO - what is being logged here? A Places object?
-//    			if ( logger.isDebugEnabled() )
-//    				logger.debug( "thread[" + tid + "]: places[i] = " + 
-//    						places[i] );
-
     			places[i].callMethod( functionId, argument );
-    		
     		}
     	
     	}
     
     }
 
+    /**
+     * Execute a function (specified by ID) on each Place, with multiple arguments
+     * @param functionId The function (method) to execute
+     * @param arguments Optional arguments to be supplied to the method
+     * @param length The number of arguments supplied
+     * @param tid The ID of the thread that should execute the method
+     */
     public Object callAll( int functionId, Object[] arguments, int length, int tid ) {
 
     	int[] range = new int[2];
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( logger.isDebugEnabled() )
-    		logger.debug( "thread[" + tid + 
+    	if ( MASSBase.getLogger().isDebugEnabled() )
+    		MASSBase.getLogger().debug( "thread[" + tid + 
     				"] callAll_return object functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] +
@@ -415,8 +374,8 @@ public class PlacesBase {
 
     		for ( int i = range[0]; i <= range[1]; i++ ) {
     			
-    			if ( logger.isDebugEnabled() )
-    				logger.debug( "thread[" + tid + "]: places[" + i + "] = " + 
+    			if ( MASSBase.getLogger().isDebugEnabled() )
+    				MASSBase.getLogger().debug( "thread[" + tid + "]: places[" + i + "] = " + 
     						places[i] );
 
     			// this fix is kind of a band aid too.
@@ -424,20 +383,29 @@ public class PlacesBase {
     				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, null );
     			else
     				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, arguments[i] );
+    		
     		}
+    	
     	}
     	
     	return null;
     
     }
     
+    /**
+     * Perform an ExchangeAll operation on Places
+     * @param dstPlaces The Places on which to perform the Exchange All
+     * @param functionId The function/method ID to execute
+     * @param tid The ID of the thread that should execute the method
+     */
     public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) {
+
     	int[] range = new int[2];
     	getLocalRange( range, tid );
 
     	// debugging
-    	if ( logger.isDebugEnabled() )
-    		logger.debug( "thread[" + tid + "] exchangeAll functionId = " + 
+    	if ( MASSBase.getLogger().isDebugEnabled() )
+    		MASSBase.getLogger().debug( "thread[" + tid + "] exchangeAll functionId = " + 
     				functionId + ", range[0] = " + range[0] + 
     				" range[1] = " + range[1] );
 
@@ -462,39 +430,37 @@ public class PlacesBase {
 
     				// compute its coordinate
     				getGlobalNeighborArrayIndex( srcPlace.getIndex(), offset, dstPlaces.size, neighborCoord );
-    				
-    				if ( logger.isDebugEnabled() )
-    					logger.debug( "tid[" + tid + "]: calls from"
+
+    				if ( MASSBase.getLogger().isDebugEnabled() )
+    					MASSBase.getLogger().debug( "tid[" + tid + "]: calls from"
     							+ "[" + srcPlace.getIndex()[0]
-    							+ "][" + srcPlace.getIndex()[1] + "]"
-    							+ " (neighborCord[" + neighborCoord[0]
-    							+ "][" + neighborCoord[1] + "]"
-    							+ " dstPlaces.size[" 
-    							+ dstPlaces.size[0] 
-    							+ "][" + dstPlaces.size[1] + "]" );
+    									+ "][" + srcPlace.getIndex()[1] + "]"
+    									+ " (neighborCord[" + neighborCoord[0]
+    											+ "][" + neighborCoord[1] + "]"
+    											+ " dstPlaces.size[" 
+    											+ dstPlaces.size[0] 
+    													+ "][" + dstPlaces.size[1] + "]" );
 
     				if ( neighborCoord[0] != -1 ) { 
-    					
-    					// destination valid
-    					int globalLinearIndex = getGlobalLinearIndexFromGlobalArrayIndex( 
-    									neighborCoord,
-    									dstPlaces.size );
 
-    					if ( logger.isDebugEnabled() ) 
-    						logger.debug( " linear = " + globalLinearIndex
+    					// destination valid
+    					int globalLinearIndex = MatrixUtilities.getLinearIndex(dstPlaces.size, neighborCoord);
+
+    					if ( MASSBase.getLogger().isDebugEnabled() ) 
+    						MASSBase.getLogger().debug( " linear = " + globalLinearIndex
     								+ " lower = " 
     								+ dstPlaces.lowerBoundary
     								+ " upper = " 
     								+ dstPlaces.upperBoundary + ")" );
 
-    					if ( globalLinearIndex >= dstPlaces.lowerBoundary &&
-    							globalLinearIndex <= dstPlaces.upperBoundary ) {
+    					if ( globalLinearIndex >= dstPlaces.lowerBoundary && globalLinearIndex <= dstPlaces.upperBoundary ) {
+
     						// local destination
     						int destinationLocalLinearIndex = globalLinearIndex - dstPlaces.lowerBoundary;
     						Place dstPlace = dstPlaces.places[destinationLocalLinearIndex];
 
-    						if ( logger.isDebugEnabled() )
-    							logger.debug( " to [" + dstPlace.getIndex()[0] +
+    						if ( MASSBase.getLogger().isDebugEnabled() )
+    							MASSBase.getLogger().debug( " to [" + dstPlace.getIndex()[0] +
     									"][" + dstPlace.getIndex()[1] + "]");
 
     						// call the destination function
@@ -504,17 +470,17 @@ public class PlacesBase {
     						srcPlace.getInMessages()[j] = inMessage;
 
     						// for debug
-    						logger.debug( " inMessage = {}",srcPlace.getInMessages()[j] );
-    					
+    						MASSBase.getLogger().debug( " inMessage = {}",srcPlace.getInMessages()[j] );
+
     					} else {
+
     						// remote destination
 
     						// find the destination node
     						int destRank = getRankFromGlobalLinearIndex( globalLinearIndex );
 
     						// create a request
-    						int orgGlobalLinearIndex =
-    								getGlobalLinearIndexFromGlobalArrayIndex( srcPlace.getIndex(), size );
+    						int orgGlobalLinearIndex = MatrixUtilities.getLinearIndex( size, srcPlace.getIndex() );
     						RemoteExchangeRequest request = new
     								RemoteExchangeRequest( globalLinearIndex,
     										orgGlobalLinearIndex,
@@ -524,11 +490,13 @@ public class PlacesBase {
     						// enqueue the request to this node.map
     						Vector<RemoteExchangeRequest> remoteRequests = 
     								MASSBase.getRemoteRequests().get( destRank );
-    						
+
     						synchronized( remoteRequests ) {
+    							
     							remoteRequests.add( request );
-    							if ( logger.isDebugEnabled() )
-    								logger.debug( "remoteRequest[" + 
+    							
+    							if ( MASSBase.getLogger().isDebugEnabled() )
+    								MASSBase.getLogger().debug( "remoteRequest[" + 
     										destRank + "].add:" +
     										" org = " + 
     										orgGlobalLinearIndex +
@@ -536,21 +504,25 @@ public class PlacesBase {
     										globalLinearIndex +
     										" size( ) = " +
     										remoteRequests.size( ) );
+    						
     						}
+    					
     					}
-    				} else {
-    					//This just fills the log with junk
-    					// logger.error( " to destination invalid" );
+
     				}
+    				
     			}
+ 
     		}
+    	
     	}
 
     	// all threads must barrier synchronize here.
     	MThread.barrierThreads( tid );
     	
     	if ( tid == 0 ) {
-    		logger.debug( "tid[{}] now enters processRemoteExchangeRequest", tid );
+    		
+    		MASSBase.getLogger().debug( "tid[{}] now enters processRemoteExchangeRequest", tid );
 
     		// the main thread spawns as many communication threads as 
     		// the number of remote computing nodes and let each invoke 
@@ -561,6 +533,7 @@ public class PlacesBase {
     		int[][] comThrArgs = new int[MASSBase.getSystemSize()][5];
     		ProcessRemoteExchangeRequest[] thread_ref = new ProcessRemoteExchangeRequest[MASSBase.getSystemSize()]; 
     		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
+    			
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;
 
@@ -574,10 +547,12 @@ public class PlacesBase {
     			// start a communication thread
     			thread_ref[rank] = new ProcessRemoteExchangeRequest( comThrArgs[rank] );
     			thread_ref[rank].start( );
+    		
     		}
 
     		// wait for all the communication threads to be terminated
     		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
+    			
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;      
     			try {
@@ -586,37 +561,37 @@ public class PlacesBase {
     			
     			// TODO - should something be done here on exception?
     			catch ( Exception e ) {
-    				logger.error("Exception thrown in PlacesBase while attempting to join rank {}", rank, e);
-    				e.printStackTrace();
+    				MASSBase.getLogger().error("Exception thrown in PlacesBase while attempting to join rank {}", rank, e);
     			}
+    		
     		}
+    	
     	} else {
-    		logger.debug( "tid[{}] skips processRemoteExchangeRequest", tid );
+    		MASSBase.getLogger().debug( "tid[{}] skips processRemoteExchangeRequest", tid );
     	}
+    
     }
 
+    /**
+     * Exchange boundaries between neighboring Places
+     */
     public void exchangeBoundary( ) {
     	
     	if ( shadowSize == 0 ) { // no boundary, no exchange
-    		logger.debug( "places (handle = {}) has NO boundary, and thus invokes NO exchange boundary", handle );
+    		MASSBase.getLogger().debug( "places (handle = {}) has NO boundary, and thus invokes NO exchange boundary", handle );
     		return;
     	}
 
     	ExchangeBoundary_helper thread_ref = null;
 
-    	logger.debug( "exchangeBoundary starts" );
+    	MASSBase.getLogger().debug( "exchangeBoundary starts" );
 
-    	int[][] param = new int[2][4];
     	if ( MASSBase.getMyPid() < MASSBase.getSystemSize() - 1 ) {
     		
     		// create a child in charge of handling the right shadow.
-    		param[0][0] = 'R';
-    		param[0][1] = handle;
-    		param[0][2] = placesSize;
-    		param[0][3] = shadowSize;
-    		logger.debug( "exchangeBoundary: pthreacd_create( helper, R ) places_size= {}", placesSize );
+    		MASSBase.getLogger().debug( "exchangeBoundary: pthreacd_create( helper, R ) places_size= {}", placesSize );
 
-    		thread_ref = new ExchangeBoundary_helper( param[0] );
+    		thread_ref = new ExchangeBoundary_helper( 'R', placesSize, shadowSize );
     		thread_ref.start( );
     	
     	}
@@ -624,14 +599,8 @@ public class PlacesBase {
     	if ( MASSBase.getMyPid() > 0 ) {
     		
     		// the main takes charge of handling the left shadow.
-    		param[1][0] = 'L';
-    		param[1][1] = handle;    
-    		param[1][2] = placesSize;
-    		param[1][3] = shadowSize;
-
-    		logger.debug( "exchangeBoundary: main thread( helper, L ) places_size = {}", placesSize );
-
-    		( new ExchangeBoundary_helper( param[1] ) ).run( );
+    		MASSBase.getLogger().debug( "exchangeBoundary: main thread( helper, L ) places_size = {}", placesSize );
+    		( new ExchangeBoundary_helper( 'L', placesSize, shadowSize ) ).run( );
     	
     	}
 
@@ -642,102 +611,71 @@ public class PlacesBase {
     			thread_ref.join( ); 
     		} 
     		catch ( Exception e ) {
-    			
-    			logger.debug( "exchangeBoundary: the main failed in joining with the child = {}", e );
-    		
+    			MASSBase.getLogger().debug( "exchangeBoundary: the main failed in joining with the child = {}", e );
     		}
     	
     	}
     
     }
 
+    /**
+     * Get the name of the class used for a Place
+     * @return The Place implementation class name
+     */
     protected String getClassName() {
 		return className;
 	}
     
-    /** 
-     * Converts a given plain single index into a multidimensional index.
-     * @param singleIndex An index in a plain single dimension that will be
-     *                        converted in a multidimensional index.
-     * @return a multidimensional index			   
+    /**
+     * Get the index array representing neighboring locations
+     * @param src_index The source index
+     * @param offset An offset into the source index
+     * @param dst_size The destination index array (populated by this method)
+     * @param dest_index The destination index
      */
-    protected int[] getGlobalArrayIndex( int singleIndex ) {
-
-    	int[] index = new int[size.length];
-
-    	for ( int i = size.length - 1; i >= 0; i-- ) {
-    		// calculate from lower dimensions
-    		index[i] = singleIndex % size[i];
-    		singleIndex /= size[i];
-    	}
-
-    	return index;
-    }
-    
-    protected int getGlobalLinearIndexFromGlobalArrayIndex( int index[], int size[] ) {
-    	
-    	int retVal = 0;
-
-    	for ( int i = 0; i < index.length; i++ ) {
-    		
-    		if ( size[i] <= 0 )
-    			continue;
-    		
-    		if ( index[i] >= 0 && index[i] < size[i] ) {
-    			retVal = retVal * size[i];
-    			retVal += index[i];
-    		}
-    		else
-    			return Integer.MIN_VALUE; // out of space
-    	
-    	}
-
-    	return retVal;
-    
-    }
-
-    @SuppressWarnings("unused")
-    protected void getGlobalNeighborArrayIndex( int src_index[], 
-
-    		int offset[],
-    		int dst_size[], 
-    		int dest_index[] ) {
+    protected void getGlobalNeighborArrayIndex( int src_index[], int offset[], int dst_size[], int dest_index[] ) {
     	
     	for (int i = 0; i < dest_index.length; i++ ) {
+    		
     		dest_index[i] = src_index[i] + offset[i]; // calculate dest index
 
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
     			
     			// out of range
-    			for ( int j = 0; j < dest_index.length; j++ ) {
-    				// all index must be set -1
-    				dest_index[j] = -1;
-    				return;
-    			}
-    		
+    			Arrays.fill( dest_index, -1 );
+    			return;
+    			
     		}
     	
     	}
     
     }
     
+    /**
+     * Get the handle (ID) for PlacesBase on this node
+     * @return PlacesBase handle ID
+     */
     public int getHandle( ) {
     	return handle;
     }
 
+	/**
+	 * Get the "leftmost" Places shared with the adjacent node (lower rank number)
+	 * @return The leftmost shared Places
+	 */
     protected Place[] getLeftShadow() {
 		return leftShadow;
 	}
 
     /** 
      * Returns the first and last of the range that should be allocated
-     *        to a given thread
+     * to a given thread
      *
-     * @param tid An id of the thread that calls this function.
-     * @return An array of two integers: element 0 = the first and 
+     * @param range An array of two integers: element 0 = the first and 
      *           element 1 = the last
+     * @param tid An id of the thread that calls this function.
      */
-    private void getLocalRange( int[] range, int tid ) {
+    protected void getLocalRange( int[] range, int tid ) {
 
     	int nThreads = MASSBase.getThreads().length;
     	int portion = placesSize / nThreads; // per-thread allocated  range
@@ -777,80 +715,93 @@ public class PlacesBase {
 
     }
 
+	/**
+	 * Get the lower limit array element number of Places located on this node
+	 * @return The lowest number Place element located on this node
+	 */
 	protected int getLowerBoundary() {
 		return lowerBoundary;
 	}
 
+	/**
+	 * Get the Places located on this node
+	 * @return The actual Places on this node
+	 */
 	public Place[] getPlaces() {
 		return places;
 	}
 
-	protected int getPlacesSize( ) {
+	/**
+	 * Get the number of Places located on this node
+	 * @return The number of Places on this node
+	 */
+	public int getPlacesSize( ) {
     	return placesSize;
     }
 
+	/**
+	 * Given a Place index, referenced to a gloabl index of Places, return the "rank"
+	 * or node number where the Place is actually located
+	 * @param globalLinearIndex The array index for which to obtain the node or rank number
+	 * @return The node/rank number associated with that Place
+	 */
 	protected int getRankFromGlobalLinearIndex( int globalLinearIndex ) {
-
-    	if ( total == 0 ) {
-    		
-    		// first time computation
-    		total = 1;
-    		for ( int i = 0; i < size.length; i++ )
-    			total *= size[i];
-    		
-    		stripeSize = total / MASSBase.getSystemSize();
-    	
-    	}
-
-    	int rank, scope;
-    	for ( rank = 0, scope = stripeSize ; rank < MASSBase.getSystemSize(); 
-    			rank++, scope += stripeSize ) {
-    		
-    		if ( globalLinearIndex < scope )
-    			break;
-    	
-    	}
-
-    	return ( rank == MASSBase.getSystemSize() ) ? rank - 1 : rank;
-    
+		return MatrixUtilities.getRankFromGlobalLinearIndex( globalLinearIndex, size, MASSBase.getSystemSize() );
     }
 
+	/**
+	 * Get the "rightmost" Places shared with the adjacent node (higher rank number)
+	 * @return The rightmost shared Places
+	 */
 	protected Place[] getRightShadow() {
 		return rightShadow;
 	}
 
+	/**
+	 * Get the size of the shadow space, "left" or "right" (same size)
+	 * @return The size of the shadow space
+	 */
 	protected int getShadowSize() {
 		return shadowSize;
 	}
 
+	/**
+	 * Get the total size of the simulation space, as an array of matrix dimensions
+	 * @return Simulation space size, as matrix dimensions
+	 */
 	public int[] getSize() {
 		return size;
 	}
 
+	/**
+	 * Get the upper limit array element number of Places located on this node
+	 * @return The highest number Place element located on this node
+	 */
 	protected int getUpperBoundary() {
 		return upperBoundary;
 	}
 
     private void init_all( Object argument ) {
     	
+    	// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
+    	if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
+    	
     	// For debugging
-    	logger.debug( "init_all handle = " + handle + 
+    	MASSBase.getLogger().debug( "init_all handle = " + handle + 
     				", class = " + className + 
     				", argument = " + argument );
+
+		// calculate "total", which is equal to the number of dimensions in "size" 
+		int total = MatrixUtilities.getMatrixSize( size );
+
+		// stripe size is total number of places divided by the number of nodes
+		MASSBase.getLogger().debug( "Calculating stripe size, total number of Places is {}", total );
+		MASSBase.getLogger().debug( "Calculating stripe size, system size (number of nodes) is {}", MASSBase.getSystemSize() );
+		int stripeSize = total / MASSBase.getSystemSize();
 
     	// load the place constructor
     	try {
 
-    		// calculate "total", which is equal to the number of dimensions in "size" 
-    		total = 1;
-    		for (int i : size) {
-    			total *= i;
-    		}
-
-    		// stripe size is total number of places divided by the number of nodes
-    		logger.debug( "Calculating stripe size, total number of Places is {}", total );
-    		logger.debug( "Calculating stripe size, system size (number of nodes) is {}", MASSBase.getSystemSize() );
-    		stripeSize = total / MASSBase.getSystemSize();
 
     		// lower_boundary is the first place managed by this node
     		lowerBoundary = stripeSize * MASSBase.getMyPid();
@@ -868,19 +819,24 @@ public class PlacesBase {
     		// initialize all Places objects
     		for ( int i = 0; i < placesSize; i++ ) {
     			
+    			// TODO - hack! should be able to set index on a Place without having to resort to calling back for it (should be pushed, not pulled)
+    			nextIndex = MatrixUtilities.getIndex( size, lowerBoundary + i);
+    			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
-				newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				newPlace.setSize(size);
+
+				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
+
+				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
+				//newPlace.setSize(size); 
 				places[i] = newPlace;
 
     		}
-    	
     	} 
     	
     	// TODO - what to do when this exception is caught?
     	catch ( Exception e ) {
-    	  logger.error( "Places_base.init_all: {} not loaded and/or instantiated", className, e);
+    		MASSBase.getLogger().error( "Places_base.init_all: {} not loaded and/or instantiated", className, e);
     	}
 
     	// allocate the left/right shadows
@@ -893,16 +849,12 @@ public class PlacesBase {
     		return;
     	}
 
-    	shadowSize = ( size.length == 1 ) 
-    			? boundaryWidth : total / size[0] * boundaryWidth;
+    	shadowSize = ( size.length == 1 ) ? boundaryWidth : total / size[0] * boundaryWidth;
     	
-    	logger.debug( "Places_base.shadow_size = {}", shadowSize );
+    	MASSBase.getLogger().debug( "Places_base.shadow_size = {}", shadowSize );
 
-    	leftShadow = ( MASSBase.getMyPid() == 0 ) ?
-    			null : new Place[ shadowSize ];
-    	rightShadow = 
-    			( MASSBase.getMyPid() == MASSBase.getSystemSize() - 1 ) ?
-    					null : new Place[ shadowSize ];
+    	leftShadow = ( MASSBase.getMyPid() == 0 ) ? null : new Place[ shadowSize ];
+    	rightShadow = ( MASSBase.getMyPid() == MASSBase.getSystemSize() - 1 ) ? null : new Place[ shadowSize ];
 
     	// initialize the left/right shadows
     	try {
@@ -910,12 +862,14 @@ public class PlacesBase {
     		for ( int i = 0; i < shadowSize; i++ ) {
 
     			// left shadow initialization
+    			// TODO - this check should be made before entering the loop to init leftShadow or rightShadow - no point looping to init shadows that dont exist
     			if ( leftShadow != null ) {
 
     				// instantiate a new place
-					Place newPlace = objectFactory.getInstance(className, argument);
-					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(lowerBoundary - shadowSize + i));
+    				// TODO - see "hack" comments above
+    				nextIndex = MatrixUtilities.getIndex( size, lowerBoundary - shadowSize + i);
+    				Place newPlace = objectFactory.getInstance(className, argument);
+					newPlace.setIndex( nextIndex );
 					leftShadow[i] = newPlace;
 
     			}
@@ -924,9 +878,10 @@ public class PlacesBase {
     			if ( rightShadow != null ) {
 
     				// instantiate a new place
+    				// TODO - see "hack" comments above
+    				nextIndex = MatrixUtilities.getIndex( size, upperBoundary + i);
 					Place newPlace = objectFactory.getInstance(className, argument);
-					newPlace.setSize(size);
-					newPlace.setIndex(getGlobalArrayIndex(upperBoundary + i));
+					newPlace.setIndex( nextIndex );
 					rightShadow[i] = newPlace;
 
     			}
@@ -937,9 +892,22 @@ public class PlacesBase {
     	
     	// TODO - what to do if this is caught?
     	catch ( Exception e ) {
-        	logger.error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
+    		MASSBase.getLogger().error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
     	} 
     
+    }
+
+    /**
+     * During instantiation of Places, the "index" must be set. To preserve compatibility with classes derived from Place
+     * that require an index value when the constructor is called, this method is provided. This method returns the "index"
+     * that should be used for the next Place instantiated.
+     * <p>
+     * When the Place is instantiated, it's constructor calls this method to get the index value so that the derived class
+     * may use it in it's constructor.
+     * @return The index value the next Place instantiation will need
+     */
+    public int[] getNextIndex() {
+    	return nextIndex;
     }
 
 }

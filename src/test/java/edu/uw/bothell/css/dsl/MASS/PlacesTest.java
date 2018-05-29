@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2017 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -30,24 +30,56 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.Serializable;
+import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("serial")
-public class AgentMigrationResponse implements Serializable {
-  
-  private int numOfAgentReceived;
-  private boolean chosenAsParentPid;
-  
-  public AgentMigrationResponse(int nOA, boolean chosen) {
-    numOfAgentReceived = nOA;
-    chosenAsParentPid = chosen;
-  }
-  
-  public int getNumOfAgentReceived() {
-    return numOfAgentReceived;
-  }
-  
-  public boolean isChosenAsParentPid() {
-    return this.chosenAsParentPid;
-  }
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+/**
+ * Perform a series of unit tests against the Places class to verify proper
+ * and consistent behavior of the class / methods
+ */
+public class PlacesTest extends AbstractTest {
+
+	@BeforeClass
+	public static void beforeAll() {
+		
+		// MASSBase should be made ready for use before tests are run
+		MNode masterNode = new MNode();
+		masterNode.setHostName( randomString() );
+		masterNode.setMaster( true );
+		MASSBase.addNode( masterNode );
+		MASSBase.initMASSBase( masterNode );
+
+	}
+
+	@Test
+	public void constructorWithoutBoundaryWidth() throws Exception {
+		
+		Places places = new Places( 0, SimpleTestPlace.class.getName(), null, 1, 1, 1 );
+		
+		// Places map should contain this new Places object
+		assertEquals( places, MASSBase.getPlacesMap().get( 0 ) );
+		
+	}
+
+	@Test
+	public void constructorWithBoundaryWidth() throws Exception {
+		
+		Places places = new Places( 0, SimpleTestPlace.class.getName(), 1, null, 1, 1, 1 );
+		
+		// Places map should contain this new Places object
+		assertEquals( places, MASSBase.getPlacesMap().get( 0 ) );
+		
+	}
+
+	@AfterClass
+	public static void afterAll() {
+		
+		// clean up MASSBase
+		resetMASSBase();
+		
+	}
+
 }
