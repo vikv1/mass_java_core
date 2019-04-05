@@ -40,6 +40,9 @@ import edu.uw.bothell.css.dsl.MASS.SimpleTestAgent;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 
+/**
+ * Tests annotations that may be used by an Agent (or subclass)
+ */
 public class AgentAnnotationsTest extends AbstractTest {
 
 	// class under test
@@ -54,50 +57,48 @@ public class AgentAnnotationsTest extends AbstractTest {
 	 */
 	@Before
 	public void resetTestAgent() {
-		
-		agent.setPrivateAgentData( 0 );
-		
+		agent.resetEventCounters();
 	}
 
 	@Test
 	public void invokeOnArrival() throws Exception {
 
-		// private agent data should start at zero
-		assertEquals( 0, agent.getPrivateAgentData() );
+		// arrival event invocation count should start at zero
+		assertEquals( 0, agent.getArrivalEventCount() );
 		
 		// invoke the OnArrival method
 		eventDispatcher.invokeImmediate( OnArrival.class, agent );
 		
 		// method should have executed
-		assertEquals( 1, agent.getPrivateAgentData() );
+		assertEquals( 1, agent.getArrivalEventCount() );
 		
 	}
 
 	@Test
 	public void invokeOnCreation() throws Exception {
 
-		// private agent data should start at zero
-		assertEquals( 0, agent.getPrivateAgentData() );
+		// creation event invocation count should start at zero
+		assertEquals( 0, agent.getCreationEventCount() );
 		
 		// invoke the OnCreation method
 		eventDispatcher.invokeImmediate( OnCreation.class, agent );
 		
 		// method should have executed
-		assertEquals( 10, agent.getPrivateAgentData() );
+		assertEquals( 1, agent.getCreationEventCount() );
 		
 	}
 
 	@Test
 	public void invokeOnDeparture() throws Exception {
 
-		// private agent data should start at zero
-		assertEquals( 0, agent.getPrivateAgentData() );
+		// departure event invocation count should start at zero
+		assertEquals( 0, agent.getDepartureEventCount() );
 		
 		// invoke the OnDeparture method
 		eventDispatcher.invokeImmediate( OnDeparture.class, agent );
 		
 		// method should have executed
-		assertEquals( -1, agent.getPrivateAgentData() );
+		assertEquals( 1, agent.getDepartureEventCount() );
 		
 	}
 

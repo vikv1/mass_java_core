@@ -40,6 +40,9 @@ import edu.uw.bothell.css.dsl.MASS.SimpleTestAgent;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
 
+/**
+ * Tests the SimpleEventDispatcher
+ */
 public class SimpleEventDispatcherTest extends AbstractTest {
 
 	// class under test
@@ -56,31 +59,31 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 	@Before
 	public void resetTestAgent() {
 		
-		agent1.setPrivateAgentData( 0 );
-		agent2.setPrivateAgentData( 0 );
-		agent3.setPrivateAgentData( 0 );
+		agent1.resetEventCounters();
+		agent2.resetEventCounters();
+		agent3.resetEventCounters();
 		
 	}
 
 	@Test
 	public void invokeImmediate() throws Exception {
 		
-		// private agent data should start at zero
-		assertEquals( 0, agent1.getPrivateAgentData() );
+		// OnArrival execution count should start at zero
+		assertEquals( 0, agent1.getArrivalEventCount() );
 		
 		// invoke the OnArrival method
 		eventDispatcher.invokeImmediate( OnArrival.class, agent1 );
 		
 		// method should have executed
-		assertEquals( 1, agent1.getPrivateAgentData() );
+		assertEquals( 1, agent1.getArrivalEventCount() );
 
 	}
 
 	@Test
 	public void invokeAsync() throws Exception {
 		
-		// private agent data should start at zero
-		assertEquals( 0, agent2.getPrivateAgentData() );
+		// OnArrival execution count should start at zero
+		assertEquals( 0, agent1.getArrivalEventCount() );
 		
 		// invoke the OnArrival method asynchronously
 		eventDispatcher.invokeAsync( OnArrival.class, agent2 );
@@ -89,7 +92,7 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 		Thread.sleep( 2000 );
 		
 		// method should have executed
-		assertEquals( 1, agent2.getPrivateAgentData() );
+		assertEquals( 1, agent2.getArrivalEventCount() );
 
 	}
 	
@@ -111,9 +114,9 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 		Thread.sleep( 2000 );
 		
 		// all methods should have executed
-		assertEquals( 2, agent1.getPrivateAgentData() );
-		assertEquals( 2, agent2.getPrivateAgentData() );
-		assertEquals( 2, agent3.getPrivateAgentData() );
+		assertEquals( 2, agent1.getArrivalEventCount() );
+		assertEquals( 2, agent2.getArrivalEventCount() );
+		assertEquals( 2, agent3.getArrivalEventCount() );
 		
 	}
 
@@ -145,9 +148,12 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 		Thread.sleep( 2000 );
 		
 		// all methods should have executed
-		assertEquals( 1, agent1.getPrivateAgentData() );
-		assertEquals( 1, agent2.getPrivateAgentData() );
-		assertEquals( 1, agent3.getPrivateAgentData() );
+		assertEquals( 3, agent1.getArrivalEventCount() );
+		assertEquals( 3, agent2.getArrivalEventCount() );
+		assertEquals( 3, agent3.getArrivalEventCount() );
+		assertEquals( 2, agent1.getDepartureEventCount() );
+		assertEquals( 2, agent2.getDepartureEventCount() );
+		assertEquals( 2, agent3.getDepartureEventCount() );
 		
 	}
 
