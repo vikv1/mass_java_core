@@ -58,6 +58,11 @@ public class Agent implements Serializable {
 	private boolean alive = true;
 	
 	/**
+	 * Set to TRUE when this Agent has requested to migrate to a new Place (index)
+	 */
+	private transient boolean isMigrating = false;
+	
+	/**
 	 * Is the number of new children created by this agent upon a next call to
 	 * Agents.manageAll( ).
 	 */
@@ -147,6 +152,15 @@ public class Agent implements Serializable {
 	}
 
 	/**
+	 * Get the migration status of this Agent. If TRUE, this Agent has requested to migrate to a new
+	 * Place, if FALSE it is remaining in it's current Place
+	 * @return Agent migration status
+	 */
+	public boolean isMigrating() {
+		return isMigrating;
+	}
+	
+	/**
 	 * Terminates the calling agent upon a next call to Agents.manageAll( ).
 	 * More specifically, kill( ) sets the "alive" variable false.
 	 */
@@ -190,18 +204,29 @@ public class Agent implements Serializable {
 	 * Initiates an agent migration upon a next call to Agents.manageAll( ). More
 	 * specifically, migrate( ) updates the calling agent’s index[].
 	 */
-	protected boolean migrate( int... index ) { 
+	protected boolean migrate( int... newIndex ) { 
 
-		int[] placesSize = place.getSize();
-		for ( int i = 0; i < placesSize.length; i++ ) {
-			if ( index[i] >= 0 && index[i] < placesSize[i] ) {
-				continue;
-			} else {
-				return false;
-			}
+		// compare where we're at now versus new index position
+		// to see if this Agent is attempting to move to a new Place
+		int currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
+		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );
+
+		// attempting to migrate?
+		if ( currentLinearIndex != newLinearIndex ) {
+
+			// yes - assign the new index
+			this.index = newIndex.clone( );
+			isMigrating = true;
+			
 		}
-
-		this.index = index.clone( ); // assign the new index
+		
+		else {
+			
+			// no - reset migration flag
+			isMigrating = false;
+		
+		}
+		
 		return true;
 
 	}
