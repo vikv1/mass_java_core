@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
@@ -206,16 +207,21 @@ public class Agent implements Serializable {
 	 */
 	protected boolean migrate( int... newIndex ) { 
 
+		// invalid index!
+		Objects.requireNonNull( newIndex, "Must provide an index when migrating!" );
+		
+		int currentLinearIndex = 0;
+
 		// compare where we're at now versus new index position
 		// to see if this Agent is attempting to move to a new Place
-		int currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
+		if ( index != null ) currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
 		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );
 
 		// attempting to migrate?
 		if ( currentLinearIndex != newLinearIndex ) {
 
 			// yes - assign the new index
-			this.index = newIndex.clone( );
+			index = newIndex.clone( );
 			isMigrating = true;
 			
 		}
@@ -239,14 +245,16 @@ public class Agent implements Serializable {
 		this.agentId = agentId;
 	}
 
-	/**
-	 * Set the current location or intended destination after migration
-	 * for this Agent
-	 * @param index The current location or destination after migration
-	 */
-	protected void setIndex(int[] index) {
-		this.index = index;
-	}
+//	/**
+//	 * Set the current location or intended destination after migration
+//	 * for this Agent
+//	 * @param index The current location or destination after migration
+//	 */
+//	protected void setIndex(int[] index) {
+//
+//		
+//		this.index = index;
+//	}
 
 	/**
 	 * Set the number of new child Agents created
@@ -261,7 +269,20 @@ public class Agent implements Serializable {
 	 * @param place The current Place where this Agent resides
 	 */
 	protected void setPlace(Place place) {
+		
+		// set the Place
 		this.place = place;
+		
+		if ( place != null ) {
+			
+			// set this Agent's index (index is not transient...)
+			this.index = place.getIndex();
+
+			// reset migration flag (have arrived at a Place and no longer migrating)
+			isMigrating = false;
+
+		}
+		
 	}
 
 	/**

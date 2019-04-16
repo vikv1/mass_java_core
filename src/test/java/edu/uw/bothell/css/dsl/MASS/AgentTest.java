@@ -93,17 +93,17 @@ public class AgentTest extends AbstractTest {
 		
 	}
 	
-	@Test
-	public void getSetIndex() throws Exception {
-
-		int[] index = new int[]{ 1992 };
-
-		agent.setIndex( index );
-		
-		assertEquals( index.length, agent.getIndex().length );
-		assertEquals( index[ 0 ], agent.getIndex()[ 0 ] );
-		
-	}
+//	@Test
+//	public void getSetIndex() throws Exception {
+//
+//		int[] index = new int[]{ 1992 };
+//
+//		agent.setIndex( index );
+//		
+//		assertEquals( index.length, agent.getIndex().length );
+//		assertEquals( index[ 0 ], agent.getIndex()[ 0 ] );
+//		
+//	}
 
 	@Test
 	public void getSetPlace() throws Exception {
@@ -157,6 +157,28 @@ public class AgentTest extends AbstractTest {
 		
 		assertEquals( originalNumChildren, agent.getNewChildren() );
 		
+	}
+	
+	@Test
+	public void isMigrating() throws Exception {
+
+		// need a PlacesBase Place associated with the Agent for this test
+		PlacesBase placesBase = new PlacesBase(0, null, 0, 0, new int[]{2, 2, 2});
+		Place place = new SimpleTestPlace( new String( "WS6" ) );
+		agent.setPlace( place );
+//		MASSBase.getCurrentPlacesBase().setSize( new int[]{ 1944, 1950, 1951 } );
+		
+		// agent should not be migrating at first
+		assertFalse( agent.isMigrating() );
+		
+		// migrate!
+		agent.migrate( new int[]{ 1944, 1950, 1951 } );
+		
+		// agent should indicate that it will be migrating
+		assertTrue( agent.isMigrating() );
+
+		agent.setPlace( null );
+
 	}
 	
 }
