@@ -175,19 +175,17 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		}
 		
 		// build a QueueMethod and add to the queue
-		eventQueue.add( new QueueMethod( eventAnnotation, method, object ) );
+		eventQueue.add( new QueueMethod( method, object ) );
 		
 	}
 	
 	private class QueueMethod {
 		
-		private Class<? extends Annotation> eventAnnotation;
 		private Method methodToInvoke;
 		private Object targetObject;
 		
-		public QueueMethod( Class<? extends Annotation> eventAnnotation, Method methodToInvoke, Object targetObject ) {
+		public QueueMethod( Method methodToInvoke, Object targetObject ) {
 			
-			this.eventAnnotation = eventAnnotation;
 			this.methodToInvoke = methodToInvoke;
 			this.targetObject = targetObject;
 			
