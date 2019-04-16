@@ -44,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 
 /**
@@ -211,25 +212,46 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		if ( eventQueue == null ) return;
 		
 		// for each Method in the queue, attempt to invoke asynchronously
-		eventQueue.forEach( m -> { CompletableFuture future = CompletableFuture.runAsync( () -> { 
-			
+//		Stream.generate(eventQueue::poll).limit(eventQueue.size()).forEach( m -> { CompletableFuture future = CompletableFuture.runAsync( () -> { 
+//			
+//			try {
+//			
+//				m.getMethod().invoke( m.getObject() );
+//		
+//			} 
+//		
+//			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+//			
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//		
+//			} 
+//		
+//			}, executorService ); }
+//                              
+//		);
+
+		// synchronous invocation for now, until threading problems sorted out
+		// when moving to Java 9 can use ".takeWhile(Objects::nonNull)" rather than "limit"
+		Stream.generate(eventQueue::poll).limit(eventQueue.size()).forEach( m -> { 
+
 			try {
-			
+
 				m.getMethod().invoke( m.getObject() );
-		
+
 			} 
-		
+
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			
+
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-		
+
 			} 
-		
-			}, executorService ); }
-                              
+
+		}
+
 		);
-		
+
 	}
 
 }

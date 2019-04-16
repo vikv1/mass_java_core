@@ -95,7 +95,7 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 		assertEquals( 1, agent2.getArrivalEventCount() );
 
 	}
-	
+
 	@Test
 	public void invokeQueuedAsyncSingleQueue() throws Exception {
 		
@@ -117,6 +117,26 @@ public class SimpleEventDispatcherTest extends AbstractTest {
 		assertEquals( 2, agent1.getArrivalEventCount() );
 		assertEquals( 2, agent2.getArrivalEventCount() );
 		assertEquals( 2, agent3.getArrivalEventCount() );
+		
+	}
+
+	@Test
+	public void invokeMultipleQueuedAsyncSingleQueue() throws Exception {
+		
+		// queue up a single event
+		eventDispatcher.queueAsync( OnArrival.class, agent1 );
+		
+		// trigger execution of all queued events for a specified event annotation
+		// do this multiple times to make sure queue is actually being flushed
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+		
+		// wait a few seconds, just to make sure time is given for execution by different threads
+		Thread.sleep( 2000 );
+		
+		// only one method should have executed event though dispatcher execute called several times
+		assertEquals( 1, agent1.getArrivalEventCount() );
 		
 	}
 
