@@ -33,6 +33,9 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.Arrays;
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -53,6 +56,7 @@ public class PlacesBase {
     private Place[] leftShadow;
     private Place[] rightShadow;
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    private EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
 
 	/**
 	 * Instantiate a PlacesBase for this node
@@ -824,11 +828,11 @@ public class PlacesBase {
     			
     			// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, argument);
-
 				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
 
-				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				//newPlace.setSize(size); 
+				// Place has been created
+    			eventDispatcher.queueAsync( OnCreation.class, newPlace );
+
 				places[i] = newPlace;
 
     		}
@@ -838,6 +842,9 @@ public class PlacesBase {
     	catch ( Exception e ) {
     		MASSBase.getLogger().error( "Places_base.init_all: {} not loaded and/or instantiated", className, e);
     	}
+
+    	// Places have been instantiated
+    	eventDispatcher.invokeQueuedAsync( OnCreation.class );
 
     	// allocate the left/right shadows
 
@@ -893,8 +900,8 @@ public class PlacesBase {
     	// TODO - what to do if this is caught?
     	catch ( Exception e ) {
     		MASSBase.getLogger().error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
-    	} 
-    
+    	}
+    	
     }
 
     /**

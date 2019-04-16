@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.Arrays;
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
@@ -145,7 +146,6 @@ public class AgentsBase {
     			}
 
     			newAgent.setPlace(curPlace);
-    			newAgent.setIndex(curPlace.getIndex());
     			
     			// store this agent in the bag of agents
     			agents.add( newAgent );
@@ -157,20 +157,21 @@ public class AgentsBase {
     			eventDispatcher.queueAsync( OnCreation.class, newAgent );
     			
     			// Place has an arriving Agent
-    			
+    			eventDispatcher.queueAsync( OnArrival.class, curPlace );
     			
     			// Agent has arrived at a Place
-    			
+    			eventDispatcher.queueAsync( OnArrival.class, newAgent );
     			
     		}
     		
-    		// invoke queued Agents OnCreation methods
-    		eventDispatcher.invokeQueuedAsync( OnCreation.class );
-    		
-    		// invoke queued Agents OnArrival methods
-    		
-    		
     	}
+
+		// invoke queued Agents OnCreation methods
+		eventDispatcher.invokeQueuedAsync( OnCreation.class );
+		
+		// invoke queued Agents OnArrival methods
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+
     }
 
     public void callAll( int functionId, Object argument, int tid ) {
@@ -448,10 +449,10 @@ public class AgentsBase {
 
 					}
 
-					addAgent.setIndex(evaluationAgent.getPlace().getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
     				
     				// Agent has been created
+    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
     				
 					/** Agent population control work begins, execution order is important! **/
 
@@ -476,8 +477,10 @@ public class AgentsBase {
 						this.agents.add( addAgent );           // auto syn
 						
 	    				// queue Place OnArrival method 
-	    				
+						eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+						
 	    				// queue Agent OnArrival method
+						eventDispatcher.queueAsync( OnArrival.class, addAgent );
 
 					}
 
@@ -568,6 +571,11 @@ public class AgentsBase {
 			/****************************/
 
 			/******* MIGRATE() CHECK *******/
+
+    		// first, check to see if the Agent is actually wanting to migrate
+    		// if not, no point doing anything else
+    		if ( !evaluationAgent.isMigrating() ) continue;
+    		
     		//Iterate over all dimensions of the agent to check its location
     		//against that of its place. If they are the same, return back.
     		int agentIndex = evaluationAgent.getIndex().length;
@@ -625,13 +633,13 @@ public class AgentsBase {
 
     				MASS.getLogger().debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
 
+    				// queue up the agent's OnDeparture event
+
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
     						get( placesHandle ).
     						getPlaces()[destinationLocalLinearIndex]);
 
     				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
-
-    				// if the agent actually moved, queue up the destination's OnDeparture event
     				
     				MASS.getLogger().debug( "evaluationAgent " + 
     							evaluationAgent.getAgentId() +
@@ -639,6 +647,7 @@ public class AgentsBase {
     							evaluationAgent.getPlace().getIndex()[0] + "].." );
     				
     				// if the agent actually moved, queue up it's OnArrival event
+    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent );
     			
     			} 
     			
@@ -750,6 +759,10 @@ public class AgentsBase {
     		}
 
     		localPopulation = agents.size_unreduced( );
+    		
+    		// fire queued events
+    		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+    		
 
     		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	
@@ -847,7 +860,6 @@ public class AgentsBase {
 
     			// push this agent into the place and the entire agent bag.
     			agent.setPlace(dstPlace);
-    			agent.setIndex(dstPlace.getIndex());
     			dstPlace.getAgents().add( agent ); // auto sync
     			agents.add( agent );          // auto sync
     		
