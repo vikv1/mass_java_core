@@ -35,6 +35,7 @@ import java.util.Vector;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -633,8 +634,10 @@ public class AgentsBase {
 
     				MASS.getLogger().debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
 
-    				// queue up the agent's OnDeparture event
-
+    				// queue up OnDeparture events
+    				eventDispatcher.queueAsync( OnDeparture.class, evaluationAgent );
+    				eventDispatcher.queueAsync( OnDeparture.class, oldPlace );
+    				
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
     						get( placesHandle ).
     						getPlaces()[destinationLocalLinearIndex]);
@@ -646,7 +649,8 @@ public class AgentsBase {
     							" was inserted into the destPlace[" +
     							evaluationAgent.getPlace().getIndex()[0] + "].." );
     				
-    				// if the agent actually moved, queue up it's OnArrival event
+    				// if the agent actually moved, queue up OnArrival events
+    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent.getPlace() );
     				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent );
     			
     			} 
@@ -761,8 +765,8 @@ public class AgentsBase {
     		localPopulation = agents.size_unreduced( );
     		
     		// fire queued events
+    		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
     		eventDispatcher.invokeQueuedAsync( OnArrival.class );
-    		
 
     		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	
