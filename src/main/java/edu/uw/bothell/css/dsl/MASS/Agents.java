@@ -269,6 +269,17 @@ public class Agents extends AgentsBase {
   }
 
   /**
+   * Execute callAll and manageAll functions consecutively, with no arguments and no return value
+   * @param numberOfIterations The number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll( int numberOfIterations ) {
+	  
+	  // function ID not important
+	  doAll( 0, numberOfIterations );
+	  
+  }
+  
+  /**
    * Calls callAll and manageAll functions consecutively without responding
    *  back to user application in each iteration.
    *
