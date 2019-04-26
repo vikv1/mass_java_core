@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -665,7 +666,18 @@ public class AgentsBase {
     				// find the destination node
     				int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
 
-    				// queue up the originating Place OnDeparture event
+    				// OnDeparture events must be run immediately before agent is serialized and moved
+    				try {
+						
+    					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent.getPlace() );
+    					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent );
+					
+    				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						
+    					// TODO Auto-generated catch block
+						e.printStackTrace();
+					
+    				}
 
     				// relinquish the old place
     				evaluationAgent.setPlace(null);
@@ -866,7 +878,20 @@ public class AgentsBase {
     			agent.setPlace(dstPlace);
     			dstPlace.getAgents().add( agent ); // auto sync
     			agents.add( agent );          // auto sync
-    		
+    			
+    			// invoke OnArrival events immediately
+    			try {
+
+    				eventDispatcher.invokeImmediate( OnArrival.class,  dstPlace );
+	    			eventDispatcher.invokeImmediate( OnArrival.class,  agent );
+				
+    			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					
+    				// TODO Auto-generated catch block
+					e.printStackTrace();
+				
+    			}
+    			
     		}
 
     		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
