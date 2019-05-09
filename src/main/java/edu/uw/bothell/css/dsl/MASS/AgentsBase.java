@@ -604,30 +604,31 @@ public class AgentsBase {
     						+ " upper = " + 
     						evaluatedPlaces.getUpperBoundary() + ")" );
 
+				Place oldPlace = evaluationAgent.getPlace();
+
+				// Should remove the pointer object in the place that 
+				// points to the migrating Agent
+				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
+					
+					// should not happen
+					MASS.getLogger().error( "evaluationAgent {}" + 
+								evaluationAgent.getAgentId() 
+								+ " couldn't been found in " +
+								"the old place!" );
+					
+					System.exit( -1 );
+				
+				}
+
+				MASS.getLogger().debug( "evaluationAgent " + 
+							evaluationAgent.getAgentId() 
+							+ " was removed from the oldPlace["
+							+ oldPlace.getIndex()[0] + "].." );
+
     			if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
     					globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
     				
     				// local destination
-
-    				// Should remove the pointer object in the place that 
-    				// points to the migrating Agent
-    				Place oldPlace = evaluationAgent.getPlace();
-    				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
-    					
-    					// should not happen
-    					MASS.getLogger().error( "evaluationAgent {}" + 
-    								evaluationAgent.getAgentId() 
-    								+ " couldn't been found in " +
-    								"the old place!" );
-    					
-    					System.exit( -1 );
-    				
-    				}
-
-    				MASS.getLogger().debug( "evaluationAgent " + 
-    							evaluationAgent.getAgentId() 
-    							+ " was removed from the oldPlace["
-    							+ oldPlace.getIndex()[0] + "].." );
 
     				// insert the migration Agent to a local destination place
     				int destinationLocalLinearIndex 
@@ -669,14 +670,11 @@ public class AgentsBase {
     				// OnDeparture events must be run immediately before agent is serialized and moved
     				try {
 						
-    					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent.getPlace() );
+    					eventDispatcher.invokeImmediate( OnDeparture.class, oldPlace );
     					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent );
 					
     				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-						
-    					// TODO Auto-generated catch block
-						e.printStackTrace();
-					
+        				MASS.getLogger().error("Exception thrown when invoking OnDeparture events!", e);
     				}
 
     				// relinquish the old place
@@ -706,7 +704,7 @@ public class AgentsBase {
     		
     		else {
     			
-    			MASS.getLogger().error( " to destination invalid" );
+    			MASS.getLogger().error( " to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid" );
     		
     		}
 			/*******************************/
@@ -886,10 +884,7 @@ public class AgentsBase {
 	    			eventDispatcher.invokeImmediate( OnArrival.class,  agent );
 				
     			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-					
-    				// TODO Auto-generated catch block
-					e.printStackTrace();
-				
+    				MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
     			}
     			
     		}
