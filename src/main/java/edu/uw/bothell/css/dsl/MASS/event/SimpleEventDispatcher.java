@@ -46,6 +46,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
+import edu.uw.bothell.css.dsl.MASS.MASS;
+
 
 /**
  * 
@@ -144,10 +146,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			} 
 		
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-		
+				MASS.getLogger().error("Exception generated when executing async event!", e);
 			} 
 		
 		}, executorService );
@@ -242,10 +241,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			} 
 
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
+				MASS.getLogger().error("Exception caught during async event invocation!", e);
 			} 
 
 		}
