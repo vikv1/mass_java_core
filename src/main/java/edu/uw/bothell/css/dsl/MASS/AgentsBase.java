@@ -549,12 +549,11 @@ public class AgentsBase {
 					}
 
 					// retrieve the corresponding places
-					PlacesBase curPlaces =
-							MASSBase.getPlacesMap().get( placesHandle );
+					PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
 					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
+					
 					// local destination
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
-
 					Place curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
 
 					// push this agent into the place and the entire agent bag.
@@ -564,6 +563,21 @@ public class AgentsBase {
 					// update the counter needed to keep track of our agents.
 					agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
 					this.agents.add( agentSpawnRequest );           // auto syn
+				
+		    		// init the Agent immediately
+		    		try {
+						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						
+						e.printStackTrace();
+						MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );
+					
+					}
+
+    				// queue remaining events for the newly activated Agent
+					eventDispatcher.queueAsync( OnArrival.class, curPlace );
+    				eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );
+				
 				}
 
     			// don't go down to migrate
@@ -775,6 +789,7 @@ public class AgentsBase {
     		localPopulation = agents.size_unreduced( );
     		
     		// fire queued events
+    		eventDispatcher.invokeQueuedAsync( OnCreation.class );
     		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
     		eventDispatcher.invokeQueuedAsync( OnArrival.class );
 
