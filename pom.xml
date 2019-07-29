@@ -18,7 +18,7 @@
 		<!-- Dependency properties -->
 		<slf4j.version>1.7.13</slf4j.version>
 		<log4j.version>2.4.1</log4j.version>
-		<netcdf-java.version>4.5.0</netcdf-java.version>
+		<netcdf-java.version>4.6.14</netcdf-java.version>
 	
 		<!-- Build properties -->	
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
