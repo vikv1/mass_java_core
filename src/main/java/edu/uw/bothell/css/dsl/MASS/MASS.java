@@ -228,6 +228,7 @@ public class MASS extends MASSBase {
 	 * Calling this method effectively begins computation.
 	 */
 	public static void init() {
+		System.err.println("Begin new MASS init");
 
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {

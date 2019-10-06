@@ -60,5 +60,10 @@ public class NodelistTest extends AbstractTest {
 		assertEquals( nodes, nodelist.getNodes() );
 		
 	}
+
+	@Test
+	public void importNodesList() throws Exception {
+		MASS.init();
+	}
 	
 }

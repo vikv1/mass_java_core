@@ -311,45 +311,76 @@ public class Places extends PlacesBase {
 		MASS.barrierAllSlaves( );
     
     }
-    
+
+	/**
+	 * Initializes the places with the given arguments and boundary width.
+	 * @param message the message to send to remote nodes
+	 */
+	protected void init_master_base( Message message ) {
+
+		// create a list of all host names;
+		// the master IP name
+		Vector<String> hosts = getHosts();
+
+		// send a PLACES_INITIALIZE message to each slave
+		MASSBase.getLogger().debug( message.getActionString() + " sent to all remote nodes" );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( message ) );
+
+		// establish all inter-node connections within setHosts( )
+		MASSBase.setHosts( hosts );
+
+		// register this places in the places hash map
+		MASSBase.getPlacesMap().put( getHandle(), this );
+
+		// Synchronized with all slave processes
+		MASS.barrierAllSlaves( );
+
+	}
+
+	protected Vector<String> getHosts() {
+		// create a list of all host names;
+		// the master IP name
+		Vector<String> hosts = new Vector<String>( );
+
+		try {
+			hosts.add( MASS.getMasterNode().getHostName() );
+		} catch ( Exception e ) {
+			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
+			System.exit( -1 );
+		}
+
+		// all the slave IP names
+		for ( MNode node : MASS.getRemoteNodes() ) {
+			hosts.add( node.getHostName( ) );
+		}
+
+		return hosts;
+	}
+
     /**
      * Initializes the places with the given arguments and boundary width.
      * @param argument
      * @param boundaryWidth
      */
-    private void init_master( Object argument, int boundaryWidth ) {
+    protected void init_master( Object argument, int boundaryWidth ) {
 
-		// create a list of all host names;  
-		// the master IP name
-		Vector<String> hosts = new Vector<String>( );
-		
-		try {
-		    hosts.add( MASS.getMasterNode().getHostName() );
-		} catch ( Exception e ) {
-			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
-		    System.exit( -1 );
-		}
-		
-		// all the slave IP names
-		for ( MNode node : MASS.getRemoteNodes() ) {
-		    hosts.add( node.getHostName( ) );
-		}
-	
+		Vector<String> hosts = getHosts();
+
 		// create a new list for message
 		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
 					 getHandle(), getClassName(),
 					 argument, boundaryWidth, hosts );
-		
+
 		// send a PLACES_INITIALIZE message to each slave
 		MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to all remote nodes" );
 		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
-		
+
 		// establish all inter-node connections within setHosts( )
 		MASSBase.setHosts( hosts );
-	
+
 		// register this places in the places hash map
 		MASSBase.getPlacesMap().put( getHandle(), this );
-		
+
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
 

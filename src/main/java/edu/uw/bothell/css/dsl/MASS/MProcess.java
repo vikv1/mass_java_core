@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -283,6 +284,26 @@ public class MProcess {
 				sendAck();
 				MASSBase.getLogger().debug("PLACES_INITIALIZE completed and ACK sent");
 				
+				break;
+
+			case PLACES_INITIALIZE_GRAPH:
+
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
+
+				// Graph initialization arguments
+				String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
+
+				Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
+
+				places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+				MASSBase.getPlacesMap().put( m.getHandle(), places );
+
+				sendAck();
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed and ACK sent");
+
 				break;
 
 			case PLACES_CALL_ALL_VOID_OBJECT:

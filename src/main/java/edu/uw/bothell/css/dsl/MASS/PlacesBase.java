@@ -30,8 +30,11 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -77,6 +80,32 @@ public class PlacesBase {
 	
 		init_all( argument );
 	
+	}
+
+	/**
+	 * Instantiate a generic PlacesBase for this node
+	 * @param handle The Handle ID identifying this PlacesBase
+	 * @param className The class that represents a Place
+	 * @param argument The argument to supply to the Place during initialization
+	 */
+	public PlacesBase( int handle, String className, Object argument ) {
+
+		this.handle = handle;
+		this.className = className;
+
+		MASSBase.getLogger().debug( "Places_base handle = " + handle
+				+ ", class = " + className
+				+ ", argument = " + argument );
+
+		init_all( argument );
+
+	}
+
+	public PlacesBase(int handle, String classname, String[] graphArgs, Object[] initArgs) {
+		this.handle = handle;
+		this.className = classname;
+
+		init_all_graph(graphArgs, initArgs);
 	}
 
 	private class ExchangeBoundary_helper extends Thread {
@@ -781,8 +810,9 @@ public class PlacesBase {
 		return upperBoundary;
 	}
 
-    private void init_all( Object argument ) {
-    	
+    protected void init_all( Object argument ) {
+    	System.err.println("PlacesBase - init_all");
+
     	// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
     	if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
     	
@@ -897,7 +927,80 @@ public class PlacesBase {
     
     }
 
-    /**
+    // TODO: Size is input from message
+	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {
+		String graphNeighborsFilename = graphArgs[0];
+		String graphNeighborWeightsFilename = graphArgs[1];
+
+		System.err.println("PlacesBase - init_all_graph");
+
+		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
+		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
+
+		// For debugging
+		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
+				", class = " + className +
+				", arguments = " + initArgs
+				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
+
+		// load the place constructor
+		try {
+			// calculate vertex distribution
+			int totalSize = getVertexCount(graphNeighborsFilename);
+
+			this.size = new int[] { totalSize };
+
+			int stripeSize = totalSize / MASSBase.getSystemSize();
+
+			// lower_boundary is the first place managed by this node
+			lowerBoundary = stripeSize * MASSBase.getMyPid();
+
+			// upperBoundary is the last place managed by this node
+			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
+					lowerBoundary + stripeSize - 1 : totalSize - 1;
+
+			// placesSize is the total number of places managed by this node
+			placesSize = upperBoundary - lowerBoundary + 1;
+
+			//  maintaining an entire set
+			places = new Place[placesSize];
+
+			// initialize all Places objects
+			for ( int i = 0; i < placesSize; i++ ) {
+
+				// instantiate and configure new place
+				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(graphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+
+				newPlace.setIndex( new int[] { i } );
+
+				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
+				//newPlace.setSize(size);
+				places[i] = newPlace;
+			}
+		}
+
+		// TODO - what to do when this exception is caught?
+		catch ( Exception e ) {
+			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
+		}
+
+	}
+
+	private int getVertexCount(String graphNeighborsFilename) {
+		int vertexCount = 0;
+
+		try (BufferedReader br = new BufferedReader(new FileReader(graphNeighborsFilename))) {
+			while (br.readLine() != null) vertexCount++;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return vertexCount;
+	}
+
+	/**
      * During instantiation of Places, the "index" must be set. To preserve compatibility with classes derived from Place
      * that require an index value when the constructor is called, this method is provided. This method returns the "index"
      * that should be used for the next Place instantiated.

@@ -63,7 +63,7 @@ public class MASSBase {
 	private static MNode thisNode;			// this node configuration
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
-	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
+	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
 	
 	// the collection of all nodes
     private static Vector<MNode> allNodes = new Vector<MNode>( );

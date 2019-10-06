@@ -63,9 +63,11 @@ public class Message implements Serializable {
 	    AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
 	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
 	    AGENTS_MANAGE_ALL,                        // 15            
-	    AGENTS_MIGRATION_REMOTE_REQUEST;          // 16
-    	
-    	private final String value;
+	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
+
+		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH");                  // 17
+
+		private final String value;
     	
     	private ACTION_TYPE(String v) {
     	  value = v;
