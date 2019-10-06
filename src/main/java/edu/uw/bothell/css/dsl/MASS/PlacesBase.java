@@ -965,11 +965,17 @@ public class PlacesBase {
 			//  maintaining an entire set
 			places = new Place[placesSize];
 
+			Object [] finalGraphArgs = new Object[3];
+
+			finalGraphArgs[0] = graphArgs[0];
+			finalGraphArgs[1] = graphArgs[1];
+
 			// initialize all Places objects
 			for ( int i = 0; i < placesSize; i++ ) {
+				finalGraphArgs[2] = i;
 
 				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(graphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
 
 				newPlace.setIndex( new int[] { i } );
 
