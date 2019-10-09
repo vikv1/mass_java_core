@@ -244,8 +244,7 @@ public class Agents extends AgentsBase {
       node.sendMessage(m);
 
       // MThread Update
-      MThread.setAgentBagSize(MASSBase.getAgentsMap()
-          .get(new Integer(getHandle())).getAgents().size_unreduced());
+      MThread.setAgentBagSize( MASSBase.getAgentsMap().get( ( getHandle() ) ).getAgents().size_unreduced() );
 
     }
 

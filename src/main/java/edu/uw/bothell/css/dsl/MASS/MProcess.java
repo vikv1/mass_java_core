@@ -407,10 +407,10 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
-				MASSBase.setCurrentFunctionId(m.getFunctionId());
-				MASSBase.setCurrentArgument(argument);
-				MASSBase.setCurrentMsgType(m.getAction());
+				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
+				MASSBase.setCurrentFunctionId( m.getFunctionId() );
+				MASSBase.setCurrentArgument( argument );
+				MASSBase.setCurrentMsgType( m.getAction() );
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
@@ -431,11 +431,11 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
-				MASSBase.setCurrentFunctionId(m.getFunctionId());
-				MASSBase.setCurrentArgument(argument);
-				MASSBase.setCurrentMsgType(m.getAction());
-				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgentsBase().getLocalPopulation()]);
+				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
+				MASSBase.setCurrentFunctionId( m.getFunctionId() );
+				MASSBase.setCurrentArgument( argument );
+				MASSBase.setCurrentMsgType( m.getAction() );
+				MASSBase.setCurrentReturns( new Object[ MASSBase.getCurrentAgentsBase().getLocalPopulation() ] );
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
