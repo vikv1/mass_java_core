@@ -266,7 +266,7 @@ public class MASS extends MASSBase {
 		    		System.exit( -1 );
 
     			}
-    		} else {   			
+    		} else {
     			// no - this machine file is the classic one-line-per-node format
             	BufferedReader fileReader = null;
 
@@ -352,13 +352,13 @@ public class MASS extends MASSBase {
     		
     		// gotta specify the JVM
     		commandBuilder.append("java ");
-    		
+
     		// TODO - add configurable heap memory sizes per node
     		commandBuilder.append("-Xmx9g ");
     		
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
-	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
+	    		commandBuilder.append("-cp " + node.getMassHome() + "/BreadthFirst-1.0.0-RELEASE.jar ");
    			}
 
     		// MProcess and its arguments
