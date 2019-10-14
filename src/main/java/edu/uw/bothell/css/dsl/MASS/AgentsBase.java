@@ -437,7 +437,7 @@ public class AgentsBase {
 					{
 						// check if there is available agent id
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId > -1)
+						if (availableAgentId != null && availableAgentId > -1)
 						{
 							addAgent.setAgentId(availableAgentId);
 						}
