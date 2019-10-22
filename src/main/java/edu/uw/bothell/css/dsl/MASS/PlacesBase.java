@@ -930,7 +930,6 @@ public class PlacesBase {
     // TODO: Size is input from message
 	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {
 		String graphNeighborsFilename = graphArgs[0];
-		String graphNeighborWeightsFilename = graphArgs[1];
 
 		System.err.println("PlacesBase - init_all_graph");
 

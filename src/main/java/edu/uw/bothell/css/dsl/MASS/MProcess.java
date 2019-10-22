@@ -118,6 +118,7 @@ public class MProcess {
 		String curDir = args[5];
 
 		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+
 		mprocess.start();
 
 	}
@@ -138,6 +139,7 @@ public class MProcess {
 		MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
 		MASSBase.setSystemSize(nProc); // must force system size since we don't
 										// have visibility to all nodes
+
 		MASSBase.initMASSBase(thisNode);
 
 		MASSBase.getLogger().debug("Launching MProcess... (" + "hostname = " + hostName + ", myPid = " + myPid
@@ -152,7 +154,8 @@ public class MProcess {
 		 * instantiated.
 		 */
 		try {
-
+			System.in.reset();
+			System.out.flush();
 			if ( MAIN_IOS == null) MAIN_IOS = new ObjectInputStream( System.in );
 			if ( MAIN_OOS == null) MAIN_OOS = new ObjectOutputStream( System.out );
 

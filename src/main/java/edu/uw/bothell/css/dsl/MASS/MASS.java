@@ -228,8 +228,6 @@ public class MASS extends MASSBase {
 	 * Calling this method effectively begins computation.
 	 */
 	public static void init() {
-		System.err.println("Begin new MASS init");
-
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
 
@@ -354,11 +352,11 @@ public class MASS extends MASSBase {
     		commandBuilder.append("java ");
 
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xmx9g ");
+    		commandBuilder.append("-Xmx2g ");
     		
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
-	    		commandBuilder.append("-cp " + node.getMassHome() + "/BreadthFirst-1.0.0-RELEASE.jar ");
+	    		commandBuilder.append("-cp \"" + node.getMassHome() + "/ACO-1.0.0-SNAPSHOT.jar\" ");
    			}
 
     		// MProcess and its arguments

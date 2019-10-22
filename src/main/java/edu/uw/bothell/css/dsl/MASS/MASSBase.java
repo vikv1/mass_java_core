@@ -362,7 +362,6 @@ public class MASSBase {
 			threads[i].start( );
 			
 			while ( true ) {
-				
 				synchronized( MThread.getLock() ) {
 					if ( MThread.getThreadCreated() == i )
 						break;
