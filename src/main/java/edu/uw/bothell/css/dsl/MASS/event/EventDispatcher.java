@@ -70,5 +70,10 @@ public interface EventDispatcher {
 	 * @param object The target object the method will be invoked against
 	 */
 	public void queueAsync( Class<? extends Annotation> eventAnnotation, Object object );
+	
+	/**
+	 * Signal the dispatcher to complete any outstanding tasks and perform an orderly shutdown
+	 */
+	public void shutdown();
 
 }

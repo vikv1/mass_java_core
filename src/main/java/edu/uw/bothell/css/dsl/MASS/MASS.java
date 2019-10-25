@@ -51,6 +51,8 @@ import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
 import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -58,6 +60,9 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
  */
 public class MASS extends MASSBase {
 
+	// A reference to the event dispatcher, primarily for status and shutdown
+	private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+	
     // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
     public static final int LOCK_TIMEOUT = 10000;
 
@@ -185,6 +190,9 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
+    	// shutdown the event dispatcher
+    	eventDispatcher.shutdown();
+    	
     	MASS.getLogger().debug( "MASS::finish: done" );
 
     }

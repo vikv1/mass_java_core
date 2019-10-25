@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -62,6 +63,7 @@ import edu.uw.bothell.css.dsl.MASS.MASS;
 public class SimpleEventDispatcher implements EventDispatcher {
 
 	public static final int DEFAULT_MAX_ASYNC_THREADS = Runtime.getRuntime().availableProcessors();
+	private static final int SHUTDOWN_TIMEOUT_MS = 2000; 
 	
 	ExecutorService executorService = Executors.newFixedThreadPool( DEFAULT_MAX_ASYNC_THREADS );
 	
@@ -273,6 +275,31 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} }
+		
+	}
+
+	@Override
+	public void shutdown() {
+		
+		// stop the executor normally
+		executorService.shutdown();
+		
+		try {
+		    
+			// await a normal shutdown
+			if ( !executorService.awaitTermination( SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS ) ) {
+		        
+				// timeout - shutdown NOW!
+				executorService.shutdownNow();
+		    
+			} 
+		
+		} catch ( InterruptedException e ) {
+		   
+			// there was a problem encountered during shutdown, terminate NOW
+			executorService.shutdownNow();
+		
+		}
 		
 	}
 
