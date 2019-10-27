@@ -1,8 +1,11 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
     private Object [] graphArguments;
@@ -39,21 +42,24 @@ public class VertexPlace extends Place implements Serializable {
 
     public VertexPlace(Object args) {
         super();
-
-        System.err.println("VertexPlace constructed with args");
-
-        MASSBase.getLogger().debug("VertexPlace constructed with args.");
         
         Object [] arguments = (Object [])args;
         
         graphArguments = Arrays.copyOfRange(arguments, 0, 3);
 
         init(args);
+
+        MASSBase.getLogger().debug(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
+                graphArguments[2],
+                this.neighbors.stream()
+                        .map(n -> n.toString())
+                        .collect(Collectors.joining(", ")),
+                this.weights.stream()
+                        .map(w -> w.toString())
+                        .collect(Collectors.joining(", "))));
     }
 
     private void init(Object args) {
-        MASSBase.getLogger().debug("VertexPlace working directory: " + System.getProperty("user.dir"));
-
         Object [] arguments = (Object[])args;
 
         graphArguments = Arrays.copyOfRange(arguments, 0, 3);
@@ -66,7 +72,11 @@ public class VertexPlace extends Place implements Serializable {
 
         int firstIndex = 0;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(neighborFilePath))) {
+        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), neighborFilePath);
+
+        MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors - filePath: %s", filePath));
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
             String line = br.readLine();
 
             // TODO: fix this duplicated code between neighbors and weights
@@ -83,9 +93,17 @@ public class VertexPlace extends Place implements Serializable {
                 line = br.readLine();
             }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
         } catch (IOException e) {
-            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
         }
     }
 }

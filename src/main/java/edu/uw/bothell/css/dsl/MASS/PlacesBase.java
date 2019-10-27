@@ -31,6 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -408,11 +410,10 @@ public class PlacesBase {
     						places[i] );
 
     			// this fix is kind of a band aid too.
-    			if ( arguments == null ) 
+    			if ( arguments == null || (!(i < arguments.length)) )
     				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, null );
     			else
     				MASSBase.getCurrentReturns()[i] = places[i].callMethod( functionId, arguments[i] );
-    		
     		}
     	
     	}
@@ -705,10 +706,11 @@ public class PlacesBase {
      * @param tid An id of the thread that calls this function.
      */
     protected void getLocalRange( int[] range, int tid ) {
-
     	int nThreads = MASSBase.getThreads().length;
     	int portion = placesSize / nThreads; // per-thread allocated  range
     	int remainder = placesSize % nThreads;
+
+		MASSBase.getLogger().debug(String.format("getLocalRange: { nThreads: %d , placesSize: %d }", nThreads, placesSize));
 
     	if ( portion == 0 ) {
 
@@ -811,7 +813,7 @@ public class PlacesBase {
 	}
 
     protected void init_all( Object argument ) {
-    	System.err.println("PlacesBase - init_all");
+    	MASSBase.getLogger().debug("PlacesBase - init_all");
 
     	// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
     	if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
@@ -842,7 +844,9 @@ public class PlacesBase {
     		
     		// placesSize is the total number of places managed by this node
     		placesSize = upperBoundary - lowerBoundary + 1;
-    		
+
+			MASSBase.getLogger().debug(String.format("init_all: { lowerBoundary: %d, upperBoundary: %d, placesSize: %d }", lowerBoundary, upperBoundary, placesSize));
+
     		//  maintaining an entire set
     		places = new Place[placesSize];
 
@@ -931,7 +935,7 @@ public class PlacesBase {
 	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {
 		String graphNeighborsFilename = graphArgs[0];
 
-		System.err.println("PlacesBase - init_all_graph");
+		MASSBase.getLogger().debug("PlacesBase - init_all_graph");
 
 		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
 		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
@@ -960,6 +964,9 @@ public class PlacesBase {
 
 			// placesSize is the total number of places managed by this node
 			placesSize = upperBoundary - lowerBoundary + 1;
+
+			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
+					totalSize, lowerBoundary, upperBoundary, placesSize));
 
 			//  maintaining an entire set
 			places = new Place[placesSize];
@@ -994,12 +1001,22 @@ public class PlacesBase {
 	private int getVertexCount(String graphNeighborsFilename) {
 		int vertexCount = 0;
 
-		try (BufferedReader br = new BufferedReader(new FileReader(graphNeighborsFilename))) {
+		Path filePath = Paths.get(MASSBase.getWorkingDirectory(), graphNeighborsFilename);
+
+		try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
 			while (br.readLine() != null) vertexCount++;
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+
+			MASSBase.getLogger().error(sw.toString());
 		} catch (IOException e) {
-			e.printStackTrace();
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+
+			MASSBase.getLogger().error(sw.toString());
 		}
 
 		return vertexCount;

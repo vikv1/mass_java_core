@@ -30,12 +30,14 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.esotericsoftware.kryo.io.Output;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -84,72 +86,86 @@ class Utilities {
 	 * @param remoteNode An MNode instance representing the remote host
 	 */
     protected void launchRemoteProcess( String command, MNode remoteNode ) {
-    	
-    	// must provide required parameters
-    	if ( command == null || command.length() == 0 )
-    		throw new IllegalArgumentException( "Command is empty or equal to null" );
-    	if ( remoteNode == null ) //return null;
-    		throw new IllegalArgumentException( "remoteNode is equal to null" );
-    	
-    	ChannelExec channel = null;
-    	Properties config = new Properties();
-    	
-    	try {
-    		
-    		// instantiate the SSH library if necessary (might be replaced
-    		// by a mock object during unit testing)
-    		if ( jsch == null ) jsch = new JSch( );
-    		
-    		// add reference to SSH key
-    		MASSBase.getLogger().debug( "Adding private key: {}", remoteNode.getPrivateKey() );
-    		jsch.addIdentity( remoteNode.getPrivateKey() );
-    		
-            // set SSH connection properties
-    		MASSBase.getLogger().debug( "Setting hostname to {}", remoteNode.getHostName() );
-    		MASSBase.getLogger().debug( "Setting username to {}", remoteNode.getUserName() );
-    		MASSBase.getLogger().debug( "Connecting to port {}", SSH_PORT );
-            Session session = jsch.getSession( remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT );
 
-            MASSBase.getLogger().debug( "Setting preferred authentication method");
-            config.put("PreferredAuthentications", "publickey");
+		// must provide required parameters
+		if (command == null || command.length() == 0)
+			throw new IllegalArgumentException("Command is empty or equal to null");
+		if (remoteNode == null) //return null;
+			throw new IllegalArgumentException("remoteNode is equal to null");
 
-            MASSBase.getLogger().debug( "Disabling strict host key checking" );
-            config.put( "StrictHostKeyChecking", "no" );  
-            
-            // authenticate and complete connection sequence to the remote host
-            MASSBase.getLogger().debug( "Attempting to connect and authenticate..." );
-            session.setConfig( config );
-            session.connect( );
-            MASSBase.getLogger().debug( "Connected!" );
+		ChannelExec channel = null;
+		Properties config = new Properties();
 
-            // set the command to be executed upon channel connection
-            MASSBase.getLogger().debug( "Executing remote command: {}", command );
-            channel = ( ChannelExec ) session.openChannel( "exec" );
-            channel.setCommand( command );
-            MASSBase.getLogger().debug( "Command executed!" );
+		try {
 
-            MASSBase.getLogger().debug( "Setting object input/output streams with remote node..." );
-    		channel.connect( CONNECT_TIMEOUT_MILLISECONDS );
-    		remoteNode.setOutputStream( channel.getOutputStream() );
-    		remoteNode.setInputStream( channel.getInputStream() );
-    		// TODO - error stream?
-    		MASSBase.getLogger().debug( "Streams set!" );
-    		
-    		// keep track of this session for orderly disconnect later
-    		remoteSessions.put( remoteNode, channel );
-    		MASSBase.getLogger().debug( "Communications established with remote node" );
+			// instantiate the SSH library if necessary (might be replaced
+			// by a mock object during unit testing)
+			if (jsch == null) jsch = new JSch();
 
-    		
-    	} catch ( Exception e ) {
-    		
-    		// log the error message
-    		MASSBase.getLogger().error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
-    		
-    	}
-    	
-    }
+			// add reference to SSH key
+			MASSBase.getLogger().debug("Adding private key: {}", remoteNode.getPrivateKey());
+			jsch.addIdentity(remoteNode.getPrivateKey());
 
-    /**
+			// set SSH connection properties
+			MASSBase.getLogger().debug("Setting hostname to {}", remoteNode.getHostName());
+			MASSBase.getLogger().debug("Setting username to {}", remoteNode.getUserName());
+			MASSBase.getLogger().debug("Connecting to port {}", SSH_PORT);
+			Session session = jsch.getSession(remoteNode.getUserName(), remoteNode.getHostName(), SSH_PORT);
+
+			MASSBase.getLogger().debug("Setting preferred authentication method");
+			config.put("PreferredAuthentications", "publickey");
+
+			MASSBase.getLogger().debug("Disabling strict host key checking");
+			config.put("StrictHostKeyChecking", "no");
+
+			// authenticate and complete connection sequence to the remote host
+			MASSBase.getLogger().debug("Attempting to connect and authenticate...");
+			session.setConfig(config);
+			session.connect();
+			MASSBase.getLogger().debug("Connected!");
+
+			// set the command to be executed upon channel connection
+			MASSBase.getLogger().debug("Executing remote command: {}", command);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+			channel = (ChannelExec) session.openChannel("exec");
+
+			channel.setErrStream(baos, true);
+
+			channel.setCommand(command);
+			MASSBase.getLogger().debug("Command executed!");
+
+			MASSBase.getLogger().debug("Setting object input/output streams with remote node...");
+
+			channel.connect(CONNECT_TIMEOUT_MILLISECONDS);
+
+			String errorString = new String(baos.toByteArray(), "UTF-8");
+
+			if (!errorString.equals("")) {
+				MASSBase.getLogger().error("Error encountered connecting to remote host: " + errorString);
+			}
+
+			remoteNode.setOutputStream(channel.getOutputStream());
+			remoteNode.setInputStream(channel.getInputStream());
+
+			// TODO - error stream?
+			MASSBase.getLogger().debug("Streams set!");
+
+			// keep track of this session for orderly disconnect later
+			remoteSessions.put(remoteNode, channel);
+			MASSBase.getLogger().debug("Communications established with remote node");
+
+
+		} catch (Exception e) {
+
+			// log the error message
+			MASSBase.getLogger().error("Caught exception while attempting to connect/authenticate/execute on remote node", e);
+
+		}
+	}
+
+		/**
      * Disconnect from a remote node
      * @param remoteNode The node from which to terminate communications
      */

@@ -30,6 +30,8 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -117,6 +119,10 @@ public class MProcess {
 		int serverPort = Integer.parseInt(args[4]);
 		String curDir = args[5];
 
+		MASS.setLoggingLevel(LogLevel.DEBUG);
+
+		MASSBase.getLogger().debug("MProcess - main");
+
 		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
 
 		mprocess.start();
@@ -154,8 +160,6 @@ public class MProcess {
 		 * instantiated.
 		 */
 		try {
-			System.in.reset();
-			System.out.flush();
 			if ( MAIN_IOS == null) MAIN_IOS = new ObjectInputStream( System.in );
 			if ( MAIN_OOS == null) MAIN_OOS = new ObjectOutputStream( System.out );
 
