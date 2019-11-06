@@ -119,8 +119,6 @@ public class MProcess {
 		int serverPort = Integer.parseInt(args[4]);
 		String curDir = args[5];
 
-		MASS.setLoggingLevel(LogLevel.DEBUG);
-
 		MASSBase.getLogger().debug("MProcess - main");
 
 		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
