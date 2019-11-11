@@ -88,6 +88,8 @@ public class VertexPlace extends Place implements Serializable {
                         neighbors.add(Integer.parseInt(parts[i]));
                         weights.add(Integer.parseInt(parts[i + 1]));
                     }
+
+                    break;
                 }
 
                 line = br.readLine();
