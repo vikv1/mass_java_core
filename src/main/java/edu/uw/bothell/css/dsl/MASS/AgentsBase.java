@@ -771,13 +771,14 @@ public class AgentsBase {
     					"] made messageToDest to rank: " + destRank ); 
 
     		// send the message
-    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
+    		new Thread( () -> {
+    			MASSBase.getExchange().sendMessage( destRank, messageToDest );
+
+    			orgRequest.clear();
+			} ).start();
 
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
-
-    		// at this point, the message must be exchanged
-    		orgRequest.clear( );
 
     		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
 
