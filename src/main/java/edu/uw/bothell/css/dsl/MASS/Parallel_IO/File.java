@@ -86,7 +86,7 @@ public abstract class File {
         }
     }
 
-    public abstract void open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException;
+    public abstract void  open(int ioType) throws IOException, InvalidRangeException, InvalidNumberOfNodesException;
 
     public abstract void close() throws IOException;
 

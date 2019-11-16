@@ -1,5 +1,10 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfNodesException;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
+import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
+import ucar.ma2.InvalidRangeException;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,6 +52,10 @@ public class VertexPlace extends Place implements Serializable {
         
         graphArguments = Arrays.copyOfRange(arguments, 0, 3);
 
+        // TODO: Parallel IO requires the index to be set
+        //  We might consider refactoring the neighbors to come after the constructor
+        this.setIndex(new int[]{ (int)graphArguments[2] });
+
         init(args);
 
         MASSBase.getLogger().debug(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
@@ -70,30 +79,35 @@ public class VertexPlace extends Place implements Serializable {
     private void init_neighbors(String neighborFilePath, int index) {
         if (neighborFilePath == null) return;
 
-        int firstIndex = 0;
-
         Path filePath = Paths.get(MASSBase.getWorkingDirectory(), neighborFilePath);
 
         MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors - filePath: %s", filePath));
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-            String line = br.readLine();
+        // try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
+        try {
+            int fd = open(filePath.toString(), 0);
 
-            // TODO: fix this duplicated code between neighbors and weights
-            while (line != null && !line.isEmpty()) {
-                String [] parts = line.split(",\\s*"); // remove comma and trailing whitespace
+            // Trim the input to avoid number format exception on last element
+            String line = new String(read(fd)).trim();
 
-                if (parts[0].equals(Integer.toString(index))) {
-                    for (int i = 1; i < parts.length; i += 2) {
-                        neighbors.add(Integer.parseInt(parts[i]));
-                        weights.add(Integer.parseInt(parts[i + 1]));
-                    }
+            String[] parts = line.split(",\\s*"); // remove comma and trailing whitespace
 
-                    break;
+            if (parts[0].trim().equals(Integer.toString(index))) {
+                for (int i = 1; i < parts.length; i += 2) {
+                    neighbors.add(Integer.parseInt(parts[i]));
+                    weights.add(Integer.parseInt(parts[i + 1]));
                 }
+            } else {
+                String message = String.format("Place received incorrect input: { place: %d, line: %s }", getIndex()[0], line);
 
-                line = br.readLine();
+                throw new IOException();
             }
+        } catch (NumberFormatException nfe) {
+            StringWriter sw = new StringWriter();
+            nfe.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
         } catch (FileNotFoundException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
@@ -101,6 +115,36 @@ public class VertexPlace extends Place implements Serializable {
 
             MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
         } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+        } catch (UnsupportedFileTypeException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+        } catch (InterruptedException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+        } catch (InvalidRangeException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+        } catch (InvalidNumberOfNodesException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+
+            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+        } catch (InvalidNumberOfPlacesException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
