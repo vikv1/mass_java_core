@@ -978,12 +978,14 @@ public class PlacesBase {
 
 			// initialize all Places objects
 			for ( int i = 0; i < placesSize; i++ ) {
-				finalGraphArgs[2] = i;
+				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
+
+				finalGraphArgs[2] = myIndex;
 
 				// instantiate and configure new place
 				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
 
-				newPlace.setIndex( new int[] { i } );
+				newPlace.setIndex( new int[] { myIndex } );
 
 				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
 				//newPlace.setSize(size);

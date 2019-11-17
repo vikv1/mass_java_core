@@ -193,6 +193,11 @@ public class Place implements Serializable {
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
 
+		logFormattedDebug("size: %d, index: %d, lowerBoundary: %d",
+				getSize()[0],
+				getIndex()[0],
+				MASSBase.getCurrentPlacesBase().getLowerBoundary());
+
 		logFormattedDebug(
 				this + " or Place %d on node %d opened the file %s with the fd %d",
 				getPlaceOrderPerNode(),
@@ -405,7 +410,7 @@ public class Place implements Serializable {
 	protected int getPlaceOrderPerNode() {
 		
 		return MatrixUtilities.getLinearIndex( getSize( ), getIndex( ) )
-				- MASSBase.getCurrentPlacesBase().getLowerBoundary( );
+				- MASSBase.getCurrentPlacesBase().getLowerBoundary( ); // TODO: "lower boundary is the first place managed by this node"
 	
 	}
 

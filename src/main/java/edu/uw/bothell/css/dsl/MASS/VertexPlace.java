@@ -100,7 +100,9 @@ public class VertexPlace extends Place implements Serializable {
             } else {
                 String message = String.format("Place received incorrect input: { place: %d, line: %s }", getIndex()[0], line);
 
-                throw new IOException();
+                MASSBase.getLogger().error(message);
+
+                throw new IOException(message);
             }
         } catch (NumberFormatException nfe) {
             StringWriter sw = new StringWriter();
@@ -120,6 +122,7 @@ public class VertexPlace extends Place implements Serializable {
             String exceptionAsString = sw.toString();
 
             MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
+            MASSBase.getLogger().error(" -- IOException: " + e.getMessage());
         } catch (UnsupportedFileTypeException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
