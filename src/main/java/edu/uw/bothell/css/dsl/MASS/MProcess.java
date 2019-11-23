@@ -118,10 +118,15 @@ public class MProcess {
 		int nThreads = Integer.parseInt(args[3]);
 		int serverPort = Integer.parseInt(args[4]);
 		String curDir = args[5];
+		int maxNumberOfAgents = Integer.parseInt(args[6]);
 
 		MASSBase.getLogger().setLogLevel(LogLevel.DEBUG);
 
 		MASSBase.getLogger().debug("MProcess - main");
+
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
 		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
 
