@@ -414,6 +414,16 @@ public class MASSBase {
 			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
 
+		// TODO: Check max agents
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+
+		int maxAgents = agentSerializer.getMaxNumberOfAgents();
+
+		MASSBase.getLogger().debug("Max agents default: " + maxAgents);
+
+		// TODO: Make the same as the master
+		agentSerializer.setMaxNumberOfAgents(10000000);
+    
 		logger.debug("MASSBase initialization complete");
     }
     
