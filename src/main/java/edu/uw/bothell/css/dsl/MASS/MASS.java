@@ -366,7 +366,8 @@ public class MASS extends MASSBase {
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
     		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
     		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome());			// 6th arg: cur working dir
+    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
+			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
 
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +
