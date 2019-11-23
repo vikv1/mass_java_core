@@ -120,8 +120,6 @@ public class MProcess {
 		String curDir = args[5];
 		int maxNumberOfAgents = Integer.parseInt(args[6]);
 
-		MASSBase.getLogger().setLogLevel(LogLevel.DEBUG);
-
 		MASSBase.getLogger().debug("MProcess - main");
 
 		AgentSerializer agentSerializer = AgentSerializer.getInstance();
