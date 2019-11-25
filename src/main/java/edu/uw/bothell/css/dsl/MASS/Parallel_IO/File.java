@@ -41,7 +41,6 @@ public abstract class File {
     }
 
     public File(Path filepath, FileType fileType) {
-        logger.setLogLevel(LogLevel.DEBUG);
         this.filepath = filepath;
         this.fileName = filepath.getFileName().toString();
         this.fileType = fileType;
