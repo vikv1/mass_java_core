@@ -193,6 +193,9 @@ public class MASS extends MASSBase {
     	// shutdown the event dispatcher
     	eventDispatcher.shutdown();
     	
+    	// shutdown messaging system
+    	MASS.getMessagingProvider().shutdown();
+    	
     	MASS.getLogger().debug( "MASS::finish: done" );
 
     }
@@ -384,6 +387,9 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
+    	// initialize the messaging system
+    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -400,6 +406,7 @@ public class MASS extends MASSBase {
     			System.exit( -1 );
     		}
     	}
+    	
     	System.err.println( "MASS.init: done" );
     }
 

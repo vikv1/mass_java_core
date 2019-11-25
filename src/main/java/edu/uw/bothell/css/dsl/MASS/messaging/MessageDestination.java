@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -28,21 +28,38 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.annotations;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+package edu.uw.bothell.css.dsl.MASS.messaging;
 
 /**
- * OnDeparture specifies a method that will be called by:
- * Agent: before migration to a new Place
- * Place: after Agent has been associated with a new Place
+ * Common message destination addresses
  */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface OnDeparture {
+public enum MessageDestination {
 
+	// cluster-wide destination addresses
+	ALL_NODES( - 1 ),
+	ALL_PLACES( -1 ),
+	ALL_AGENTS( -1 ),
+	
+	// single-node destination addresses
+	ALL_LOCAL_PLACES( -2 ),
+	ALL_LOCAL_AGENTS( -2 );
+	
+	private int address;
+
+	/**
+	 * Set the address for this enumeration
+	 * @param address The address
+	 */
+	private MessageDestination(int address) {
+		this.address = address;
+	}
+	
+	/**
+	 * Get the address value for this enumeration
+	 * @return The address value
+	 */
+	public int getValue() {
+		return address;
+	}
+	
 }

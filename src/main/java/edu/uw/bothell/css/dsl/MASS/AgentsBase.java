@@ -153,8 +153,11 @@ public class AgentsBase {
     			agents.add( newAgent );
 
     			// register newAgent into curPlace
-    			curPlace.getAgents().add( newAgent );    		
+    			curPlace.getAgents().add( newAgent );
 
+    			// register the new Agent with messaging provider
+    			MASS.getMessagingProvider().registerAgent( newAgent );
+    			
     			// Agent has been created
     			eventDispatcher.queueAsync( OnCreation.class, newAgent );
     			

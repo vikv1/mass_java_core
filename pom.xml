@@ -15,7 +15,8 @@
 
 	<properties>
 	
-		<!-- Dependency properties -->
+		<!-- Dependency versions -->
+		<hazelcast.version>3.12.3</hazelcast.version>
 		<jaxb.version>2.3.1</jaxb.version>
 		<junit.version>5.5.2</junit.version>
 		<log4j.version>2.12.1</log4j.version>
@@ -115,6 +116,14 @@
     		<scope>test</scope>
 		</dependency>
 
+		<!-- General helper libraries -->
+		<dependency>
+    		<groupId>org.apache.commons</groupId>
+    		<artifactId>commons-collections4</artifactId>
+    		<version>4.4</version>
+    		<scope>compile</scope>
+		</dependency>
+
 		<!-- For SSH connectivity to remote hosts -->
 		<dependency>
 			<groupId>com.jcraft</groupId>
@@ -197,6 +206,13 @@
             <scope>compile</scope>
         </dependency>
   		
+  		<!-- Cluster communications and distributed shared memory -->
+  		<dependency>
+        	<groupId>com.hazelcast</groupId>
+        	<artifactId>hazelcast</artifactId>
+        	<version>${hazelcast.version}</version>
+            <scope>compile</scope>
+    	</dependency>
   		
   	</dependencies>
 

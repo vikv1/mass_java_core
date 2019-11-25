@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
+import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvider;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -82,6 +84,9 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
+    
+    // messaging
+    private static MessagingProvider messagingProvider = ( new HazelcastMessagingProvider() ).getInstance();
 
 	/**
      * Add a new node to the cluster
@@ -672,6 +677,14 @@ public class MASSBase {
 	 */
 	protected static void setSystemSize( int numNodes ) {
 		systemSize = numNodes;
+	}
+
+	/**
+	 * Get the messaging provider currently in use
+	 * @return The messaging provider currently being used
+	 */
+	public static MessagingProvider getMessagingProvider() {
+		return messagingProvider;
 	}
 	
 }
