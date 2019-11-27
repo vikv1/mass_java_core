@@ -30,8 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.function.BooleanSupplier;
-
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
@@ -236,19 +234,18 @@ public class Agents extends AgentsBase {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
-    for (MNode node : MASS.getRemoteNodes()) {
+    for ( MNode node : MASS.getRemoteNodes() ) {
 
       // create a message
-      m = new Message(Message.ACTION_TYPE.AGENTS_MANAGE_ALL, this.getHandle(),
-          0);
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, this.getHandle(), 0 );
 
       // send it
-      node.sendMessage(m);
-
-      // MThread Update
-      MThread.setAgentBagSize( MASSBase.getAgentsMap().get( ( getHandle() ) ).getAgents().size_unreduced() );
+      node.sendMessage( m );
 
     }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
 
     // retrieve the corresponding agents
     MASSBase.setCurrentAgentsBase(this);
@@ -270,41 +267,11 @@ public class Agents extends AgentsBase {
   }
 
   /**
-   * Execute doAll repeatedly UNTIL the supplied boolean expression becomes TRUE
-   * @param expression The expression to evaluate for each iteration of doAll
-   */
-  public void doUntil( BooleanSupplier expression ) {
-
-	  // call doAll until supplier of boolean value provides TRUE
-	  while ( expression.getAsBoolean() == false ) {
-		  
-		  doAll( 1 );
-		  
-	  }
-	  
-  }
-
-  /**
-   * Execute doAll repeatedly WHILE the supplied boolean expression is TRUE
-   * @param expression The expression to evaluate for each iteration of doAll
-   */
-  public void doWhile( BooleanSupplier expression ) {
-
-	  // call doAll until supplier of boolean value provides FALSE
-	  while ( expression.getAsBoolean() == true ) {
-		  
-		  doAll( 1 );
-		  
-	  }
-	  
-  }
-
-  /**
    * Execute callAll and manageAll functions consecutively, with no arguments and no return value
    * @param numberOfIterations The number of consecutive calls of callAll() and manageAll() functions
    */
   public void doAll( int numberOfIterations ) {
-
+	  
 	  // function ID not important
 	  doAll( 0, numberOfIterations );
 	  
@@ -384,14 +351,6 @@ public class Agents extends AgentsBase {
 
 	  return numAgents;
 
-  }
-  
-  /**
-   * A helper method to determine if there are any active Agents left in the simulation
-   * @return TRUE if there are active Agents present
-   */
-  public boolean hasAgents() {
-	  return ( nAgents() > 0 );
   }
   
 }

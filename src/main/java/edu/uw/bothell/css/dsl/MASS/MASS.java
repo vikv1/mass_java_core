@@ -64,7 +64,7 @@ public class MASS extends MASSBase {
 	private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
 	
     // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
-    public static final int LOCK_TIMEOUT = 10000;
+    public static final int LOCK_TIMEOUT = 0;
 
 	private static Utilities util = new Utilities( );  // used for channel creation
 

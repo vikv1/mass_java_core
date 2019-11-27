@@ -849,14 +849,19 @@ public class AgentsBase {
     		MASS.getLogger().debug( "tid[" + destRank + 
     					"] made messageToDest to rank: " + destRank ); 
 
-    		// send the message
-    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
+    		
+    		new Thread( () -> {
+    			
+    			// send the message
+    			MASSBase.getExchange().sendMessage( destRank, messageToDest ); 
+    		
+    			// at this point, the message must be exchanged
+    			orgRequest.clear( );
+    			
+    		}).start();
 
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
-
-    		// at this point, the message must be exchanged
-    		orgRequest.clear( );
 
     		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
 
