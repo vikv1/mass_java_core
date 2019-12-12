@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -34,7 +34,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +51,12 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.map.MultiKeyMap;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.annotations.AnnotationProcessor;
 
 
 /**
  * 
- * This implementation of the Singleton pattern is based on the sample code provided here:
- * https://en.wikipedia.org/wiki/Singleton_pattern
+ * SimpleEventDispatcher is a simple implementation of an EventDispatcher
  *
  */
 public class SimpleEventDispatcher implements EventDispatcher {
@@ -72,9 +71,6 @@ public class SimpleEventDispatcher implements EventDispatcher {
 	
 	// Cache of Class, Event, and Methods
 	private MultiKeyMap<Class<?>, Method> methodCache = new MultiKeyMap<>();
-
-	// A NOOP method used as a placeholder in the method cache
-	public static void noOp() {};
 
 	/**
      * Initializes singleton.
@@ -103,31 +99,20 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		Method m = methodCache.get( clazz, eventAnnotation );
 		if ( m != null ) return m;
 		
-		// get all public methods exposed by this class
-		final List< Method > allMethods = new ArrayList<>( Arrays.asList( clazz.getDeclaredMethods() ) );
-
-		// find requested annotated method
-		for ( final Method method : allMethods ) {
-            
-			if ( method.isAnnotationPresent( eventAnnotation ) ) {
-
-				// cache the method for quicker retrieval later
-				methodCache.put( clazz, eventAnnotation, method );
-				
-				// return the method
-				return method;
-				
-            }
-			
-		}
+		// get the annotated method (if present)
+		m = AnnotationProcessor.getAnnotatedMethod(eventAnnotation, null, clazz);
 		
 		// method not found, use NOOP method instead
-		try {
-			m = SimpleEventDispatcher.class.getMethod( "noOp", null );
-		} catch ( NoSuchMethodException e ) {
-			return null;
-		} catch ( SecurityException e ) {
-			return null;
+		if ( m == null ) {
+
+			try {
+				m = EventDispatcher.class.getMethod( "noOp" );
+			} catch ( NoSuchMethodException e ) {
+				return null;
+			} catch ( SecurityException e ) {
+				return null;
+			}
+
 		}
 		
 		// cache the method for quicker retrieval later
@@ -138,7 +123,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 	}
 
 	@Override
-	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object, Object... arguments ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -150,12 +135,12 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		if ( method == null ) return;
 
 		// invoke the method immediately
-		method.invoke( object );
+		method.invoke( object, arguments );
 		
 	}
 
 	@Override
-	public void invokeAsync( Class< ? extends Annotation > eventAnnotation, Object object ) throws IllegalArgumentException {
+	public void invokeAsync( Class< ? extends Annotation > eventAnnotation, Object object, Object... arguments ) throws IllegalArgumentException {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -171,7 +156,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			
 			try {
 			
-				method.invoke( object );
+				method.invoke( object, arguments );
 		
 			} 
 		
@@ -184,7 +169,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 	}
 
 	@Override
-	public void queueAsync( Class< ? extends Annotation > eventAnnotation, Object object ) {
+	public void queueAsync( Class< ? extends Annotation > eventAnnotation, Object object, Object ... arguments ) {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -205,7 +190,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		}
 		
 		// build a QueueMethod and add to the queue
-		eventQueue.add( new QueueMethod( method, object ) );
+		eventQueue.add( new QueueMethod( method, object, arguments ) );
 		
 	}
 	
@@ -213,11 +198,13 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		
 		private Method methodToInvoke;
 		private Object targetObject;
+		private Object[] arguments;
 		
-		public QueueMethod( Method methodToInvoke, Object targetObject ) {
+		public QueueMethod( Method methodToInvoke, Object targetObject, Object ... arguments ) {
 			
 			this.methodToInvoke = methodToInvoke;
 			this.targetObject = targetObject;
+			this.arguments = arguments;
 			
 		}
 
@@ -227,6 +214,10 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		
 		public Object getObject() {
 			return targetObject;
+		}
+		
+		public Object[] getArguments() {
+			return arguments;
 		}
 		
 	}
@@ -246,7 +237,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			
 				try {
 				
-					m.getMethod().invoke( m.getObject() );
+					m.getMethod().invoke( m.getObject(), m.getArguments() );
 			
 				} 
 			

@@ -77,7 +77,7 @@ public class AgentsBase {
 	private static int agentInitParentId;
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-    private EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+    private EventDispatcher eventDispatcher = MASS.getEventDispatcher();
 
 	/***** Agent population control *****/
 
@@ -914,7 +914,7 @@ public class AgentsBase {
 
     		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
     					"] retreive agents from rank[" + destRank + 
-    					"] complated" );
+    					"] completed" );
     	
     	}
     

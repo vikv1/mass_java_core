@@ -1,11 +1,41 @@
+/*
+
+ 	MASS Java Software License
+	© 2012-2019 University of Washington
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
+
+	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	Washington Bothell.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+
+*/
+
 package edu.uw.bothell.css.dsl.MASS.messaging.hazelcast;
 
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Objects;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.ReliableTopicConfig;
-import com.hazelcast.config.TopicConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
@@ -14,11 +44,12 @@ import com.hazelcast.topic.TopicOverloadPolicy;
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
 
 
-
+@SuppressWarnings("unused")    // TODO - remove once all methods implemented
 public class HazelcastMessagingProvider implements MessagingProvider {
 
 	// topic prefixes
@@ -34,79 +65,34 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private HazelcastInstance instance;
 	
 	
-	/**
-     * Initializes singleton.
-     *
-     * {@link SingletonHolder} is loaded on the first execution of {@link Singleton#getInstance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     */
-    private static class SingletonHolder {
-    	private static final HazelcastMessagingProvider INSTANCE = new HazelcastMessagingProvider();
-    }
-    
-	@Override
-	public < T > void sendAgentMessage( int address, T message, Class< T > messageClazz ) {
-		
-		// publish the message
-		ITopic<Object> topic = instance.getReliableTopic( AGENT_ADDRESS_PREFIX + address );
-		topic.publish(message);
-		
-	}
-
-	@Override
-	public < T > void sendAgentMessage( Set< Integer > addresses, T message, Class< T > messageClazz ) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public < T > void sendNodeMessage( int address, T message, Class< T > messageClazz ) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public < T > void sendNodeMessage( Set< Integer > addresses, T message, Class< T > messageClazz ) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public < T > void sendPlaceMessage( int address, T message, Class< T > messageClazz ) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public < T > void sendPlaceMessage( Set< Integer > addresses, T message, Class< T > messageClazz ) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public MessagingProvider getInstance() {
-		return SingletonHolder.INSTANCE;
-	}
-
 	@Override
 	public void registerAgent( Agent agent ) {
 		
 		// create/obtain a topic and listener for this particular agent
 		String agentSpecificTopicName = AGENT_ADDRESS_PREFIX + agent.getAgentId();  
 		
-		Config config = new Config();
-		ReliableTopicConfig rtConfig = config.getReliableTopicConfig( agentSpecificTopicName );
-		rtConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK )
-			.setReadBatchSize( 1 )
-		    .setStatisticsEnabled( true );	
-		
-		ITopic<Object> agentSpecificTopic = instance.getReliableTopic( agentSpecificTopicName );
+		// set configuration for agent-specific topic
+		Config agentSpecificTopicConfig = new Config();
+		ReliableTopicConfig agentSpecificRTTopicConfig = agentSpecificTopicConfig.getReliableTopicConfig( agentSpecificTopicName );
+		agentSpecificRTTopicConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK );
+		agentSpecificRTTopicConfig.setReadBatchSize( 1 );
+		agentSpecificRTTopicConfig.setStatisticsEnabled( true );	
+
+		// create agent-specific topic and register listener
+		ITopic<MASSMessage<Serializable>> agentSpecificTopic = instance.getReliableTopic( agentSpecificTopicName );
 		HazelcastMessageListener agentMessageListener = new HazelcastMessageListener();
 		agentMessageListener.setSubject( agent );
 		agentSpecificTopic.addMessageListener(agentMessageListener);
 
-		// create/obtain a broadcast topic and listener
-		ITopic<Object> agentBroadcastTopic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
+		// set configuration for agent broadcast topic
+		Config agentBroadcastTopicConfig = new Config();
+		ReliableTopicConfig agentBroadcastRTTopicConfig = agentBroadcastTopicConfig.getReliableTopicConfig( agentSpecificTopicName );
+		agentBroadcastRTTopicConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK );
+		agentBroadcastRTTopicConfig.setReadBatchSize( 1 );
+		agentBroadcastRTTopicConfig.setStatisticsEnabled( true );	
+
+		// create/obtain agent broadcast topic and listener
+		ITopic<MASSMessage<Serializable>> agentBroadcastTopic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
 		HazelcastMessageListener broadcastMessageListener = new HazelcastMessageListener();
 		broadcastMessageListener.setSubject( agent );
 		agentBroadcastTopic.addMessageListener(broadcastMessageListener);
@@ -138,18 +124,46 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	}
 
 	@Override
-	public <T> void sendAgentMessage(MessageDestination destination, T message, Class<T> messageClazz) {
-		sendAgentMessage( destination.getValue(), message, messageClazz );
+	public <T> void sendAgentMessage(MASSMessage<Serializable> message) {
+
+		if ( !Objects.nonNull( message ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
+		if ( !Objects.nonNull( message.getMessage() ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
+
+		// broadcast to all Agents?
+		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() ) {
+			
+			// TODO - implement
+			
+		}
+		
+		// broadcast to all local Agents?
+		else if ( message.getDestinationAddress() == MessageDestination.ALL_LOCAL_AGENTS.getValue() ) {
+			
+			// TODO - implement
+			
+		}
+		
+		// specific Agent
+		else {
+			
+			// publish the message to a single agent
+			ITopic<Object> topic = instance.getReliableTopic( AGENT_ADDRESS_PREFIX + message.getDestinationAddress() );
+			topic.publish( message.getMessage() );
+			
+		}
+			
 	}
 
 	@Override
-	public <T> void sendNodeMessage(MessageDestination destination, T message, Class<T> messageClazz) {
-		sendNodeMessage( destination.getValue(), message, messageClazz );
+	public <T> void sendPlaceMessage(MASSMessage<Serializable> message) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public <T> void sendPlaceMessage(MessageDestination destination, T message, Class<T> messageClazz) {
-		sendPlaceMessage( destination.getValue(), message, messageClazz );
+	public <T> void sendNodeMessage(MASSMessage<Serializable> message) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

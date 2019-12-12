@@ -28,39 +28,32 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.messaging.hazelcast;
+package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
 
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
-
-import edu.uw.bothell.css.dsl.MASS.Agent;
-import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
-import edu.uw.bothell.css.dsl.MASS.messaging.AgentMessageListener;
-import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
-
 /**
- *  HazelcastMessageListener is an adapter between MASS messaging and Hazelcast messaging.
+ * MASSMessage encapsulates all information needed by a message provider implementation to actually send a
+ * message to destination Nodes, Places, or Agents
  */
-public class HazelcastMessageListener implements MessageListener<MASSMessage<Serializable>>, AgentMessageListener {
+public class MASSMessage< T extends Serializable > {
 
-	private Agent agent;
+	private int destinationAddress;
+	private T message;
 	
-	@Override
-	public void onMessage( Message<MASSMessage<Serializable>> message ) {
-
-		// place the method in the event queue for execution at the appropriate time
-		MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessageObject() );
+	public MASSMessage( int destinationAddress, T message ) {
+	
+		this.destinationAddress = destinationAddress;
+		this.message = message;
 		
 	}
-
-	@Override
-	public <T extends Agent> void setSubject( T agent ) {
-
-		this.agent = agent;
-		
+	
+	public int getDestinationAddress() {
+		return destinationAddress;
 	}
-
+	
+	public T getMessage() {
+		return message;
+	}
+	
 }
