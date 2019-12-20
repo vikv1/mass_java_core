@@ -80,7 +80,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 		// create agent-specific topic and register listener
 		ITopic<MASSMessage<Serializable>> agentSpecificTopic = instance.getReliableTopic( agentSpecificTopicName );
-		HazelcastMessageListener agentMessageListener = new HazelcastMessageListener();
+		HazelcastAgentMessageListener agentMessageListener = new HazelcastAgentMessageListener();
 		agentMessageListener.setSubject( agent );
 		agentSpecificTopic.addMessageListener(agentMessageListener);
 
@@ -93,7 +93,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 		// create/obtain agent broadcast topic and listener
 		ITopic<MASSMessage<Serializable>> agentBroadcastTopic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
-		HazelcastMessageListener broadcastMessageListener = new HazelcastMessageListener();
+		HazelcastAgentMessageListener broadcastMessageListener = new HazelcastAgentMessageListener();
 		broadcastMessageListener.setSubject( agent );
 		agentBroadcastTopic.addMessageListener(broadcastMessageListener);
 		

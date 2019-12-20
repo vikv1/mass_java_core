@@ -42,9 +42,9 @@ import edu.uw.bothell.css.dsl.MASS.messaging.AgentMessageListener;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 
 /**
- *  HazelcastMessageListener is an adapter between MASS messaging and Hazelcast messaging.
+ *  HazelcastAgentMessageListener is an adapter between MASS messaging and Hazelcast messaging for Agents.
  */
-public class HazelcastMessageListener implements MessageListener<MASSMessage<Serializable>>, AgentMessageListener {
+public class HazelcastAgentMessageListener implements MessageListener<MASSMessage<Serializable>>, AgentMessageListener {
 
 	private Agent agent;
 	
