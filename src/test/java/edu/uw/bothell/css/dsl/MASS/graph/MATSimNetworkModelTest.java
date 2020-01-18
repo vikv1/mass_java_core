@@ -1,17 +1,16 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.MASS.MNode;
-import edu.uw.bothell.css.dsl.MASS.Nodelist;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-
-import java.io.File;
+import javax.xml.xpath.*;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
@@ -80,5 +79,31 @@ public class MATSimNetworkModelTest {
         Set<Long> nodesIdsSet = network.getNodes().stream().map(n -> n.id).collect(Collectors.toSet());
 
         assertTrue(nodesIdsSet.containsAll(nodeIds));
+    }
+
+    @Test
+    public void theXPathAPI() {
+        XPathFactory factory = XPathFactory.newInstance();
+
+        XPath path = factory.newXPath();
+
+        XPathExpression expression = null;
+
+        try {
+            expression = path.compile("//nodes/node/@id");
+
+             NodeList nodeList = (NodeList) expression.evaluate(new InputSource(new StringReader(networkXml)),
+                     XPathConstants.NODESET);
+
+             for (int i = 0; i < nodeList.getLength(); i++) {
+                 Node node = nodeList.item(i);
+
+                 System.out.println("Item: " + i + ": " + node.getNodeValue());
+             }
+
+             assertEquals(nodeList.getLength(), 6);
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+        }
     }
 }

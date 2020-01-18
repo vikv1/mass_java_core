@@ -44,6 +44,10 @@ import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import org.xml.sax.InputSource;
+import org.w3c.dom.NodeList;
+
+import javax.xml.xpath.*;
 
 public class PlacesBase {
 
@@ -1046,7 +1050,7 @@ public class PlacesBase {
 	protected void init_all_graph_matsim(String[] graphArgs, Object[] initArgs) {
 		String networkFilename = graphArgs[0];
 
-		MASSBase.getLogger().debug("PlacesBase - init_all_graph");
+		MASSBase.getLogger().debug("PlacesBase - init_all_graph_matsim");
 
 		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
 		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
@@ -1111,8 +1115,25 @@ public class PlacesBase {
 
 	}
 
-	private int getMatsimNetworkNodeCount(String networkFilename) {
+	public static int getMatsimNetworkNodeCount(String networkFilename) {
 		int result = 0;
+
+		XPathFactory factory = XPathFactory.newInstance();
+
+		XPath path = factory.newXPath();
+
+		XPathExpression expression = null;
+
+		try {
+			expression = path.compile("//nodes/node/@id");
+
+			NodeList nodeList = (NodeList) expression.evaluate(new InputSource(networkFilename),
+					XPathConstants.NODESET);
+
+			result = nodeList.getLength();
+		} catch (XPathExpressionException e) {
+			MASSBase.getLogger().error("Exception parsing network xml: " + e.getMessage());
+		}
 
 		return result;
 	}
