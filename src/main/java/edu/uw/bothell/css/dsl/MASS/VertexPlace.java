@@ -3,16 +3,33 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfNodesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import ucar.ma2.InvalidRangeException;
 
+import javax.xml.xpath.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
+    public static class Tuple {
+        public Tuple(int i, double w) {
+            index = i;
+            weight = w;
+        }
+
+        public int index;
+        public double weight;
+    }
+
     private Object [] graphArguments;
     public Vector<Integer> neighbors = new Vector<>();
     public Vector<Integer> weights = new Vector<>();
@@ -76,9 +93,59 @@ public class VertexPlace extends Place implements Serializable {
         init_neighbors((String)graphArguments[0], (int)graphArguments[2]);
     }
 
-    private void init_neighbors(String neighborFilePath, int index) {
-        if (neighborFilePath == null) return;
+    private void init_neighbors(String networkFilename, int index) {
+        if (networkFilename == null) return;
 
+        if (networkFilename.contains(".xml")) {
+            init_neighbors_matsim(networkFilename, index);
+        } else {
+            init_neighbors_parallel(networkFilename, index);
+        }
+    }
+
+    public static List<Tuple> getNeighbors(String xmlFilename, int index) {
+        List<Tuple> neighbors = new ArrayList<>();
+
+        XPathFactory factory = XPathFactory.newInstance();
+
+        XPath path = factory.newXPath();
+
+        XPathExpression expression = null;
+
+        try {
+            expression = path.compile("/network/links/link[@from='" + index + "']");
+
+            NodeList nodeList = (NodeList) expression.evaluate(new InputSource(xmlFilename),
+                    XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+
+                NamedNodeMap attributes = node.getAttributes();
+
+                String toString = attributes.getNamedItem("to").getNodeValue();
+                String weightString = attributes.getNamedItem("length").getNodeValue();
+
+                Tuple neighbor = new Tuple(Integer.parseInt(toString),
+                        Double.parseDouble(weightString));
+
+                neighbors.add(neighbor);
+            }
+        } catch (XPathExpressionException e) {
+            MASSBase.getLogger().error("Exception parsing network xml: " + e.getMessage());
+        }
+
+        return neighbors;
+    }
+
+    private void init_neighbors_matsim(String networkFilename, int index) {
+        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
+
+        MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors_matsim - filePath: %s", filePath));
+
+    }
+
+    private void init_neighbors_parallel(String neighborFilePath, int index) {
         Path filePath = Paths.get(MASSBase.getWorkingDirectory(), neighborFilePath);
 
         MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors - filePath: %s", filePath));
