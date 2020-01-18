@@ -143,6 +143,15 @@ public class VertexPlace extends Place implements Serializable {
 
         MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors_matsim - filePath: %s", filePath));
 
+        List<Tuple> neighbors = getNeighbors(networkFilename, index);
+
+        for (Tuple neighbor : neighbors) {
+            this.neighbors.add(neighbor.index);
+
+            // TODO: Refactor weights to double
+            // this.weights.add(neighbor.weight);
+            this.weights.add(Math.toIntExact(Double.doubleToLongBits(neighbor.weight)));
+        }
     }
 
     private void init_neighbors_parallel(String neighborFilePath, int index) {
