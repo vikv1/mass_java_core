@@ -950,6 +950,8 @@ public class PlacesBase {
 			init_all_graph_csv(graphArgs, initArgs);
 		} else if (extension.equals(".xml")) {
 			init_all_graph_matsim(graphArgs, initArgs);
+		} else {
+			init_all_graph_csv(graphArgs, initArgs);
 		}
 	}
 

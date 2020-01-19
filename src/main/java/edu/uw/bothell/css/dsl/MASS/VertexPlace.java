@@ -113,7 +113,7 @@ public class VertexPlace extends Place implements Serializable {
         XPathExpression expression = null;
 
         try {
-            expression = path.compile("/network/links/link[@from='" + index + "']");
+            expression = path.compile("/network/links/link[@from='" + (index + 1) + "']");
 
             NodeList nodeList = (NodeList) expression.evaluate(new InputSource(xmlFilename),
                     XPathConstants.NODESET);
@@ -146,11 +146,21 @@ public class VertexPlace extends Place implements Serializable {
         List<Tuple> neighbors = getNeighbors(networkFilename, index);
 
         for (Tuple neighbor : neighbors) {
-            this.neighbors.add(neighbor.index);
+            // Network file is 1 based. Shift to 0 based.
+            this.neighbors.add(neighbor.index - 1);
 
             // TODO: Refactor weights to double
             // this.weights.add(neighbor.weight);
-            this.weights.add(Math.toIntExact(Double.doubleToLongBits(neighbor.weight)));
+
+            int weight = 1;
+
+            try {
+                weight = (int)Math.round(neighbor.weight);
+            } catch (Exception e) {
+                MASSBase.getLogger().warning("Exception parsing double to integer: " + e.getMessage());
+            }
+
+            this.weights.add(weight);
         }
     }
 
