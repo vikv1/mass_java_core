@@ -4,4 +4,6 @@ public enum GraphInputFormat {
     CSV,
     FILEGEN,
     MATSIM,
+    HIPPIE,
+    ;
 }

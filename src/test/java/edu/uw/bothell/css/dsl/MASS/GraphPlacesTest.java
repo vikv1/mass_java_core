@@ -69,4 +69,24 @@ public class GraphPlacesTest {
         assertTrue("1 neighbors 2", vertexPlace2.neighbors.contains(2));
         assertTrue("2 neighbors 0", vertexPlace3.neighbors.contains(0));
     }
+
+    @Test
+    public void hippieNetworkIsCreated() {
+        String [] graphArguments = new String[] {
+                "hippie/basic.tsv",
+                "/dev/null"
+        };
+
+        // TODO: Cleanup the constructor for graphplaces to something more like this
+//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
+//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
+
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
+                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+
+        assertNotNull(graph);
+    }
+
+//    @Test
+//    public void hippieNetworkIs
 }

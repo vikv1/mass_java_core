@@ -1,10 +1,13 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.graph.Graph;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.Vector;
 
-public class GraphPlaces extends Places {
+public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;
     private final String filename;
     private final GraphInputFormat input_format;
@@ -24,6 +27,19 @@ public class GraphPlaces extends Places {
         init_algorithm = GraphInitAlgorithm.FULL_LIST;
         filename = "graph_n.txt";
         input_format = GraphInputFormat.CSV;
+    }
+
+    public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
+                       GraphInitAlgorithm init_algorithm) {
+        super(handle, className, new Object[] { filename, format, init_algorithm });
+
+        if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
+            init_algorithm = GraphInitAlgorithm.FULL_LIST;
+        }
+
+        this.init_algorithm = init_algorithm;
+        this.filename = filename;
+        this.input_format = format;
     }
 
     public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
@@ -66,5 +82,28 @@ public class GraphPlaces extends Places {
         Object [] initArguments = (Object [])Arrays.copyOfRange(arguments, 2, arguments.length);
 
         init_all_graph(graphArguments, initArguments);
+    }
+
+    /**
+     * Graph interface implementation
+     */
+    @Override
+    public GraphModel getGraph() {
+        GraphModel graph = new GraphModel();
+
+        if (!(getPlaces()[0] instanceof VertexPlace)) {
+            MASSBase.getLogger().warning("Requested map to graph but places are {"
+                    + getPlaces()[0].getClass().getName() + "} not VertexPlaces.");
+
+            return graph;
+        }
+
+        for (Place place : getPlaces()) {
+            VertexPlace vPlace = (VertexPlace) place;
+
+            graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
+        }
+
+        return graph;
     }
 }
