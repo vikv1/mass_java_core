@@ -79,9 +79,4 @@ public interface EventDispatcher {
 	 */
 	public void shutdown();
 	
-	/**
-	 * A NOOP method used as a placeholder for event queues
-	 */
-	public static void noOp() {};
-	
 }

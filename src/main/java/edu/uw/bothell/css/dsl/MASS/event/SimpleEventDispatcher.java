@@ -99,21 +99,11 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		Method m = methodCache.get( clazz, eventAnnotation );
 		if ( m != null ) return m;
 		
-		// get the annotated method (if present)
-		m = AnnotationProcessor.getAnnotatedMethod(eventAnnotation, null, clazz);
+		// this happens if there is no annotation for this event, but an attempt was made to discover it
+		if ( methodCache.containsKey(clazz, eventAnnotation)) return null;
 		
-		// method not found, use NOOP method instead
-		if ( m == null ) {
-
-			try {
-				m = EventDispatcher.class.getMethod( "noOp" );
-			} catch ( NoSuchMethodException e ) {
-				return null;
-			} catch ( SecurityException e ) {
-				return null;
-			}
-
-		}
+		// get the annotated method (if present - if not, a NULL will be cached for this event method)
+		m = AnnotationProcessor.getAnnotatedMethod(eventAnnotation, null, clazz);
 		
 		// cache the method for quicker retrieval later
 		methodCache.put( clazz, eventAnnotation, m );
