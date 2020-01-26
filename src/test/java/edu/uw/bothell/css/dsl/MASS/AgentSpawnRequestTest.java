@@ -35,12 +35,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the AgentSpawnRequest class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // using hermes cluster
 public class AgentSpawnRequestTest extends AbstractTest {
 
 	private static final int MAX_AGENTS = 10;

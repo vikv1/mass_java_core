@@ -35,15 +35,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.*;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the PlacesBase class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // slow
 public class PlacesBaseTest extends AbstractTest {
 
 	// class under test

@@ -35,8 +35,13 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
+import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 /**
@@ -61,6 +66,10 @@ public class MASSBase {
 	private static Object[] currentReturns;
 	private static Message.ACTION_TYPE currentMsgType;
 	private static MNode thisNode;			// this node configuration
+
+	// TODO: We should have access checks. This should also not just be a public static member of MASS
+	//       For example: Maybe only places should have access to the map
+	public static DistributedMap<Object, Object> distributed_map;
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
@@ -414,6 +423,8 @@ public class MASSBase {
 			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
 
+		initDistributedData();
+
 		logger.debug("MASSBase initialization complete");
     }
     
@@ -671,5 +682,8 @@ public class MASSBase {
 	protected static void setSystemSize( int numNodes ) {
 		systemSize = numNodes;
 	}
-	
+
+	protected static void initDistributedData() {
+		MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
+	}
 }

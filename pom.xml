@@ -171,7 +171,12 @@
             <scope>compile</scope>
         </dependency>
   		
-  		
+  		<!-- Hazelcast -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.12.3</version>
+		</dependency>
   	</dependencies>
 
 	<build>
@@ -242,9 +247,31 @@
 				<version>3.0.5</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
-					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+<!--					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>-->
 					<xmlOutput>true</xmlOutput>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<configuration>
+<!--	Crashing			<parallel>all</parallel>-->
+					<useUnlimitedThreads>true</useUnlimitedThreads>
+					<excludedGroups>edu.uw.bothell.css.dsl.test.IntegrationTest</excludedGroups>
+				</configuration>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>integration-test</phase>
+						<configuration>
+							<groups>edu.uw.bothell.css.dsl.test.IntegrationTest</groups>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

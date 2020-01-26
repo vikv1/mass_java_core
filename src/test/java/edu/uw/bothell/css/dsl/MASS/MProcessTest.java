@@ -43,18 +43,18 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.*;
 
 import com.Ostermiller.util.CircularByteBuffer;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the MProcess class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // slow
 public class MProcessTest extends AbstractTest {
 
 	private static final int AGENTS_HANDLE = 0;

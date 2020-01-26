@@ -30,6 +30,16 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.MassData.*;
+import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
+import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.*;
+import java.net.InetAddress;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,18 +50,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Set;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
-import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
-import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
-import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
-import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -178,6 +178,12 @@ public class MASS extends MASSBase {
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
     	}
+
+    	MASSBase.getLogger().error("MASS::distributed_map:");
+
+    	for (Map.Entry<Object, Object> entry : MASSBase.distributed_map.entrySet()) {
+			MASS.getLogger().error(String.format("Entry: [key=%s; value=%s]", entry.getKey(), entry.getValue()));
+		}
 
     	// Synchronize with all slaves
     	barrierAllSlaves( );
@@ -323,7 +329,7 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-    		
+
     		// For debugging
     		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 
