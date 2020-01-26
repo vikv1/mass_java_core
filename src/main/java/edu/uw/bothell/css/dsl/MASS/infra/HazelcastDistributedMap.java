@@ -1,26 +1,71 @@
 package edu.uw.bothell.css.dsl.MASS.infra;
 
-import com.hazelcast.config.Config;
+import com.hazelcast.config.*;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.MNode;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.io.Closeable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class HazelcastDistributedMap implements DistributedMap {
+public class HazelcastDistributedMap implements DistributedMap, Closeable {
     private final IMap<Object, Object> map;
+    private final HazelcastInstance instance;
 
     private HazelcastDistributedMap() {
         Config config = new Config();
 
         config.setProperty("hazelcast.logging.type", "log4j2");
-        config.getNetworkConfig().setPort(10101);
+        //config.getNetworkConfig().setPort(10101);
+        //config.getNetworkConfig().setReuseAddress(true);
 
-        HazelcastInstance instance = Hazelcast.newHazelcastInstance(config);
+        NetworkConfig netConfig = config.getNetworkConfig();
+
+        netConfig.setPort(11111).setPortCount(100);
+        netConfig.setPortAutoIncrement(true);
+
+        InterfacesConfig ifConfig = netConfig.getInterfaces();
+
+        MASSBase.getLogger().error(MASSBase.getAllNodes().stream().map(n->String.valueOf(n.getPid())).collect(Collectors.joining(",")));
+
+        try {
+            String hostname = MASSBase.getMyHostname();
+            String ipString = InetAddress.getByName(hostname).getHostAddress();
+
+            MASSBase.getLogger().error("This node [host=" + hostname + "; ip=" + ipString + "pid=" + MASSBase.getMyPid() + "]");
+            ifConfig.addInterface(ipString).setEnabled(true);
+        } catch (UnknownHostException e) {
+            MASSBase.getLogger().error("Error retrieving master IP address");
+
+            Arrays.stream(e.getStackTrace()).forEach(st -> MASSBase.getLogger().error(st.toString()));
+        }
+
+        JoinConfig joinConfig = netConfig.getJoin();
+
+        joinConfig.getMulticastConfig().setEnabled(false);
+
+        MASS.getHosts().forEach(host -> joinConfig.getTcpIpConfig().addMember(host));
+
+        joinConfig.getTcpIpConfig().setEnabled(true);
+
+        new ManagementCenterConfig().setEnabled(true).setUrl("http://localhost:11110");
+
+        instance = Hazelcast.newHazelcastInstance(config);
 
         this.map = instance.getMap("base_map");
+    }
+
+    @Override
+    public void close() {
+        if (instance != null) {
+            instance.shutdown();
+        }
     }
 
     public static HazelcastDistributedMap getInstance() {

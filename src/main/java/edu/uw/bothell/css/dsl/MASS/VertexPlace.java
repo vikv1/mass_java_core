@@ -75,7 +75,7 @@ public class VertexPlace extends Place implements Serializable {
 
         init(args);
 
-        MASSBase.getLogger().debug(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
+        MASSBase.getLogger().trace(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
                 graphArguments[2],
                 this.neighbors.stream()
                         .map(n -> n.toString())

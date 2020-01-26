@@ -63,10 +63,10 @@ public class TxtFile extends File {
         int placeReadLength = getCurrentPlaceReadLength(entireTxtFileBuffer.length, placeOffset, placeOrder);
         int offset = placeOffset * placeOrder;
 
-        MASSBase.getLogger().debug(String.format("TxtFile::read { placeOffset: %d, placeReadLength: %d, placeOrder: %d, offset: %d }",
+        MASSBase.getLogger().trace(String.format("TxtFile::read { placeOffset: %d, placeReadLength: %d, placeOrder: %d, offset: %d }",
                 placeOffset, placeReadLength, placeOrder, offset));
 
-        MASSBase.getLogger().debug(String.format("TxtFile::read { entireTxtFileBuffer.length: %d }",
+        MASSBase.getLogger().trace(String.format("TxtFile::read { entireTxtFileBuffer.length: %d }",
                 entireTxtFileBuffer.length));
 
         return Arrays.copyOfRange(entireTxtFileBuffer, offset, offset + placeReadLength);

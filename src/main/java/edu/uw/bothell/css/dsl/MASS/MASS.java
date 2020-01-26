@@ -31,8 +31,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import edu.uw.bothell.css.dsl.MASS.MassData.*;
-import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
-import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 import javax.xml.bind.JAXBContext;
@@ -50,7 +48,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -166,6 +163,7 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
+		MASSBase.finish();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
@@ -179,17 +177,13 @@ public class MASS extends MASSBase {
     		node.sendMessage( m );
     	}
 
-    	MASSBase.getLogger().error("MASS::distributed_map:");
-
-    	for (Map.Entry<Object, Object> entry : MASSBase.distributed_map.entrySet()) {
-			MASS.getLogger().error(String.format("Entry: [key=%s; value=%s]", entry.getKey(), entry.getValue()));
-		}
-
     	// Synchronize with all slaves
     	barrierAllSlaves( );
 
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
+
+
 
     	MASS.getLogger().debug( "MASS::finish: done" );
 

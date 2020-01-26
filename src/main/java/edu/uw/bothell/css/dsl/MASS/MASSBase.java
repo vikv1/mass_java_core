@@ -31,6 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -268,7 +270,15 @@ public class MASSBase {
 		// TODO - Need to throw an Exception if MASS hasn't been init'd yet!
 		return thisNode.getPid();
 		
-	};
+	}
+
+	/**
+	 * Get hostname for this node
+	 * @return hostname of thisNode
+	 */
+	public static String getMyHostname() {
+		return thisNode.getHostName();
+	}
 	
 	/**
 	 * Get Places object for a specific handle ID
@@ -685,5 +695,15 @@ public class MASSBase {
 
 	protected static void initDistributedData() {
 		MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
+	}
+
+	protected static void finish() {
+		try {
+			distributed_map.close();
+		} catch (IOException e) {
+			logger.error("Error closing dmap instance:");
+
+			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
+		}
 	}
 }
