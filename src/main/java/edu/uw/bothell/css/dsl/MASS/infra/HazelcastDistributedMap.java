@@ -7,6 +7,7 @@ import com.hazelcast.core.IMap;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
+import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 
 import java.io.Closeable;
 import java.net.InetAddress;
@@ -22,13 +23,15 @@ public class HazelcastDistributedMap implements DistributedMap, Closeable {
         Config config = new Config();
 
         config.setProperty("hazelcast.logging.type", "log4j2");
+
         //config.getNetworkConfig().setPort(10101);
         //config.getNetworkConfig().setReuseAddress(true);
 
         NetworkConfig netConfig = config.getNetworkConfig();
 
-        netConfig.setPort(11111).setPortCount(100);
+        netConfig.setPort(10011).setPortCount(100);
         netConfig.setPortAutoIncrement(true);
+        netConfig.setReuseAddress(true);
 
         InterfacesConfig ifConfig = netConfig.getInterfaces();
 

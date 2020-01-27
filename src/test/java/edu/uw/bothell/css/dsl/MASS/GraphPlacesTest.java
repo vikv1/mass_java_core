@@ -75,7 +75,7 @@ public class GraphPlacesTest {
     @Test
     public void hippieNetworkIsCreated() {
         String [] graphArguments = new String[] {
-                "hippie/basic.tsv",
+                "test-files/complete-small.tsv",
                 "/dev/null"
         };
 

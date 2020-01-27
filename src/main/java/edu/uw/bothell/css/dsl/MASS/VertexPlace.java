@@ -3,6 +3,8 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfNodesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
+import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
+import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -13,10 +15,7 @@ import javax.xml.xpath.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
@@ -98,12 +97,100 @@ public class VertexPlace extends Place implements Serializable {
 
         if (networkFilename.contains(".xml")) {
             init_neighbors_matsim(networkFilename, index);
+        } else if (networkFilename.contains(".tsv")) {
+            init_neighbors_hippie(networkFilename, index);
         } else {
             init_neighbors_parallel(networkFilename, index);
         }
     }
 
-    public static List<Tuple> getNeighbors(String xmlFilename, int index) {
+    private void init_neighbors_hippie(String networkFilename, int index) {
+        Set<Map.Entry<Object, Object>> entries = MASSBase.distributed_map.entrySet();
+
+        String key = "";
+
+        try {
+            for (Map.Entry<Object, Object> entry : entries) {
+                String entryKey = (String) entry.getKey();
+                int value = (int) entry.getValue();
+
+                if (value == index) {
+                    key = entryKey;
+
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            MASSBase.getLogger().error("Exception in reverse map lookup " + index, e);
+        }
+
+
+        if (key.equals("")) {
+            MASSBase.getLogger().error("Requested index not in map: " + index);
+        }
+
+        List<Tuple> neighbors = getHippieNeighbors(networkFilename, key);
+
+        for (Tuple neighbor : neighbors) {
+            // Network file is 1 based. Shift to 0 based.
+            this.neighbors.add(neighbor.index);
+
+            // TODO: Refactor weights to double
+            // this.weights.add(neighbor.weight);
+
+            int weight = 1;
+
+            try {
+                weight = (int)Math.round(neighbor.weight);
+            } catch (Exception e) {
+                MASSBase.getLogger().warning("Exception parsing double to integer: " + e.getMessage());
+            }
+
+            this.weights.add(weight);
+        }
+    }
+
+    public static List<Tuple> getHippieNeighbors(String networkFilename, String key) {
+        List<Tuple> neighbors = new ArrayList<>();
+
+        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                String [] parts = line.split("\t");
+
+                String lineKey = HIPPIETABFormatLineParts.getPart(parts, HIPPIETABFormatLineParts.PROTEIN_KEY);
+
+                if (lineKey.equals(key)) {
+                    HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
+
+                    int neighborId = (Integer) MASSBase.distributed_map.get(edge.getInteractionKey());
+
+                    Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
+
+                    neighbors.add(neighbor);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+
+            MASSBase.getLogger().error(sw.toString());
+        } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+
+            MASSBase.getLogger().error(sw.toString());
+        }
+
+        return neighbors;
+    }
+
+        public static List<Tuple> getNeighbors(String xmlFilename, int index) {
         List<Tuple> neighbors = new ArrayList<>();
 
         XPathFactory factory = XPathFactory.newInstance();

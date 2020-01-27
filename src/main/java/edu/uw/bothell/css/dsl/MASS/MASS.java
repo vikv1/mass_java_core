@@ -183,10 +183,11 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
-
+//		MASSBase.getLogger().error("DistributedMap");
+//
+//		MASSBase.distributed_map.entrySet().forEach(e -> MASSBase.getLogger().error("Entry: [key=" + e.getKey() + "; value=" + e.getValue() + "]"));
 
     	MASS.getLogger().debug( "MASS::finish: done" );
-
     }
     
 //    /**

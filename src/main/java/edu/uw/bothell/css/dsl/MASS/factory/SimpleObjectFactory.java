@@ -152,5 +152,4 @@ public class SimpleObjectFactory implements ObjectFactory {
 	private void initClassLoader() {
 		classLoader = new URLClassLoader(classpathUrls.toArray(new URL[classpathUrls.size()]));
 	}
-
 }
