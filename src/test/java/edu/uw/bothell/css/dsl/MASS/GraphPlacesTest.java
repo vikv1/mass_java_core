@@ -5,8 +5,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import java.util.Arrays;
+
+import static junit.framework.TestCase.*;
 
 @Ignore // TODO: Fix this
 public class GraphPlacesTest {
@@ -87,6 +88,44 @@ public class GraphPlacesTest {
                 GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
 
         assertNotNull(graph);
+    }
+
+    @Test
+    public void hippieNetworkIsComplete() {
+        String [] graphArguments = new String[] {
+                "test-files/complete-small.tsv",
+                "/dev/null"
+        };
+
+        // TODO: Cleanup the constructor for graphplaces to something more like this
+//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
+//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
+
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
+                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+
+        Place [] places = graph.getPlaces();
+
+        assertEquals(7, places.length);
+
+        assertEquals(VertexPlace.class.getName(), places[0].getClass().getName());
+
+        int [] vertices = {
+                0, 1, 2, 3, 4, 5, 6
+        };
+
+        for (Place place : places) {
+            VertexPlace vPlace = (VertexPlace) place;
+            int id = place.getIndex()[0];
+
+            int [] expectedNeighbors = Arrays.stream(vertices).filter(pid -> pid != id).toArray();
+
+            int [] neighbors = vPlace.getNeighbors();
+
+            for (int i = 0; i < expectedNeighbors.length; i++) {
+                assertEquals(expectedNeighbors[i], neighbors[i]);
+            }
+        }
     }
 
 //    @Test
