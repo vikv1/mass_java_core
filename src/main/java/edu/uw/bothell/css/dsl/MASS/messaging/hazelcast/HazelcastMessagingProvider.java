@@ -132,7 +132,9 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		// broadcast to all Agents?
 		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() ) {
 			
-			// TODO - implement
+			// publish the message to the agent broadcast topic
+			ITopic<Object> topic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
+			topic.publish( message.getMessage() );
 			
 		}
 		
