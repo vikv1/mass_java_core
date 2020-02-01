@@ -9,7 +9,6 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.*;
 
-@Ignore // TODO: Fix this
 public class GraphPlacesTest {
     @BeforeClass
     public static void setupMASS() {
@@ -24,7 +23,7 @@ public class GraphPlacesTest {
     @Test
     public void networkIsCreated() {
         String [] graphArguments = new String[] {
-                "matsim/network-triangles.xml",
+                "test-files/network-triangles.xml",
                 "something-else.txt"
         };
 
@@ -37,7 +36,7 @@ public class GraphPlacesTest {
     @Test
     public void neighborsArePopulated() {
         String [] graphArguments = new String[] {
-                "matsim/network-triangles.xml",
+                "test-files/network-triangles.xml",
                 "something-else.txt"
         };
 
@@ -57,7 +56,7 @@ public class GraphPlacesTest {
     @Test
     public void networkContainsATriangle() {
         String [] graphArguments = new String[] {
-                "matsim/network-triangles.xml",
+                "test-files/network-triangles.xml",
                 "something-else.txt"
         };
 
