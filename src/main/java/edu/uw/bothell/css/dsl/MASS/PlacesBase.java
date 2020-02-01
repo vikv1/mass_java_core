@@ -855,10 +855,9 @@ public class PlacesBase {
     		// placesSize is the total number of places managed by this node
     		placesSize = upperBoundary - lowerBoundary + 1;
 
-			MASSBase.getLogger().debug(String.format("init_all: { lowerBoundary: %d, upperBoundary: %d, placesSize: %d }", lowerBoundary, upperBoundary, placesSize));
-
-    		//  maintaining an entire set
     		places = new Place[placesSize];
+
+			MASSBase.getLogger().debug(String.format("init_all: { lowerBoundary: %d, upperBoundary: %d, placesSize: %d }", lowerBoundary, upperBoundary, placesSize));
 
     		// initialize all Places objects
     		for ( int i = 0; i < placesSize; i++ ) {
@@ -958,6 +957,35 @@ public class PlacesBase {
 		} else {
 			init_all_graph_csv(graphArgs, initArgs);
 		}
+	}
+
+	/**
+	 * Add a new place to this node at the end of the array
+	 *
+	 * @return the index of the new node -1 on error
+	 */
+	protected int addPlace() {
+		final int currentSize = places.length;
+
+		Place [] newPlaces = Arrays.copyOf(places, currentSize + 1);
+
+		try {
+			Place newPlace = objectFactory.getInstance(className, null);
+
+			newPlace.setIndex(new int[] { currentSize });
+
+			newPlaces[currentSize] = newPlace;
+
+			places = newPlaces;
+
+			placesSize++;
+
+			return currentSize;
+		} catch (Exception e) {
+			MASSBase.getLogger().error("Error instantiating for new place: " + e.getMessage(), e);
+		}
+
+		return -1;
 	}
 
 	private void init_all_graph_hippie(String[] graphArgs, Object[] initArgs) {

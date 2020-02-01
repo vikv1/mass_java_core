@@ -140,6 +140,8 @@ public class SimpleObjectFactory implements ObjectFactory {
 		}
 		catch (InvocationTargetException e) {
 			throw new Exception("Exception occurred during instantiation of " + className + ": " + e.getCause(), e.getCause());
+		} catch (Exception e) {
+			throw new Exception("Exception occurred during instantiatoin of " + className + ": " + e.getCause(), e.getCause());
 		}
 		
 		return newObjectInstance;

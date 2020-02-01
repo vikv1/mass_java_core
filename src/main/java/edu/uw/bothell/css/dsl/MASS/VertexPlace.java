@@ -81,25 +81,27 @@ public class VertexPlace extends Place implements Serializable {
 
     public VertexPlace(Object args) {
         super();
-        
-        Object [] arguments = (Object [])args;
-        
-        graphArguments = Arrays.copyOfRange(arguments, 0, 3);
 
-        // TODO: Parallel IO requires the index to be set
-        //  We might consider refactoring the neighbors to come after the constructor
-        this.setIndex(new int[]{ (int)graphArguments[2] });
+        if (args != null) {
+            Object[] arguments = (Object[]) args;
 
-        init(args);
+            graphArguments = Arrays.copyOfRange(arguments, 0, 3);
 
-        MASSBase.getLogger().trace(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
-                graphArguments[2],
-                this.neighbors.stream()
-                        .map(n -> n.toString())
-                        .collect(Collectors.joining(", ")),
-                this.weights.stream()
-                        .map(w -> w.toString())
-                        .collect(Collectors.joining(", "))));
+            // TODO: Parallel IO requires the index to be set
+            //  We might consider refactoring the neighbors to come after the constructor
+            this.setIndex(new int[]{(int) graphArguments[2]});
+
+            init(args);
+
+            MASSBase.getLogger().trace(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
+                    graphArguments[2],
+                    this.neighbors.stream()
+                            .map(n -> n.toString())
+                            .collect(Collectors.joining(", ")),
+                    this.weights.stream()
+                            .map(w -> w.toString())
+                            .collect(Collectors.joining(", "))));
+        }
     }
 
     private void init(Object args) {

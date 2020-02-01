@@ -7,6 +7,7 @@ import org.junit.*;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -62,5 +63,43 @@ public class GraphMaintenanceTest {
 
     }
 
+    @Test
+    public void testAddVertex() {
+        GraphModel model = graph.getGraph();
 
+        List<VertexModel> vertices = model.getVertices();
+
+        assertTrue("Sanity check for non-existing vertex 6", vertices.size() == 6);
+
+        int vertexId = graph.addVertex();
+
+        assertTrue("Created vertex with valid id", vertexId >= 0);
+
+        vertices = graph.getGraph().getVertices();
+
+        assertTrue("Vertex is created", vertexId == 6);
+
+        VertexModel vertex = vertices.get(vertexId);
+
+        assertTrue(vertex != null);
+        assertEquals(0, vertex.neighbors.size());
+    }
+
+    @Test
+    public void testAddEdgeWithNewVertices() {
+        int vertexIdA = graph.addVertex();
+        int vertexIdB = graph.addVertex();
+
+        boolean added = graph.addEdge(vertexIdA, vertexIdB, 0.9);
+
+        assertTrue("Created edge with new vertices", added);
+
+        List<VertexModel> vertices = graph.getGraph().getVertices();
+
+        VertexModel vertexA = vertices.get(vertexIdA);
+
+        assertTrue(vertexA != null);
+        assertEquals(1, vertexA.neighbors.size());
+        assertEquals(vertexIdB, (long) vertexA.neighbors.get(0));
+    }
 }

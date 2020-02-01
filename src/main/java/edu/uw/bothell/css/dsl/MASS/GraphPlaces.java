@@ -3,10 +3,12 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.stream.Stream;
 
 public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;
@@ -138,7 +140,7 @@ public class GraphPlaces extends Places implements Graph {
 
     @Override
     public int addVertex() {
-        return 0;
+        return addPlace();
     }
 
     @Override
