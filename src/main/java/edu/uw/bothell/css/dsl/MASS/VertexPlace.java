@@ -19,6 +19,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
+    public void addNeighbor(int neighborId) throws IllegalArgumentException {
+        if (neighborId < 0) {
+            throw new IllegalArgumentException("Invalid negative neighbor for add: " + neighborId);
+        } else if (neighbors.contains(neighborId)) {
+            return;
+        }
+
+        neighbors.add(neighborId);
+    }
+
+    public void removeNeighbor(int neighborId) throws IllegalArgumentException {
+        if (neighborId < 0 || !neighbors.contains(neighborId)) {
+            throw new IllegalArgumentException("Invalid neighbor for remove: " + neighborId);
+        }
+
+        neighbors.remove(neighborId);
+    }
+
     public static class Tuple {
         public Tuple(int i, double w) {
             index = i;

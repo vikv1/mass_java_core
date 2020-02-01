@@ -2,6 +2,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 import java.io.*;
 import java.util.Arrays;
@@ -105,5 +106,43 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         return graph;
+    }
+
+    @Override
+    public boolean addEdge(int vertexId, int neighborId, double weight) {
+        boolean added = false;
+
+        Log4J2Logger logger = MASSBase.getLogger();
+
+        if (vertexId < 0 || vertexId < getPlaces().length) {
+            VertexPlace vertexPlace = (VertexPlace) getPlaces()[vertexId];
+
+            try {
+                vertexPlace.addNeighbor(neighborId);
+
+                added = true;
+            } catch (IllegalArgumentException iae) {
+                logger.warning("Exception encountered addingEdge: " + iae);
+            }
+        } else {
+            logger.warning("Cannot add edge: source is out of range(" + vertexId + ")");
+        }
+
+        return added;
+    }
+
+    @Override
+    public boolean removeEdge(int vertexId, int neighborId) {
+        return false;
+    }
+
+    @Override
+    public int addVertex() {
+        return 0;
+    }
+
+    @Override
+    public boolean removeVertex(int vertexId) {
+        return false;
     }
 }

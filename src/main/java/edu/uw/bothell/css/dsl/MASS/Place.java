@@ -98,7 +98,7 @@ public class Place implements Serializable {
 	 */
 	private Set<Agent> agents = Collections.synchronizedSet(new HashSet<Agent>());
 
-	private Vector<int[]> neighbors = null;
+	protected Vector<int[]> neighbors = null;
 
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
