@@ -43,7 +43,6 @@ import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import org.xml.sax.InputSource;
@@ -94,6 +93,17 @@ public class PlacesBase {
 	
 	}
 
+	private static String getSimplifiedClassname(String className) {
+		// set simple name used for logging and monitoring
+		String simpleClassName = className.contains(".")
+				? className.substring(className.lastIndexOf('.') + 1)
+				: className;
+		simpleClassName = simpleClassName.contains("$")
+				? simpleClassName.substring(simpleClassName.lastIndexOf('$') + 1)
+				: simpleClassName;
+		return simpleClassName;
+	}
+
 	/**
 	 * Instantiate a generic PlacesBase for this node
 	 * @param handle The Handle ID identifying this PlacesBase
@@ -104,6 +114,7 @@ public class PlacesBase {
 
 		this.handle = handle;
 		this.className = className;
+		this.simpleClassName = getSimplifiedClassname(className);
 
 		MASSBase.getLogger().debug( "Places_base handle = " + handle
 				+ ", class = " + className
@@ -116,6 +127,7 @@ public class PlacesBase {
 	public PlacesBase(int handle, String classname, String[] graphArgs, Object[] initArgs) {
 		this.handle = handle;
 		this.className = classname;
+		this.simpleClassName = getSimplifiedClassname(className);
 
 		init_all_graph(graphArgs, initArgs);
 	}
@@ -674,23 +686,23 @@ public class PlacesBase {
      * @param dest_index The destination index
      */
     protected void getGlobalNeighborArrayIndex( int src_index[], int offset[], int dst_size[], int dest_index[] ) {
-    	
+
     	for (int i = 0; i < dest_index.length; i++ ) {
-    		
+
     		dest_index[i] = src_index[i] + offset[i]; // calculate dest index
 
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
-    			
+
     			// out of range
     			Arrays.fill( dest_index, -1 );
     			return;
-    			
+
     		}
-    	
+
     	}
-    
+
     }
-    
+
     /**
      * Get the handle (ID) for PlacesBase on this node
      * @return PlacesBase handle ID
@@ -940,7 +952,7 @@ public class PlacesBase {
     	catch ( Exception e ) {
     		MASSBase.getLogger().error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
     	}
-    	
+
     }
 
 	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {

@@ -337,6 +337,7 @@ public class Places extends PlacesBase {
 	 * @param message the message to send to remote nodes
 	 */
 	protected void init_master_base( Message message ) {
+
 		// create a list of all host names;
 		// the master IP name
 		Vector<String> hosts = getHosts();
@@ -387,8 +388,8 @@ public class Places extends PlacesBase {
 
 		// create a new list for message
 		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
-					 getHandle(), getClassName(),
-					 argument, boundaryWidth, hosts );
+				getHandle(), getClassName(),
+				argument, boundaryWidth, hosts );
 
 		// send a PLACES_INITIALIZE message to each slave
 		MASSBase.getLogger().debug( "PLACES_INITIALIZE sent to all remote nodes" );
