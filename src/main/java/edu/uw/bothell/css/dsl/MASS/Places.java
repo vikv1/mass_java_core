@@ -173,12 +173,12 @@ public class Places extends PlacesBase {
 	 * @param argument An argument to supply to the function being called in each Place
 	 */
 	public void callAll( int functionId, Object argument ) {
-	
+
 		MASSBase.getLogger().debug( "callAll void object" );
 		
 		ca_setup( functionId, argument, 
 			  Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT );
-    
+
     }
     
 	/**
@@ -194,12 +194,12 @@ public class Places extends PlacesBase {
 	 * 			supplied by each Place in the cluster
 	 */
 	public Object[] callAll( int functionId, Object argument[] ) {
-	
+
 		MASSBase.getLogger().debug( "callAll return object" );
 		
 		return ca_setup( functionId, ( Object )argument,
 				 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
-    
+
     }
 	
     
@@ -217,7 +217,7 @@ public class Places extends PlacesBase {
 	 * @param functionId The ID of the function to call
 	 */
 	public void exchangeAll( int destinationHandle, int functionId ) {
-	
+
 		// send a PLACES_EXCHANGE_ALL message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
 		
@@ -247,7 +247,7 @@ public class Places extends PlacesBase {
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
-    
+
     }
 
 	/**
@@ -273,11 +273,11 @@ public class Places extends PlacesBase {
 	 * @param neighbors The vector to set
 	 */
 	public void setAllPlacesNeighbors(Vector<int[]> neighbors) {
-		
+
 		for ( Place place : getPlaces() ) {
 			place.setNeighbors( neighbors );
 		}
-		
+
 		// From Jas' and Michael's additions
 		// TODO - is it better to use this method than the Place iterator above?
 		//		for(int i = 0; i < this.getNumberOfPlacesOnCurrentNode(); i++)
@@ -291,7 +291,7 @@ public class Places extends PlacesBase {
 	 * Send an "Exchange Boundary" request to all nodes
 	 */
     public void exchangeBoundary( ) {
-	
+
 		// send a PLACES_EXCHANGE_BOUNDARY message to each slave
 		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_BOUNDARY, 
 					 this.getHandle(),  0 ); // 0 is dummy
@@ -309,15 +309,34 @@ public class Places extends PlacesBase {
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
-    
+
     }
+
+	protected Vector<String> getHosts() {
+		// create a list of all host names;
+		// the master IP name
+		Vector<String> hosts = new Vector<>( );
+
+		try {
+			hosts.add( MASS.getMasterNode().getHostName() );
+		} catch ( Exception e ) {
+			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
+			System.exit( -1 );
+		}
+
+		// all the slave IP names
+		for ( MNode node : MASS.getRemoteNodes() ) {
+			hosts.add( node.getHostName( ) );
+		}
+
+		return hosts;
+	}
 
 	/**
 	 * Initializes the places with the given arguments and boundary width.
 	 * @param message the message to send to remote nodes
 	 */
 	protected void init_master_base( Message message ) {
-
 		// create a list of all host names;
 		// the master IP name
 		Vector<String> hosts = getHosts();
