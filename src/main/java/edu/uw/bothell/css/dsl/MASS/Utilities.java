@@ -127,7 +127,7 @@ class Utilities {
 			// set the command to be executed upon channel connection
 			MASSBase.getLogger().debug("Executing remote command: {}", command);
 
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
 
 			channel = (ChannelExec) session.openChannel("exec");
 
@@ -140,7 +140,9 @@ class Utilities {
 
 			channel.connect(CONNECT_TIMEOUT_MILLISECONDS);
 
-			String errorString = new String(baos.toByteArray(), "UTF-8");
+			baos.flush();
+
+			String errorString = new String(baos.toByteArray());
 
 			if (!errorString.equals("")) {
 				MASSBase.getLogger().error("Error encountered connecting to remote host: " + errorString);
