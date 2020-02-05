@@ -3,7 +3,9 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import static org.junit.Assert.assertTrue;
  *   - addEdge
  *   - removeEdge
  */
+@Category(IntegrationTest.class)
 public class GraphMaintenanceTest {
     private Graph graph;
 
@@ -101,5 +104,10 @@ public class GraphMaintenanceTest {
         assertTrue(vertexA != null);
         assertEquals(1, vertexA.neighbors.size());
         assertEquals(vertexIdB, (long) vertexA.neighbors.get(0));
+    }
+
+    @Category(IntegrationTest.class)
+    public void testTopographyIsRetrieved() {
+
     }
 }

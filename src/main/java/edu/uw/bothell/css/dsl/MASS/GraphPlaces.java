@@ -3,12 +3,15 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import edu.uw.bothell.css.dsl.MASS.monitoring.MonitorConnector;
 
-import java.io.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.stream.Stream;
+import java.util.concurrent.*;
 
 public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;
@@ -138,8 +141,108 @@ public class GraphPlaces extends Places implements Graph {
         return false;
     }
 
+    private int [] placeSizes;
+
+    private int getPlaceCountForHost(String host, Vector<Integer> locks, int index) {
+        // TODO: where can we get the monitoring port
+        String resource = String.format("ws://%s:%d/", host, MonitorConnector.getInstance().getPort());
+
+        int size = -1;
+
+        Log4J2Logger logger = MASSBase.getLogger();
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        WebSocket.Listener listener = new WebSocket.Listener() {
+            @Override
+            public void onOpen(WebSocket webSocket) {
+                logger.trace("open");
+
+                WebSocket.Listener.super.onOpen(webSocket);
+            }
+
+            @Override
+            public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                logger.trace("text");
+
+                placeSizes[index] = 10;
+
+                latch.countDown();
+
+                return WebSocket.Listener.super.onText(webSocket, data, last);
+            }
+
+            @Override
+            public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
+                logger.trace("Binary");
+
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
+                logger.trace("ping");
+
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
+                logger.trace("pong");
+
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                logger.trace("close");
+
+                return null;
+            }
+
+            @Override
+            public void onError(WebSocket webSocket, Throwable error) {
+                logger.trace("error: " + error);
+            }
+        };
+        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+                .buildAsync(URI.create(resource), listener).join();
+
+        try {
+            socket.sendText("{ \"action\": \"FETCH\", \"handle\": \"STATUS\" }", false);
+
+            latch.await(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.error("sendText exception: ", e);
+        }
+
+        return size;
+    }
+
+    private Object getTopology() {
+        Vector<String> hosts = getHosts();
+
+        Vector<Integer> locks = new Vector<>(hosts.size());
+
+        for (int i = 0; i < hosts.size(); i++) {
+            String host = hosts.get(i);
+
+            int placeCount = getPlaceCountForHost(host, locks, i);
+        }
+
+//        try {
+//            locks.wait();
+//        } catch (InterruptedException e) {
+//            MASSBase.getLogger().error("Error waiting for websocket locks", e);
+//        }
+
+        return null;
+    }
+
     @Override
     public int addVertex() {
+        Object result = getTopology();
+
         return addPlace();
     }
 
