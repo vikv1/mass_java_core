@@ -232,8 +232,8 @@ public class PlacesBase {
     						srcHandle, destHandle_at_src, functionId, 
     						orgRequest, 0 ); // 0 = dummy
 
-    		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) ).start();
-    		
+							Thread sender = new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) );
+							sender.start();    		
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
@@ -282,9 +282,14 @@ public class PlacesBase {
     			}
     		
     		}
-
-    		// send return values by a child thread
     		Message messageToSrc = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, retVals );
+			
+			try {
+				sender.join();
+			} catch (InterruptedException e) {
+				MASSBase.getLogger().error("Unable to join sender thread", e);
+			}
+    		// send return values by a child thread
     		new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToSrc ) ).start();
     		
     		// receive return values by myself in parallel
@@ -318,7 +323,8 @@ public class PlacesBase {
     						+ orgRequest.get(i).getInMessageIndex() );
     		
     		}
-    	
+			orgRequest.clear();
+
     	}
     
     }
