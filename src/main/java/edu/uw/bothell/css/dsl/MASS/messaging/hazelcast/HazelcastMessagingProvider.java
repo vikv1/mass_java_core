@@ -44,6 +44,7 @@ import com.hazelcast.topic.TopicOverloadPolicy;
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
@@ -64,7 +65,14 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	
 	private HazelcastInstance instance;
 	
-	
+	@Override
+	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
+		
+		Config config = new Config();
+		instance = Hazelcast.newHazelcastInstance( config );
+		
+	}
+
 	@Override
 	public void registerAgent( Agent agent ) {
 		
@@ -72,29 +80,19 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		String agentSpecificTopicName = AGENT_ADDRESS_PREFIX + agent.getAgentId();  
 		
 		// set configuration for agent-specific topic
-		Config agentSpecificTopicConfig = new Config();
-		ReliableTopicConfig agentSpecificRTTopicConfig = agentSpecificTopicConfig.getReliableTopicConfig( agentSpecificTopicName );
-		agentSpecificRTTopicConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK );
-		agentSpecificRTTopicConfig.setReadBatchSize( 1 );
-		agentSpecificRTTopicConfig.setStatisticsEnabled( true );	
+		setGlobalTopicConfiguration( agentSpecificTopicName );
 
 		// create agent-specific topic and register listener
 		ITopic<MASSMessage<Serializable>> agentSpecificTopic = instance.getReliableTopic( agentSpecificTopicName );
-		HazelcastAgentMessageListener agentMessageListener = new HazelcastAgentMessageListener();
-		agentMessageListener.setSubject( agent );
+		HazelcastAgentMessageListener agentMessageListener = new HazelcastAgentMessageListener( agent );
 		agentSpecificTopic.addMessageListener(agentMessageListener);
 
 		// set configuration for agent broadcast topic
-		Config agentBroadcastTopicConfig = new Config();
-		ReliableTopicConfig agentBroadcastRTTopicConfig = agentBroadcastTopicConfig.getReliableTopicConfig( agentSpecificTopicName );
-		agentBroadcastRTTopicConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK );
-		agentBroadcastRTTopicConfig.setReadBatchSize( 1 );
-		agentBroadcastRTTopicConfig.setStatisticsEnabled( true );	
+		setGlobalTopicConfiguration( AGENT_BROADCAST_TOPIC );
 
 		// create/obtain agent broadcast topic and listener
 		ITopic<MASSMessage<Serializable>> agentBroadcastTopic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
-		HazelcastAgentMessageListener broadcastMessageListener = new HazelcastAgentMessageListener();
-		broadcastMessageListener.setSubject( agent );
+		HazelcastAgentMessageListener broadcastMessageListener = new HazelcastAgentMessageListener( agent );
 		agentBroadcastTopic.addMessageListener(broadcastMessageListener);
 		
 	}
@@ -102,40 +100,36 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	@Override
 	public void registerPlace (Place place ) {
 
-		// create/obtain a topic for this agent
-//		ITopic<Object> topic = instance.getTopic( "P" + place.g );
+		// create/obtain a topic and listener for this particular place
+		String placeSpecificTopicName = PLACE_ADDRESS_PREFIX + MatrixUtilities.getLinearIndex( place.getSize(), place.getIndex() );  
+		
+		// set configuration for place-specific topic
+		setGlobalTopicConfiguration( placeSpecificTopicName );
+		
+		// create place-specific topic and register listener
+		ITopic<MASSMessage<Serializable>> placeSpecificTopic = instance.getReliableTopic( placeSpecificTopicName );
+		HazelcastPlaceMessageListener placeMessageListener = new HazelcastPlaceMessageListener( place );
+		placeSpecificTopic.addMessageListener(placeMessageListener);
 
-		
-		
+		// set configuration for place broadcast topic
+		setGlobalTopicConfiguration( PLACE_BROADCAST_TOPIC );
+
+		// create/obtain place broadcast topic and listener
+		ITopic<MASSMessage<Serializable>> placeBroadcastTopic = instance.getReliableTopic( PLACE_BROADCAST_TOPIC );
+		HazelcastPlaceMessageListener broadcastMessageListener = new HazelcastPlaceMessageListener( place );
+		placeBroadcastTopic.addMessageListener(broadcastMessageListener);
+
 	}
-
+	
 	@Override
-	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
-		
-		Config config = new Config();
-		instance = Hazelcast.newHazelcastInstance( config );
-		
-		
-	}
-
-	@Override
-	public void shutdown() {
-		instance.shutdown();
-	}
-
-	@Override
-	public <T> void sendAgentMessage(MASSMessage<Serializable> message) {
+	public < T > void sendAgentMessage( MASSMessage< Serializable > message ) {
 
 		if ( !Objects.nonNull( message ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
 		if ( !Objects.nonNull( message.getMessage() ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
 
 		// broadcast to all Agents?
 		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() ) {
-			
-			// publish the message to the agent broadcast topic
-			ITopic<Object> topic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
-			topic.publish( message.getMessage() );
-			
+			instance.getReliableTopic( AGENT_BROADCAST_TOPIC ).publish( message.getMessage() );
 		}
 		
 		// broadcast to all local Agents?
@@ -147,25 +141,55 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		
 		// specific Agent
 		else {
-			
-			// publish the message to a single agent
-			ITopic<Object> topic = instance.getReliableTopic( AGENT_ADDRESS_PREFIX + message.getDestinationAddress() );
-			topic.publish( message.getMessage() );
-			
+			instance.getReliableTopic( AGENT_ADDRESS_PREFIX + message.getDestinationAddress() ).publish( message.getMessage() );
 		}
 			
 	}
 
 	@Override
-	public <T> void sendPlaceMessage(MASSMessage<Serializable> message) {
+	public < T > void sendNodeMessage( MASSMessage< Serializable > message ) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <T> void sendNodeMessage(MASSMessage<Serializable> message) {
-		// TODO Auto-generated method stub
+	public < T > void sendPlaceMessage( MASSMessage< Serializable > message ) {
+
+		if ( !Objects.nonNull( message ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
+		if ( !Objects.nonNull( message.getMessage() ) ) throw new IllegalArgumentException( "Must provide a message to send!" );
+
+		// broadcast to all Places?
+		if ( message.getDestinationAddress() == MessageDestination.ALL_PLACES.getValue() ) {
+			instance.getReliableTopic( PLACE_BROADCAST_TOPIC ).publish( message.getMessage() );
+		}
 		
+		// broadcast to all local Agents?
+		else if ( message.getDestinationAddress() == MessageDestination.ALL_LOCAL_PLACES.getValue() ) {
+			
+			// TODO - implement
+			
+		}
+		
+		// specific Place
+		else {
+			instance.getReliableTopic( PLACE_ADDRESS_PREFIX + message.getDestinationAddress() ).publish( message.getMessage() );
+		}
+		
+	}
+
+	private void setGlobalTopicConfiguration( String topicName ) {
+		
+		Config agentSpecificTopicConfig = new Config();
+		ReliableTopicConfig agentSpecificRTTopicConfig = agentSpecificTopicConfig.getReliableTopicConfig( topicName );
+		agentSpecificRTTopicConfig.setTopicOverloadPolicy( TopicOverloadPolicy.BLOCK );
+		agentSpecificRTTopicConfig.setReadBatchSize( 1 );
+		agentSpecificRTTopicConfig.setStatisticsEnabled( true );	
+		
+	}
+
+	@Override
+	public void shutdown() {
+		instance.shutdown();
 	}
 
 }

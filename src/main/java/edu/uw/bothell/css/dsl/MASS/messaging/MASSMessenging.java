@@ -39,8 +39,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
+import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvider;
 
 /**
@@ -111,8 +113,6 @@ public class MASSMessenging {
 	public < T extends Serializable > void sendAgentMessage( int address, T message ) throws IllegalArgumentException {
 		
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		agentMessageQueue.add( new MASSMessage<Serializable>( address, message ) );
 		
 	}
@@ -127,8 +127,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( destination, "Must provide a destination!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		sendAgentMessage( destination.getValue(), message );
 
 	}
@@ -143,8 +141,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( addresses, "Must provide destination addresses!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		addresses.forEach( destination -> sendAgentMessage( destination, message ) );
 		
 	}
@@ -158,8 +154,6 @@ public class MASSMessenging {
 	public < T extends Serializable > void sendNodeMessage( int address, T message ) {
 
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		messagingProviderImpl.sendNodeMessage( new MASSMessage< Serializable >( address, message ) );
 
 	}
@@ -174,8 +168,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( destination, "Must provide a destination!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-
 		sendNodeMessage( destination.getValue(), message );
 		
 	}
@@ -190,8 +182,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( addresses, "Must provide destination addresses!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		addresses.forEach( destination -> sendNodeMessage( destination, message ) );
 
 	}
@@ -205,8 +195,6 @@ public class MASSMessenging {
 	public < T extends Serializable > void sendPlaceMessage( int linearIndex, T message ) {
 		
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		placeMessageQueue.add( new MASSMessage< Serializable >( linearIndex, message ) );
 		
 	}
@@ -221,9 +209,7 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( index, "Must provide an index!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
-		// TODO - convert array index to linear
+		sendPlaceMessage( MatrixUtilities.getLinearIndex( MASS.getCurrentPlacesBase().getSize() , index ), message );
 
 	}
 	
@@ -237,8 +223,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( destination, "Must provide a destination!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		sendPlaceMessage( destination.getValue(), message );
 
 	}
@@ -253,8 +237,6 @@ public class MASSMessenging {
 
 		Objects.requireNonNull( linearIndexes, "Must provide a collection of linear indices!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
-//		Objects.requireNonNull( messageClazz, "Must provide a message clazz!" );
-		
 		linearIndexes.forEach( destination -> sendPlaceMessage( destination, message ) );
 
 	}

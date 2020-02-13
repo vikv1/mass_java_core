@@ -38,28 +38,24 @@ import com.hazelcast.core.MessageListener;
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
-import edu.uw.bothell.css.dsl.MASS.messaging.AgentMessageListener;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 
 /**
  *  HazelcastAgentMessageListener is an adapter between MASS messaging and Hazelcast messaging for Agents.
  */
-public class HazelcastAgentMessageListener implements MessageListener<MASSMessage<Serializable>>, AgentMessageListener {
+public class HazelcastAgentMessageListener implements MessageListener< MASSMessage< Serializable > > {
 
 	private Agent agent;
 	
+	public HazelcastAgentMessageListener( Agent agent ) {
+		this.agent = agent;
+	}
+	
 	@Override
-	public void onMessage( Message<MASSMessage<Serializable>> message ) {
+	public void onMessage( Message< MASSMessage< Serializable > > message ) {
 
 		// place the method in the event queue for execution at the appropriate time
 		MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessageObject() );
-		
-	}
-
-	@Override
-	public <T extends Agent> void setSubject( T agent ) {
-
-		this.agent = agent;
 		
 	}
 

@@ -39,27 +39,23 @@ import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
-import edu.uw.bothell.css.dsl.MASS.messaging.PlaceMessageListener;
 
 /**
  *  HazelcastAgentMessageListener is an adapter between MASS messaging and Hazelcast messaging for Places.
  */
-public class HazelcastPlaceMessageListener implements MessageListener<MASSMessage<Serializable>>, PlaceMessageListener {
+public class HazelcastPlaceMessageListener implements MessageListener< MASSMessage< Serializable > > {
 
 	private Place place;
-	
-	@Override
-	public void onMessage( Message<MASSMessage<Serializable>> message ) {
 
-		// place the method in the event queue for execution at the appropriate time
-		MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessageObject() );
-		
+	public HazelcastPlaceMessageListener( Place place ) {
+		this.place = place;
 	}
 
 	@Override
-	public <T extends Place> void setSubject( T place ) {
+	public void onMessage( Message< MASSMessage< Serializable > > message ) {
 
-		this.place = place;
+		// place the method in the event queue for execution at the appropriate time
+		MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessageObject() );
 		
 	}
 
