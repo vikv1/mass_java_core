@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
@@ -74,7 +75,7 @@ public class GraphMaintenanceTest {
 
         assertTrue("Sanity check for non-existing vertex 6", vertices.size() == 6);
 
-        int vertexId = graph.addVertex();
+        int vertexId = graph.addVertex(101);
 
         assertTrue("Created vertex with valid id", vertexId >= 0);
 
@@ -90,8 +91,8 @@ public class GraphMaintenanceTest {
 
     @Test
     public void testAddEdgeWithNewVertices() {
-        int vertexIdA = graph.addVertex();
-        int vertexIdB = graph.addVertex();
+        int vertexIdA = graph.addVertex(101);
+        int vertexIdB = graph.addVertex(101);
 
         boolean added = graph.addEdge(vertexIdA, vertexIdB, 0.9);
 
@@ -104,6 +105,18 @@ public class GraphMaintenanceTest {
         assertTrue(vertexA != null);
         assertEquals(1, vertexA.neighbors.size());
         assertEquals(vertexIdB, (long) vertexA.neighbors.get(0));
+    }
+
+    @Test
+    /**
+     * Considering a mass cluster with 3 nodes available: mass0 (master) mass1 mass2
+     */
+    public void createNetworkOnMultipleNodes() {
+        Integer [] topology = ((GraphPlaces) graph).getTopology();
+
+        for (int i = 0; i < topology.length; i++) {
+            assertTrue(topology[i] == 2);
+        }
     }
 
     @Category(IntegrationTest.class)

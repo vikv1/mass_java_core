@@ -23,6 +23,7 @@ public class HazelcastDistributedMap implements DistributedMap, Closeable {
         Config config = new Config();
 
         config.setProperty("hazelcast.logging.type", "log4j2");
+        config.setProperty("hazelcast.logging.level", "ERROR");
 
         //config.getNetworkConfig().setPort(10101);
         //config.getNetworkConfig().setReuseAddress(true);

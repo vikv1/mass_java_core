@@ -46,7 +46,7 @@ public class Message implements Serializable {
 	public enum ACTION_TYPE { 
 	    
     	EMPTY,                                    // 0
-	    FINISH("FINISH"),                         // 1             
+	    FINISH("FINISH"),                         // 1
 	    ACK("ACK"),                               // 2
 
 	    PLACES_INITIALIZE,                        // 3
@@ -67,7 +67,11 @@ public class Message implements Serializable {
 
 		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH");                  // 17
 
-		private final String value;
+        // Retrieval
+        MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
+        MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
+        ;
+        private final String value;
 
     	private ACTION_TYPE(String v) {
     	  value = v;

@@ -26,7 +26,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	
 	</properties>
-  
+
 	<organization>
     	<name>University of Washington, Bothell, Computing and Software Systems</name>
   		<url>http://www.bothell.washington.edu/css</url>
@@ -116,14 +116,14 @@
     		<groupId>org.slf4j</groupId>
     		<artifactId>slf4j-api</artifactId>
     		<version>${slf4j.version}</version>
-    		<scope>compile</scope>
+    		<scope>provided</scope>
   		</dependency>
     
     	<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     		<artifactId>log4j-slf4j-impl</artifactId>
     		<version>${log4j.version}</version>
-    		<scope>compile</scope>
+    		<scope>runtime</scope>
   		</dependency>
   
   		<dependency>
@@ -260,6 +260,7 @@
 				<configuration>
 <!--	Crashing			<parallel>all</parallel>-->
 					<useUnlimitedThreads>true</useUnlimitedThreads>
+					<useFile>false</useFile>
 					<excludedGroups>edu.uw.bothell.css.dsl.test.IntegrationTest</excludedGroups>
 				</configuration>
 				<executions>
@@ -270,11 +271,37 @@
 						</goals>
 						<phase>integration-test</phase>
 						<configuration>
-							<groups>edu.uw.bothell.css.dsl.test.IntegrationTest</groups>
+							<excludedGroups>none</excludedGroups>
+							<groups>edu.uw.bothell.css.dsl.test.IntegrationTest.class</groups>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<version>3.0.0-M4</version>
+				<configuration>
+					<groups>edu.uw.bothell.css.dsl.test.IntegrationTest</groups>
+				</configuration>
+			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-dependency-plugin</artifactId>-->
+<!--				<version>3.1.1</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>unpack-dependencies</id>-->
+<!--						<phase>package</phase>-->
+<!--						<goals>-->
+<!--							<goal>unpack-dependencies</goal>-->
+<!--						</goals>-->
+<!--						<configuration>-->
+<!--							<outputDirectory>${project.build.directory}/classes</outputDirectory>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 		</plugins>
 	</build>
 

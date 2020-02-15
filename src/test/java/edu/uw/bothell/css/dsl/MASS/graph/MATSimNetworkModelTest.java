@@ -1,8 +1,11 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
+@Category(IntegrationTest.class)
 public class MATSimNetworkModelTest {
     // network-pt-simple.xml from Cytoscape repository
     private final String networkXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

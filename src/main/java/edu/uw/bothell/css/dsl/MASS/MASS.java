@@ -189,7 +189,7 @@ public class MASS extends MASSBase {
 
     	MASS.getLogger().debug( "MASS::finish: done" );
     }
-    
+
 //    /**
 //	 * Get the default password for connecting to remote nodes
 //	 * @return The default login password
@@ -250,7 +250,7 @@ public class MASS extends MASSBase {
         			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
             		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
-            		
+
             		// iterate through the nodes, adding each
             		for (MNode node : nodeList.getNodes()) {
             			addNode(node);
@@ -340,7 +340,7 @@ public class MASS extends MASSBase {
 
     		// TODO - add configurable heap memory sizes per node
     		commandBuilder.append("-Xmx2g ");
-    		
+
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
    				String jarName = new java.io.File(MASS.class.getProtectionDomain()

@@ -125,6 +125,8 @@ public class SimpleObjectFactory implements ObjectFactory {
 		}
 
 		try {
+			String [] args = { "a", "b", "c" };
+
 			newClassConstructor = newClass.getConstructor( Object.class );
 		}
 		catch (NoSuchMethodException e) {

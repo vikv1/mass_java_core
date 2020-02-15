@@ -213,7 +213,7 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASSBase.getLogger().error( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "receiveMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 			
 			MASSBase.getLogger().error("stack trace: " + Arrays.stream(e.getStackTrace()).map( st -> st.toString())

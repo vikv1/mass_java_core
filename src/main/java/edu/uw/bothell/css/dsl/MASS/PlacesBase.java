@@ -34,6 +34,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +45,7 @@ import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
+import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import org.xml.sax.InputSource;
 import org.w3c.dom.NodeList;
@@ -976,29 +978,57 @@ public class PlacesBase {
 	 *
 	 * @return the index of the new node -1 on error
 	 */
-	protected int addPlace() {
-		final int currentSize = places.length;
+//	protected int addPlace(int vertexId) {
+//		final int currentSize = places.length;
+//
+//		try {
+//			Place newPlace = objectFactory.getInstance(className, null);
+//
+//			newPlace.setIndex(new int[] { currentSize });
+//
+//			newPlaces[currentSize] = newPlace;
+//
+//			places = newPlaces;
+//
+//			int globalLinearIndex = MASSBase.getMyPid() * placesSize + currentSize;
+//
+//			MASSBase.distributed_map.put(vertexId, new VertexMetaValues(vertexId, globalLinearIndex));
+//
+//			// Increase this places size for calculating the linear index
+//			this.size[0]++;
+//
+//			return currentSize;
+//		} catch (Exception e) {
+//			MASSBase.getLogger().error("Error instantiating for new place: " + e.getMessage(), e);
+//		}
+//
+//		return -1;
+//	}
 
-		Place [] newPlaces = Arrays.copyOf(places, currentSize + 1);
-
-		try {
-			Place newPlace = objectFactory.getInstance(className, null);
-
-			newPlace.setIndex(new int[] { currentSize });
-
-			newPlaces[currentSize] = newPlace;
-
-			places = newPlaces;
-
-			placesSize++;
-
-			return currentSize;
-		} catch (Exception e) {
-			MASSBase.getLogger().error("Error instantiating for new place: " + e.getMessage(), e);
-		}
-
-		return -1;
-	}
+	/**
+	 * Add a new place to the specified host
+	 *
+	 * @param host to add to
+	 */
+//	protected int addPlace(String host, int vertexId) {
+//		Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, vertexId);
+//
+//		Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
+//
+//		if (hostOption.isPresent()) {
+//			// TODO: Check if this is the host before looking
+//			if (MASSBase.getMyHostname().equals(hostOption.get().getHostName())) {
+//				addPlace(vertexId);
+//			} else {
+//				hostOption.get().sendMessage(message);
+//			}
+//
+//		} else {
+//			MASSBase.getLogger().error("Failed to send addPlace message to " + host + "; host not found");
+//		}
+//
+//		return -1;
+//	}
 
 	private void init_all_graph_hippie(String[] graphArgs, Object[] initArgs) {
 		String graphNeighborsFilename = graphArgs[0];
@@ -1088,7 +1118,7 @@ public class PlacesBase {
 
 				if (!MASSBase.distributed_map.containsKey(key)) {
 					// HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
-					MASSBase.distributed_map.put(key, vertexCount);
+					MASSBase.distributed_map.put(key, new VertexMetaValues(vertexCount, MASSBase.getMyPid()));
 
 					vertexCount++;
 				}

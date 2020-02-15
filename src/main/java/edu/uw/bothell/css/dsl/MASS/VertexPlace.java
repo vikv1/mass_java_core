@@ -5,6 +5,7 @@ import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
+import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -132,7 +133,8 @@ public class VertexPlace extends Place implements Serializable {
         try {
             for (Map.Entry<Object, Object> entry : entries) {
                 String entryKey = (String) entry.getKey();
-                int value = (int) entry.getValue();
+                VertexMetaValues values = (VertexMetaValues) entry.getValue();
+                int value = values.Id;
 
                 if (value == index) {
                     key = entryKey;
@@ -186,7 +188,9 @@ public class VertexPlace extends Place implements Serializable {
                 if (lineKey.equals(key)) {
                     HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
 
-                    int neighborId = (Integer) MASSBase.distributed_map.get(edge.getInteractionKey());
+                    VertexMetaValues values = MASSBase.getVertexMetaValues(edge.getInteractionKey());
+
+                    int neighborId = values.Id;
 
                     Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
 

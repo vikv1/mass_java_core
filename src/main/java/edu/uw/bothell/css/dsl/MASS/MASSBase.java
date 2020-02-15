@@ -42,6 +42,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
@@ -705,5 +706,9 @@ public class MASSBase {
 
 			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
 		}
+	}
+
+	public static VertexMetaValues getVertexMetaValues(Object key) {
+		return (VertexMetaValues) distributed_map.getOrDefault(key, new VertexMetaValues(-1, -1));
 	}
 }

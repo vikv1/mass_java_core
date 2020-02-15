@@ -30,12 +30,11 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Arrays;
 
 /**
@@ -111,7 +110,6 @@ public class MProcess {
 	 *            number for communications, and the working directory to use)
 	 */
 	public static void main(String[] args) throws Exception {
-
 		String hostName = args[0];
 		int myPid = Integer.parseInt(args[1]);
 		int nProc = Integer.parseInt(args[2]);
@@ -507,10 +505,66 @@ public class MProcess {
 
 				break;
 
+			case MAINTENANCE_ADD_PLACE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
+
+				int result = ((GraphPlaces)places).addPlaceLocally((Integer)m.getArgument());
+
+				sendAck(result);
+
+				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed");
+				break;
+
+			case MAINTENANCE_ADD_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+
+				GraphPlaces graphPlaces = ((GraphPlaces) places);
+
+				graphPlaces.addEdge((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE completed");
+				break;
+
+			case MAINTENANCE_REMOVE_PLACE:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
+
+//				result = places.addPlace((Integer)m.getArgument());
+//
+//				sendAck(result);
+
+				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
+				break;
+
+			case MAINTENANCE_REMOVE_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+
+//				result = places.addPlace((Integer)m.getArgument());
+//
+//				sendAck(result);
+
+				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
+				break;
+
+			case MAINTENANCE_GET_PLACES: {
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
+
+				sendMessage(GraphMaintenance.getPlaces((GraphPlaces)places));
+
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
+				break;
 			}
-
+			}
 		}
-
 	}
 
+	private void sendMessage(Serializable object) {
+		try {
+			MAIN_OOS.writeObject(object);
+			MAIN_OOS.flush();
+		} catch (IOException e) {
+			MASSBase.getLogger().error("Exception sending object to remote host", e);
+		}
+	}
 }
