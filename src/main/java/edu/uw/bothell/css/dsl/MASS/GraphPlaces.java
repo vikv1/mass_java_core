@@ -126,6 +126,12 @@ public class GraphPlaces extends Places implements Graph {
             graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
         }
 
+        for (Vector<VertexPlace> places : placesVector) {
+            for (VertexPlace place : places) {
+                graph.addVertex(place.getIndex()[0], place.neighbors);
+            }
+        }
+
 //        if (all) {
 //            graph.merge(getRemoteGraphs());
 //        }
