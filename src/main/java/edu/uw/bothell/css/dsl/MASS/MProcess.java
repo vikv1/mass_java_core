@@ -126,7 +126,17 @@ public class MProcess {
 
 		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
 
-		mprocess.start();
+		// TODO: It is officially time to design a better way to configure the remote process
+
+		try {
+			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir, logLevel, isMointored,
+					port, onPauseOnly);
+			mprocess.start();
+		} catch (Exception e) {
+			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
+				e.printStackTrace(pw);
+			}
+		}
 
 	}
 
@@ -303,7 +313,8 @@ public class MProcess {
 
 				Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
 
-				places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
+				//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
+				places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
 
 				// establish all inter-node connections within setHosts( )
 				MASSBase.setHosts( m.getHosts() );
@@ -508,6 +519,12 @@ public class MProcess {
 			case MAINTENANCE_ADD_PLACE:
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
 
+				places = MASS.getPlaces(m.getHandle());
+
+				String errorMessage = "MAINTENANCE_ADD_PLACE [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]";
+
+				MASSBase.getLogger().error(errorMessage);
+
 				int result = ((GraphPlaces)places).addPlaceLocally((Integer)m.getArgument());
 
 				sendAck(result);
@@ -517,6 +534,8 @@ public class MProcess {
 
 			case MAINTENANCE_ADD_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
 
 				GraphPlaces graphPlaces = ((GraphPlaces) places);
 

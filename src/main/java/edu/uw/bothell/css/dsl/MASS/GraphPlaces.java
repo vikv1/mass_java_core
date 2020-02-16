@@ -33,12 +33,9 @@ public class GraphPlaces extends Places implements Graph {
      *
      * @param handle         The Handle ID identifying this PlacesBase
      * @param className      The class that represents a Place
-     * @param boundary_width The width of the boundary between nodes, used to calculate shadow space
-     * @param argument       The argument to supply to the Place during initialization
-     * @param size           Matrix dimensions, as an array of integers representing dimension sizes
      */
-    private GraphPlaces(int handle, String className, int boundary_width, Object argument, int[] size) {
-        super(handle, className, boundary_width, argument, size);
+    public GraphPlaces(int handle, String className, String[] graphArgs, Object[] initArgs) {
+        super(handle, className, graphArgs, initArgs);
 
         init_algorithm = GraphInitAlgorithm.FULL_LIST;
         filename = "graph_n.txt";
@@ -132,9 +129,9 @@ public class GraphPlaces extends Places implements Graph {
             }
         }
 
-//        if (all) {
-//            graph.merge(getRemoteGraphs());
-//        }
+        if (all) {
+            graph.merge(getRemoteGraphs());
+        }
 
         return graph;
     }
@@ -204,7 +201,7 @@ public class GraphPlaces extends Places implements Graph {
             if (owner != -1) {
                 for (MNode node : MASSBase.getRemoteNodes()) {
                     if (node.getPid() == owner) {
-                        node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE, new Object[] { vertexId, neighborId, weight }));
+                        node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE, getHandle(), new Object[] { vertexId, neighborId, weight }));
                     }
                 }
             }
@@ -293,19 +290,23 @@ public class GraphPlaces extends Places implements Graph {
             return -1;
         }
 
-        Integer [] result = getTopology();
+        // TODO: use MASS Monitoring
+//        Integer [] result = getTopology();
+//
+//        int smallestIndex = 0;
+//        int smallestSize = result[0];
+//
+//        for (int i = 1; i < result.length; i++) {
+//            if (result[i] < smallestSize) {
+//                smallestIndex = i;
+//                smallestSize = result[i];
+//            }
+//        }
 
-        int smallestIndex = 0;
-        int smallestSize = result[0];
+        int nodeId = getNodeIdFromGlobalLinearIndex(nextPlaceIndex);
 
-        for (int i = 1; i < result.length; i++) {
-            if (result[i] < smallestSize) {
-                smallestIndex = i;
-                smallestSize = result[i];
-            }
-        }
 
-        return addVertexPlace(getHosts().get(smallestIndex), vertexId);
+        return addVertexPlace(getHosts().get(nodeId), vertexId);
     }
 
     private int addVertexPlace(String host, int vertexId) {
@@ -313,7 +314,7 @@ public class GraphPlaces extends Places implements Graph {
             return addPlaceLocally(vertexId);
         }
 
-        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, vertexId);
+        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, getHandle(), (Object) vertexId);
 
         Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
 
@@ -322,7 +323,7 @@ public class GraphPlaces extends Places implements Graph {
 
             Message m = hostOption.get().receiveMessage();
 
-            return (int) m.getArgument();
+            return m.getAgentPopulation();
         } else {
             MASSBase.getLogger().error("Failed to send addPlace message to " + host + "; host not found");
         }

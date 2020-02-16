@@ -124,6 +124,12 @@ public class Message implements Serializable {
     
     }
 
+    public Message(ACTION_TYPE action, int handle, Object args) {
+        this.action = action;
+        this.handle = handle;
+        this.argument = args;
+    }
+
     /**
      * AGENTS_MANAGE_ALL and PLACES_EXCHANGE_BOUNDARY type Message
      * @param action The ACTION_TYPE of this Message
@@ -132,11 +138,10 @@ public class Message implements Serializable {
      */
     public Message( ACTION_TYPE action, int handle, int dummy ) {
 
-    	this.action = action;
-    	this.handle = handle;
-    	this.destinationHandle = handle;
-    
-    }	
+        this.action = action;
+        this.handle = handle;
+        this.destinationHandle = handle;
+    }
     
     /**
      * Construct a Message with a given ACTION_TYPE, handle ID, destination handle ID, and function ID

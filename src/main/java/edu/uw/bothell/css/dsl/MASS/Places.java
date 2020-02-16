@@ -75,6 +75,13 @@ public class Places extends PlacesBase {
     
     }
 
+	/**
+	 * this is a special passthrough constructor to allow remote node to instantiate places by skipping init_master
+	 */
+	public Places(int handle, String className, String[] graphArgs, Object[] initArgs) {
+		super(handle, className, graphArgs, initArgs);
+	}
+
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
