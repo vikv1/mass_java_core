@@ -72,7 +72,8 @@ public class MASSBase {
 
 	// TODO: We should have access checks. This should also not just be a public static member of MASS
 	//       For example: Maybe only places should have access to the map
-	public static DistributedMap<Object, Object> distributed_map;
+	//                           key,    global index
+	public static DistributedMap<Object, Integer> distributed_map;
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
@@ -708,7 +709,7 @@ public class MASSBase {
 		}
 	}
 
-	public static VertexMetaValues getVertexMetaValues(Object key) {
-		return (VertexMetaValues) distributed_map.getOrDefault(key, new VertexMetaValues(-1, -1));
+	public static Integer getGlobalIndexForKey(Object key) {
+		return distributed_map.getOrDefault(key, -1);
 	}
 }

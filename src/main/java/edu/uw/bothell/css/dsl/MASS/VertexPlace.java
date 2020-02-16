@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
-    public void addNeighbor(int neighborId) throws IllegalArgumentException {
+    public void addNeighbor(int neighborId, double weight) throws IllegalArgumentException {
         if (neighborId < 0) {
             throw new IllegalArgumentException("Invalid negative neighbor for add: " + neighborId);
         } else if (neighbors.contains(neighborId)) {
@@ -28,6 +28,7 @@ public class VertexPlace extends Place implements Serializable {
         }
 
         neighbors.add(neighborId);
+        weights.add((int) Math.round(weight));
     }
 
     public void removeNeighbor(int neighborId) throws IllegalArgumentException {
@@ -126,17 +127,16 @@ public class VertexPlace extends Place implements Serializable {
     }
 
     private void init_neighbors_hippie(String networkFilename, int index) {
-        Set<Map.Entry<Object, Object>> entries = MASSBase.distributed_map.entrySet();
+        Set<Map.Entry<Object, Integer>> entries = MASSBase.distributed_map.entrySet();
 
         String key = "";
 
         try {
-            for (Map.Entry<Object, Object> entry : entries) {
+            for (Map.Entry<Object, Integer> entry : entries) {
                 String entryKey = (String) entry.getKey();
-                VertexMetaValues values = (VertexMetaValues) entry.getValue();
-                int value = values.Id;
+                Integer globalIndex = entry.getValue();
 
-                if (value == index) {
+                if (globalIndex == index) {
                     key = entryKey;
 
                     break;
@@ -188,9 +188,9 @@ public class VertexPlace extends Place implements Serializable {
                 if (lineKey.equals(key)) {
                     HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
 
-                    VertexMetaValues values = MASSBase.getVertexMetaValues(edge.getInteractionKey());
+                    int globalIndexForKey = MASSBase.getGlobalIndexForKey(edge.getInteractionKey());
 
-                    int neighborId = values.Id;
+                    int neighborId = globalIndexForKey;
 
                     Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
 

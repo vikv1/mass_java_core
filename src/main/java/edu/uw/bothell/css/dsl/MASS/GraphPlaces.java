@@ -15,7 +15,6 @@ import java.net.http.WebSocket;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Vector;
-import java.util.stream.Collectors;
 
 public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;
@@ -27,7 +26,7 @@ public class GraphPlaces extends Places implements Graph {
     // Graph maintenance
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-    private Vector<Vector<Place>> placesVector = new Vector<>(1);
+    private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
 
     /**
      * Instantiate a PlacesBase for this node
@@ -127,9 +126,9 @@ public class GraphPlaces extends Places implements Graph {
             graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
         }
 
-        if (all) {
-            graph.merge(getRemoteGraphs());
-        }
+//        if (all) {
+//            graph.merge(getRemoteGraphs());
+//        }
 
         return graph;
     }
@@ -154,9 +153,22 @@ public class GraphPlaces extends Places implements Graph {
         return graph;
     }
 
+    public boolean validNeighbor(final int vertexId, final int neighborId) {
+        if (MASSBase.distributed_map.getOrDefault(vertexId, -1) == -1
+            || MASSBase.distributed_map.getOrDefault(neighborId, -1) == -1) {
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public boolean addEdge(int vertexId, int neighborId, double weight) {
         boolean added = false;
+
+        if (!validNeighbor(vertexId, neighborId)) {
+            return false;
+        }
 
         Log4J2Logger logger = MASSBase.getLogger();
 
@@ -164,22 +176,22 @@ public class GraphPlaces extends Places implements Graph {
 
         logger.error(String.format("addEdge [vertexId=%d; neighborId=%d; weight=%f]", vertexId, neighborId, weight));
 
-        if (vertexId >= myPlaces.getLowerBoundary() && vertexId < myPlaces.getUpperBoundary()) {
+        int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+
+        if (globalIndex < 0) {
+            return false;
+        }
+
+        int ownerId = getNodeIdFromGlobalLinearIndex(globalIndex);
+
+        if (ownerId == MASSBase.getMyPid()) {
             logger.error("addEdge->myPlaces");
 
-            VertexPlace vertexPlace = (VertexPlace) getPlaces()[vertexId - myPlaces.getLowerBoundary()];
-
-            try {
-                vertexPlace.addNeighbor(neighborId);
-
-                added = true;
-            } catch (IllegalArgumentException iae) {
-                logger.warning("Exception encountered addingEdge: " + iae);
-            }
+            added = addEdgeLocally(vertexId, neighborId, weight);
         } else {
             logger.error("addEdge->remotePlace");
 
-            VertexMetaValues values = MASSBase.getVertexMetaValues(vertexId);
+            VertexMetaValues values = getVertexMetaValues(vertexId);
 
             int owner = values.OwnerPid;
 
@@ -195,6 +207,27 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         return added;
+    }
+
+    public boolean addEdgeLocally(int vertexId, int neighborId, double weight) {
+        int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
+
+        int spanSize = getSize()[0];
+        int chunkSize = spanSize / MASS.getSystemSize();
+
+        int placesIndex = globalIndex / spanSize - 1;
+
+        if (placesIndex >= 0 && placesVector.size() >= 0 && placesVector.size() > placesIndex) {
+            int localPlaceIndex = globalIndex % chunkSize;
+
+            VertexPlace place = placesVector.get(placesIndex).get(localPlaceIndex);
+
+            place.addNeighbor(neighborId, weight);
+        } else {
+            MASSBase.getLogger().error("Error trying to add edge [placesIndex=" + placesIndex + "]");
+        }
+
+        return false;
     }
 
     @Override
@@ -266,11 +299,7 @@ public class GraphPlaces extends Places implements Graph {
             }
         }
 
-        addVertexPlace(getHosts().get(smallestIndex), vertexId);
-
-        VertexMetaValues values = MASSBase.getVertexMetaValues(vertexId);
-
-        return values.Id;
+        return addVertexPlace(getHosts().get(smallestIndex), vertexId);
     }
 
     private int addVertexPlace(String host, int vertexId) {
@@ -306,7 +335,7 @@ public class GraphPlaces extends Places implements Graph {
 
         int upperBoundary = lowerBoundary + chunkSize;
 
-        if (placesVector.size() < placesIndex[0]) {
+        if (placesVector.size() <= 0 || placesVector.size() < placesIndex[0]) {
             placesVector.add(new Vector<>(chunkSize));
         } else if (placesIndex[1] < lowerBoundary || placesIndex[1] >= upperBoundary) {
             logger.error("Place index outside of bounds: " + placesIndex[1]);
@@ -315,16 +344,20 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         try {
-            Place newPlace = objectFactory.getInstance(getClassName(), null);
+            VertexPlace newPlace = objectFactory.getInstance(getClassName(), null);
+
+            int globalIndex = getSize()[0] + nextPlaceIndex;
 
             // Index starts after the initial set
-            newPlace.setIndex(new int[] { getSize()[0] + nextPlaceIndex });
+            newPlace.setIndex(new int[] { globalIndex });
 
-            placesVector.get(placesIndex[0]).set(placesIndex[1], newPlace);
+            placesVector.get(placesIndex[0]).add(placesIndex[1], newPlace);
 
-            MASS.distributed_map.put(vertexId, nextPlaceIndex);
+            MASS.distributed_map.put(vertexId, globalIndex);
 
-            return nextPlaceIndex++;
+            nextPlaceIndex++;
+
+            return globalIndex;
         } catch (Exception e) {
             logger.error("Exception adding new vertex place locally", e);
         }
@@ -341,5 +374,33 @@ public class GraphPlaces extends Places implements Graph {
         int linearSize = getSize()[0];
 
         return new int [] { nextPlaceIndex / linearSize, nextPlaceIndex % linearSize };
+    }
+
+    public VertexMetaValues getVertexMetaValues(int vertexId) {
+        int id = -1;
+        int pid = -1;
+
+        int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+
+        if (globalIndex != -1) {
+            final int chunkSize = this.getSize()[0] / MASSBase.getSystemSize();
+
+            id = globalIndex;
+
+            pid = getNodeIdFromGlobalLinearIndex(globalIndex);
+        }
+
+        return new VertexMetaValues(id, pid);
+    }
+
+    // TODO: Should we make a globallinearindex type?
+    // then we could do index.getNode()
+    public int getNodeIdFromGlobalLinearIndex(final int globalLinearIndex) {
+        // indices per places
+        int spanSize = getSize()[0];
+
+        int chunkSize = spanSize / MASS.getSystemSize();
+
+        return globalLinearIndex % spanSize / chunkSize;
     }
 }

@@ -520,7 +520,7 @@ public class MProcess {
 
 				GraphPlaces graphPlaces = ((GraphPlaces) places);
 
-				graphPlaces.addEdge((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+				graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
 
 				sendAck();
 

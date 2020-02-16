@@ -1118,7 +1118,8 @@ public class PlacesBase {
 
 				if (!MASSBase.distributed_map.containsKey(key)) {
 					// HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
-					MASSBase.distributed_map.put(key, new VertexMetaValues(vertexCount, MASSBase.getMyPid()));
+
+					MASSBase.distributed_map.put(key, vertexCount);
 
 					vertexCount++;
 				}
