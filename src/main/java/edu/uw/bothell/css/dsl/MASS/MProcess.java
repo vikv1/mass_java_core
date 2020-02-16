@@ -569,7 +569,9 @@ public class MProcess {
 			case MAINTENANCE_GET_PLACES: {
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 
-				sendMessage(GraphMaintenance.getPlaces((GraphPlaces)places));
+				places = MASS.getPlaces(m.getHandle());
+
+				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;

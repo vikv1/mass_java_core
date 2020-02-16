@@ -140,7 +140,7 @@ public class GraphPlaces extends Places implements Graph {
         GraphModel graph = new GraphModel();
 
         for (MNode node : MASSBase.getRemoteNodes()) {
-            node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES));
+            node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES, getHandle(), null));
 
             Message m = node.receiveMessage();
 
@@ -353,7 +353,7 @@ public class GraphPlaces extends Places implements Graph {
         try {
             VertexPlace newPlace = objectFactory.getInstance(getClassName(), null);
 
-            int globalIndex = getSize()[0] + nextPlaceIndex;
+            int globalIndex = getSize()[0] + chunkSize * MASS.getMyPid() + nextPlaceIndex;
 
             // Index starts after the initial set
             newPlace.setIndex(new int[] { globalIndex });
