@@ -490,4 +490,12 @@ public class GraphPlaces extends Places implements Graph {
 
         return placesVector.get(localPlacesIndex).get(placeIndex);
     }
+
+    public void reallyCallAll(int functionId, Object argument, int tid) {
+        for (Vector<VertexPlace> places : placesVector) {
+            for (VertexPlace place : places) {
+                place.callMethod( functionId, argument );
+            }
+        }
+    }
 }

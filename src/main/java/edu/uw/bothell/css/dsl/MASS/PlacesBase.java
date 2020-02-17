@@ -44,6 +44,7 @@ import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -402,7 +403,10 @@ public class PlacesBase {
     		}
     	
     	}
-    
+
+    	if (GraphPlaces.class.isAssignableFrom(this.getClass())) {
+			((GraphPlaces)this).reallyCallAll(functionId, argument, tid);
+		}
     }
 
     /**
