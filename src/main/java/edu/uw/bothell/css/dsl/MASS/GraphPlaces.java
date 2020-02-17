@@ -475,4 +475,19 @@ public class GraphPlaces extends Places implements Graph {
 
         return globalLinearIndex % spanSize / chunkSize;
     }
+
+    /**
+     * Get the place associated with a global linear index
+     * @param globalLinearIndex
+     * @return
+     */
+    public Place getVertexPlace(int globalLinearIndex) {
+        int networkSize = getSize()[0];
+        int localPlacesIndex = globalLinearIndex / networkSize;
+        int chunkSize = networkSize / MASS.getSystemSize();
+
+        int placeIndex = globalLinearIndex % chunkSize;
+
+        return placesVector.get(localPlacesIndex).get(placeIndex);
+    }
 }
