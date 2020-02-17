@@ -549,9 +549,7 @@ public class MProcess {
 			case MAINTENANCE_REMOVE_PLACE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
 
-//				result = places.addPlace((Integer)m.getArgument());
-//
-//				sendAck(result);
+				// TODO: Set to null? -1?
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
 				break;
@@ -559,9 +557,13 @@ public class MProcess {
 			case MAINTENANCE_REMOVE_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
 
-//				result = places.addPlace((Integer)m.getArgument());
-//
-//				sendAck(result);
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+
+				graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
+
+				sendAck();
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
 				break;

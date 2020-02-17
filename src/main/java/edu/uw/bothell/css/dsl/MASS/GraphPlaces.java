@@ -105,6 +105,10 @@ public class GraphPlaces extends Places implements Graph {
         return getGraph(true);
     }
 
+    public void merge(GraphModel source, GraphModel remoteGraphs) {
+        source.getVertices().addAll(remoteGraphs.getVertices());
+    }
+
     @Override
     public GraphModel getGraph(boolean all) {
         GraphModel graph = new GraphModel();
@@ -130,7 +134,8 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         if (all) {
-            graph.merge(getRemoteGraphs());
+            //graph.merge(getRemoteGraphs());
+            merge(graph, getRemoteGraphs());
         }
 
         return graph;
@@ -149,7 +154,8 @@ public class GraphPlaces extends Places implements Graph {
             } else {
                 GraphModel model = (GraphModel) m.getArgument();
 
-                graph.merge(model);
+                //graph.merge(model);
+                merge(graph, model);
             }
         }
 
@@ -174,8 +180,6 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         Log4J2Logger logger = MASSBase.getLogger();
-
-        PlacesBase myPlaces = MASSBase.getCurrentPlacesBase();
 
         logger.error(String.format("addEdge [vertexId=%d; neighborId=%d; weight=%f]", vertexId, neighborId, weight));
 
@@ -233,8 +237,69 @@ public class GraphPlaces extends Places implements Graph {
         return false;
     }
 
+    public boolean removeEdgeLocally(int vertexId, int neighborId) {
+        int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
+
+        int spanSize = getSize()[0];
+        int chunkSize = spanSize / MASS.getSystemSize();
+
+        int placesIndex = globalIndex / spanSize - 1;
+
+        if (placesIndex >= 0 && placesVector.size() >= 0 && placesVector.size() > placesIndex) {
+            int localPlaceIndex = globalIndex % chunkSize;
+
+            VertexPlace place = placesVector.get(placesIndex).get(localPlaceIndex);
+
+            place.removeNeighbor(neighborId);
+        } else {
+            MASSBase.getLogger().error("Error trying to add edge [placesIndex=" + placesIndex + "]");
+        }
+
+        return false;
+    }
+
     @Override
     public boolean removeEdge(int vertexId, int neighborId) {
+        if (MASSBase.distributed_map.getOrDefault(vertexId, -1) == -1) {
+            return false;
+        }
+
+        boolean removed = false;
+
+        Log4J2Logger logger = MASSBase.getLogger();
+
+        logger.error(String.format("removeEdge [vertexId=%d; neighborId=%d]", vertexId, neighborId));
+
+        int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+
+        if (globalIndex < 0) {
+            return false;
+        }
+
+        int ownerId = getNodeIdFromGlobalLinearIndex(globalIndex);
+
+        if (ownerId == MASSBase.getMyPid()) {
+            logger.error("addEdge->myPlaces");
+
+            removed = removeEdgeLocally(vertexId, neighborId);
+        } else {
+            logger.error("addEdge->remotePlace");
+
+            VertexMetaValues values = getVertexMetaValues(vertexId);
+
+            int owner = values.OwnerPid;
+
+            if (owner != -1) {
+                for (MNode node : MASSBase.getRemoteNodes()) {
+                    if (node.getPid() == owner) {
+                        node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE, getHandle(), new Object[] { vertexId, neighborId, null }));
+                    }
+                }
+            }
+
+            logger.warning("Cannot add edge: source is out of range(" + vertexId + ")");
+        }
+
         return false;
     }
 

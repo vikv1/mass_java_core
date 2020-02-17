@@ -36,7 +36,10 @@ public class VertexPlace extends Place implements Serializable {
             throw new IllegalArgumentException("Invalid neighbor for remove: " + neighborId);
         }
 
+        int index = neighbors.indexOf(neighborId);
+
         neighbors.remove(neighborId);
+        weights.remove(index);
     }
 
     public static class Tuple {

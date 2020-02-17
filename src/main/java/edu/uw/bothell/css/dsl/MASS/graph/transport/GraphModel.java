@@ -29,8 +29,4 @@ public class GraphModel implements Serializable {
 
         vertices.add(vertex);
     }
-
-    public void merge(GraphModel remoteGraphs) {
-        vertices.addAll(remoteGraphs.vertices);
-    }
 }
