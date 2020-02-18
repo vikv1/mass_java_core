@@ -439,7 +439,40 @@ public class GraphPlaces extends Places implements Graph {
 
     @Override
     public boolean removeVertex(int vertexId) {
+        if (MASS.distributed_map.getOrDefault(vertexId, -1) == -1) {
+            return false;
+        }
+
+        // remove the neighbor from all neighbors
+        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_REMOVE_PLACE, getHandle(), (Object) vertexId);
+
+        // This needs to remove neighbors anyways so just send to everyone else
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(message));
+
+        // remove locally
+        removeVertexLocally(vertexId);
+
         return false;
+    }
+
+    public void removeVertexLocally(int vertexId) {
+        int globalIndex = MASS.distributed_map.get(vertexId);
+
+        Place vertexPlace = null;
+
+        // Remove this vertex as a neighbor from all places owned
+        for (Vector<VertexPlace> places : placesVector) {
+            for (VertexPlace place : places) {
+                if (place.getIndex()[0] == globalIndex) {
+                    vertexPlace = place;
+                }
+                place.removeNeighbor(vertexId);
+            }
+
+            if (vertexPlace != null) {
+                places.remove(vertexPlace);
+            }
+        }
     }
 
     private int [] getPlacesIndex() {

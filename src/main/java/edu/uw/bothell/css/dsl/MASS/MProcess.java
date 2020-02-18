@@ -549,7 +549,11 @@ public class MProcess {
 			case MAINTENANCE_REMOVE_PLACE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
 
-				// TODO: Set to null? -1?
+				places = MASS.getPlaces(m.getHandle());
+
+				((GraphPlaces) places).removeVertexLocally((Integer) m.getArgument());
+
+				sendAck();
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
 				break;
