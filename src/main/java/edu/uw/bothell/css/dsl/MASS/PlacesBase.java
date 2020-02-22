@@ -226,14 +226,13 @@ public class PlacesBase {
     		}
     	
     		// now compose and send a message by a child
-    		Message messageToDest =
-    				new Message( Message.ACTION_TYPE.
-    						PLACES_EXCHANGE_ALL_REMOTE_REQUEST,
-    						srcHandle, destHandle_at_src, functionId, 
-    						orgRequest, 0 ); // 0 = dummy
-
-							Thread sender = new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) );
-							sender.start();    		
+			Message messageToDest = new Message(Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_REQUEST, srcHandle,
+					destHandle_at_src, functionId, orgRequest, 0); // 0 = dummy
+			
+			// for latter sync
+			Thread sender = new Thread( () -> MASSBase.getExchange().sendMessage( destRank, messageToDest ) );
+			sender.start();
+  		
     		// receive a message by myself
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
@@ -282,8 +281,11 @@ public class PlacesBase {
     			}
     		
     		}
-    		Message messageToSrc = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, retVals );
 			
+			// create return message
+			Message messageToSrc = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, retVals );
+			
+			// sync sender
 			try {
 				sender.join();
 			} catch (InterruptedException e) {
@@ -323,6 +325,8 @@ public class PlacesBase {
     						+ orgRequest.get(i).getInMessageIndex() );
     		
     		}
+			
+			// clear requests
 			orgRequest.clear();
 
     	}
