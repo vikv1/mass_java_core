@@ -531,4 +531,25 @@ public class GraphPlaces extends Places implements Graph {
             }
         }
     }
+
+    public int getExtendedPlacesSize() {
+        return placesVector.stream().mapToInt(v -> v.size()).sum();
+    }
+
+    public void reallyCallAllWithReturns(int functionId, Object[] returns, Object[] arguments) {
+        int bIndex = this.getSize()[0];
+
+        for (int vIndex = 0; vIndex < placesVector.size(); vIndex++) {
+            Vector<VertexPlace> places = placesVector.get(vIndex);
+
+            for (int pIndex = 0; pIndex < places.size(); pIndex++) {
+                int gIndex = bIndex + bIndex * vIndex + pIndex;
+
+                if (arguments == null || (!(gIndex < arguments.length)))
+                    returns[gIndex] = places.get(pIndex).callMethod(functionId, null);
+                else
+                    returns[gIndex] = places.get(pIndex).callMethod(functionId, arguments[gIndex]);
+            }
+        }
+    }
 }

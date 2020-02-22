@@ -445,6 +445,10 @@ public class PlacesBase {
     		}
     	
     	}
+
+		if (GraphPlaces.class.isAssignableFrom(this.getClass())) {
+			((GraphPlaces)this).reallyCallAllWithReturns(functionId, MASSBase.getCurrentReturns(), arguments);
+		}
     	
     	return null;
     

@@ -256,8 +256,12 @@ public class MProcess {
 			PlacesBase places = null; // new Places
 			AgentsBase agents = null; // new Agents
 
+			GraphPlaces graphPlaces;
+
 			// retrieve an argument
 			Object argument = m.getArgument();
+
+			int returnsSize;
 
 			switch ( m.getAction() ) {
 
@@ -356,7 +360,16 @@ public class MProcess {
 				MASSBase.setCurrentFunctionId(m.getFunctionId());
 				MASSBase.setCurrentArgument(argument);
 				MASSBase.setCurrentMsgType(m.getAction());
-				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase().getPlacesSize()]);
+
+				returnsSize = MASSBase.getCurrentPlacesBase().getPlacesSize();
+
+				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					graphPlaces = (GraphPlaces) places;
+
+					returnsSize = returnsSize + graphPlaces.getExtendedPlacesSize();
+				}
+
+				MASSBase.setCurrentReturns(new Object[returnsSize]);
 
 				// From Jas' and Michael's implementation
 				// TODO - better to use this than "getPlacesSize" ?
@@ -537,7 +550,7 @@ public class MProcess {
 
 				places = MASS.getPlaces(m.getHandle());
 
-				GraphPlaces graphPlaces = ((GraphPlaces) places);
+				graphPlaces = ((GraphPlaces) places);
 
 				graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
 
