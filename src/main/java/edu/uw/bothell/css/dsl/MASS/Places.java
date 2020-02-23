@@ -248,7 +248,14 @@ public class Places extends PlacesBase {
 		
 		// exchangeall implementation
 		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
-		
+
+		// Perform graph exchangeAll separately for now
+		if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+			GraphPlaces graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
+
+			graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+		}
+
 		// confirm all threads are done with exchangeAll.
 		MThread.barrierThreads( 0 );
 		

@@ -552,4 +552,54 @@ public class GraphPlaces extends Places implements Graph {
             }
         }
     }
+
+    public void exchangeAll(int currentFunctionId) {
+        int networkSize = getSize()[0];
+        int chunkSize = networkSize / MASS.getSystemSize();
+        int myRank = MASS.getMyPid();
+
+        // do serially but this should be multi-threaded. Maybe we can just use a thread pool
+        for (Vector<VertexPlace> places : placesVector) {
+            for (VertexPlace place : places) {
+                int [] neighbors = place.getNeighbors();
+
+                for (int neighbor : neighbors) {
+                    int owner = getNodeIdFromGlobalLinearIndex(neighbor);
+
+                    Object result = null;
+
+                    if (owner == myRank) {
+                        result = place.callMethod(currentFunctionId, null);
+                    } else {
+                        // call remote
+                        Message message = new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, getHandle(), (Object) neighbor);
+
+                        // This should really be a map
+                        Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getPid() == owner).findFirst();
+
+                        if (hostOption.isPresent()) {
+                            hostOption.get().sendMessage(message);
+
+                            Message m = hostOption.get().receiveMessage();
+
+                            result = m.getArgument();
+                        } else {
+                            MASSBase.getLogger().error("Failed to send addPlace message to " + owner + "; host not found");
+                        }
+                    }
+
+                    place.setNeighborResult(neighbor, result);
+                }
+            }
+        }
+    }
+
+    public Object exchangeNeighbor(int functionId, int neighbor) {
+        Optional<VertexPlace> option = placesVector
+                .stream().flatMap(Vector::stream)
+                .filter(vertexPlace -> vertexPlace.getIndex()[0] == neighbor)
+                .findFirst();
+
+        return option.isPresent() ? option.get().callMethod(functionId, null) : null;
+    }
 }

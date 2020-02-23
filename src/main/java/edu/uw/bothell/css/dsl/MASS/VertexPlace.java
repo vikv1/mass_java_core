@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
+    private Vector<Object> neighborResults;
+
     public void addNeighbor(int neighborId, double weight) throws IllegalArgumentException {
         if (neighborId < 0) {
             throw new IllegalArgumentException("Invalid negative neighbor for add: " + neighborId);
@@ -40,6 +42,12 @@ public class VertexPlace extends Place implements Serializable {
 
         neighbors.remove(neighborId);
         weights.remove(index);
+    }
+
+    public void setNeighborResult(int neighbor, Object result) {
+        int neighborIndex = neighbors.indexOf(neighbor);
+
+        neighborResults.set(neighborIndex, result);
     }
 
     public static class Tuple {
@@ -127,6 +135,8 @@ public class VertexPlace extends Place implements Serializable {
         } else {
             init_neighbors_parallel(networkFilename, index);
         }
+
+        neighborResults = new Vector<Object>(neighbors.size());
     }
 
     private void init_neighbors_hippie(String networkFilename, int index) {

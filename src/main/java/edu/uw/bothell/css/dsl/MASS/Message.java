@@ -70,6 +70,9 @@ public class Message implements Serializable {
         // Retrieval
         MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
         MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
+
+        // Exchange all
+        GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
         ;
         private final String value;
 
