@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
+import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 /**
@@ -696,7 +698,11 @@ public class MASSBase {
 	}
 
 	protected static void initDistributedData() {
-		MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
+		if (systemSize == 1) {
+			MASSBase.distributed_map = new MASSSimpleDistributedMap<>();
+		} else {
+			MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
+		}
 	}
 
 	protected static void finish() {

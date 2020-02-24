@@ -2,10 +2,13 @@ package edu.uw.bothell.css.dsl.MASS.infra;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class MASSSimpleDistributedMap<key_type, value_type> implements DistributedMap<key_type, value_type> {
+    private Map<key_type, value_type> map = new HashMap<>();
+
     @Override
     public void close() throws IOException {
 
@@ -13,61 +16,61 @@ public class MASSSimpleDistributedMap<key_type, value_type> implements Distribut
 
     @Override
     public int size() {
-        return 0;
+        return map.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return map.isEmpty();
     }
 
     @Override
     public boolean containsKey(Object o) {
-        return false;
+        return map.containsKey(o);
     }
 
     @Override
     public boolean containsValue(Object o) {
-        return false;
+        return map.containsValue(o);
     }
 
     @Override
     public value_type get(Object o) {
-        return null;
+        return map.get(o);
     }
 
     @Override
-    public value_type put(key_type key_type, value_type value_type) {
-        return null;
+    public value_type put(key_type key, value_type value) {
+        return map.put(key, value);
     }
 
     @Override
     public value_type remove(Object o) {
-        return null;
+        return map.remove(o);
     }
 
     @Override
     public void putAll(Map<? extends key_type, ? extends value_type> map) {
-
+        this.map.putAll(map);
     }
 
     @Override
     public void clear() {
-
+        map.clear();
     }
 
     @Override
     public Set<key_type> keySet() {
-        return null;
+        return map.keySet();
     }
 
     @Override
     public Collection<value_type> values() {
-        return null;
+        return map.values();
     }
 
     @Override
     public Set<Entry<key_type, value_type>> entrySet() {
-        return null;
+        return map.entrySet();
     }
 }

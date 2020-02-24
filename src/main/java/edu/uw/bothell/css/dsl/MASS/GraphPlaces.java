@@ -68,6 +68,15 @@ public class GraphPlaces extends Places implements Graph {
         this.input_format = format;
     }
 
+    public GraphPlaces(int handle, String className, int size) {
+        super(handle, className, size, new int[] { size });
+
+        // Should use a different indicator for empty graph
+        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
+        this.filename = "";
+        this.input_format = GraphInputFormat.CSV;
+    }
+
     /**
      * Send the place_initialize_graph message to all nodes
      * @param argument
@@ -89,12 +98,16 @@ public class GraphPlaces extends Places implements Graph {
 
     @Override
     protected void init_all(Object argument) {
-        Object [] arguments = (Object[]) argument;
+        if (argument instanceof Integer) {
+            init_all_graph_blank((Integer) argument);
+        } else {
+            Object[] arguments = (Object[]) argument;
 
-        String [] graphArguments = (String [])Arrays.copyOfRange(arguments, 0, 2);
-        Object [] initArguments = (Object [])Arrays.copyOfRange(arguments, 2, arguments.length);
+            String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
+            Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
 
-        init_all_graph(graphArguments, initArguments);
+            init_all_graph(graphArguments, initArguments);
+        }
     }
 
     /**

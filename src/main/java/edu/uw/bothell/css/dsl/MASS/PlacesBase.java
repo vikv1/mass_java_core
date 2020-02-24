@@ -981,6 +981,11 @@ public class PlacesBase {
 		}
 	}
 
+	protected void init_all_graph_blank(int size) {
+		// using size 0 may be a quick hack to skip dimensional logic
+		this.size = new int [] { size };
+	}
+
 	/**
 	 * Add a new place to this node at the end of the array
 	 *
