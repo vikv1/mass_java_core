@@ -20,7 +20,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
-    private Vector<Object> neighborResults;
+    private Map<Object, Object> neighborResults;
+
+    public void prepareForExchangeAll() {
+        neighborResults = new HashMap<>(neighbors.size());
+    }
 
     public void addNeighbor(int neighborId, double weight) throws IllegalArgumentException {
         if (neighborId < 0) {
@@ -47,7 +51,7 @@ public class VertexPlace extends Place implements Serializable {
     public void setNeighborResult(int neighbor, Object result) {
         int neighborIndex = neighbors.indexOf(neighbor);
 
-        neighborResults.set(neighborIndex, result);
+        neighborResults.put(neighborIndex, result);
     }
 
     public static class Tuple {
@@ -135,8 +139,6 @@ public class VertexPlace extends Place implements Serializable {
         } else {
             init_neighbors_parallel(networkFilename, index);
         }
-
-        neighborResults = new Vector<Object>(neighbors.size());
     }
 
     private void init_neighbors_hippie(String networkFilename, int index) {

@@ -527,9 +527,9 @@ public class GraphPlaces extends Places implements Graph {
      * @param globalLinearIndex
      * @return
      */
-    public Place getVertexPlace(int globalLinearIndex) {
+    public VertexPlace getVertexPlace(int globalLinearIndex) {
         int networkSize = getSize()[0];
-        int localPlacesIndex = globalLinearIndex / networkSize;
+        int localPlacesIndex = globalLinearIndex / networkSize - 1;
         int chunkSize = networkSize / MASS.getSystemSize();
 
         int placeIndex = globalLinearIndex % chunkSize;
@@ -576,16 +576,21 @@ public class GraphPlaces extends Places implements Graph {
             for (VertexPlace place : places) {
                 int [] neighbors = place.getNeighbors();
 
-                for (int neighbor : neighbors) {
-                    int owner = getNodeIdFromGlobalLinearIndex(neighbor);
+                place.prepareForExchangeAll();
+
+                for (int neighborKey : neighbors) {
+                    int owner = getNodeIdFromGlobalLinearIndex(neighborKey);
 
                     Object result = null;
 
                     if (owner == myRank) {
-                        result = place.callMethod(currentFunctionId, null);
+                        int globalIndex = MASSBase.getGlobalIndexForKey(neighborKey);
+                        VertexPlace neighborPlace = getVertexPlace(globalIndex);
+
+                        result = neighborPlace.callMethod(currentFunctionId, null);
                     } else {
                         // call remote
-                        Message message = new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, getHandle(), (Object) neighbor);
+                        Message message = new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, getHandle(), (Object) neighborKey);
 
                         // This should really be a map
                         Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getPid() == owner).findFirst();
@@ -601,7 +606,7 @@ public class GraphPlaces extends Places implements Graph {
                         }
                     }
 
-                    place.setNeighborResult(neighbor, result);
+                    place.setNeighborResult(neighborKey, result);
                 }
             }
         }
