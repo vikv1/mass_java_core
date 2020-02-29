@@ -367,4 +367,8 @@ public class VertexPlace extends Place implements Serializable {
             MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
         }
     }
+
+    public Object getAttribute() {
+        return MASSBase.distributed_map.get(getIndex()[0]);
+    }
 }

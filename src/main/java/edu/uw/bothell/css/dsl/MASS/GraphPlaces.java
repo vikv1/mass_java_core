@@ -13,8 +13,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;
@@ -122,11 +124,19 @@ public class GraphPlaces extends Places implements Graph {
         source.getVertices().addAll(remoteGraphs.getVertices());
     }
 
+    private static List<Integer> mapNeighborIndicesToAttributes(Vector<Integer> neighborIndices) {
+        return neighborIndices
+                .stream()
+                .map(MASSBase.distributed_map::reverseLookup)
+                .map(Integer.class::cast)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public GraphModel getGraph(boolean all) {
         GraphModel graph = new GraphModel();
 
-        if (!(getPlaces()[0] instanceof VertexPlace)) {
+        if (getPlaces() != null && !(getPlaces()[0] instanceof VertexPlace)) {
             MASSBase.getLogger().warning("Requested map to graph but places are {"
                     + getPlaces()[0].getClass().getName() + "} not VertexPlaces.");
 
@@ -134,15 +144,20 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         // Places on master node
-        for (Place place : getPlaces()) {
-            VertexPlace vPlace = (VertexPlace) place;
+        if (getPlaces() != null) {
+            for (Place place : getPlaces()) {
+                VertexPlace vPlace = (VertexPlace) place;
 
-            graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
+                //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
+                graph.addVertex((Integer) vPlace.getAttribute(), vPlace.neighbors);
+            }
         }
 
         for (Vector<VertexPlace> places : placesVector) {
             for (VertexPlace place : places) {
-                graph.addVertex(place.getIndex()[0], place.neighbors);
+                Integer attribute = (Integer) MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
+
+                graph.addVertex(attribute, place.neighbors);
             }
         }
 

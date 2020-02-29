@@ -135,4 +135,11 @@ public class HazelcastDistributedMap implements DistributedMap, Closeable {
     public Set<Entry<Object, Object>> entrySet() {
         return this.map.entrySet();
     }
+
+    @Override
+    public Object reverseLookup(Object value) {
+        Optional<Entry<Object, Object>> option = this.map.entrySet().stream().filter(entry -> entry.getValue().equals(value)).findFirst();
+
+        return option.isPresent() ? option.get().getKey() : null;
+    }
 }

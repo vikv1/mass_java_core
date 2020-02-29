@@ -4,5 +4,5 @@ import java.io.Closeable;
 import java.util.Map;
 
 public interface DistributedMap<key_type, value_type> extends Map<key_type, value_type>, Closeable {
-
+    key_type reverseLookup(value_type value);
 }

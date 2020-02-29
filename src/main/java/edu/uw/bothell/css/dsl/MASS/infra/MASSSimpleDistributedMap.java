@@ -1,10 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.infra;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MASSSimpleDistributedMap<key_type, value_type> implements DistributedMap<key_type, value_type> {
     private Map<key_type, value_type> map = new HashMap<>();
@@ -72,5 +69,15 @@ public class MASSSimpleDistributedMap<key_type, value_type> implements Distribut
     @Override
     public Set<Entry<key_type, value_type>> entrySet() {
         return map.entrySet();
+    }
+
+    @Override
+    public key_type reverseLookup(value_type value) {
+        Optional<Entry<key_type, value_type>> option =
+                this.map.entrySet().stream()
+                        .filter(entry -> entry.getValue().equals(value))
+                        .findFirst();
+
+        return option.isPresent() ? option.get().getKey() : null;
     }
 }
