@@ -7,9 +7,9 @@ public interface Graph {
     GraphModel getGraph(boolean all);
 
     // Graph Maintenance
-    boolean addEdge(int vertexId, int neighborId, double weight);
-    boolean removeEdge(int vertexId, int neighborId);
+    boolean addEdge(Object vertexId, Object neighborId, double weight);
+    boolean removeEdge(Object vertexId, Object neighborId);
 
-    int addVertex(int vertexId);
-    boolean removeVertex(int vertexId);
+    int addVertex(Object vertexId);
+    boolean removeVertex(Object vertexId);
 }

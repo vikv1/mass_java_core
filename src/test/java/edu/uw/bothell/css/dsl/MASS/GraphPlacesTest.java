@@ -1,5 +1,6 @@
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -53,7 +54,7 @@ public class GraphPlacesTest {
         VertexPlace vertexPlace = (VertexPlace) place;
 
         assertTrue(vertexPlace.neighbors.size() == 1);
-        assertTrue(vertexPlace.neighbors.get(0) == 1);
+        assertTrue(vertexPlace.neighbors.get(0).equals(1));
     }
 
     @Test
@@ -123,7 +124,7 @@ public class GraphPlacesTest {
 
             int [] expectedNeighbors = Arrays.stream(vertices).filter(pid -> pid != id).toArray();
 
-            int [] neighbors = vPlace.getNeighbors();
+            Object [] neighbors = vPlace.getNeighbors();
 
             for (int i = 0; i < expectedNeighbors.length; i++) {
                 assertEquals(expectedNeighbors[i], neighbors[i]);

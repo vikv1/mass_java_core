@@ -26,10 +26,8 @@ public class VertexPlace extends Place implements Serializable {
         neighborResults = new HashMap<>(neighbors.size());
     }
 
-    public void addNeighbor(int neighborId, double weight) throws IllegalArgumentException {
-        if (neighborId < 0) {
-            throw new IllegalArgumentException("Invalid negative neighbor for add: " + neighborId);
-        } else if (neighbors.contains(neighborId)) {
+    public void addNeighbor(Object neighborId, double weight) throws IllegalArgumentException {
+        if (neighbors.contains(neighborId)) {
             return;
         }
 
@@ -37,8 +35,8 @@ public class VertexPlace extends Place implements Serializable {
         weights.add((int) Math.round(weight));
     }
 
-    public void removeNeighbor(int neighborId) throws IllegalArgumentException {
-        if (neighborId < 0 || !neighbors.contains(neighborId)) {
+    public void removeNeighbor(Object neighborId) throws IllegalArgumentException {
+        if (!neighbors.contains(neighborId)) {
             throw new IllegalArgumentException("Invalid neighbor for remove: " + neighborId);
         }
 
@@ -48,7 +46,7 @@ public class VertexPlace extends Place implements Serializable {
         weights.remove(index);
     }
 
-    public void setNeighborResult(int neighbor, Object result) {
+    public void setNeighborResult(Object neighbor, Object result) {
         int neighborIndex = neighbors.indexOf(neighbor);
 
         neighborResults.put(neighborIndex, result);
@@ -65,11 +63,11 @@ public class VertexPlace extends Place implements Serializable {
     }
 
     private Object [] graphArguments;
-    public Vector<Integer> neighbors = new Vector<>();
-    public Vector<Integer> weights = new Vector<>();
+    public Vector<Object> neighbors = new Vector<>();
+    public Vector<Object> weights = new Vector<>();
 
-    public int [] getNeighbors() {
-        int [] result = new int[neighbors.size()];
+    public Object [] getNeighbors() {
+        Object [] result = new Object[neighbors.size()];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = neighbors.get(i);
@@ -78,8 +76,8 @@ public class VertexPlace extends Place implements Serializable {
         return result;
     }
 
-    public int [] getWeights() {
-        int [] result = new int[weights.size()];
+    public Object [] getWeights() {
+        Object [] result = new Object[weights.size()];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = weights.get(i);

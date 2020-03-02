@@ -24,7 +24,7 @@ public class GraphModel implements Serializable {
         return vertices;
     }
 
-    public void addVertex(int id, List<Integer> neighbors) {
+    public void addVertex(Object id, List<Object> neighbors) {
         VertexModel vertex = new VertexModel(id, neighbors);
 
         vertices.add(vertex);

@@ -149,13 +149,13 @@ public class GraphPlaces extends Places implements Graph {
                 VertexPlace vPlace = (VertexPlace) place;
 
                 //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
-                graph.addVertex((Integer) vPlace.getAttribute(), vPlace.neighbors);
+                graph.addVertex(vPlace.getAttribute(), vPlace.neighbors);
             }
         }
 
         for (Vector<VertexPlace> places : placesVector) {
             for (VertexPlace place : places) {
-                Integer attribute = (Integer) MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
+                Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
 
                 graph.addVertex(attribute, place.neighbors);
             }
@@ -190,7 +190,7 @@ public class GraphPlaces extends Places implements Graph {
         return graph;
     }
 
-    public boolean validNeighbor(final int vertexId, final int neighborId) {
+    public boolean validNeighbor(final Object vertexId, final Object neighborId) {
         if (MASSBase.distributed_map.getOrDefault(vertexId, -1) == -1
             || MASSBase.distributed_map.getOrDefault(neighborId, -1) == -1) {
             return false;
@@ -200,7 +200,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     @Override
-    public boolean addEdge(int vertexId, int neighborId, double weight) {
+    public boolean addEdge(Object vertexId, Object neighborId, double weight) {
         boolean added = false;
 
         if (!validNeighbor(vertexId, neighborId)) {
@@ -209,7 +209,7 @@ public class GraphPlaces extends Places implements Graph {
 
         Log4J2Logger logger = MASSBase.getLogger();
 
-        logger.error(String.format("addEdge [vertexId=%d; neighborId=%d; weight=%f]", vertexId, neighborId, weight));
+        logger.error(String.format("addEdge [vertexId=%s; neighborId=%s; weight=%f]", vertexId.toString(), neighborId.toString(), weight));
 
         int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
 
@@ -244,7 +244,7 @@ public class GraphPlaces extends Places implements Graph {
         return added;
     }
 
-    public boolean addEdgeLocally(int vertexId, int neighborId, double weight) {
+    public boolean addEdgeLocally(Object vertexId, Object neighborId, double weight) {
         int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
 
         int spanSize = getSize()[0];
@@ -265,7 +265,7 @@ public class GraphPlaces extends Places implements Graph {
         return false;
     }
 
-    public boolean removeEdgeLocally(int vertexId, int neighborId) {
+    public boolean removeEdgeLocally(Object vertexId, Object neighborId) {
         int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
 
         int spanSize = getSize()[0];
@@ -287,7 +287,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     @Override
-    public boolean removeEdge(int vertexId, int neighborId) {
+    public boolean removeEdge(Object vertexId, Object neighborId) {
         if (MASSBase.distributed_map.getOrDefault(vertexId, -1) == -1) {
             return false;
         }
@@ -378,7 +378,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     @Override
-    public int addVertex(int vertexId) {
+    public int addVertex(Object vertexId) {
         if (MASS.distributed_map.containsKey(vertexId)) {
             return -1;
         }
@@ -402,7 +402,7 @@ public class GraphPlaces extends Places implements Graph {
         return addVertexPlace(getHosts().get(nodeId), vertexId);
     }
 
-    private int addVertexPlace(String host, int vertexId) {
+    private int addVertexPlace(String host, Object vertexId) {
         if (MASSBase.getMyHostname().equals(host)) {
             return addPlaceLocally(vertexId);
         }
@@ -424,7 +424,7 @@ public class GraphPlaces extends Places implements Graph {
         return -1;
     }
 
-    public int addPlaceLocally(int vertexId) {
+    public int addPlaceLocally(Object vertexId) {
         Log4J2Logger logger = MASSBase.getLogger();
 
         int [] placesIndex = getPlacesIndex();
@@ -466,7 +466,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     @Override
-    public boolean removeVertex(int vertexId) {
+    public boolean removeVertex(Object vertexId) {
         if (MASS.distributed_map.getOrDefault(vertexId, -1) == -1) {
             return false;
         }
@@ -483,7 +483,7 @@ public class GraphPlaces extends Places implements Graph {
         return false;
     }
 
-    public void removeVertexLocally(int vertexId) {
+    public void removeVertexLocally(Object vertexId) {
         int globalIndex = MASS.distributed_map.get(vertexId);
 
         Place vertexPlace = null;
@@ -509,7 +509,7 @@ public class GraphPlaces extends Places implements Graph {
         return new int [] { nextPlaceIndex / linearSize, nextPlaceIndex % linearSize };
     }
 
-    public VertexMetaValues getVertexMetaValues(int vertexId) {
+    public VertexMetaValues getVertexMetaValues(Object vertexId) {
         int id = -1;
         int pid = -1;
 
@@ -589,12 +589,14 @@ public class GraphPlaces extends Places implements Graph {
         // do serially but this should be multi-threaded. Maybe we can just use a thread pool
         for (Vector<VertexPlace> places : placesVector) {
             for (VertexPlace place : places) {
-                int [] neighbors = place.getNeighbors();
+                Object[] neighbors = place.getNeighbors();
 
                 place.prepareForExchangeAll();
 
-                for (int neighborKey : neighbors) {
-                    int owner = getNodeIdFromGlobalLinearIndex(neighborKey);
+                for (Object neighborKey : neighbors) {
+                    int neighborGlobalLinearIndex = MASSBase.distributed_map.getOrDefault(neighborKey, -1);
+
+                    int owner = getNodeIdFromGlobalLinearIndex(neighborGlobalLinearIndex);
 
                     Object result = null;
 
