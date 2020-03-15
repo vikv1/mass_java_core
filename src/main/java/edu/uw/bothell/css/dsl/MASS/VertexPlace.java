@@ -21,6 +21,9 @@ import java.util.stream.Collectors;
 
 public class VertexPlace extends Place implements Serializable {
     private Map<Object, Object> neighborResults;
+    private Object [] graphArguments;
+    public Vector<Object> neighbors = new Vector<>();
+    public Vector<Object> weights = new Vector<>();
 
     public void prepareForExchangeAll() {
         neighborResults = new HashMap<>(neighbors.size());
@@ -53,18 +56,14 @@ public class VertexPlace extends Place implements Serializable {
     }
 
     public static class Tuple {
-        public Tuple(int i, double w) {
+        public Tuple(Object i, double w) {
             index = i;
             weight = w;
         }
 
-        public int index;
+        public Object index;
         public double weight;
     }
-
-    private Object [] graphArguments;
-    public Vector<Object> neighbors = new Vector<>();
-    public Vector<Object> weights = new Vector<>();
 
     public Object [] getNeighbors() {
         Object [] result = new Object[neighbors.size()];
@@ -134,8 +133,43 @@ public class VertexPlace extends Place implements Serializable {
             init_neighbors_matsim(networkFilename, index);
         } else if (networkFilename.contains(".tsv")) {
             init_neighbors_hippie(networkFilename, index);
+        } else if (networkFilename.endsWith(".sar")) {
+            init_neighbors_sar(networkFilename, index);
         } else {
             init_neighbors_parallel(networkFilename, index);
+        }
+    }
+
+    private void init_neighbors_sar(String networkFilename, int index) {
+        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()))) {
+            String onSet = br.readLine();
+
+            List<Integer> counts = Arrays.stream(onSet.split(","))
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toList());
+
+            int predecessors = counts.stream().limit(index).reduce(0, Integer::sum);
+
+            int offset = predecessors * 10 + index + predecessors;
+
+            br.skip(offset);
+
+            String neighborLine = br.readLine();
+
+            List<Integer> neighbors = Arrays.stream(neighborLine.split("\t"))
+                    .map(s -> s.trim())
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toList());
+
+            this.neighbors.addAll(neighbors);
+        } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+
+            MASSBase.getLogger().error(sw.toString());
         }
     }
 
@@ -167,7 +201,6 @@ public class VertexPlace extends Place implements Serializable {
         List<Tuple> neighbors = getHippieNeighbors(networkFilename, key);
 
         for (Tuple neighbor : neighbors) {
-            // Network file is 1 based. Shift to 0 based.
             this.neighbors.add(neighbor.index);
 
             // TODO: Refactor weights to double
@@ -201,11 +234,12 @@ public class VertexPlace extends Place implements Serializable {
                 if (lineKey.equals(key)) {
                     HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
 
-                    int globalIndexForKey = MASSBase.getGlobalIndexForKey(edge.getInteractionKey());
+//                    int globalIndexForKey = MASSBase.getGlobalIndexForKey(edge.getInteractionKey());
+//
+//                    int neighborId = globalIndexForKey;
 
-                    int neighborId = globalIndexForKey;
-
-                    Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
+                    //Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
+                    Tuple neighbor = new Tuple(edge.getInteractionKey(), edge.getInteractionAttribute());
 
                     neighbors.add(neighbor);
                 }
@@ -271,7 +305,7 @@ public class VertexPlace extends Place implements Serializable {
 
         for (Tuple neighbor : neighbors) {
             // Network file is 1 based. Shift to 0 based.
-            this.neighbors.add(neighbor.index - 1);
+            this.neighbors.add((Integer) neighbor.index - 1);
 
             // TODO: Refactor weights to double
             // this.weights.add(neighbor.weight);

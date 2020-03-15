@@ -92,6 +92,8 @@ public class CytoscapeListener implements MASSListener {
                 outStream.writeObject(processor.get());
             } catch (IOException e) {
                 massLogger.error("Error sending result to client", e);
+            } catch (Exception e) {
+                massLogger.error("Exception encountered processing request", e);
             }
         }
     }

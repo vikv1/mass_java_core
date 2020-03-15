@@ -105,8 +105,23 @@ public class GraphPlaces extends Places implements Graph {
         } else {
             Object[] arguments = (Object[]) argument;
 
-            String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
-            Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
+            // TODO: This is failing in kotlin
+//            String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
+//            Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
+
+            String [] graphArguments = new String[2];
+            Object [] initArguments = null;
+
+            graphArguments[0] = arguments[0].toString();
+            graphArguments[1] = arguments[1].toString();
+
+            if (arguments.length > 2) {
+                initArguments = new Object[arguments.length - 2];
+
+                for (int i = 0; i < initArguments.length; i++) {
+                    initArguments[i] = arguments[i + 2];
+                }
+            }
 
             init_all_graph(graphArguments, initArguments);
         }
@@ -145,11 +160,13 @@ public class GraphPlaces extends Places implements Graph {
 
         // Places on master node
         if (getPlaces() != null) {
-            for (Place place : getPlaces()) {
+            for (Place place : Arrays.stream(getPlaces()).filter(p -> p != null).collect(Collectors.toList())) {
                 VertexPlace vPlace = (VertexPlace) place;
 
+                Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
+
                 //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
-                graph.addVertex(vPlace.getAttribute(), vPlace.neighbors);
+                graph.addVertex(attribute, vPlace.neighbors);
             }
         }
 

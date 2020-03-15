@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.function.IntBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -976,6 +977,8 @@ public class PlacesBase {
 			init_all_graph_matsim(graphArgs, initArgs);
 		} else if (extension.equals(".tsv")) {
 			init_all_graph_hippie(graphArgs, initArgs);
+		} else if (extension.equals(".sar")) {
+			init_all_graph_sar(graphArgs, initArgs);
 		} else {
 			init_all_graph_csv(graphArgs, initArgs);
 		}
@@ -1152,7 +1155,7 @@ public class PlacesBase {
 		}
 
 
-		return vertexCount;
+ 		return vertexCount;
 	}
 
 	// TODO: Size is input from message
@@ -1246,6 +1249,100 @@ public class PlacesBase {
 		}
 
 		return vertexCount;
+	}
+
+	protected void init_all_graph_sar(String[] graphArgs, Object[] initArgs) {
+		String graphNeighborsFilename = graphArgs[0];
+
+		MASSBase.getLogger().debug("PlacesBase - init_all_graph");
+
+		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
+		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
+
+		// For debugging
+		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
+				", class = " + className +
+				", arguments = " + initArgs
+				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
+
+		// load the place constructor
+		try {
+			String sarOnset = "";
+
+			Path filePath = Paths.get(MASSBase.getWorkingDirectory(), graphNeighborsFilename);
+
+			try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
+				sarOnset = br.readLine();
+			} catch (FileNotFoundException e) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+
+				MASSBase.getLogger().error(sw.toString());
+			} catch (IOException e) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+
+				MASSBase.getLogger().error(sw.toString());
+			}
+
+			// maybe this should be a long
+			int totalSize = Math.toIntExact(Arrays.stream(sarOnset.split(",")).count());
+
+			this.size = new int[] { totalSize };
+
+			int stripeSize = totalSize / MASSBase.getSystemSize();
+
+			// lower_boundary is the first place managed by this node
+			lowerBoundary = stripeSize * MASSBase.getMyPid();
+
+			// upperBoundary is the last place managed by this node
+			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
+					lowerBoundary + stripeSize - 1 : totalSize - 1;
+
+			// placesSize is the total number of places managed by this node
+			placesSize = upperBoundary - lowerBoundary + 1;
+
+			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
+					totalSize, lowerBoundary, upperBoundary, placesSize));
+
+			//  maintaining an entire set
+			places = new Place[placesSize];
+
+			Object [] finalGraphArgs = new Object[3];
+
+			finalGraphArgs[0] = graphArgs[0];
+			finalGraphArgs[1] = graphArgs[1];
+
+			// initialize all Places objects
+			for ( int i = 0; i < placesSize; i++ ) {
+				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
+
+				MASS.distributed_map.put(myIndex, myIndex);
+
+				finalGraphArgs[2] = myIndex;
+
+				if (initArgs == null) {
+					initArgs = new Object[1];
+				}
+
+				// instantiate and configure new place
+				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+
+				newPlace.setIndex( new int[] { myIndex } );
+
+				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
+				//newPlace.setSize(size);
+				places[i] = newPlace;
+			}
+		}
+
+		// TODO - what to do when this exception is caught?
+		catch ( Exception e ) {
+			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
+		}
+
 	}
 
 	// TODO: Size is input from message
