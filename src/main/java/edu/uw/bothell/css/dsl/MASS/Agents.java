@@ -234,20 +234,18 @@ public class Agents extends AgentsBase {
 
     // send an AGENTS_MANAGE_ALL message to each slave
     Message m = null;
-    for (MNode node : MASS.getRemoteNodes()) {
+    for ( MNode node : MASS.getRemoteNodes() ) {
 
       // create a message
-      m = new Message(Message.ACTION_TYPE.AGENTS_MANAGE_ALL, this.getHandle(),
-          0);
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, this.getHandle(), 0 );
 
       // send it
-      node.sendMessage(m);
-
-      // MThread Update
-      MThread.setAgentBagSize(MASSBase.getAgentsMap()
-          .get(new Integer(getHandle())).getAgents().size_unreduced());
+      node.sendMessage( m );
 
     }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
 
     // retrieve the corresponding agents
     MASSBase.setCurrentAgentsBase(this);
@@ -268,6 +266,17 @@ public class Agents extends AgentsBase {
 
   }
 
+  /**
+   * Execute callAll and manageAll functions consecutively, with no arguments and no return value
+   * @param numberOfIterations The number of consecutive calls of callAll() and manageAll() functions
+   */
+  public void doAll( int numberOfIterations ) {
+	  
+	  // function ID not important
+	  doAll( 0, numberOfIterations );
+	  
+  }
+  
   /**
    * Calls callAll and manageAll functions consecutively without responding
    *  back to user application in each iteration.

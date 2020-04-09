@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Set;
@@ -325,19 +324,6 @@ public class MASS extends MASSBase {
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
     		
-    		// retrieve each canonical remote machine name
-    		try {
-
-    			InetAddress addr = InetAddress.getByName( node.getHostName() );
-    			node.setHostName( addr.getCanonicalHostName( ) );
-    			
-    		} catch ( Exception e ) {
-
-    			MASS.getLogger().error( "Wrong host name: {}", node.getHostName(), e );
-    			System.exit( -1 );
-
-    		}
-
     		// For debugging
     		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 

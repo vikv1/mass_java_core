@@ -101,7 +101,6 @@ public class AgentSerializerTest extends AbstractTest {
 		// a basic Agent with a few populated fields for testing 
 		Agent agent = new SimpleTestAgent( new String( randomString() ) );
 		agent.setAgentId( randomInt() );
-		agent.setIndex( new int[]{ randomInt() } );
 		
 		// serialize the Agent
 		byte[] serializedAgent = serializer.serializeAgent( agent );
