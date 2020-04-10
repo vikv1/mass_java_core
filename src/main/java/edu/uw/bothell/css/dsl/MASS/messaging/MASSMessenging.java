@@ -32,6 +32,7 @@ package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -39,7 +40,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
+import edu.uw.bothell.css.dsl.MASS.AgentList;
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -85,6 +88,7 @@ public class MASSMessenging {
 	 * @param remoteNodes The remote cluster members
 	 */
 	public void init(MNode masterNode, Collection<MNode> remoteNodes) {
+		MASSBase.getLogger().debug("Messaging system initialization starting");
 		messagingProviderImpl.init(masterNode, remoteNodes);
 	}
 
@@ -259,7 +263,27 @@ public class MASSMessenging {
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown
 	 */
 	public void shutdown() {
+		
+		MASSBase.getLogger().debug("Messaging system shutdown requested");
 		messagingProviderImpl.shutdown();
+		
+	}
+	
+	protected Set<Agent> getLocalAgents() {
+		
+		Set<Agent> localAgents = new HashSet<>();
+		
+		// obtain the custom collection of local agents
+		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
+		
+		// reset list to starting position and iterate through collection
+		agentList.setIterator();
+		while ( agentList.hasNext() ) {
+			localAgents.add( agentList.next() );
+		}
+
+		return localAgents;
+		
 	}
 	
 }

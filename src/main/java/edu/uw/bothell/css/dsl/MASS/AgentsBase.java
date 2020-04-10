@@ -37,8 +37,8 @@ import java.util.Vector;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
-import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -818,7 +818,20 @@ public class AgentsBase {
     	return localPopulation; 
     }
 
-  private class ProcessAgentMigrationRequest extends Thread {
+	/**
+	 * Trigger exchange of all outgoing and incoming messages to Agents
+	 */
+	public void exchangeAll() {
+
+		// transmit outgoing messages
+		MASS.getMessagingProvider().flushAgentMessages();
+
+		// execute methods queued by incoming messages
+		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
+
+	}
+
+	private class ProcessAgentMigrationRequest extends Thread {
     	
     	private int destRank;
     	private int agentHandle;

@@ -162,6 +162,9 @@ public class MProcess {
 
 		}
 
+    	// initialize the messaging system
+    	MASS.getMessagingProvider().init( null, null );
+		
 	}
 
 	private Message receiveMessage() {
@@ -260,13 +263,19 @@ public class MProcess {
 				break;
 
 			case FINISH:
+
+				// shutdown messaging system
+		    	MASS.getMessagingProvider().shutdown();
+
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_TERMINATE);
+				
 				// confirm all threads are done with finish
 				MThread.barrierThreads(0);
 				MASSBase.getExchange().terminateConnection(this.myPid);
 				sendAck();
 				alive = false;
 				MASSBase.getLogger().debug("FINISH received and ACK sent");
+
 				break;
 
 			case PLACES_INITIALIZE:
@@ -474,6 +483,16 @@ public class MProcess {
 
 				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
+				break;
+				
+			case AGENTS_EXCHANGE_ALL:
+				
+				MASSBase.getLogger().debug("AGENTS_EXCHANGE_ALL received");
+				
+				MASSBase.getCurrentAgentsBase().exchangeAll();
+				MThread.barrierThreads(0);
+				sendAck();
+				
 				break;
 
 			}

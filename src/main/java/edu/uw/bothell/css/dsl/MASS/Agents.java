@@ -32,7 +32,6 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.function.BooleanSupplier;
 
-import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
@@ -266,7 +265,19 @@ public class Agents extends AgentsBase {
     // Synchronized with all slave processes
     MASS.barrierAllSlaves(localAgents);
     localAgents[0] = getLocalPopulation();
+    
+    // exchange local Agent messages
+    exchangeAll();
+    
+    // make sure all Agent messages have been transmitted/delivered on remote nodes
+    Message exchangeAllMessage = new Message( Message.ACTION_TYPE.AGENTS_EXCHANGE_ALL );
+    for ( MNode node : MASS.getRemoteNodes() ) {
+      node.sendMessage( exchangeAllMessage );
+    }
 
+    // make sure all remotes have performed AgentsBase exchange all
+    MASS.barrierAllSlaves( null, 0, null );
+    
   }
 
   /**
@@ -324,7 +335,6 @@ public class Agents extends AgentsBase {
       {
           callAllSetup(functionId, null, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
           manageAll();
-          exchangeAll();
       }
   }
 
@@ -393,19 +403,6 @@ public class Agents extends AgentsBase {
    */
   public boolean hasAgents() {
 	  return ( nAgents() > 0 );
-  }
-  
-  /**
-   * Trigger exchange of all outgoing and incoming messages to Agents
-   */
-  public void exchangeAll() {
-	  
-	  // transmit outgoing messages
-	  MASS.getMessagingProvider().flushAgentMessages();
-	  
-	  // execute methods queued by incoming messages
-	  MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
-	  
   }
   
 }

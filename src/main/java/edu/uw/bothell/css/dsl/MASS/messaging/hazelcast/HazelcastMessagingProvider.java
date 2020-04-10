@@ -42,6 +42,9 @@ import com.hazelcast.core.ITopic;
 import com.hazelcast.topic.TopicOverloadPolicy;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
+import edu.uw.bothell.css.dsl.MASS.AgentList;
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -59,17 +62,34 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private static final String NODE_ADDRESS_PREFIX = "N";
 	
 	// common topic names
-	private static final String AGENT_BROADCAST_TOPIC = "AgentBroadcast";
-	private static final String PLACE_BROADCAST_TOPIC = "PlaceBroadcast";
-	private static final String NODE_BROADCAST_TOPIC = "NodeBroadcast";
+	private static final String AGENT_GLOBAL_BROADCAST_TOPIC = "AgentGlobalBroadcast";
+	private static final String PLACE_GLOBAL_BROADCAST_TOPIC = "PlaceGlobalBroadcast";
+	private static final String NODE_GLOBAL_BROADCAST_TOPIC = "NodeGlobalBroadcast";
+//	private static final String AGENT_LOCAL_BROADCAST_TOPIC_PREFIX = "AgentLocalBroadcastNode";
+//	private static final String PLACE_LOCAL_BROADCAST_TOPIC_PREFIX = "PlaceLocalBroadcastNode";
 	
 	private HazelcastInstance instance;
 	
 	@Override
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
 		
+		MASSBase.getLogger().debug("Hazelcast Messaging Provider initializing...");
+		
 		Config config = new Config();
+		
+		// don't use multicast
+        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(true);
+        
+		// explicitly add remote nodes rather than using multicast
+//        if ( remoteNodes != null) {
+//	        for ( MNode node : remoteNodes ) {
+//				config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
+//			}
+//        }
+		
 		instance = Hazelcast.newHazelcastInstance( config );
+		
+		MASSBase.getLogger().debug("Hazelcast Messaging Provider initialized!");
 		
 	}
 
@@ -88,10 +108,10 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		agentSpecificTopic.addMessageListener(agentMessageListener);
 
 		// set configuration for agent broadcast topic
-		setGlobalTopicConfiguration( AGENT_BROADCAST_TOPIC );
+		setGlobalTopicConfiguration( AGENT_GLOBAL_BROADCAST_TOPIC );
 
 		// create/obtain agent broadcast topic and listener
-		ITopic<MASSMessage<Serializable>> agentBroadcastTopic = instance.getReliableTopic( AGENT_BROADCAST_TOPIC );
+		ITopic<MASSMessage<Serializable>> agentBroadcastTopic = instance.getReliableTopic( AGENT_GLOBAL_BROADCAST_TOPIC );
 		HazelcastAgentMessageListener broadcastMessageListener = new HazelcastAgentMessageListener( agent );
 		agentBroadcastTopic.addMessageListener(broadcastMessageListener);
 		
@@ -112,10 +132,10 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		placeSpecificTopic.addMessageListener(placeMessageListener);
 
 		// set configuration for place broadcast topic
-		setGlobalTopicConfiguration( PLACE_BROADCAST_TOPIC );
+		setGlobalTopicConfiguration( PLACE_GLOBAL_BROADCAST_TOPIC );
 
 		// create/obtain place broadcast topic and listener
-		ITopic<MASSMessage<Serializable>> placeBroadcastTopic = instance.getReliableTopic( PLACE_BROADCAST_TOPIC );
+		ITopic<MASSMessage<Serializable>> placeBroadcastTopic = instance.getReliableTopic( PLACE_GLOBAL_BROADCAST_TOPIC );
 		HazelcastPlaceMessageListener broadcastMessageListener = new HazelcastPlaceMessageListener( place );
 		placeBroadcastTopic.addMessageListener(broadcastMessageListener);
 
@@ -129,13 +149,15 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 		// broadcast to all Agents?
 		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() ) {
-			instance.getReliableTopic( AGENT_BROADCAST_TOPIC ).publish( message.getMessage() );
+			instance.getReliableTopic( AGENT_GLOBAL_BROADCAST_TOPIC ).publish( message.getMessage() );
 		}
 		
 		// broadcast to all local Agents?
 		else if ( message.getDestinationAddress() == MessageDestination.ALL_LOCAL_AGENTS.getValue() ) {
 			
-			// TODO - implement
+			
+			
+			
 			
 		}
 		
@@ -160,7 +182,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 		// broadcast to all Places?
 		if ( message.getDestinationAddress() == MessageDestination.ALL_PLACES.getValue() ) {
-			instance.getReliableTopic( PLACE_BROADCAST_TOPIC ).publish( message.getMessage() );
+			instance.getReliableTopic( PLACE_GLOBAL_BROADCAST_TOPIC ).publish( message.getMessage() );
 		}
 		
 		// broadcast to all local Agents?
@@ -189,7 +211,10 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 	@Override
 	public void shutdown() {
+		
+		MASSBase.getLogger().debug("Hazelcast Messaging Provider shutdown requested");
 		instance.shutdown();
+		
 	}
 
 }
