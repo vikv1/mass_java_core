@@ -135,6 +135,14 @@ public class GraphPlaces extends Places implements Graph {
         return getGraph(true);
     }
 
+    /**
+     * setGraph - replace in-memory graph with the supplied model
+     */
+    @Override
+    public void setGraph(final GraphModel newGraph) {
+
+    }
+
     public void merge(GraphModel source, GraphModel remoteGraphs) {
         source.getVertices().addAll(remoteGraphs.getVertices());
     }

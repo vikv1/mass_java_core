@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CytoscapeListener implements MASSListener {
@@ -79,17 +81,58 @@ public class CytoscapeListener implements MASSListener {
 
                 String request = (String) inStream.readObject();
 
-                processRequest(request, outStream);
+                GraphRequest graphRequest = parseRequest(request, inStream);
+
+                processRequest(graphRequest, outStream);
             } catch (IOException | ClassNotFoundException e) {
                 massLogger.error("Error handling remote request", e);
             }
         }
 
-        private void processRequest(String request, ObjectOutputStream outStream) {
-            Supplier<Object> processor = requestProcessors.get(request);
+        private GraphRequest parseRequest(String request, ObjectInputStream inStream) {
+            GraphRequest graphRequest = null;
 
+            switch (request) {
+                case "getGraph":
+                    graphRequest = () -> {
+                        Supplier<Object> processor = requestProcessors.get(request);
+
+                        return processor.get();
+                    };
+
+                    break;
+                case "setGraph":
+                    graphRequest = new GraphRequest() {
+                        private ObjectInputStream stream = inStream;
+
+                        public Object process() {
+                            try {
+                                GraphModel model = (GraphModel) stream.readObject();
+
+                                graph.setGraph(model);
+
+                                return "Success";
+                            } catch (IOException e) {
+                                massLogger.error("Exception processing setGraph", e);
+                            } catch (ClassNotFoundException e) {
+                                massLogger.error("Java exception processing setGraph", e);
+                            }
+
+                            return "Failure";
+                        }
+                    };
+
+                    break;
+                default:
+                    graphRequest = () -> "Operation not implemented: " + request;
+            }
+
+            return graphRequest;
+        }
+
+        private void processRequest(GraphRequest request, ObjectOutputStream outStream) {
             try {
-                outStream.writeObject(processor.get());
+                outStream.writeObject(request.process());
             } catch (IOException e) {
                 massLogger.error("Error sending result to client", e);
             } catch (Exception e) {

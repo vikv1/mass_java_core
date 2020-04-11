@@ -12,4 +12,6 @@ public interface Graph {
 
     int addVertex(Object vertexId);
     boolean removeVertex(Object vertexId);
+
+    void setGraph(GraphModel newGraph);
 }
