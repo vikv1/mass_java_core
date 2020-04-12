@@ -1450,4 +1450,8 @@ public class PlacesBase {
     	return nextIndex;
     }
 
+    protected void reinitialize() {
+    	placesSize = 0;
+    	places = null;
+	}
 }

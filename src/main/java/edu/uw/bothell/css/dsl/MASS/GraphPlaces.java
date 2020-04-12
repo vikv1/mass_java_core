@@ -83,7 +83,9 @@ public class GraphPlaces extends Places implements Graph {
         this.input_format = GraphInputFormat.CSV;
     }
 
-    void reinitialize() {
+    protected void reinitialize() {
+        super.reinitialize();
+
         nextPlaceIndex = 0;
         placesVector = new Vector<>(1);
     }
