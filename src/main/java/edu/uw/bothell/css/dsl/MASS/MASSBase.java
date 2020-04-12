@@ -718,4 +718,8 @@ public class MASSBase {
 	public static Integer getGlobalIndexForKey(Object key) {
 		return distributed_map.getOrDefault(key, -1);
 	}
+
+	public static void reinitializeMap() {
+		initDistributedData();
+	}
 }

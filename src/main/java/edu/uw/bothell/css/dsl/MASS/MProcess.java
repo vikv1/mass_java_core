@@ -613,6 +613,17 @@ public class MProcess {
 				sendMessage(new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, o));
 
 				break;
+
+			case MAINTENANCE_REINITIALIZE:
+				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
+
+				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
+
+				graphPlaces.reinitialize();
+
+				sendAck();
+
+				break;
 			}
 		}
 	}

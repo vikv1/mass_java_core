@@ -5,6 +5,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.monitoring.FetchPlacesListener;
 import edu.uw.bothell.css.dsl.MASS.monitoring.MonitorConnector;
@@ -70,6 +71,9 @@ public class GraphPlaces extends Places implements Graph {
         this.input_format = format;
     }
 
+    /**
+     * Constructor for empty graph
+     */
     public GraphPlaces(int handle, String className, int size) {
         super(handle, className, size, new int[] { size });
 
@@ -77,6 +81,28 @@ public class GraphPlaces extends Places implements Graph {
         this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
         this.filename = "";
         this.input_format = GraphInputFormat.CSV;
+    }
+
+    void reinitialize() {
+        nextPlaceIndex = 0;
+        placesVector = new Vector<>(1);
+    }
+
+    private void reinitializeGraph() {
+        // TODO: This feels like something that could be handled by an internal callAll or something similarly
+        // utilizing the infrastructure the code already has
+        reinitialize();
+
+        //Send reinitialize message to all remote nodes
+        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_REINITIALIZE, getHandle());
+
+        // This needs to remove neighbors anyways so just send to everyone else
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(message));
+
+        MASSBase.reinitializeMap();
+
+        // Early clear is inconsequential. We just need to make sure we don't move forward before all nodes are done
+        MASS.barrierAllSlaves();
     }
 
     /**
@@ -140,7 +166,20 @@ public class GraphPlaces extends Places implements Graph {
      */
     @Override
     public void setGraph(final GraphModel newGraph) {
+        // Re-initialize graph across cluster
+        reinitializeGraph();
 
+        // apply the new model
+        // TODO: This would be a good area for improvements. As it stands I will just use the new graph maintenance
+        // functions to apply the model
+
+        // Add all the vertices first
+        newGraph.getVertices().forEach(vertex -> addVertex(vertex.id));
+
+        // TODO: Missing weights
+        newGraph.getVertices()
+                .forEach(vertex -> vertex.neighbors
+                        .forEach(neighbor -> addEdge(vertex.id, neighbor, 1.0)));
     }
 
     public void merge(GraphModel source, GraphModel remoteGraphs) {
@@ -174,6 +213,7 @@ public class GraphPlaces extends Places implements Graph {
                 Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
 
                 //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
+                // TODO: Missing weights
                 graph.addVertex(attribute, vPlace.neighbors);
             }
         }

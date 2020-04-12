@@ -73,6 +73,9 @@ public class Message implements Serializable {
 
         // Exchange all
         GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
+
+        // Re-Initialize
+        MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
         ;
         private final String value;
 
