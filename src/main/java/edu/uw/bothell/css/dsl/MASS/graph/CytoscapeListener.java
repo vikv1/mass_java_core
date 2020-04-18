@@ -11,13 +11,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CytoscapeListener implements MASSListener {
     private static final int LISTENER_PORT = 8165;
     private final Log4J2Logger massLogger;
     private Thread listenerThread;
+
+    private Map<String, GraphRequest> baseProcessors = new HashMap<>();
 
     public CytoscapeListener(Graph graph) {
         massLogger = MASSBase.getLogger();
@@ -38,6 +39,11 @@ public class CytoscapeListener implements MASSListener {
         } catch (InterruptedException e) {
             massLogger.error("Exception trying to join listener threads", e);
         }
+    }
+
+    @Override
+    public void registerProcessor(String key, GraphRequest requestProcessor) {
+        baseProcessors.put(key, requestProcessor);
     }
 
     private class ListenerRunner implements Runnable {
@@ -111,6 +117,10 @@ public class CytoscapeListener implements MASSListener {
 
                                 graph.setGraph(model);
 
+                                if (baseProcessors.containsKey("countTriangles")) {
+                                    baseProcessors.get("countTriangles").process();
+                                }
+
                                 return "Success";
                             } catch (IOException e) {
                                 massLogger.error("Exception processing setGraph", e);
@@ -124,7 +134,7 @@ public class CytoscapeListener implements MASSListener {
 
                     break;
                 default:
-                    graphRequest = () -> "Operation not implemented: " + request;
+                    graphRequest = baseProcessors.getOrDefault(request, () -> "Operation not implemented: " + request);
             }
 
             return graphRequest;

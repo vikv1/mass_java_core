@@ -1097,7 +1097,16 @@ public class PlacesBase {
 				finalGraphArgs[2] = myIndex;
 
 				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+				Object [] ctorArguments;
+
+				if (initArgs != null) {
+					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
+							Arrays.stream(initArgs)).toArray(Object[]::new);
+				} else {
+					ctorArguments = finalGraphArgs;
+				}
+
+				Place newPlace = objectFactory.getInstance(className, ctorArguments);
 
 				newPlace.setIndex( new int[] { myIndex } );
 
@@ -1209,8 +1218,17 @@ public class PlacesBase {
 
 				finalGraphArgs[2] = myIndex;
 
+				Object [] ctorArguments;
+
+				if (initArgs != null) {
+					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
+							Arrays.stream(initArgs)).toArray(Object[]::new);
+				} else {
+					ctorArguments = finalGraphArgs;
+				}
+
 				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+				Place newPlace = objectFactory.getInstance(className, ctorArguments);
 
 				newPlace.setIndex( new int[] { myIndex } );
 

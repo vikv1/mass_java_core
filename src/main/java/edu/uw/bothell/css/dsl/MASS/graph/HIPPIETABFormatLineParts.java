@@ -10,6 +10,6 @@ public enum HIPPIETABFormatLineParts {
     ;
 
     public static String getPart(String [] lineParts, HIPPIETABFormatLineParts part) {
-        return lineParts.length < part.ordinal() ? "" : lineParts[part.ordinal()];
+        return part.ordinal() < lineParts.length ? lineParts[part.ordinal()] : "";
     }
 }

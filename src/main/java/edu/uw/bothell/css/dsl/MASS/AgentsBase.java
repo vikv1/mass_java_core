@@ -168,6 +168,11 @@ public class AgentsBase {
 
     	}
 
+    	if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
+    		// TODO: This should probably be a function in GraphPlaces or maybe a brand-new GraphAgents
+			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
+		}
+
 		// invoke queued Agents OnCreation methods
 		eventDispatcher.invokeQueuedAsync( OnCreation.class );
 
@@ -176,7 +181,61 @@ public class AgentsBase {
 
     }
 
-    public void callAll( int functionId, Object argument, int tid ) {
+	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
+    	// TODO: Hack for Agent#map
+		protoAgent.setPlace(new VertexPlace());
+
+		// scan each place to see how many agents it can create
+		Vector<Vector<VertexPlace>> places = graphPlaces.getPlacesVector();
+
+		int graphSize = places.stream().mapToInt(layer -> layer.size()).sum();
+
+		int[] placesSize = { graphSize };
+
+		places.forEach(layer -> layer.forEach(vertexPlace -> {
+			// create as many new agents as nColonists
+			for (int nColonists =
+				 protoAgent.map(initPopulation, placesSize,
+						 vertexPlace.getIndex());
+				 nColonists > 0; nColonists--, localPopulation++) {
+
+				// agent instantiation and initialization
+				Agent newAgent = null;
+				try {
+
+					agentInitAgentsHandle = handle;
+					agentInitPlacesHandle = placesHandle;
+					agentInitAgentId = currentAgentId++;
+					agentInitParentId = -1; // no parent
+					newAgent = objectFactory.getInstance(className, argument);
+					newAgent.setAgentId(agentInitAgentId);
+
+				} catch (Exception e) {
+					// TODO - now what? What to do when there is an exception?
+					MASS.getLogger().error("Agents_base.constructor: {} not instaitated ", className, e);
+				}
+
+				newAgent.setPlace(vertexPlace);
+
+				// store this agent in the bag of agents
+				agents.add(newAgent);
+
+				// register newAgent into curPlace
+				vertexPlace.getAgents().add(newAgent);
+
+				// Agent has been created
+				eventDispatcher.queueAsync(OnCreation.class, newAgent);
+
+				// Place has an arriving Agent
+				eventDispatcher.queueAsync(OnArrival.class, vertexPlace);
+
+				// Agent has arrived at a Place
+				eventDispatcher.queueAsync(OnArrival.class, newAgent);
+			}
+		}));
+	}
+
+	public void callAll( int functionId, Object argument, int tid ) {
 
     	int numOfOriginalVectors = MThread.getAgentBagSize();
 

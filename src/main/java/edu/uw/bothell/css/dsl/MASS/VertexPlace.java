@@ -96,25 +96,29 @@ public class VertexPlace extends Place implements Serializable {
     public VertexPlace(Object args) {
         super();
 
-        if (args != null) {
-            Object[] arguments = (Object[]) args;
+        try {
+            if (args != null) {
+                Object[] arguments = (Object[]) args;
 
-            graphArguments = Arrays.copyOfRange(arguments, 0, 3);
+                graphArguments = Arrays.copyOfRange(arguments, 0, 3);
 
-            // TODO: Parallel IO requires the index to be set
-            //  We might consider refactoring the neighbors to come after the constructor
-            this.setIndex(new int[]{(int) graphArguments[2]});
+                // TODO: Parallel IO requires the index to be set
+                //  We might consider refactoring the neighbors to come after the constructor
+                this.setIndex(new int[]{(int) graphArguments[2]});
 
-            init(args);
+                init(args);
 
-            MASSBase.getLogger().trace(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
-                    graphArguments[2],
-                    this.neighbors.stream()
-                            .map(n -> n.toString())
-                            .collect(Collectors.joining(", ")),
-                    this.weights.stream()
-                            .map(w -> w.toString())
-                            .collect(Collectors.joining(", "))));
+                MASSBase.getLogger().trace(String.format("VertexPlace constructed with args: { id: %d, neighbors: [%s], weights: [%s] }\n",
+                        graphArguments[2],
+                        this.neighbors.stream()
+                                .map(n -> n.toString())
+                                .collect(Collectors.joining(", ")),
+                        this.weights.stream()
+                                .map(w -> w.toString())
+                                .collect(Collectors.joining(", "))));
+            }
+        } catch (Exception e) {
+            MASSBase.getLogger().error("Exception in VertexPlace constructor", e);
         }
     }
 

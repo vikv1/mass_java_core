@@ -96,7 +96,7 @@ public class GraphPlaces extends Places implements Graph {
         reinitialize();
 
         //Send reinitialize message to all remote nodes
-        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_REINITIALIZE, getHandle());
+        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_REINITIALIZE, getHandle(), null);
 
         // This needs to remove neighbors anyways so just send to everyone else
         MASS.getRemoteNodes().forEach(node -> node.sendMessage(message));
@@ -703,5 +703,9 @@ public class GraphPlaces extends Places implements Graph {
                 .findFirst();
 
         return option.isPresent() ? option.get().callMethod(functionId, null) : null;
+    }
+
+    public Vector<Vector<VertexPlace>> getPlacesVector() {
+        return placesVector;
     }
 }
