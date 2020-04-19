@@ -193,7 +193,7 @@ public class Agent implements Serializable {
 		// compute the global linear index
 		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
 
-		if (linearIndex == Integer.MIN_VALUE && VertexPlace.class.isAssignableFrom(place.getClass())) {
+		if (place != null && VertexPlace.class.isAssignableFrom(place.getClass())) {
 			linearIndex = index[0];
 		}
 
@@ -220,9 +220,9 @@ public class Agent implements Serializable {
 		// compare where we're at now versus new index position
 		// to see if this Agent is attempting to move to a new Place
 		if ( index != null ) currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
-		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );
+		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );;
 
-		if (newLinearIndex == Integer.MIN_VALUE && newIndex.length == 1 && index.length == 1) {
+		if (VertexPlace.class.isAssignableFrom(place.getClass())) {
 			newLinearIndex = newIndex[0];
 			currentLinearIndex = index[0];
 		}
