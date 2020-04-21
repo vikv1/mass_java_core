@@ -65,7 +65,7 @@ public class Message implements Serializable {
 	    AGENTS_MANAGE_ALL,                        // 15
 	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
 
-		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH");                  // 17
+		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),                  // 17
 
         // Retrieval
         MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
@@ -73,6 +73,14 @@ public class Message implements Serializable {
 
         // Exchange all
         GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
+
+        // Graph Maintenance
+        MAINTENANCE_ADD_PLACE("Maintenance.addPlace"),
+        MAINTENANCE_ADD_EDGE("Maintenance.addEdge"),
+
+        MAINTENANCE_REMOVE_PLACE("Maintenance.removePlace"),
+        MAINTENANCE_REMOVE_EDGE("Maintenance.removeEdge"),
+
 
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
