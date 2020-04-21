@@ -125,9 +125,12 @@ public class AgentsBase {
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
 
-    		// create as many new agents as nColonists
+			// actual size:
+			int[] placesSize = MASSBase.getPlacesMap().get(getPlacesHandle()).getSize();
+
+			// create as many new agents as nColonists
     		for ( int nColonists =
-    				protoAgent.map( initPopulation, curPlace.getSize(),
+    				protoAgent.map( initPopulation, placesSize,
     						curPlace.getIndex() );
     				nColonists > 0; nColonists--, localPopulation++ ) {
 
