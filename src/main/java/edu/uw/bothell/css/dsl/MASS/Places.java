@@ -326,26 +326,6 @@ public class Places extends PlacesBase {
 
     }
 
-	protected Vector<String> getHosts() {
-		// create a list of all host names;
-		// the master IP name
-		Vector<String> hosts = new Vector<>( );
-
-		try {
-			hosts.add( MASS.getMasterNode().getHostName() );
-		} catch ( Exception e ) {
-			MASSBase.getLogger().error( "init_master: InetAddress.getLocalHost( ) ", e );
-			System.exit( -1 );
-		}
-
-		// all the slave IP names
-		for ( MNode node : MASS.getRemoteNodes() ) {
-			hosts.add( node.getHostName( ) );
-		}
-
-		return hosts;
-	}
-
 	/**
 	 * Initializes the places with the given arguments and boundary width.
 	 * @param message the message to send to remote nodes
