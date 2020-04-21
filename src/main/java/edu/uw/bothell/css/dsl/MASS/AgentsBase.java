@@ -437,65 +437,65 @@ public class AgentsBase {
 
 	public void manageAll( int tid ) {
 
-    	// Get the PlacesBase to access our agents fromvfor agent instantiation,
+		// Get the PlacesBase to access our agents fromvfor agent instantiation,
 		// and our bag for Agent objects after they have finished processing
-    	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
+		PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get(placesHandle);
 
-    	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
-    	// agents  sequentially.
-    	while ( true ) {
-    		
-    		int myIndex; // each thread's agent index
+		// Spawn, Kill, Migrate. Check in that order throughout the bag of
+		// agents  sequentially.
+		while (true) {
 
-    		Agent evaluationAgent = null;
-    		
-    		synchronized( this ) {
-    			
-    			if ( ( myIndex = MThread.getAgentBagSize() ) == 0 )
-    				break;
+			int myIndex; // each thread's agent index
 
-    			// Grab the last agent and remove it for processing. 
-    			myIndex = MThread.getAgentBagSize();
-    			MThread.setAgentBagSize(myIndex - 1);
-    			evaluationAgent = agents.get( myIndex - 1 );
+			Agent evaluationAgent = null;
 
-    			MASS.getLogger().debug( "Agents_base.manageALL: Thread " + tid + 
-    						" picked up " 
-    						+ evaluationAgent.getAgentId() );
+			synchronized (this) {
 
-    		}
-    		
-    		int argumentcounter = 0;
+				if ((myIndex = MThread.getAgentBagSize()) == 0)
+					break;
 
-    		// If the spawn's newChildren field is set to anything higher than 
-    		// zero, we need to create newChildren's worth of Agents in the 
-    		// current location.
+				// Grab the last agent and remove it for processing.
+				myIndex = MThread.getAgentBagSize();
+				MThread.setAgentBagSize(myIndex - 1);
+				evaluationAgent = agents.get(myIndex - 1);
+
+				MASS.getLogger().debug("Agents_base.manageALL: Thread " + tid +
+						" picked up "
+						+ evaluationAgent.getAgentId());
+
+			}
+
+			int argumentcounter = 0;
+
+			// If the spawn's newChildren field is set to anything higher than
+			// zero, we need to create newChildren's worth of Agents in the
+			// current location.
 
 			/******* SPAWN() CHECK *******/
-    		int childrenCounter = evaluationAgent.getNewChildren();
+			int childrenCounter = evaluationAgent.getNewChildren();
 
-    		MASS.getLogger().debug( "agent " + evaluationAgent.getAgentId() +
-    					"'s childrenCounter = " + childrenCounter );
+			MASS.getLogger().debug("agent " + evaluationAgent.getAgentId() +
+					"'s childrenCounter = " + childrenCounter);
 
-    		while ( childrenCounter > 0 ) {
+			while (childrenCounter > 0) {
 
-    			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-   						" will spawn a child of agent " + 
-   						evaluationAgent.getAgentId() +
-   						"...arguments.size( ) = " +
-   						evaluationAgent.getArguments().length +
-   						", argumentcounter = " + argumentcounter );
+				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid +
+						" will spawn a child of agent " +
+						evaluationAgent.getAgentId() +
+						"...arguments.size( ) = " +
+						evaluationAgent.getArguments().length +
+						", argumentcounter = " + argumentcounter);
 
-    			Agent addAgent = null;
-    			Object dummyArgument = new Object( );
+				Agent addAgent = null;
+				Object dummyArgument = new Object();
 
-    			try {
+				try {
 
-    				agentInitAgentsHandle = this.handle;
-    				agentInitPlacesHandle = this.placesHandle;
-    				agentInitParentId = evaluationAgent.getAgentId();
+					agentInitAgentsHandle = this.handle;
+					agentInitPlacesHandle = this.placesHandle;
+					agentInitParentId = evaluationAgent.getAgentId();
 
-    				synchronized( this ) {
+					synchronized (this) {
 
 						addAgent =
 								(Agent) (// validate the correspondance of arguments and
@@ -510,79 +510,76 @@ public class AgentsBase {
 
 					}
 
-    				addAgent.setPlace(evaluationAgent.getPlace());
+					addAgent.setPlace(evaluationAgent.getPlace());
 
-    				// Agent has been created
-    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
+					// Agent has been created
+					eventDispatcher.queueAsync(OnCreation.class, addAgent);
 
 					/** Agent population control work begins, execution order is important! **/
 
 					// check if the agent is going to run in the system
-					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size()))
-					{
+					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size())) {
 						// check if there is available agent id
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId != null && availableAgentId > -1)
-						{
+						if (availableAgentId != null && availableAgentId > -1) {
 							addAgent.setAgentId(availableAgentId);
 						}
 						// assign a never used id
-						else
-						{
+						else {
 							addAgent.setAgentId(this.currentAgentId++);
 						}
 
 						// Push the created agent into our bag for returns and
 						// update the counter needed to keep track of our agents.
-						addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-						this.agents.add( addAgent );           // auto syn
+						addAgent.getPlace().getAgents().add(addAgent); // auto sync
+						this.agents.add(addAgent);           // auto syn
 
-	    				// queue Place OnArrival method
-						eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+						// queue Place OnArrival method
+						eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
 
-	    				// queue Agent OnArrival method
-						eventDispatcher.queueAsync( OnArrival.class, addAgent );
+						// queue Agent OnArrival method
+						eventDispatcher.queueAsync(OnArrival.class, addAgent);
 
 					}
 
-    			} catch ( Exception e ) {
-    				// TODO - now what? What to do when an exception is thrown?
-    				MASS.getLogger().error( "Agents_base.manageAll: {} not instantiated", this.className, e );
-    			}
+				} catch (Exception e) {
+					// TODO - now what? What to do when an exception is thrown?
+					MASS.getLogger().error("Agents_base.manageAll: {} not instantiated", this.className, e);
+				}
 
-    			// Decrement the newChildren counter once an Agent has been 
-    			// spawned
-    			evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
-    			childrenCounter--;
+				// Decrement the newChildren counter once an Agent has been
+				// spawned
+				evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
+				childrenCounter--;
 
-    			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-    						" spawned a child of agent " + 
-    						evaluationAgent.getAgentId() +
-    						" and put the child " + addAgent.getAgentId() +
-    						" child into retBag." );
+				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid +
+						" spawned a child of agent " +
+						evaluationAgent.getAgentId() +
+						" and put the child " + addAgent.getAgentId() +
+						" child into retBag.");
 
 				/**
 				 * every time we spawn a new agent, we should check if there is available index first!!!
 				 * */
-    		
-    		}
+
+			}
 			/*****************************/
 
 			/******* KILL() CHECK *******/
-    		MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-    					" check " + evaluationAgent.getAgentId() + 
-    					"'s alive = " + evaluationAgent.isAlive() );
+			MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid +
+					" check " + evaluationAgent.getAgentId() +
+					"'s alive = " + evaluationAgent.isAlive());
 
-    		if ( evaluationAgent.isAlive() == false ) {
+			if (evaluationAgent.isAlive() == false) {
 
-    			// Get the place in which evaluationAgent is 'stored' in
-    			Place evaluationPlace = evaluationAgent.getPlace();
+				// Get the place in which evaluationAgent is 'stored' in
+				Place evaluationPlace = evaluationAgent.getPlace();
 
-    			// remove the agent from this place
-    			evaluationPlace.getAgents().remove( evaluationAgent );
+				// remove the agent from this place
+				evaluationPlace.getAgents().remove(evaluationAgent);
 
-    			// remove from AgentList, too!
-    			agents.remove( myIndex - 1 );
+				// remove from AgentList, too!
+				agents.remove(myIndex - 1);
 
 				/** Agent population control work begins, execution order is important! **/
 
@@ -591,25 +588,22 @@ public class AgentsBase {
 
 				// then we check if there is any agent spawn request
 				Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
-				if (agentSpawnRequest != null)
-				{
+				if (agentSpawnRequest != null) {
 					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
 
 					// check if there is available agent id
 					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-					if (availableAgentId > -1)
-					{
+					if (availableAgentId > -1) {
 						agentSpawnRequest.setAgentId(availableAgentId);
 					}
 					// assign a never used id
-					else
-					{
+					else {
 						agentSpawnRequest.setAgentId(this.currentAgentId++);
 					}
 
 					// retrieve the corresponding places
-					PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
-					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
+					PlacesBase curPlaces = MASSBase.getPlacesMap().get(placesHandle);
+					int globalLinearIndex = MatrixUtilities.getLinearIndex(curPlaces.getSize(), agentSpawnRequest.getIndex());
 
 					// local destination
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
@@ -620,369 +614,366 @@ public class AgentsBase {
 
 					// Push the created agent into our bag for returns and
 					// update the counter needed to keep track of our agents.
-					agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
-					this.agents.add( agentSpawnRequest );           // auto syn
+					agentSpawnRequest.getPlace().getAgents().add(agentSpawnRequest); // auto sync
+					this.agents.add(agentSpawnRequest);           // auto syn
 
-		    		// init the Agent immediately
-		    		try {
-						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
+					// init the Agent immediately
+					try {
+						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest);
 					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 
 						e.printStackTrace();
-						MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );
+						MASS.getLogger().error("Exception caught during initialization of serialized Agent", e);
 
 					}
 
-    				// queue remaining events for the newly activated Agent
-					eventDispatcher.queueAsync( OnArrival.class, curPlace );
-    				eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );
+					// queue remaining events for the newly activated Agent
+					eventDispatcher.queueAsync(OnArrival.class, curPlace);
+					eventDispatcher.queueAsync(OnArrival.class, agentSpawnRequest);
 
 				}
 
-    			// don't go down to migrate
-    			continue;
-    		
-    		}
+				// don't go down to migrate
+				continue;
+
+			}
 			/****************************/
 
 			/******* MIGRATE() CHECK *******/
 
-    		// first, check to see if the Agent is actually wanting to migrate
-    		// if not, no point doing anything else
-    		if ( !evaluationAgent.isMigrating() ) continue;
+			// first, check to see if the Agent is actually wanting to migrate
+			// if not, no point doing anything else
+			if (!evaluationAgent.isMigrating()) continue;
 
-    		//Iterate over all dimensions of the agent to check its location
-    		//against that of its place. If they are the same, return back.
-    		int agentIndex = evaluationAgent.getIndex().length;
-    		int[] destCoord = new int[agentIndex];
+			//Iterate over all dimensions of the agent to check its location
+			//against that of its place. If they are the same, return back.
+			int agentIndex = evaluationAgent.getIndex().length;
+			int[] destCoord = new int[agentIndex];
 
-    		// compute its coordinate
-    		getGlobalAgentArrayIndex( evaluationAgent.getIndex(), 
-    				evaluatedPlaces.getSize(), destCoord );
+			// compute its coordinate
+			getGlobalAgentArrayIndex(evaluationAgent.getIndex(),
+					evaluatedPlaces.getSize(), destCoord);
 
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"tid[" + tid + "]: calls from" +
-    					"[" + evaluationAgent.getIndex()[0] +
-    					"].." +
-    					" (destCoord[" + destCoord[0] +
-    					"]..)" );
+			MASS.getLogger().debug("pthread_self[" + Thread.currentThread() +
+					"tid[" + tid + "]: calls from" +
+					"[" + evaluationAgent.getIndex()[0] +
+					"].." +
+					" (destCoord[" + destCoord[0] +
+					"]..)");
 
-    		if( destCoord[0] != -1 ) { 
-    			
-    			// destination valid
-    			int globalLinearIndex = MatrixUtilities.getLinearIndex( evaluatedPlaces.getSize(), destCoord );
+			if (destCoord[0] != -1) {
 
-    			MASS.getLogger().debug( " linear = " + globalLinearIndex +
-    						" lower = " + evaluatedPlaces.getLowerBoundary()
-    						+ " upper = " + 
-    						evaluatedPlaces.getUpperBoundary() + ")" );
+				// destination valid
+				int globalLinearIndex = MatrixUtilities.getLinearIndex(evaluatedPlaces.getSize(), destCoord);
+
+				MASS.getLogger().debug(" linear = " + globalLinearIndex +
+						" lower = " + evaluatedPlaces.getLowerBoundary()
+						+ " upper = " +
+						evaluatedPlaces.getUpperBoundary() + ")");
 
 
+				if (globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
+						globalLinearIndex <= evaluatedPlaces.getUpperBoundary()) {
 
-    			if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
-    					globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
-    				
-    				// local destination
+					// local destination
 
-    				// Should remove the pointer object in the place that 
-    				// points to the migrting Agent
-    				Place oldPlace = evaluationAgent.getPlace();
-    				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
-    					
-    					// should not happen
-    					MASS.getLogger().error( "evaluationAgent {}" + 
-    								evaluationAgent.getAgentId() 
-    								+ " couldn't been found in " +
-    								"the old place!" );
-    					
-    					System.exit( -1 );
-    				
-    				}
-
-				MASS.getLogger().debug( "evaluationAgent " +
-							evaluationAgent.getAgentId()
-							+ " was removed from the oldPlace["
-							+ oldPlace.getIndex()[0] + "].." );
-
-    			if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
-    					globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
-
-    				// local destination
-
-    				// insert the migration Agent to a local destination place
-    				int destinationLocalLinearIndex 
-    				= globalLinearIndex - evaluatedPlaces.getLowerBoundary();
-
-    				MASS.getLogger().debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
-
-    				// queue up OnDeparture events
-    				eventDispatcher.queueAsync( OnDeparture.class, evaluationAgent );
-    				eventDispatcher.queueAsync( OnDeparture.class, oldPlace );
-
-    				evaluationAgent.setPlace(MASSBase.getPlacesMap().
-    						get( placesHandle ).
-    						getPlaces()[destinationLocalLinearIndex]);
-
-    				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
-
-    				MASS.getLogger().debug( "evaluationAgent " + 
-    							evaluationAgent.getAgentId() +
-    							" was inserted into the destPlace[" +
-    							evaluationAgent.getPlace().getIndex()[0] + "].." );
-
-    				// if the agent actually moved, queue up OnArrival events
-    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent.getPlace() );
-    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent );
-
-				} else {
-    				
-    				// remote destination
-
-    				// remove evaluationAgent from AgentList
-    				agents.remove( myIndex - 1 );
-
-    				// find the destination node
-    				int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
-
-    				// OnDeparture events must be run immediately before agent is serialized and moved
-    				try {
-
-    					eventDispatcher.invokeImmediate( OnDeparture.class, oldPlace );
-    					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent );
-
-    				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-        				MASS.getLogger().error("Exception thrown when invoking OnDeparture events!", e);
-    				}
-
-    				// relinquish the old place
-    				evaluationAgent.setPlace(null);
-
-    				// create a request
-    				AgentMigrationRequest request 
-    				= new AgentMigrationRequest( globalLinearIndex, 
-    						evaluationAgent );
-
-    				MASS.getLogger().debug( "AgentMigrationRequest request = {}", request );
-
-    				// enqueue the request to this node.map
-    				Vector<AgentMigrationRequest> migrationReqList 
-    				= MASSBase.getMigrationRequests().get( destRank );
-
-    				synchronized( migrationReqList ) {
-    					migrationReqList.add( request );
-
-    					MASS.getLogger().debug( "remoteRequest[" + destRank +	"].add:" + " dst = " + globalLinearIndex );
-
-    				}
-    			
-    			} 
-    		
-    		} else if (GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) {
-				GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
-
-				int networkSize = graphPlaces.getSize()[0];
-
-				int globalLinearIndex = evaluationAgent.getIndex()[0];
-
-				int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
-
-				if (nodeId == MASSBase.getMyPid()) {
-					// local migration
+					// Should remove the pointer object in the place that
+					// points to the migrting Agent
 					Place oldPlace = evaluationAgent.getPlace();
-
 					if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+
 						// should not happen
-						String errorMessage = "evaluationAgent {}" +
+						MASS.getLogger().error("evaluationAgent {}" +
 								evaluationAgent.getAgentId()
 								+ " couldn't been found in " +
-								"the old place!";
+								"the old place!");
 
-						MASS.getLogger().error(errorMessage);
+						System.exit(-1);
 
-						// throw it back to our new fatal exception handler
-						throw new RuntimeException(errorMessage);
 					}
 
-					evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+					MASS.getLogger().debug("evaluationAgent " +
+							evaluationAgent.getAgentId()
+							+ " was removed from the oldPlace["
+							+ oldPlace.getIndex()[0] + "]..");
 
-					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+					if (globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
+							globalLinearIndex <= evaluatedPlaces.getUpperBoundary()) {
+
+						// local destination
+
+						// insert the migration Agent to a local destination place
+						int destinationLocalLinearIndex
+								= globalLinearIndex - evaluatedPlaces.getLowerBoundary();
+
+						MASS.getLogger().debug("destinationLocalLinerIndex = {}", destinationLocalLinearIndex);
+
+						// queue up OnDeparture events
+						eventDispatcher.queueAsync(OnDeparture.class, evaluationAgent);
+						eventDispatcher.queueAsync(OnDeparture.class, oldPlace);
+
+						evaluationAgent.setPlace(MASSBase.getPlacesMap().
+								get(placesHandle).
+								getPlaces()[destinationLocalLinearIndex]);
+
+						evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+
+						MASS.getLogger().debug("evaluationAgent " +
+								evaluationAgent.getAgentId() +
+								" was inserted into the destPlace[" +
+								evaluationAgent.getPlace().getIndex()[0] + "]..");
+
+						// if the agent actually moved, queue up OnArrival events
+						eventDispatcher.queueAsync(OnArrival.class, evaluationAgent.getPlace());
+						eventDispatcher.queueAsync(OnArrival.class, evaluationAgent);
+
+					} else {
+
+						// remote destination
+
+						// remove evaluationAgent from AgentList
+						agents.remove(myIndex - 1);
+
+						// find the destination node
+						int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex(globalLinearIndex);
+
+						// OnDeparture events must be run immediately before agent is serialized and moved
+						try {
+
+							eventDispatcher.invokeImmediate(OnDeparture.class, oldPlace);
+							eventDispatcher.invokeImmediate(OnDeparture.class, evaluationAgent);
+
+						} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+							MASS.getLogger().error("Exception thrown when invoking OnDeparture events!", e);
+						}
+
+						// relinquish the old place
+						evaluationAgent.setPlace(null);
+
+						// create a request
+						AgentMigrationRequest request
+								= new AgentMigrationRequest(globalLinearIndex,
+								evaluationAgent);
+
+						MASS.getLogger().debug("AgentMigrationRequest request = {}", request);
+
+						// enqueue the request to this node.map
+						Vector<AgentMigrationRequest> migrationReqList
+								= MASSBase.getMigrationRequests().get(destRank);
+
+						synchronized (migrationReqList) {
+							migrationReqList.add(request);
+
+							MASS.getLogger().debug("remoteRequest[" + destRank + "].add:" + " dst = " + globalLinearIndex);
+
+						}
+
+					}
+
+				} else if (GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) {
+					GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
+
+					int networkSize = graphPlaces.getSize()[0];
+
+					globalLinearIndex = evaluationAgent.getIndex()[0];
+
+					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+
+					if (nodeId == MASSBase.getMyPid()) {
+						// local migration
+						Place oldPlace = evaluationAgent.getPlace();
+
+						if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+							// should not happen
+							String errorMessage = "evaluationAgent {}" +
+									evaluationAgent.getAgentId()
+									+ " couldn't been found in " +
+									"the old place!";
+
+							MASS.getLogger().error(errorMessage);
+
+							// throw it back to our new fatal exception handler
+							throw new RuntimeException(errorMessage);
+						}
+
+						evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+
+						evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+					} else {
+						// remote migration
+						agents.remove(myIndex - 1);
+
+						evaluationAgent.setPlace(null);
+
+						AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, evaluationAgent);
+
+						Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
+
+						synchronized (migrationRequestVector) {
+							migrationRequestVector.add(request);
+						}
+					}
 				} else {
-					// remote migration
-					agents.remove(myIndex - 1);
 
-					evaluationAgent.setPlace(null);
+					MASS.getLogger().error(" to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid");
 
-					AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, evaluationAgent);
-
-					Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
-
-					synchronized (migrationRequestVector) {
-						migrationRequestVector.add(request);
-					}
 				}
+				/*******************************/
+			} // end of while( true )
+
+			// When while loop finishes, all threads must barrier and tid = 0
+			// must adjust AgentList.
+			MThread.barrierThreads(tid);
+
+			if (tid == 0) agents.reduce();
+
+			// all threads must barrier synchronize here.
+			MThread.barrierThreads(tid);
+			if (tid == 0) {
+
+				MASS.getLogger().debug("tid[{}] now enters processAgentMigrationRequest", tid);
+
+				// the main thread spawns as many communication threads as the
+				// number of remote computing nodes and let each invoke
+				// processAgentMigrationReq.
+
+				// communication thread id
+				ProcessAgentMigrationRequest[] thread_ref
+						= new ProcessAgentMigrationRequest[MASSBase.getSystemSize()];
+				for (int rank = 0; rank < MASSBase.getSystemSize(); rank++) {
+
+					if (rank == MASSBase.getMyPid()) // don't communicate with myself
+						continue;
+
+					// start a communication thread
+					thread_ref[rank] = new ProcessAgentMigrationRequest(rank, handle, evaluatedPlaces.getHandle());
+					thread_ref[rank].start();
+
+					MASS.getLogger().debug("Agents_base.manageAll will start " +
+							"processAgentMigrationRequest thread[" +
+							rank + "] = " + thread_ref[rank]);
+
+				}
+
+				// wait for all the communication threads to be terminated
+				for (int rank = MASSBase.getSystemSize() - 1; rank >= 0; rank--) {
+
+					MASS.getLogger().debug("Agents_base.manageAll will join " +
+							"processAgentMigrationRequest A thread["
+							+ rank + "] = " + thread_ref[rank] +
+							" myPid = " + MASSBase.getMyPid());
+
+					if (rank == MASSBase.getMyPid()) // don't communicate with myself
+						continue;
+
+					MASS.getLogger().debug("Agents_base.manageAll will join " +
+							"processAgentMigrationRequest B thread["
+							+ rank + "] = " + thread_ref[rank]);
+
+					try {
+						thread_ref[rank].join();
+					} catch (Exception e) {
+						MASS.getLogger().error("Unable to join rank!", e);
+					}
+
+					MASS.getLogger().debug("Agents_base.manageAll joined " +
+							"processAgentMigrationRequest C thread[" +
+							rank + "] = " + thread_ref[rank]);
+
+				}
+
+				localPopulation = agents.size_unreduced();
+
+				// fire queued events
+				eventDispatcher.invokeQueuedAsync(OnCreation.class);
+				eventDispatcher.invokeQueuedAsync(OnDeparture.class);
+				eventDispatcher.invokeQueuedAsync(OnArrival.class);
+
+				MASS.getLogger().debug("Agents_base.manageAll completed: localPopulation = {}", localPopulation);
+
 			} else {
-    			
-    			MASS.getLogger().error( " to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid" );
-    		
-    		}
-			/*******************************/
-    	} // end of while( true )
 
-    	// When while loop finishes, all threads must barrier and tid = 0
-    	// must adjust AgentList.
-    	MThread.barrierThreads( tid );
+				MASS.getLogger().debug("pthread_self[" + Thread.currentThread() +
+						"] tid[" + tid +
+						"] skips processAgentMigrationRequest");
 
-    	if ( tid == 0 ) agents.reduce( );
+			}
 
-    	// all threads must barrier synchronize here.
-    	MThread.barrierThreads( tid );
-    	if ( tid == 0 ) {
-
-    		MASS.getLogger().debug( "tid[{}] now enters processAgentMigrationRequest", tid );
-
-    		// the main thread spawns as many communication threads as the 
-    		// number of remote computing nodes and let each invoke 
-    		// processAgentMigrationReq. 
-
-    		// communication thread id
-    		ProcessAgentMigrationRequest[] thread_ref
-    		= new ProcessAgentMigrationRequest[MASSBase.getSystemSize()]; 
-    		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
-
-    			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
-    				continue;
-
-    			// start a communication thread
-    			thread_ref[rank] = new ProcessAgentMigrationRequest( rank, handle, evaluatedPlaces.getHandle() );
-    			thread_ref[rank].start( );
-
-    			MASS.getLogger().debug( "Agents_base.manageAll will start " +
-    						"processAgentMigrationRequest thread[" +
-    						rank + "] = " + thread_ref[rank] );
-    		
-    		}
-
-    		// wait for all the communication threads to be terminated
-    		for ( int rank = MASSBase.getSystemSize() - 1; rank >= 0; rank-- ) {
-
-    			MASS.getLogger().debug( "Agents_base.manageAll will join " +
-    						"processAgentMigrationRequest A thread["
-    						+ rank + "] = " + thread_ref[rank] + 
-    						" myPid = " + MASSBase.getMyPid() );
-
-    			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
-    				continue;      
-
-    			MASS.getLogger().debug( "Agents_base.manageAll will join " +
-    						"processAgentMigrationRequest B thread["
-    						+ rank + "] = " + thread_ref[rank] );
-
-    			try {
-    				thread_ref[rank].join( );
-    			}
-    			catch ( Exception e ) {
-    				MASS.getLogger().error("Unable to join rank!", e);
-    			}
-
-    			MASS.getLogger().debug( "Agents_base.manageAll joined " +
-    						"processAgentMigrationRequest C thread[" +
-    						rank + "] = " + thread_ref[rank] );
-    		
-    		}
-
-    		localPopulation = agents.size_unreduced( );
-
-    		// fire queued events
-    		eventDispatcher.invokeQueuedAsync( OnCreation.class );
-    		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
-    		eventDispatcher.invokeQueuedAsync( OnArrival.class );
-
-    		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
-    	
-    	}
-    	
-    	else {
-    		
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"] tid[" + tid + 
-    					"] skips processAgentMigrationRequest" );
-    	
-    	}
-    
-    }
+		}
+	}
 
 	/**
 	 * Get the number of Agents located on this node
 	 * @return Number of local Agents
 	 */
-	public int nLocalAgents( ) {
-    	return localPopulation; 
-    }
+	public int nLocalAgents () {
+		return localPopulation;
+	}
 
-  private class ProcessAgentMigrationRequest extends Thread {
-    	
-    	private int destRank;
-    	private int agentHandle;
-    	private int placeHandle;
+	private class ProcessAgentMigrationRequest extends Thread {
 
-    	public ProcessAgentMigrationRequest( int destRank, int agentHandle, int placeHandle ) {
-    		this.destRank = destRank;
-    		this.agentHandle = agentHandle;
-    		this.placeHandle = placeHandle;
-    	}
+		private int destRank;
+		private int agentHandle;
+		private int placeHandle;
 
-    	@SuppressWarnings("unused")
-    	public void run( ) {
+		public ProcessAgentMigrationRequest(int destRank, int agentHandle, int placeHandle) {
+			this.destRank = destRank;
+			this.agentHandle = agentHandle;
+			this.placeHandle = placeHandle;
+		}
 
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"] rank[" + destRank + 
-    					"]: starts processAgentMigrationRequest" );
+		@SuppressWarnings("unused")
+		public void run() {
 
-    		// pick up the next rank to process
-    		Vector<AgentMigrationRequest> orgRequest = MASSBase.getMigrationRequests().get( destRank );
+			MASS.getLogger().debug("pthread_self[" + Thread.currentThread() +
+					"] rank[" + destRank +
+					"]: starts processAgentMigrationRequest");
 
-    		// now compose and send a message by a child
-    		Message messageToDest = 
-    				new Message( Message.ACTION_TYPE.
-    						AGENTS_MIGRATION_REMOTE_REQUEST,
-    						agentHandle, placeHandle, orgRequest );
+			// pick up the next rank to process
+			Vector<AgentMigrationRequest> orgRequest = MASSBase.getMigrationRequests().get(destRank);
 
-    		MASS.getLogger().debug( "tid[" + destRank + 
-    					"] made messageToDest to rank: " + destRank ); 
+			// now compose and send a message by a child
+			Message messageToDest =
+					new Message(Message.ACTION_TYPE.
+							AGENTS_MIGRATION_REMOTE_REQUEST,
+							agentHandle, placeHandle, orgRequest);
 
-    		new Thread( () -> {
+			MASS.getLogger().debug("tid[" + destRank +
+					"] made messageToDest to rank: " + destRank);
 
-    			// send the message
-    			MASSBase.getExchange().sendMessage( destRank, messageToDest );
+			new Thread(() -> {
 
-    			// at this point, the message must be exchanged
-    			orgRequest.clear( );
+				// send the message
+				MASSBase.getExchange().sendMessage(destRank, messageToDest);
 
-    		}).start();
+				// at this point, the message must be exchanged
+				orgRequest.clear();
 
-    		// receive a message by myself
-    		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
+			}).start();
 
-    		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
+			// receive a message by myself
+			Message messageFromSrc = MASSBase.getExchange().receiveMessage(destRank);
 
-    		// process a message
-    		Vector<AgentMigrationRequest> receivedRequest 
-    		= messageFromSrc.getMigrationReqList( );
+			MASS.getLogger().debug("Message exchange completed for rank [" + destRank + "]");
 
-    		int agentsHandle = messageFromSrc.getHandle( );
-    		int placesHandle = messageFromSrc.getDestHandle( );
-    		PlacesBase dstPlaces = MASSBase.getPlacesMap().
-    				get( placesHandle );
+			// process a message
+			Vector<AgentMigrationRequest> receivedRequest
+					= messageFromSrc.getMigrationReqList();
 
-    		MASS.getLogger().debug( "request from rank[" + destRank + "] = " + 
-    					receivedRequest + " size( ) = " + 
-    					receivedRequest.size( ) );
+			int agentsHandle = messageFromSrc.getHandle();
+			int placesHandle = messageFromSrc.getDestHandle();
+			PlacesBase dstPlaces = MASSBase.getPlacesMap().
+					get(placesHandle);
 
-    		// retrieve agents from receiveRequest
-    		while( receivedRequest.size( ) > 0 ) {
-    			// TODO investigate
-    			AgentMigrationRequest request = 
-    					receivedRequest.remove( receivedRequest.size( ) - 1 );
+			MASS.getLogger().debug("request from rank[" + destRank + "] = " +
+					receivedRequest + " size( ) = " +
+					receivedRequest.size());
+
+			// retrieve agents from receiveRequest
+			while (receivedRequest.size() > 0) {
+				// TODO investigate
+				AgentMigrationRequest request =
+						receivedRequest.remove(receivedRequest.size() - 1);
 
 				int globalLinearIndex = request.destGlobalLinearIndex;
 
@@ -1033,22 +1024,21 @@ public class AgentsBase {
 					// invoke OnArrival events immediately
 					try {
 
-						eventDispatcher.invokeImmediate( OnArrival.class,  dstPlace );
-						eventDispatcher.invokeImmediate( OnArrival.class,  agent );
+						eventDispatcher.invokeImmediate(OnArrival.class, dstPlace);
+						eventDispatcher.invokeImmediate(OnArrival.class, agent);
 
 					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 						MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
 					}
 				}
-    		
-    		}
 
-    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
-    					"] retreive agents from rank[" + destRank + 
-    					"] complated" );
-    	
-    	}
-    
-    }
+			}
 
+			MASS.getLogger().debug("pthread_self[" + Thread.currentThread() +
+					"] retreive agents from rank[" + destRank +
+					"] complated");
+
+		}
+
+	}
 }
