@@ -118,7 +118,6 @@ public class PlacesBase {
 
 		this.handle = handle;
 		this.className = className;
-		this.simpleClassName = getSimplifiedClassname(className);
 
 		MASSBase.getLogger().debug( "Places_base handle = " + handle
 				+ ", class = " + className
@@ -131,7 +130,6 @@ public class PlacesBase {
 	public PlacesBase(int handle, String classname, String[] graphArgs, Object[] initArgs) {
 		this.handle = handle;
 		this.className = classname;
-		this.simpleClassName = getSimplifiedClassname(className);
 
 		init_all_graph(graphArgs, initArgs);
 	}

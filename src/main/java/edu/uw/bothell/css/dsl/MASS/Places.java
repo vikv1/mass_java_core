@@ -335,30 +335,6 @@ public class Places extends PlacesBase {
 		// the master IP name
 		Vector<String> hosts = getHosts();
 
-		MonitorConnector.getInstance().setStatus(getSimpleClassName() + ".init", MsgUti.getSTATUS_PENDING());
-
-		if (!SimpleObjectFactory.getInstance().isDefined(getClassName())) {
-			try {
-				Bytecode recentBytecode = new Bytecode(getClassName());
-
-				// Class bytecode will be sent only if the class has been updated or recently
-				// created
-				// if (Places.bytecode == null || !Places.bytecode.equals(recentBytecode)) {
-				// Places.bytecode = recentBytecode;
-
-				// send a DEFINE_CLASS message to each slave
-				MASSBase.getLogger().debug("DEFINE_CLASS for Place class: " + getClassName() + " sent to all remote nodes");
-				Message defineMessage = new Message(Message.ACTION_TYPE.DEFINE_CLASS, (Object) recentBytecode);
-				MASS.getRemoteNodes().forEach(place -> place.sendMessage(defineMessage));
-				// Sync
-				MASS.barrierAllSlaves();
-				// }
-
-			} catch (ClassNotFoundException cnfe) {
-				MASSBase.getLogger().error("init_master: Bytecode -> Class not found ", cnfe);
-			}
-		}
-
 		// send a PLACES_INITIALIZE message to each slave
 		MASSBase.getLogger().debug( message.getActionString() + " sent to all remote nodes" );
 		MASS.getRemoteNodes().forEach( place -> place.sendMessage( message ) );
@@ -371,16 +347,12 @@ public class Places extends PlacesBase {
 
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
-
-		// collect data (when monitoring enabled)
-		MonitorConnector.getInstance().setStatus(getSimpleClassName() + ".init", MsgUti.getSTATUS_IDLE());
-		MonitorConnector.getInstance().collect();
 	}
 
 	protected Vector<String> getHosts() {
 		// create a list of all host names;
 		// the master IP name
-		Vector<String> hosts = new Vector<String>( );
+		Vector<String> hosts = new Vector<>( );
 
 		try {
 			hosts.add( MASS.getMasterNode().getHostName() );
