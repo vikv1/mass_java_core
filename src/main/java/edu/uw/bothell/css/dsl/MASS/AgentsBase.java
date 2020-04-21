@@ -773,7 +773,7 @@ public class AgentsBase {
 
 					int networkSize = graphPlaces.getSize()[0];
 
-					globalLinearIndex = evaluationAgent.getIndex()[0];
+					int globalLinearIndex = evaluationAgent.getIndex()[0];
 
 					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
 
@@ -898,7 +898,6 @@ public class AgentsBase {
 			}
 
 		}
-	}
 
 	/**
 	 * Get the number of Agents located on this node
