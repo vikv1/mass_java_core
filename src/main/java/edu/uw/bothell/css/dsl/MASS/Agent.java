@@ -33,7 +33,6 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.util.Objects;
 
-import edu.uw.bothell.css.dsl.MASS.graph.GraphUtils;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
