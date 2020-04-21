@@ -111,13 +111,13 @@ public class GraphMaintenanceTest {
     /**
      * Considering a mass cluster with 3 nodes available: mass0 (master) mass1 mass2
      */
-    public void createNetworkOnMultipleNodes() {
-        Integer [] topology = ((GraphPlaces) graph).getTopology();
-
-        for (int i = 0; i < topology.length; i++) {
-            assertTrue(topology[i] == 2);
-        }
-    }
+//    public void createNetworkOnMultipleNodes() {
+//        Integer [] topology = ((GraphPlaces) graph).getTopology();
+//
+//        for (int i = 0; i < topology.length; i++) {
+//            assertTrue(topology[i] == 2);
+//        }
+//    }
 
     @Category(IntegrationTest.class)
     public void testTopographyIsRetrieved() {

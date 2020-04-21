@@ -7,8 +7,6 @@ import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import edu.uw.bothell.css.dsl.MASS.monitoring.FetchPlacesListener;
-import edu.uw.bothell.css.dsl.MASS.monitoring.MonitorConnector;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -398,51 +396,51 @@ public class GraphPlaces extends Places implements Graph {
         return false;
     }
 
-    private int getPlaceCountForHost(String host) {
-        // TODO: where can we get the monitoring port
-        String resource = String.format("ws://%s:%d/", host, MonitorConnector.getInstance().getPort());
-
-        int size = -1;
-
-        Log4J2Logger logger = MASSBase.getLogger();
-
-        FetchPlacesListener listener = new FetchPlacesListener();
-
-        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
-                .buildAsync(URI.create(resource), listener).join();
-
-        try {
-            socket.sendText("{ \"action\": \"FETCH\", \"handle\": \"PLACES\" }", false);
-
-            if (listener.await()) {
-                size = listener.response.message.get(1).placesSize;
-            }
-        } catch (Exception e) {
-            logger.error("sendText exception: ", e);
-        }
-
-        return size;
-    }
-
-    public Integer[] getTopology() {
-        Vector<String> hosts = getHosts();
-
-        Integer [] placesSizes = new Integer[hosts.size()];
-
-        for (int i = 0; i < hosts.size(); i++) {
-            String host = hosts.get(i);
-
-            placesSizes[i] = getPlaceCountForHost(host);
-        }
-
+//    private int getPlaceCountForHost(String host) {
+//        // TODO: where can we get the monitoring port
+//        String resource = String.format("ws://%s:%d/", host, MonitorConnector.getInstance().getPort());
+//
+//        int size = -1;
+//
+//        Log4J2Logger logger = MASSBase.getLogger();
+//
+//        FetchPlacesListener listener = new FetchPlacesListener();
+//
+//        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+//                .buildAsync(URI.create(resource), listener).join();
+//
 //        try {
-//            locks.wait();
-//        } catch (InterruptedException e) {
-//            MASSBase.getLogger().error("Error waiting for websocket locks", e);
+//            socket.sendText("{ \"action\": \"FETCH\", \"handle\": \"PLACES\" }", false);
+//
+//            if (listener.await()) {
+//                size = listener.response.message.get(1).placesSize;
+//            }
+//        } catch (Exception e) {
+//            logger.error("sendText exception: ", e);
 //        }
+//
+//        return size;
+//    }
 
-        return placesSizes;
-    }
+//    public Integer[] getTopology() {
+//        Vector<String> hosts = getHosts();
+//
+//        Integer [] placesSizes = new Integer[hosts.size()];
+//
+//        for (int i = 0; i < hosts.size(); i++) {
+//            String host = hosts.get(i);
+//
+//            placesSizes[i] = getPlaceCountForHost(host);
+//        }
+//
+////        try {
+////            locks.wait();
+////        } catch (InterruptedException e) {
+////            MASSBase.getLogger().error("Error waiting for websocket locks", e);
+////        }
+//
+//        return placesSizes;
+//    }
 
     @Override
     public int addVertex(Object vertexId) {
