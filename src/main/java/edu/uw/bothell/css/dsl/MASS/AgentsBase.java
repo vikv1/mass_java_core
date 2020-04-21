@@ -674,36 +674,31 @@ public class AgentsBase {
 						+ " upper = " +
 						evaluatedPlaces.getUpperBoundary() + ")");
 
+				Place oldPlace = evaluationAgent.getPlace();
+
+				// Should remove the pointer object in the place that
+				// points to the migrting Agent
+				if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+
+					// should not happen
+					MASS.getLogger().error("evaluationAgent {}" +
+							evaluationAgent.getAgentId()
+							+ " couldn't been found in " +
+							"the old place!");
+
+					System.exit(-1);
+
+				}
+
+				MASS.getLogger().debug("evaluationAgent " +
+						evaluationAgent.getAgentId()
+						+ " was removed from the oldPlace["
+						+ oldPlace.getIndex()[0] + "]..");
 
 				if (globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
 						globalLinearIndex <= evaluatedPlaces.getUpperBoundary()) {
 
-					// local destination
-
-					// Should remove the pointer object in the place that
-					// points to the migrting Agent
-					Place oldPlace = evaluationAgent.getPlace();
-					if (oldPlace.getAgents().remove(evaluationAgent) == false) {
-
-						// should not happen
-						MASS.getLogger().error("evaluationAgent {}" +
-								evaluationAgent.getAgentId()
-								+ " couldn't been found in " +
-								"the old place!");
-
-						System.exit(-1);
-
-					}
-
-					MASS.getLogger().debug("evaluationAgent " +
-							evaluationAgent.getAgentId()
-							+ " was removed from the oldPlace["
-							+ oldPlace.getIndex()[0] + "]..");
-
-					if (globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
-							globalLinearIndex <= evaluatedPlaces.getUpperBoundary()) {
-
-						// local destination
+					    // local destination
 
 						// insert the migration Agent to a local destination place
 						int destinationLocalLinearIndex
