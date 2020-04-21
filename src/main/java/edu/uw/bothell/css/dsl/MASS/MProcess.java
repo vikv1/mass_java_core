@@ -124,13 +124,10 @@ public class MProcess {
 
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
-		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
-
 		// TODO: It is officially time to design a better way to configure the remote process
 
 		try {
-			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir, logLevel, isMointored,
-					port, onPauseOnly);
+			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
 			mprocess.start();
 		} catch (Exception e) {
 			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
