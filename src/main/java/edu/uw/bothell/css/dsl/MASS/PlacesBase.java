@@ -695,23 +695,23 @@ public class PlacesBase {
      * @param dest_index The destination index
      */
     protected void getGlobalNeighborArrayIndex( int src_index[], int offset[], int dst_size[], int dest_index[] ) {
-
+    	
     	for (int i = 0; i < dest_index.length; i++ ) {
-
+    		
     		dest_index[i] = src_index[i] + offset[i]; // calculate dest index
 
     		if ( dest_index[i] < 0 || dest_index[i] >= dst_size[i] ) {
-
+    			
     			// out of range
     			Arrays.fill( dest_index, -1 );
     			return;
-
+    			
     		}
-
+    	
     	}
-
+    
     }
-
+    
     /**
      * Get the handle (ID) for PlacesBase on this node
      * @return PlacesBase handle ID
@@ -737,6 +737,7 @@ public class PlacesBase {
      * @param tid An id of the thread that calls this function.
      */
     protected void getLocalRange( int[] range, int tid ) {
+
     	int nThreads = MASSBase.getThreads().length;
     	int portion = placesSize / nThreads; // per-thread allocated  range
     	int remainder = placesSize % nThreads;
@@ -875,7 +876,8 @@ public class PlacesBase {
     		
     		// placesSize is the total number of places managed by this node
     		placesSize = upperBoundary - lowerBoundary + 1;
-
+    		
+    		//  maintaining an entire set
     		places = new Place[placesSize];
 
 			MASSBase.getLogger().debug(String.format("init_all: { lowerBoundary: %d, upperBoundary: %d, placesSize: %d }", lowerBoundary, upperBoundary, placesSize));
@@ -961,7 +963,7 @@ public class PlacesBase {
     	catch ( Exception e ) {
     		MASSBase.getLogger().error("Unknown exception caught in PlacesBase while initializing left/right shadows", e);
     	}
-
+    	
     }
 
 	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {
