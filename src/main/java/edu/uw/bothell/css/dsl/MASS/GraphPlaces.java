@@ -9,8 +9,6 @@ import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.WebSocket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
