@@ -824,7 +824,6 @@ public class AgentsBase {
 					MASS.getLogger().error(" to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid");
 
 				}
-				/*******************************/
 			} // end of while( true )
 
     	// When while loop finishes, all threads must barrier and tid = 0
