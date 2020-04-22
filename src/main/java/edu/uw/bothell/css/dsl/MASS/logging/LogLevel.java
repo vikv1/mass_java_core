@@ -16,17 +16,17 @@ public enum LogLevel {
 	WARN,
 
 	/**
-	 * Messages used for debugging and troubleshooting (lowest log level)
+	 * Messages used for debugging and troubleshooting
 	 */
 	DEBUG,
 
 	/**
-	 * Messages for closing tracking the execution of MASS. Extremely high log volume
+	 * Messages for closing tracking the execution of MASS. Extremely high log volume (lowest log level)
 	 */
 	TRACE,
 
 	/**
-	 * Disable all message logging (highest log level)
+	 * Disable all message logging
 	 */
 	OFF,
 	
