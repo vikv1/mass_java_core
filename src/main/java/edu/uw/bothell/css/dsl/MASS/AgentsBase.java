@@ -64,7 +64,7 @@ public class AgentsBase {
     private int localPopulation = 0;
     private int currentAgentId;
     private AgentList agents;
-
+    
     @SuppressWarnings("unused")
 	private static int agentInitAgentsHandle;
 
@@ -151,7 +151,7 @@ public class AgentsBase {
     			}
 
     			newAgent.setPlace(curPlace);
-
+    			
     			// store this agent in the bag of agents
     			agents.add( newAgent );
 
@@ -160,15 +160,15 @@ public class AgentsBase {
 
     			// Agent has been created
     			eventDispatcher.queueAsync( OnCreation.class, newAgent );
-
+    			
     			// Place has an arriving Agent
     			eventDispatcher.queueAsync( OnArrival.class, curPlace );
-
+    			
     			// Agent has arrived at a Place
     			eventDispatcher.queueAsync( OnArrival.class, newAgent );
-
+    			
     		}
-
+    		
     	}
 
     	if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
@@ -178,7 +178,7 @@ public class AgentsBase {
 
 		// invoke queued Agents OnCreation methods
 		eventDispatcher.invokeQueuedAsync( OnCreation.class );
-
+		
 		// invoke queued Agents OnArrival methods
 		eventDispatcher.invokeQueuedAsync( OnArrival.class );
 
@@ -440,65 +440,65 @@ public class AgentsBase {
 
 	public void manageAll( int tid ) {
 
-		// Get the PlacesBase to access our agents fromvfor agent instantiation,
+    	// Get the PlacesBase to access our agents fromvfor agent instantiation,
 		// and our bag for Agent objects after they have finished processing
-		PlacesBase evaluatedPlaces = MASSBase.getPlacesMap().get(placesHandle);
+    	PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
 
-		// Spawn, Kill, Migrate. Check in that order throughout the bag of
-		// agents  sequentially.
-		while (true) {
+    	// Spawn, Kill, Migrate. Check in that order throughout the bag of 
+    	// agents  sequentially.
+    	while ( true ) {
+    		
+    		int myIndex; // each thread's agent index
 
-			int myIndex; // each thread's agent index
+    		Agent evaluationAgent = null;
+    		
+    		synchronized( this ) {
+    			
+    			if ( ( myIndex = MThread.getAgentBagSize() ) == 0 )
+    				break;
 
-			Agent evaluationAgent = null;
+    			// Grab the last agent and remove it for processing. 
+    			myIndex = MThread.getAgentBagSize();
+    			MThread.setAgentBagSize(myIndex - 1);
+    			evaluationAgent = agents.get( myIndex - 1 );
 
-			synchronized (this) {
+    			MASS.getLogger().debug( "Agents_base.manageALL: Thread " + tid + 
+    						" picked up " 
+    						+ evaluationAgent.getAgentId() );
 
-				if ((myIndex = MThread.getAgentBagSize()) == 0)
-					break;
+    		}
+    		
+    		int argumentcounter = 0;
 
-				// Grab the last agent and remove it for processing.
-				myIndex = MThread.getAgentBagSize();
-				MThread.setAgentBagSize(myIndex - 1);
-				evaluationAgent = agents.get(myIndex - 1);
-
-				MASS.getLogger().debug("Agents_base.manageALL: Thread " + tid +
-						" picked up "
-						+ evaluationAgent.getAgentId());
-
-			}
-
-			int argumentcounter = 0;
-
-			// If the spawn's newChildren field is set to anything higher than
-			// zero, we need to create newChildren's worth of Agents in the
-			// current location.
+    		// If the spawn's newChildren field is set to anything higher than 
+    		// zero, we need to create newChildren's worth of Agents in the 
+    		// current location.
 
 			/******* SPAWN() CHECK *******/
-			int childrenCounter = evaluationAgent.getNewChildren();
+    		int childrenCounter = evaluationAgent.getNewChildren();
 
-			MASS.getLogger().debug("agent " + evaluationAgent.getAgentId() +
-					"'s childrenCounter = " + childrenCounter);
+    		MASS.getLogger().debug( "agent " + evaluationAgent.getAgentId() +
+    					"'s childrenCounter = " + childrenCounter );
 
-			while (childrenCounter > 0) {
+    		while ( childrenCounter > 0 ) {
 
-				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid +
-						" will spawn a child of agent " +
-						evaluationAgent.getAgentId() +
-						"...arguments.size( ) = " +
-						evaluationAgent.getArguments().length +
-						", argumentcounter = " + argumentcounter);
+    			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
+   						" will spawn a child of agent " + 
+   						evaluationAgent.getAgentId() +
+   						"...arguments.size( ) = " +
+   						evaluationAgent.getArguments().length +
+   						", argumentcounter = " + argumentcounter );
 
-				Agent addAgent = null;
-				Object dummyArgument = new Object();
+    			Agent addAgent = null;
+    			Object dummyArgument = new Object( );
 
-				try {
+    			try {
 
-					agentInitAgentsHandle = this.handle;
-					agentInitPlacesHandle = this.placesHandle;
-					agentInitParentId = evaluationAgent.getAgentId();
+    				agentInitAgentsHandle = this.handle;
+    				agentInitPlacesHandle = this.placesHandle;
+    				agentInitParentId = evaluationAgent.getAgentId();
 
-					synchronized (this) {
+    				synchronized( this ) {
 
 						addAgent =
 								(Agent) (// validate the correspondance of arguments and
@@ -513,59 +513,62 @@ public class AgentsBase {
 
 					}
 
-					addAgent.setPlace(evaluationAgent.getPlace());
-
-					// Agent has been created
-					eventDispatcher.queueAsync(OnCreation.class, addAgent);
-
+    				addAgent.setPlace(evaluationAgent.getPlace());
+    				
+    				// Agent has been created
+    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
+    				
 					/** Agent population control work begins, execution order is important! **/
 
 					// check if the agent is going to run in the system
-					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size())) {
+					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size()))
+					{
 						// check if there is available agent id
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId != null && availableAgentId > -1) {
+						if (availableAgentId != null && availableAgentId > -1)
+						{
 							addAgent.setAgentId(availableAgentId);
 						}
 						// assign a never used id
-						else {
+						else
+						{
 							addAgent.setAgentId(this.currentAgentId++);
 						}
 
 						// Push the created agent into our bag for returns and
 						// update the counter needed to keep track of our agents.
-						addAgent.getPlace().getAgents().add(addAgent); // auto sync
-						this.agents.add(addAgent);           // auto syn
-
-						// queue Place OnArrival method
-						eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
-
-						// queue Agent OnArrival method
-						eventDispatcher.queueAsync(OnArrival.class, addAgent);
+						addAgent.getPlace().getAgents().add( addAgent ); // auto sync
+						this.agents.add( addAgent );           // auto syn
+						
+	    				// queue Place OnArrival method 
+						eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+						
+	    				// queue Agent OnArrival method
+						eventDispatcher.queueAsync( OnArrival.class, addAgent );
 
 					}
 
-				} catch (Exception e) {
-					// TODO - now what? What to do when an exception is thrown?
-					MASS.getLogger().error("Agents_base.manageAll: {} not instantiated", this.className, e);
-				}
+    			} catch ( Exception e ) {
+    				// TODO - now what? What to do when an exception is thrown?
+    				MASS.getLogger().error( "Agents_base.manageAll: {} not instantiated", this.className, e );
+    			}
 
-				// Decrement the newChildren counter once an Agent has been
-				// spawned
-				evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
-				childrenCounter--;
+    			// Decrement the newChildren counter once an Agent has been 
+    			// spawned
+    			evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
+    			childrenCounter--;
 
-				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid +
-						" spawned a child of agent " +
-						evaluationAgent.getAgentId() +
-						" and put the child " + addAgent.getAgentId() +
-						" child into retBag.");
+    			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
+    						" spawned a child of agent " + 
+    						evaluationAgent.getAgentId() +
+    						" and put the child " + addAgent.getAgentId() +
+    						" child into retBag." );
 
 				/**
 				 * every time we spawn a new agent, we should check if there is available index first!!!
 				 * */
-
-			}
+    		
+    		}
 			/*****************************/
 
 			/******* KILL() CHECK *******/
