@@ -296,23 +296,6 @@
 					<groups>edu.uw.bothell.css.dsl.test.IntegrationTest</groups>
 				</configuration>
 			</plugin>
-<!--			<plugin>-->
-<!--				<groupId>org.apache.maven.plugins</groupId>-->
-<!--				<artifactId>maven-dependency-plugin</artifactId>-->
-<!--				<version>3.1.1</version>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>unpack-dependencies</id>-->
-<!--						<phase>package</phase>-->
-<!--						<goals>-->
-<!--							<goal>unpack-dependencies</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							<outputDirectory>${project.build.directory}/classes</outputDirectory>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
 		</plugins>
 	</build>
 
