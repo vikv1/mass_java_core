@@ -30,13 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.MassData.*;
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -48,6 +41,17 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Set;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
+import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
+import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
+import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
+import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -182,13 +186,10 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
-//		MASSBase.getLogger().error("DistributedMap");
-//
-//		MASSBase.distributed_map.entrySet().forEach(e -> MASSBase.getLogger().error("Entry: [key=" + e.getKey() + "; value=" + e.getValue() + "]"));
-
     	MASS.getLogger().debug( "MASS::finish: done" );
-    }
 
+    }
+    
 //    /**
 //	 * Get the default password for connecting to remote nodes
 //	 * @return The default login password
@@ -227,6 +228,7 @@ public class MASS extends MASSBase {
 	 * Calling this method effectively begins computation.
 	 */
 	public static void init() {
+
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
 
@@ -249,7 +251,7 @@ public class MASS extends MASSBase {
         			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
             		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
-
+            		
             		// iterate through the nodes, adding each
             		for (MNode node : nodeList.getNodes()) {
             			addNode(node);
@@ -263,7 +265,7 @@ public class MASS extends MASSBase {
 		    		System.exit( -1 );
 
     			}
-    		} else {
+    		} else {   			
     			// no - this machine file is the classic one-line-per-node format
             	BufferedReader fileReader = null;
 
@@ -323,7 +325,7 @@ public class MASS extends MASSBase {
     	
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
-
+    		
     		// For debugging
     		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 
@@ -336,7 +338,7 @@ public class MASS extends MASSBase {
     		
     		// gotta specify the JVM
     		commandBuilder.append("java ");
-
+    		
     		// TODO - add configurable heap memory sizes per node
     		commandBuilder.append("-Xmx2g ");
 
