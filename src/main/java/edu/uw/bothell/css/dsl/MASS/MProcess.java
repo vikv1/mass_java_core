@@ -30,12 +30,16 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
-
-import java.io.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.io.PrintWriter;
 import java.util.Arrays;
+
+import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -110,6 +114,7 @@ public class MProcess {
 	 *            number for communications, and the working directory to use)
 	 */
 	public static void main(String[] args) throws Exception {
+
 		String hostName = args[0];
 		int myPid = Integer.parseInt(args[1]);
 		int nProc = Integer.parseInt(args[2]);
@@ -153,7 +158,6 @@ public class MProcess {
 		MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
 		MASSBase.setSystemSize(nProc); // must force system size since we don't
 										// have visibility to all nodes
-
 		MASSBase.initMASSBase(thisNode);
 
 		MASSBase.getLogger().debug("Launching MProcess... (" + "hostname = " + hostName + ", myPid = " + myPid
@@ -168,6 +172,7 @@ public class MProcess {
 		 * instantiated.
 		 */
 		try {
+
 			if ( MAIN_IOS == null) MAIN_IOS = new ObjectInputStream( System.in );
 			if ( MAIN_OOS == null) MAIN_OOS = new ObjectOutputStream( System.out );
 
@@ -622,6 +627,7 @@ public class MProcess {
 
 				break;
 			}
+
 		}
 	}
 
