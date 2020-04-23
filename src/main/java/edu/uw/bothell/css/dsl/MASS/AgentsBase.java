@@ -185,7 +185,7 @@ public class AgentsBase {
     }
 
 	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
-    	// TODO: Hack for Agent#map
+		// TODO: Hack for Agent#map
 		protoAgent.setPlace(new VertexPlace());
 
 		// scan each place to see how many agents it can create
