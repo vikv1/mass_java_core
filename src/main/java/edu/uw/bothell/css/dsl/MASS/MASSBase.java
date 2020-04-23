@@ -33,17 +33,12 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
@@ -385,6 +380,7 @@ public class MASSBase {
 			threads[i].start( );
 			
 			while ( true ) {
+				
 				synchronized( MThread.getLock() ) {
 					if ( MThread.getThreadCreated() == i )
 						break;
@@ -440,6 +436,7 @@ public class MASSBase {
 		initDistributedData();
 
 		logger.debug("MASSBase initialization complete");
+	
     }
     
     /**
