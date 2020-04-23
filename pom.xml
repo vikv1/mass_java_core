@@ -26,7 +26,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	
 	</properties>
-
+  
 	<organization>
     	<name>University of Washington, Bothell, Computing and Software Systems</name>
   		<url>http://www.bothell.washington.edu/css</url>
@@ -116,14 +116,14 @@
     		<groupId>org.slf4j</groupId>
     		<artifactId>slf4j-api</artifactId>
     		<version>${slf4j.version}</version>
-    		<scope>provided</scope>
+    		<scope>compile</scope>
   		</dependency>
     
     	<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     		<artifactId>log4j-slf4j-impl</artifactId>
     		<version>${log4j.version}</version>
-    		<scope>runtime</scope>
+    		<scope>compile</scope>
   		</dependency>
   
   		<dependency>
@@ -260,7 +260,7 @@
 				<version>3.0.5</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
-<!--					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>-->
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
 					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
