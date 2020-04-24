@@ -45,27 +45,28 @@ public class Message implements Serializable {
 	 */
 	public enum ACTION_TYPE { 
 	    
-    	EMPTY,                                    // 0
-	    FINISH("FINISH"),                         // 1
-	    ACK("ACK"),                               // 2
+    	EMPTY,                                    // 0             
+	    FINISH("FINISH"),                         // 1             
+	    ACK("ACK"),                               // 2             
 
-	    PLACES_INITIALIZE,                        // 3
-	    PLACES_CALL_ALL_VOID_OBJECT,              // 4
-	    PLACES_CALL_ALL_RETURN_OBJECT,            // 5
+	    PLACES_INITIALIZE,                        // 3             
+	    PLACES_CALL_ALL_VOID_OBJECT,              // 4             
+	    PLACES_CALL_ALL_RETURN_OBJECT,            // 5             
 	    PLACES_CALL_SOME_VOID_OBJECT,
-	    PLACES_EXCHANGE_ALL,                      // 7
-	    PLACES_EXCHANGE_ALL_REMOTE_REQUEST,       // 8
-	    PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, // 9
-	    PLACES_EXCHANGE_BOUNDARY,                 // 10
-	    PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,  // 11
+	    PLACES_EXCHANGE_ALL,                      // 7             
+	    PLACES_EXCHANGE_ALL_REMOTE_REQUEST,       // 8             
+	    PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, // 9             
+	    PLACES_EXCHANGE_BOUNDARY,                 // 10            
+	    PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,  // 11            
 
-	    AGENTS_INITIALIZE,                        // 12
-	    AGENTS_CALL_ALL_VOID_OBJECT,              // 13
-	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14
-	    AGENTS_MANAGE_ALL,                        // 15
-	    AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
+        AGENTS_INITIALIZE,                        // 12            
+        AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
+        AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
+        AGENTS_MANAGE_ALL,                        // 15            
+        AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
 
-		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),                  // 17
+
+		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),
 
         // Retrieval
         MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
@@ -85,8 +86,9 @@ public class Message implements Serializable {
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
         ;
-        private final String value;
-
+    	
+    	private final String value;
+    	
     	private ACTION_TYPE(String v) {
     	  value = v;
     	}
@@ -152,10 +154,11 @@ public class Message implements Serializable {
      */
     public Message( ACTION_TYPE action, int handle, int dummy ) {
 
-        this.action = action;
-        this.handle = handle;
-        this.destinationHandle = handle;
-    }
+    	this.action = action;
+    	this.handle = handle;
+    	this.destinationHandle = handle;
+    
+    }	
     
     /**
      * Construct a Message with a given ACTION_TYPE, handle ID, destination handle ID, and function ID
