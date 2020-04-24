@@ -288,7 +288,10 @@ public class VertexPlace extends Place implements Serializable {
                 String toString = attributes.getNamedItem("to").getNodeValue();
                 String weightString = attributes.getNamedItem("length").getNodeValue();
 
-                Tuple neighbor = new Tuple(Integer.parseInt(toString),
+//                Tuple neighbor = new Tuple(Integer.parseInt(toString),
+//                        Double.parseDouble(weightString));
+                
+                Tuple neighbor = new Tuple(toString,
                         Double.parseDouble(weightString));
 
                 neighbors.add(neighbor);
@@ -309,7 +312,8 @@ public class VertexPlace extends Place implements Serializable {
 
         for (Tuple neighbor : neighbors) {
             // Network file is 1 based. Shift to 0 based.
-            this.neighbors.add((Integer) neighbor.index - 1);
+            //this.neighbors.add((Integer) neighbor.index - 1);
+            this.neighbors.add(neighbor.index);
 
             // TODO: Refactor weights to double
             // this.weights.add(neighbor.weight);

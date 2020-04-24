@@ -210,7 +210,7 @@ public class Agent implements Serializable {
 	 * specifically, migrate( ) updates the calling agent’s index[].
 	 */
 	protected boolean migrate( int... newIndex ) { 
-
+		
 		// invalid index!
 		Objects.requireNonNull( newIndex, "Must provide an index when migrating!" );
 		

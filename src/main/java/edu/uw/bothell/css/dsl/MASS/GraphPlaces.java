@@ -196,7 +196,7 @@ public class GraphPlaces extends Places implements Graph {
     public GraphModel getGraph(boolean all) {
         GraphModel graph = new GraphModel();
 
-        if (getPlaces() != null && !(getPlaces()[0] instanceof VertexPlace)) {
+        if (getPlaces() != null && getPlaces().length > 0 && !(getPlaces()[0] instanceof VertexPlace)) {
             MASSBase.getLogger().warning("Requested map to graph but places are {"
                     + getPlaces()[0].getClass().getName() + "} not VertexPlaces.");
 
@@ -210,6 +210,10 @@ public class GraphPlaces extends Places implements Graph {
 
                 Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
 
+                if (attribute == null) {
+                    attribute = place.getIndex()[0];
+                }
+                
                 //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
                 // TODO: Missing weights
                 graph.addVertex(attribute, vPlace.neighbors);

@@ -51,8 +51,9 @@ import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-import org.xml.sax.InputSource;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -1422,7 +1423,17 @@ public class PlacesBase {
 				finalGraphArgs[2] = myIndex;
 
 				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
+				Object [] ctorArguments;
+
+				if (initArgs != null) {
+					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
+							Arrays.stream(initArgs)).toArray(Object[]::new);
+				} else {
+					ctorArguments = finalGraphArgs;
+				}
+
+				// instantiate and configure new place
+				Place newPlace = objectFactory.getInstance(className, ctorArguments);
 
 				newPlace.setIndex( new int[] { myIndex } );
 
@@ -1446,7 +1457,7 @@ public class PlacesBase {
 
 		XPath path = factory.newXPath();
 
-		XPathExpression expression = null;
+		XPathExpression expression;
 
 		try {
 			expression = path.compile("//nodes/node/@id");
@@ -1454,7 +1465,17 @@ public class PlacesBase {
 			NodeList nodeList = (NodeList) expression.evaluate(new InputSource(networkFilename),
 					XPathConstants.NODESET);
 
-			result = nodeList.getLength();
+			for (int n = 0; n < nodeList.getLength(); n++) {
+				Node idNode = nodeList.item(n);
+				
+				String id = idNode.getNodeValue();
+				
+				if (id != null && !MASSBase.distributed_map.containsKey(id)) {
+					MASSBase.distributed_map.put(id, result++);
+				}
+			}
+			
+			// result = nodeList.getLength();
 		} catch (XPathExpressionException e) {
 			MASSBase.getLogger().error("Exception parsing network xml: " + e.getMessage());
 		}
