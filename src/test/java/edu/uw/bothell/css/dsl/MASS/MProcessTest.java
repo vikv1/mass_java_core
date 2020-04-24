@@ -43,11 +43,17 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.*;
+import org.junit.experimental.categories.Category;
 
 import com.Ostermiller.util.CircularByteBuffer;
-import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the MProcess class to verify proper

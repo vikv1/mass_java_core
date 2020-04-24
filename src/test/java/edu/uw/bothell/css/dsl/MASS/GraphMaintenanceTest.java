@@ -3,9 +3,12 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.util.List;

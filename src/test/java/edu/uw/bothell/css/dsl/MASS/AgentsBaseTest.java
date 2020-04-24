@@ -33,7 +33,12 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Perform a series of unit tests against the AgentsBase class to verify proper

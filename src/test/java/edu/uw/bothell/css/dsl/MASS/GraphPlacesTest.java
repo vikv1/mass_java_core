@@ -1,6 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
