@@ -35,9 +35,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * Perform a series of unit tests against the PlacesBase class to verify proper

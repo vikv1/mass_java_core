@@ -37,9 +37,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Vector;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import org.junit.experimental.categories.Category;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * Perform a series of unit tests against the Place class to verify proper
