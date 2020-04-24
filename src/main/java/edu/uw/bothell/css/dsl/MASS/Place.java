@@ -178,7 +178,7 @@ public class Place implements Serializable {
 		Path path = Paths.get(filepath);
 		if (!Files.exists(path)) {
 			String filename = filepath.substring(filepath.lastIndexOf('/') + 1, filepath.length());
-			//getFileFromHDFS(filename);
+			getFileFromHDFS(filename);
 			if (!Files.exists(path)) {
 				// check exists again.. throw exception if doesn't exist
 				throw new FileNotFoundException("The given file to open does not exist: " + path);
@@ -410,7 +410,7 @@ public class Place implements Serializable {
 	protected int getPlaceOrderPerNode() {
 		
 		return MatrixUtilities.getLinearIndex( getSize( ), getIndex( ) )
-				- MASSBase.getCurrentPlacesBase().getLowerBoundary( ); // TODO: "lower boundary is the first place managed by this node"
+				- MASSBase.getCurrentPlacesBase().getLowerBoundary( );
 	
 	}
 
