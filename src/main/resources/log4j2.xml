@@ -12,5 +12,8 @@
 		<Root level="${sys:MASSLogLevel}">
 			<AppenderRef ref="File"/>
 		</Root>
+		<Logger name="com.hazelcast" level="ERROR">
+
+		</Logger>
 	</Loggers>
 </Configuration>

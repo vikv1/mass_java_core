@@ -47,7 +47,11 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.experimental.categories.Category;
 
 import com.Ostermiller.util.CircularByteBuffer;
 
@@ -55,6 +59,8 @@ import com.Ostermiller.util.CircularByteBuffer;
  * Perform a series of unit tests against the MProcess class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // slow
 public class MProcessTest extends AbstractTest {
 
 	private static final int AGENTS_HANDLE = 0;

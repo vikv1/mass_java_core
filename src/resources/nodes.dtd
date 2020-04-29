@@ -1,0 +1,3 @@
+<!ELEMENT nodes (node)>
+<!ELEMENT node (master, hostname, javahome, masshome, username, privatekey)>
+<!ELEMENT master ("true" | "false") "false">

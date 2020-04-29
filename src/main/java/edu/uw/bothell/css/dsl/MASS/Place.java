@@ -98,7 +98,7 @@ public class Place implements Serializable {
 	 */
 	private Set<Agent> agents = Collections.synchronizedSet(new HashSet<Agent>());
 
-	private Vector<int[]> neighbors = null;
+	protected Vector<int[]> neighbors = null;
 
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
@@ -192,6 +192,11 @@ public class Place implements Serializable {
 		file.open(ioType); // either NetCDFFile open or TxtFile open
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
+
+		logFormattedDebug("size: %d, index: %d, lowerBoundary: %d",
+				getSize()[0],
+				getIndex()[0],
+				MASSBase.getCurrentPlacesBase().getLowerBoundary());
 
 		logFormattedDebug(
 				this + " or Place %d on node %d opened the file %s with the fd %d",

@@ -192,6 +192,10 @@ public class Agent implements Serializable {
 		// compute the global linear index
 		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
 
+		if (place != null && VertexPlace.class.isAssignableFrom(place.getClass())) {
+			linearIndex = index[0];
+		}
+
 		// compute #agents per place a.k.a. colonists
 		int colonists = initPopulation / placeTotal;
 		int remainders = initPopulation % placeTotal;
@@ -206,7 +210,7 @@ public class Agent implements Serializable {
 	 * specifically, migrate( ) updates the calling agent’s index[].
 	 */
 	protected boolean migrate( int... newIndex ) { 
-
+		
 		// invalid index!
 		Objects.requireNonNull( newIndex, "Must provide an index when migrating!" );
 		
@@ -215,7 +219,12 @@ public class Agent implements Serializable {
 		// compare where we're at now versus new index position
 		// to see if this Agent is attempting to move to a new Place
 		if ( index != null ) currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
-		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );
+		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );;
+
+		if (VertexPlace.class.isAssignableFrom(place.getClass())) {
+			newLinearIndex = newIndex[0];
+			currentLinearIndex = index[0];
+		}
 
 		// attempting to migrate?
 		if ( currentLinearIndex != newLinearIndex ) {
