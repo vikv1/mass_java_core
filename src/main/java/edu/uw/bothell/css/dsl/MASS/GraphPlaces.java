@@ -367,7 +367,7 @@ public class GraphPlaces extends Places implements Graph {
 
         Log4J2Logger logger = MASSBase.getLogger();
 
-        logger.error(String.format("removeEdge [vertexId=%d; neighborId=%d]", vertexId, neighborId));
+        logger.error(String.format("removeEdge [vertexId=%s; neighborId=%s]", vertexId, neighborId));
 
         int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
 

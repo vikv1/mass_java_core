@@ -4,6 +4,7 @@ import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,18 +28,15 @@ import static org.junit.Assert.assertTrue;
 public class GraphMaintenanceTest {
     private Graph graph;
 
-    @BeforeClass
-    public static void setupMASS() {
-        MASS.init();
-    }
-
-    @AfterClass
-    public static void shutdownMASS() {
+    @After
+    public void shutdownMASS() {
         MASS.finish();
     }
 
     @Before
     public void initGraph() {
+        MASS.init();
+        
         String [] graphArguments = new String[] {
                 "test-files/network-triangles.xml",
                 "something-else.txt"
@@ -67,28 +65,39 @@ public class GraphMaintenanceTest {
     }
 
     @Test
-    @Ignore
     public void testRemoveEdge() {
+        final String vertexA = "A";
+        final String vertexB = "B";
 
+        graph.addVertex(vertexA);
+        graph.addVertex(vertexB);
+
+        boolean added = graph.addEdge(vertexA, vertexB, 0.9);
+
+        assertTrue("Add edge returns true", added);
+
+        VertexModel vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
+
+        assertTrue("Edge exists with correct neighbor", vertex.neighbors.contains(vertexB));
+        
+        graph.removeEdge(vertexA, vertexB);
+        
+        vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
+        
+        assertTrue(!vertex.neighbors.stream().filter(n -> n.equals(vertexB)).findFirst().isPresent());
     }
 
     @Test
     public void testAddVertex() {
-        GraphModel model = graph.getGraph();
-
-        List<VertexModel> vertices = model.getVertices();
-
-        assertTrue("Sanity check for non-existing vertex 6", vertices.size() == 6);
-
-        int vertexId = graph.addVertex(101);
+        final String vertexKey = "ABC";
+        
+        int vertexId = graph.addVertex(vertexKey);
 
         assertTrue("Created vertex with valid id", vertexId >= 0);
 
-        vertices = graph.getGraph().getVertices();
+        List<VertexModel> vertices = graph.getGraph().getVertices();
 
-        assertTrue("Vertex is created", vertexId == 6);
-
-        VertexModel vertex = vertices.get(vertexId);
+        VertexModel vertex = vertices.stream().filter(v -> v.id.equals(vertexKey)).findFirst().get();
 
         assertTrue(vertex != null);
         assertEquals(0, vertex.neighbors.size());
@@ -113,22 +122,5 @@ public class GraphMaintenanceTest {
         assertTrue(vertexA != null);
         assertEquals(1, vertexA.neighbors.size());
         assertEquals(vertexIdB, vertexA.neighbors.get(0));
-    }
-
-    @Test
-    /**
-     * Considering a mass cluster with 3 nodes available: mass0 (master) mass1 mass2
-     */
-//    public void createNetworkOnMultipleNodes() {
-//        Integer [] topology = ((GraphPlaces) graph).getTopology();
-//
-//        for (int i = 0; i < topology.length; i++) {
-//            assertTrue(topology[i] == 2);
-//        }
-//    }
-
-    @Category(IntegrationTest.class)
-    public void testTopographyIsRetrieved() {
-
     }
 }
