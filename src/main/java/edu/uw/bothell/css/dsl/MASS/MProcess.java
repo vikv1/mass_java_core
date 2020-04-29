@@ -164,7 +164,10 @@ public class MProcess {
 
     	// initialize the messaging system
     	MASS.getMessagingProvider().init( null, null );
-		
+    	
+    	// initialize the global clock
+    	MASS.getGlobalClock().init( MASS.getEventDispatcher() );
+
 	}
 
 	private Message receiveMessage() {

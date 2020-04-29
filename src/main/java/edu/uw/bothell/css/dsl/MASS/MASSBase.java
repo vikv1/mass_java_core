@@ -35,6 +35,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
+import edu.uw.bothell.css.dsl.MASS.clock.SimpleGlobalClock;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
@@ -91,6 +93,9 @@ public class MASSBase {
     
     // messaging
     private static MASSMessenging messenger = MASSMessenging.getInstance();
+    
+    // global logical clock
+    private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
 
 	/**
      * Add a new node to the cluster
@@ -697,6 +702,14 @@ public class MASSBase {
 	 */
 	public static MASSMessenging getMessagingProvider() {
 		return messenger;
+	}
+	
+	/**
+	 * Get the instance of the Global Logical Clock
+	 * @return The Global Logical Clock currently in use
+	 */
+	protected static GlobalLogicalClock getGlobalClock() {
+		return clock;
 	}
 	
 }

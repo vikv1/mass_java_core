@@ -38,6 +38,7 @@ import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
@@ -78,6 +79,7 @@ public class AgentsBase {
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
     private EventDispatcher eventDispatcher = MASS.getEventDispatcher();
+    private GlobalLogicalClock clock = MASS.getGlobalClock();
 
 	/***** Agent population control *****/
 
@@ -795,6 +797,9 @@ public class AgentsBase {
     		eventDispatcher.invokeQueuedAsync( OnCreation.class );
     		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
     		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+    		
+    		// increment Global Logical Clock value
+    		clock.increment();
 
     		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	

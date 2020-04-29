@@ -390,6 +390,9 @@ public class MASS extends MASSBase {
     	// initialize the messaging system
     	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
     	
+    	// initialize the global clock
+    	MASS.getGlobalClock().init( eventDispatcher );
+    	
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -718,6 +721,14 @@ public class MASS extends MASSBase {
 		} catch ( IOException e ) {
 			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
 		}
+	}
+	
+	public static void resetClock() {
+		getGlobalClock().reset();
+	}
+	
+	public static long getClockValue() {
+		return getGlobalClock().getValue();
 	}
 
 }
