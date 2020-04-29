@@ -319,17 +319,21 @@ public class GraphPlaces extends Places implements Graph {
 
         int placesIndex = globalIndex / spanSize - 1;
 
+        boolean added = false;
+        
         if (placesIndex >= 0 && placesVector.size() >= 0 && placesVector.size() > placesIndex) {
             int localPlaceIndex = globalIndex % chunkSize;
 
             VertexPlace place = placesVector.get(placesIndex).get(localPlaceIndex);
 
             place.addNeighbor(neighborId, weight);
+            
+            added = true;
         } else {
             MASSBase.getLogger().error("Error trying to add edge [placesIndex=" + placesIndex + "]");
         }
 
-        return false;
+        return added;
     }
 
     public boolean removeEdgeLocally(Object vertexId, Object neighborId) {

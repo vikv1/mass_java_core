@@ -94,8 +94,11 @@ public class GraphMaintenanceTest {
 
     @Test
     public void testAddEdgeWithNewVertices() {
-        int vertexIdA = graph.addVertex(101);
-        int vertexIdB = graph.addVertex(101);
+        int vertexIdA = 101;
+        int vertexIdB = 102;
+        
+        graph.addVertex(vertexIdA);
+        graph.addVertex(vertexIdB);
 
         boolean added = graph.addEdge(vertexIdA, vertexIdB, 0.9);
 
@@ -103,11 +106,11 @@ public class GraphMaintenanceTest {
 
         List<VertexModel> vertices = graph.getGraph().getVertices();
 
-        VertexModel vertexA = vertices.get(vertexIdA);
+        VertexModel vertexA = vertices.stream().filter(v -> v.id.equals(vertexIdA)).findFirst().get();
 
         assertTrue(vertexA != null);
         assertEquals(1, vertexA.neighbors.size());
-        assertEquals(vertexIdB, (long) vertexA.neighbors.get(0));
+        assertEquals(vertexIdB, vertexA.neighbors.get(0));
     }
 
     @Test
