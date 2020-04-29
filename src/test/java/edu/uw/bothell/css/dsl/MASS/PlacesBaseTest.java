@@ -38,12 +38,18 @@ import static org.junit.Assert.assertTrue;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * Perform a series of unit tests against the PlacesBase class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // slow
 public class PlacesBaseTest extends AbstractTest {
 
 	// class under test
@@ -271,4 +277,20 @@ public class PlacesBaseTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void getXmlNodeCountCorrect() {
+		final String graphFilename = "../matsim/network-pt-simple.xml";
+
+		long start = System.currentTimeMillis();
+
+		int nodeCount = PlacesBase.getMatsimNetworkNodeCount(graphFilename);
+
+		long end = System.currentTimeMillis();
+
+		long runtime = end - start;
+
+		System.out.println("Runtime: " + runtime);
+
+		assertEquals(6, nodeCount);
+	}
 }

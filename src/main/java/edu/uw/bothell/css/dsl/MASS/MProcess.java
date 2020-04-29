@@ -31,9 +31,15 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
+import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -115,9 +121,24 @@ public class MProcess {
 		int nThreads = Integer.parseInt(args[3]);
 		int serverPort = Integer.parseInt(args[4]);
 		String curDir = args[5];
+		int maxNumberOfAgents = Integer.parseInt(args[6]);
 
-		MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
-		mprocess.start();
+		MASSBase.getLogger().debug("MProcess - main");
+
+		AgentSerializer agentSerializer = AgentSerializer.getInstance();
+
+		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
+
+		// TODO: It is officially time to design a better way to configure the remote process
+
+		try {
+			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+			mprocess.start();
+		} catch (Exception e) {
+			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
+				e.printStackTrace(pw);
+			}
+		}
 
 	}
 
@@ -237,8 +258,12 @@ public class MProcess {
 			PlacesBase places = null; // new Places
 			AgentsBase agents = null; // new Agents
 
+			GraphPlaces graphPlaces;
+
 			// retrieve an argument
 			Object argument = m.getArgument();
+
+			int returnsSize;
 
 			switch ( m.getAction() ) {
 
@@ -285,6 +310,27 @@ public class MProcess {
 				
 				break;
 
+			case PLACES_INITIALIZE_GRAPH:
+
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
+
+				// Graph initialization arguments
+				String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
+
+				Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
+
+				//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
+				places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+				MASSBase.getPlacesMap().put( m.getHandle(), places );
+
+				sendAck();
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed and ACK sent");
+
+				break;
+
 			case PLACES_CALL_ALL_VOID_OBJECT:
 
 				MASSBase.getLogger().debug("PLACES_CALL_ALL_VOID_OBJECT received");
@@ -316,7 +362,16 @@ public class MProcess {
 				MASSBase.setCurrentFunctionId(m.getFunctionId());
 				MASSBase.setCurrentArgument(argument);
 				MASSBase.setCurrentMsgType(m.getAction());
-				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentPlacesBase().getPlacesSize()]);
+
+				returnsSize = MASSBase.getCurrentPlacesBase().getPlacesSize();
+
+				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					graphPlaces = (GraphPlaces) places;
+
+					returnsSize = returnsSize + graphPlaces.getExtendedPlacesSize();
+				}
+
+				MASSBase.setCurrentReturns(new Object[returnsSize]);
 
 				// From Jas' and Michael's implementation
 				// TODO - better to use this than "getPlacesSize" ?
@@ -359,6 +414,13 @@ public class MProcess {
 				// exchangeall implementation
 				MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
 						MASSBase.getCurrentFunctionId(), 0);
+
+				// Perform graph exchangeAll separately for now
+				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
+
+					graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+				}
 
 				// confirm all threads are done with places.exchangeall.
 				MThread.barrierThreads(0);
@@ -476,10 +538,105 @@ public class MProcess {
 
 				break;
 
+			case MAINTENANCE_ADD_PLACE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				String errorMessage = "MAINTENANCE_ADD_PLACE [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]";
+
+				MASSBase.getLogger().error(errorMessage);
+
+				int result = ((GraphPlaces)places).addPlaceLocally((Integer)m.getArgument());
+
+				sendAck(result);
+
+				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed");
+				break;
+
+			case MAINTENANCE_ADD_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+
+				graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE completed");
+				break;
+
+			case MAINTENANCE_REMOVE_PLACE:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				((GraphPlaces) places).removeVertexLocally((Integer) m.getArgument());
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
+				break;
+
+			case MAINTENANCE_REMOVE_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+
+				graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
+				break;
+
+			case MAINTENANCE_GET_PLACES: {
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
+
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
+				break;
+			}
+
+			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
+
+				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
+
+				Object o = graphPlaces.exchangeNeighbor(m.getFunctionId(), (Integer) m.getArgument());
+
+				sendMessage(new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, o));
+
+				break;
+
+			case MAINTENANCE_REINITIALIZE:
+				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
+
+				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
+
+				graphPlaces.reinitialize();
+
+				sendAck();
+
+				break;
 			}
 
 		}
-
 	}
 
+	private void sendMessage(Serializable object) {
+		try {
+			MAIN_OOS.writeObject(object);
+			MAIN_OOS.flush();
+		} catch (IOException e) {
+			MASSBase.getLogger().error("Exception sending object to remote host", e);
+		}
+	}
 }

@@ -124,10 +124,13 @@ public class AgentsBase {
     			
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
+    		
+    		// actual size:
+    		int[] placesSize = MASSBase.getPlacesMap().get(getPlacesHandle()).getSize();
 
     		// create as many new agents as nColonists
     		for ( int nColonists =
-    				protoAgent.map( initPopulation, curPlace.getSize(), 
+    				protoAgent.map( initPopulation, placesSize,
     						curPlace.getIndex() );
     				nColonists > 0; nColonists--, localPopulation++ ) {
 
@@ -168,6 +171,11 @@ public class AgentsBase {
     		
     	}
 
+    	if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
+    		// TODO: This should probably be a function in GraphPlaces or maybe a brand-new GraphAgents
+			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
+		}
+
 		// invoke queued Agents OnCreation methods
 		eventDispatcher.invokeQueuedAsync( OnCreation.class );
 		
@@ -176,7 +184,61 @@ public class AgentsBase {
 
     }
 
-    public void callAll( int functionId, Object argument, int tid ) {
+	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
+		// TODO: Hack for Agent#map
+		protoAgent.setPlace(new VertexPlace());
+
+		// scan each place to see how many agents it can create
+		Vector<Vector<VertexPlace>> places = graphPlaces.getPlacesVector();
+
+		int graphSize = places.stream().mapToInt(layer -> layer.size()).sum();
+
+		int[] placesSize = { graphSize };
+
+		places.forEach(layer -> layer.forEach(vertexPlace -> {
+			// create as many new agents as nColonists
+			for (int nColonists =
+				 protoAgent.map(initPopulation, placesSize,
+						 vertexPlace.getIndex());
+				 nColonists > 0; nColonists--, localPopulation++) {
+
+				// agent instantiation and initialization
+				Agent newAgent = null;
+				try {
+
+					agentInitAgentsHandle = handle;
+					agentInitPlacesHandle = placesHandle;
+					agentInitAgentId = currentAgentId++;
+					agentInitParentId = -1; // no parent
+					newAgent = objectFactory.getInstance(className, argument);
+					newAgent.setAgentId(agentInitAgentId);
+
+				} catch (Exception e) {
+					// TODO - now what? What to do when there is an exception?
+					MASS.getLogger().error("Agents_base.constructor: {} not instaitated ", className, e);
+				}
+
+				newAgent.setPlace(vertexPlace);
+
+				// store this agent in the bag of agents
+				agents.add(newAgent);
+
+				// register newAgent into curPlace
+				vertexPlace.getAgents().add(newAgent);
+
+				// Agent has been created
+				eventDispatcher.queueAsync(OnCreation.class, newAgent);
+
+				// Place has an arriving Agent
+				eventDispatcher.queueAsync(OnArrival.class, vertexPlace);
+
+				// Agent has arrived at a Place
+				eventDispatcher.queueAsync(OnArrival.class, newAgent);
+			}
+		}));
+	}
+
+	public void callAll( int functionId, Object argument, int tid ) {
 
     	int numOfOriginalVectors = MThread.getAgentBagSize();
 
@@ -463,7 +525,7 @@ public class AgentsBase {
 					{
 						// check if there is available agent id
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId > -1)
+						if (availableAgentId != null && availableAgentId > -1)
 						{
 							addAgent.setAgentId(availableAgentId);
 						}
@@ -710,19 +772,59 @@ public class AgentsBase {
 
     					MASS.getLogger().debug( "remoteRequest[" + destRank +	"].add:" + " dst = " + globalLinearIndex );
 
-    				}
-    			
-    			} 
-    		
-    		}
-    		
-    		else {
-    			
-    			MASS.getLogger().error( " to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid" );
-    		
-    		}
-			/*******************************/
-    	} // end of while( true )
+						}
+
+					}
+
+				} else if (GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) {
+					GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
+
+					int networkSize = graphPlaces.getSize()[0];
+
+					int globalLinearIndex = evaluationAgent.getIndex()[0];
+
+					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+
+					if (nodeId == MASSBase.getMyPid()) {
+						// local migration
+						Place oldPlace = evaluationAgent.getPlace();
+
+						if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+							// should not happen
+							String errorMessage = "evaluationAgent {}" +
+									evaluationAgent.getAgentId()
+									+ " couldn't been found in " +
+									"the old place!";
+
+							MASS.getLogger().error(errorMessage);
+
+							// throw it back to our new fatal exception handler
+							throw new RuntimeException(errorMessage);
+						}
+
+						evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+
+						evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+					} else {
+						// remote migration
+						agents.remove(myIndex - 1);
+
+						evaluationAgent.setPlace(null);
+
+						AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, evaluationAgent);
+
+						Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
+
+						synchronized (migrationRequestVector) {
+							migrationRequestVector.add(request);
+						}
+					}
+				} else {
+
+					MASS.getLogger().error(" to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid");
+
+				}
+			} // end of while( true )
 
     	// When while loop finishes, all threads must barrier and tid = 0
     	// must adjust AgentList.
@@ -881,8 +983,38 @@ public class AgentsBase {
     			AgentMigrationRequest request = 
     					receivedRequest.remove( receivedRequest.size( ) - 1 );
 
-    			int globalLinearIndex = request.destGlobalLinearIndex;
-    			Agent agent = request.agent;
+				int globalLinearIndex = request.destGlobalLinearIndex;
+
+				if (globalLinearIndex > dstPlaces.getSize()[0] && GraphPlaces.class.isAssignableFrom(dstPlaces.getClass())) {
+					Agent evaluationAgent = request.agent;
+
+					GraphPlaces graphPlaces = (GraphPlaces) dstPlaces;
+
+					int networkSize = graphPlaces.getSize()[0];
+
+					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+
+					// local migration
+					Place oldPlace = evaluationAgent.getPlace();
+
+					if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+						// should not happen
+						String errorMessage = "evaluationAgent {}" +
+								evaluationAgent.getAgentId()
+								+ " couldn't been found in " +
+								"the old place!";
+
+						MASS.getLogger().error(errorMessage);
+
+						// throw it back to our new fatal exception handler
+						throw new RuntimeException(errorMessage);
+					}
+
+					evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+
+					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+				} else {
+					Agent agent = request.agent;
 
     			// local destination
     			int destinationLocalLinearIndex 
@@ -900,14 +1032,15 @@ public class AgentsBase {
     			// invoke OnArrival events immediately
     			try {
 
-    				eventDispatcher.invokeImmediate( OnArrival.class,  dstPlace );
-	    			eventDispatcher.invokeImmediate( OnArrival.class,  agent );
-				
-    			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-    				MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
-    			}
-    			
-    		}
+						eventDispatcher.invokeImmediate(OnArrival.class, dstPlace);
+						eventDispatcher.invokeImmediate(OnArrival.class, agent);
+
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
+					}
+				}
+
+			}
 
     		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
     					"] retreive agents from rank[" + destRank + 

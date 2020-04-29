@@ -159,6 +159,7 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
+		MASSBase.finish();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
@@ -332,11 +333,16 @@ public class MASS extends MASSBase {
     		commandBuilder.append("java ");
     		
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xmx9g ");
-    		
+    		commandBuilder.append("-Xmx2g ");
+
     		// add MASS home directory itself as part of the classpath
    			if (node.getMassHome() != null) {
-	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
+   				String jarName = new java.io.File(MASS.class.getProtectionDomain()
+						.getCodeSource()
+						.getLocation()
+						.getPath()).getName();
+
+	    		commandBuilder.append("-cp \"" + node.getMassHome() + "/" + jarName + "\" ");
    			}
 
     		// MProcess and its arguments
@@ -346,7 +352,8 @@ public class MASS extends MASSBase {
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
     		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
     		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome());			// 6th arg: cur working dir
+    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
+			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
 
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +

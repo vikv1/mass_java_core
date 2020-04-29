@@ -37,12 +37,17 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the Message class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore
 public class MessageTest extends AbstractTest {
 
 	@Test

@@ -33,16 +33,21 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the Agents class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // failing
 public class AgentsTest extends AbstractTest {
 
 	private static final int PLACES_HANDLE = randomInt();

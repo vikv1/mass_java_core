@@ -36,12 +36,15 @@ import static org.junit.Assert.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the Nodelist class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
 public class NodelistTest extends AbstractTest {
 
 	// class under test
@@ -59,6 +62,11 @@ public class NodelistTest extends AbstractTest {
 		nodelist.setNodes( nodes );
 		assertEquals( nodes, nodelist.getNodes() );
 		
+	}
+
+	@Test
+	public void importNodesList() throws Exception {
+		MASS.init();
 	}
 	
 }
