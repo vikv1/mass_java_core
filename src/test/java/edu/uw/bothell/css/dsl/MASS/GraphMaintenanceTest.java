@@ -51,17 +51,19 @@ public class GraphMaintenanceTest {
 
     @Test
     public void testAddEdge() {
-        GraphModel graphModel = graph.getGraph();
+        final String vertexA = "A";
+        final String vertexB = "B";
+        
+        graph.addVertex(vertexA);
+        graph.addVertex(vertexB);
+        
+        boolean added = graph.addEdge(vertexA, vertexB, 0.9);
+        
+        assertTrue("Add edge returns true", added);
 
-        List<VertexModel> vertices = graphModel.getVertices();
-
-        assertTrue(!vertices.get(5).neighbors.contains(0));
-
-        assertTrue("Add edge returns true", graph.addEdge(0, 1, 0.9));
-
-        vertices = graph.getGraph().getVertices();
-
-        assertTrue("Edge exists with correct neighbor", vertices.get(0).neighbors.contains(1));
+        VertexModel vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
+        
+        assertTrue("Edge exists with correct neighbor", vertex.neighbors.contains(vertexB));
     }
 
     @Test
