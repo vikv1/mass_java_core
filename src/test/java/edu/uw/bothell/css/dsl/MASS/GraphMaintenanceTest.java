@@ -36,14 +36,8 @@ public class GraphMaintenanceTest {
     @Before
     public void initGraph() {
         MASS.init();
-        
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
 
-        graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        graph = new GraphPlaces(0, VertexPlace.class.getName(), 120);
 
     }
 
