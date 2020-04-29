@@ -565,7 +565,8 @@ public class GraphPlaces extends Places implements Graph {
                 if (place.getIndex()[0] == globalIndex) {
                     vertexPlace = place;
                 }
-                place.removeNeighbor(vertexId);
+                
+                place.removeNeighborSafely(vertexId);
             }
 
             if (vertexPlace != null) {

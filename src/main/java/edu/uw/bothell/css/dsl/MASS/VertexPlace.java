@@ -55,6 +55,12 @@ public class VertexPlace extends Place implements Serializable {
         neighborResults.put(neighborIndex, result);
     }
 
+    public void removeNeighborSafely(Object neighborVertexId) {
+        if (neighbors != null && neighbors.contains(neighborVertexId)) {
+            removeNeighbor(neighborVertexId);
+        }
+    }
+
     public static class Tuple {
         public Tuple(Object i, double w) {
             index = i;

@@ -5,10 +5,7 @@ import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -38,7 +35,6 @@ public class GraphMaintenanceTest {
         MASS.init();
 
         graph = new GraphPlaces(0, VertexPlace.class.getName(), 120);
-
     }
 
     @Test
@@ -116,5 +112,42 @@ public class GraphMaintenanceTest {
         assertTrue(vertexA != null);
         assertEquals(1, vertexA.neighbors.size());
         assertEquals(vertexIdB, vertexA.neighbors.get(0));
+    }
+    
+    @Test
+    public void testRemoveVertex() {
+        final String vertexA = "A";
+        final String vertexB = "B";
+        final String vertexC = "C";
+        
+        graph.addVertex(vertexA);
+        graph.addVertex(vertexB);
+        graph.addVertex(vertexC);
+        
+        graph.addEdge(vertexA, vertexB, 0.9);
+        graph.addEdge(vertexA, vertexC, 0.9);
+
+        VertexModel vertexAModel = graph.getGraph().getVertices()
+                .stream()
+                .filter(v -> v.id.equals(vertexA))
+                .findFirst()
+                .get();
+
+        assertTrue(vertexAModel.neighbors.size() == 2);
+        
+        assertTrue(graph.getGraph().getVertices().size() == 3);
+        
+        graph.removeVertex(vertexB);
+        
+        assertTrue(graph.getGraph().getVertices().size() == 2);
+
+        vertexAModel = graph.getGraph().getVertices()
+                .stream()
+                .filter(v -> v.id.equals(vertexA))
+                .findFirst()
+                .get();
+        
+        assertTrue(vertexAModel.neighbors.size() == 1);
+        assertTrue(vertexAModel.neighbors.contains(vertexC));
     }
 }
