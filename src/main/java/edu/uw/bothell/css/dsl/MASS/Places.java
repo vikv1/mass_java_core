@@ -76,6 +76,13 @@ public class Places extends PlacesBase {
     
     }
 
+	/**
+	 * this is a special passthrough constructor to allow remote node to instantiate places by skipping init_master
+	 */
+	public Places(int handle, String className, String[] graphArgs, Object[] initArgs) {
+		super(handle, className, graphArgs, initArgs);
+	}
+
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
@@ -242,7 +249,14 @@ public class Places extends PlacesBase {
 		
 		// exchangeall implementation
 		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
-		
+
+		// Perform graph exchangeAll separately for now
+		if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+			GraphPlaces graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
+
+			graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+		}
+
 		// confirm all threads are done with exchangeAll.
 		MThread.barrierThreads( 0 );
 		
@@ -318,15 +332,32 @@ public class Places extends PlacesBase {
 		MASS.barrierAllSlaves( );
     
     }
-    
-    /**
-     * Initializes the places with the given arguments and boundary width.
-     * @param argument
-     * @param boundaryWidth
-     */
-    private void init_master( Object argument, int boundaryWidth ) {
 
-		// create a list of all host names;  
+	/**
+	 * Initializes the places with the given arguments and boundary width.
+	 * @param message the message to send to remote nodes
+	 */
+	protected void init_master_base( Message message ) {
+		// create a list of all host names;
+		// the master IP name
+		Vector<String> hosts = getHosts();
+
+		// send a PLACES_INITIALIZE message to each slave
+		MASSBase.getLogger().debug( message.getActionString() + " sent to all remote nodes" );
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( message ) );
+
+		// establish all inter-node connections within setHosts( )
+		MASSBase.setHosts( hosts );
+
+		// register this places in the places hash map
+		MASSBase.getPlacesMap().put( getHandle(), this );
+
+		// Synchronized with all slave processes
+		MASS.barrierAllSlaves( );
+	}
+
+	protected Vector<String> getHosts() {
+		// create a list of all host names;
 		// the master IP name
 		Vector<String> hosts = new Vector<String>( );
 		
@@ -341,7 +372,19 @@ public class Places extends PlacesBase {
 		for ( MNode node : MASS.getRemoteNodes() ) {
 		    hosts.add( node.getHostName( ) );
 		}
-	
+
+		return hosts;
+	}
+
+    /**
+     * Initializes the places with the given arguments and boundary width.
+     * @param argument
+     * @param boundaryWidth
+     */
+    protected void init_master( Object argument, int boundaryWidth ) {
+
+		Vector<String> hosts = getHosts();
+
 		// create a new list for message
 		Message m = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, getSize(),
 					 getHandle(), getClassName(),

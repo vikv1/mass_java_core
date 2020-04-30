@@ -39,6 +39,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.easymock.Mock;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,11 +47,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the MASSBase class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
 public class MASSBaseTest extends AbstractTest {
 
 	@Mock

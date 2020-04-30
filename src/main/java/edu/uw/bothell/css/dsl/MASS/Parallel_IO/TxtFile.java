@@ -1,5 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -60,6 +62,13 @@ public class TxtFile extends File {
         int placeOffset = getPlaceReadOffset(entireTxtFileBuffer.length);
         int placeReadLength = getCurrentPlaceReadLength(entireTxtFileBuffer.length, placeOffset, placeOrder);
         int offset = placeOffset * placeOrder;
+
+        MASSBase.getLogger().trace(String.format("TxtFile::read { placeOffset: %d, placeReadLength: %d, placeOrder: %d, offset: %d }",
+                placeOffset, placeReadLength, placeOrder, offset));
+
+        MASSBase.getLogger().trace(String.format("TxtFile::read { entireTxtFileBuffer.length: %d }",
+                entireTxtFileBuffer.length));
+
         return Arrays.copyOfRange(entireTxtFileBuffer, offset, offset + placeReadLength);
     }
 

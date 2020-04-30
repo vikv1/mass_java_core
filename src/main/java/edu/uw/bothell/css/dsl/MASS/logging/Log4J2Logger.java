@@ -71,6 +71,12 @@ public class Log4J2Logger {
 	}
 
 	/**
+	 * Record a TRACE message
+	 * @param message the TRACE message to record
+	 */
+	public void trace(String message) { logger.trace(message); }
+
+	/**
      * Record an ERROR message, without having access to an Exception
      * @param message The ERROR message to record
      */

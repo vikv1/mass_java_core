@@ -35,13 +35,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Perform a series of unit tests against the AgentsList class to verify proper
  * and consistent behavior of the class / methods
  */
+@Category(IntegrationTest.class)
+@Ignore // using some ip that my machine doesn't know about
 public class AgentListTest extends AbstractTest {
 
 	// class under test

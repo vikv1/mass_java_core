@@ -11,18 +11,24 @@ public enum LogLevel {
 	ERROR,
 
 	/**
-	 * Messages used for debugging and troubleshooting (lowest log level)
+	 * Messages for events that are not immediate errors but could eventually lead to system instability or exceptions
+	 */
+	WARN,
+
+	/**
+	 * Messages used for debugging and troubleshooting
 	 */
 	DEBUG,
-	
+
 	/**
-	 * Disable all message logging (highest log level)
+	 * Messages for closing tracking the execution of MASS. Extremely high log volume (lowest log level)
+	 */
+	TRACE,
+
+	/**
+	 * Disable all message logging
 	 */
 	OFF,
 	
-	/**
-	 * Messages for events that are not immediate errors but could eventually lead to system instability or exceptions
-	 */
-	WARN
-	
+
 }

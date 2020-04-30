@@ -36,6 +36,8 @@ import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -212,10 +214,11 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASSBase.getLogger().error( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "receiveMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 			
-			e.printStackTrace();
+			MASSBase.getLogger().error("stack trace: " + Arrays.stream(e.getStackTrace()).map( st -> st.toString())
+			.collect(Collectors.joining("\n")));
 
 			System.exit( -1 );
 
