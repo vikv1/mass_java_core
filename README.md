@@ -25,7 +25,7 @@ If you are using Maven, add the following repository to your POM:
 	<dependency>
 		<groupId>edu.uw.bothell.css.dsl.mass</groupId>
 		<artifactId>mass-core</artifactId>
-		<version>1.0.0-RELEASE</version>
+		<version>1.2.1-RELEASE</version>
 		<scope>compile</scope>
 	</dependency>
 
