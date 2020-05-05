@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -38,9 +38,8 @@ import java.util.Random;
 
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
@@ -48,7 +47,6 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
  */
-@Ignore
 @RunWith(EasyMockRunner.class)
 public class AbstractTest extends EasyMockSupport {
 
@@ -83,7 +81,7 @@ public class AbstractTest extends EasyMockSupport {
     /**
      * Perform any necessary operations before every unit test
      */
-    @Before
+    @BeforeEach
     public void abstractSetUp() {
     	
     	MASSBase.getLogger().setLogLevel( LogLevel.DEBUG );
@@ -93,7 +91,7 @@ public class AbstractTest extends EasyMockSupport {
 	/**
 	 * Perform any necessary cleanup and final verifications after EVERY test 
 	 */
-	@After
+	@AfterEach
 	public void abstractTearDown() {
 
 		// make sure all mock objects were called as expected
