@@ -55,7 +55,7 @@ public class PlacesTest extends AbstractTest {
 	}
 
 	@Test
-	public void constructorWithoutBoundaryWidth() throws Exception {
+	public void constructorWithoutBoundaryWidth() {
 		
 		Places places = new Places( 0, SimpleTestPlace.class.getName(), null, 1, 1, 1 );
 		
@@ -65,7 +65,7 @@ public class PlacesTest extends AbstractTest {
 	}
 
 	@Test
-	public void constructorWithBoundaryWidth() throws Exception {
+	public void constructorWithBoundaryWidth() {
 		
 		Places places = new Places( 0, SimpleTestPlace.class.getName(), 1, null, 1, 1, 1 );
 		

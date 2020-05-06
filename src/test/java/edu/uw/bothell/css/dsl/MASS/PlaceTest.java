@@ -80,7 +80,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void callMethod() throws Exception {
+	public void callMethod() {
 	
 		// always returns null!
 		assertNull( place.callMethod( 0, new String() ) );
@@ -88,7 +88,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getNumAgents() throws Exception {
+	public void getNumAgents() {
 		
 		place.getAgents().add( new Agent() );
 		
@@ -97,7 +97,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetDebugData() throws Exception {
+	public void getSetDebugData() {
 		
 		// intended to be overridden for debugging
 		assertNull( place.getDebugData() );
@@ -109,7 +109,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetIndex() throws Exception {
+	public void getSetIndex() {
 
 		int[] index = new int[]{ 42, 88, 89 };
 
@@ -123,7 +123,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetInMessages() throws Exception {
+	public void getSetInMessages() {
 
 		Object[] messages = new Object[]{ new Message() };
 
@@ -134,7 +134,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetNeighbors() throws Exception {
+	public void getSetNeighbors() {
 
 		Vector<int[]> neighbors = new Vector<>();
 		neighbors.add( new int[]{ 42, 88, 89 } );
@@ -146,7 +146,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetOutMessages() throws Exception {
+	public void getSetOutMessages() {
 
 		Object message = new Object();
 
@@ -157,7 +157,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetSize() throws Exception {
+	public void getSetSize() {
 
 		int[] size = new int[]{ 1, 1, 1 };
 
@@ -170,7 +170,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetVisited() throws Exception {
+	public void getSetVisited() {
 
 		place.setVisited( true );
 		
@@ -179,7 +179,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getOutMessage() throws Exception {
+	public void getOutMessage() {
 
 		// matrix dimensions
 		int[] size = new int[]{ 1, 1, 1 };
@@ -208,7 +208,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void putInMessage() throws Exception {
+	public void putInMessage() {
 
 		// need to force MASSBase to contain a single node for this test
 		MNode masterNode = new MNode();

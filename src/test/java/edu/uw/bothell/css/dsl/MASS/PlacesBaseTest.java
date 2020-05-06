@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -35,21 +35,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * Perform a series of unit tests against the PlacesBase class to verify proper
  * and consistent behavior of the class / methods
  */
-@Category(IntegrationTest.class)
-@Ignore // slow
 public class PlacesBaseTest extends AbstractTest {
 
 	// class under test
@@ -61,7 +57,7 @@ public class PlacesBaseTest extends AbstractTest {
 	// the handle ID for the test PlacesBase
 	private int handle = randomInt();
 	
-	@BeforeClass
+	@BeforeAll
 	public static void beforeAll() {
 		
 		// MASSBase should be made ready for use before tests are run
@@ -81,7 +77,7 @@ public class PlacesBaseTest extends AbstractTest {
 		
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterAll() {
 		
 		// clean up MASSBase
@@ -89,7 +85,7 @@ public class PlacesBaseTest extends AbstractTest {
 		
 	}
 
-	@Before
+	@BeforeEach
 	public void onSetUp() {
 		
 		// start with a new instance for each test
@@ -98,7 +94,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSize() throws Exception {
+	public void getSize() {
 		
 		// size should be the same as the init array
 		assertEquals( placesMatrix, placesBase.getSize() );
@@ -106,7 +102,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getPlacesSize() throws Exception {
+	public void getPlacesSize() {
 		
 		// should be multiple of all matrix sizes
 		assertEquals( 1000, placesBase.getPlacesSize() );
@@ -114,7 +110,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void masterNodeNoShadowSpaces() throws Exception {
+	public void masterNodeNoShadowSpaces() {
 		
 		// default Places base as used in this test class only assigned to master node
 		assertNull( placesBase.getLeftShadow() );
@@ -123,7 +119,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void getShadowSize() throws Exception {
+	public void getShadowSize() {
 		
 		// one "stripe"
 		assertEquals( 100, placesBase.getShadowSize() );
@@ -131,14 +127,14 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getClassName() throws Exception {
+	public void getClassName() {
 		
 		assertEquals( SimpleTestPlace.class.getName(), placesBase.getClassName() );
 		
 	}
 	
 	@Test
-	public void getLowerUpperBoundary() throws Exception {
+	public void getLowerUpperBoundary() {
 		
 		// the test matrix is contained on one node, so limits are the boundaries
 		assertEquals( 0, placesBase.getLowerBoundary() );
@@ -147,7 +143,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void getRankFromGlobalLinearIndexSingleNode() throws Exception {
+	public void getRankFromGlobalLinearIndexSingleNode() {
 		
 		// on a single node, all Places are located at rank #0
 		for ( int i = 0; i < placesBase.getPlacesSize(); i ++ ) {
@@ -157,7 +153,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getPlaces() throws Exception {
+	public void getPlaces() {
 		
 		Place[] places = placesBase.getPlaces();
 		
@@ -169,14 +165,14 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getHandle() throws Exception {
+	public void getHandle() {
 		
 		assertEquals( handle, placesBase.getHandle() );
 		
 	}
 	
 	@Test
-	public void getLocalRange() throws Exception {
+	public void getLocalRange() {
 		
 		int[] range = new int[ 2 ];
 
@@ -212,7 +208,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void getGlobalNeighborArrayIndex() throws Exception {
+	public void getGlobalNeighborArrayIndex() {
 		
 		int sourceIndex[] = new int[]{ 2, 3, 4 };
 		int offset[] = new int[]{ 1, 1, 1 };
@@ -229,7 +225,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void getGlobalNeighborArrayIndexOutOfBounds() throws Exception {
+	public void getGlobalNeighborArrayIndexOutOfBounds() {
 		
 		int sourceIndex[] = new int[]{ 2, 3, 4 };
 		int offset[] = new int[]{ 1, 1, 1 };
@@ -248,7 +244,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void callAllSingleArgument() throws Exception {
+	public void callAllSingleArgument() {
 
 		// no exceptions should be thrown
 		
@@ -258,7 +254,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
-	public void callAllMultipleArgument() throws Exception {
+	public void callAllMultipleArgument() {
 
 		// there will be 334 Places for the first thread to service, need 334 Objects for callAll
 		Object[] arguments = new Object[ 334 ];
@@ -278,6 +274,7 @@ public class PlacesBaseTest extends AbstractTest {
 	}
 
 	@Test
+	@Disabled  // no MATSIM test document included in test files
 	public void getXmlNodeCountCorrect() {
 		final String graphFilename = "../matsim/network-pt-simple.xml";
 

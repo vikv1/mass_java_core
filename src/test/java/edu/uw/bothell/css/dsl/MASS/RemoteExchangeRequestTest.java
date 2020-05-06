@@ -44,7 +44,7 @@ public class RemoteExchangeRequestTest extends AbstractTest {
 	private RemoteExchangeRequest remoteExchangeRequest;
 
 	@Test
-	public void testObjectConstruction() throws Exception {
+	public void testObjectConstruction() {
 		
 		int destIndex = randomInt();
 		int orgIndex = randomInt();
