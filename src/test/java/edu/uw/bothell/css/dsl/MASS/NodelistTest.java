@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -36,22 +36,21 @@ import static org.junit.Assert.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the Nodelist class to verify proper
  * and consistent behavior of the class / methods
  */
-@Category(IntegrationTest.class)
 public class NodelistTest extends AbstractTest {
 
 	// class under test
 	Nodelist nodelist = new Nodelist();
 	
 	@Test
-	public void getSetNodes() throws Exception {
+	public void getSetNodes() {
 		
 		// node collection should not start off NULL
 		assertNotNull( nodelist.getNodes() );
@@ -65,7 +64,8 @@ public class NodelistTest extends AbstractTest {
 	}
 
 	@Test
-	public void importNodesList() throws Exception {
+	@Disabled	// TODO - reenable once more testing in different environments shows this'll work
+	public void importNodesList() {
 		MASS.init();
 	}
 	

@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2017 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -43,8 +43,8 @@ import java.io.ObjectOutputStream;
 
 import org.easymock.Mock;
 import org.easymock.TestSubject;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the MNode class to verify proper
@@ -61,7 +61,7 @@ public class MNodeTest extends AbstractTest {
 	@Mock
 	private ObjectOutputStream mockObjectOutputStream;
 
-	@After
+	@AfterEach
 	public void tearDown() {
 
 		// reset test subject fields
@@ -90,7 +90,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetHostname() throws Exception {
+	public void getSetHostname() {
 		
 		String hostname = randomString();
 		
@@ -108,7 +108,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetJavaHome() throws Exception {
+	public void getSetJavaHome() {
 		
 		String home = randomString();
 		
@@ -126,7 +126,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetMassHome() throws Exception {
+	public void getSetMassHome() {
 		
 		String home = randomString();
 		
@@ -144,7 +144,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetPid() throws Exception {
+	public void getSetPid() {
 		
 		int pid = randomInt();
 		
@@ -163,7 +163,7 @@ public class MNodeTest extends AbstractTest {
 	
 
 	@Test
-	public void getSetPort() throws Exception {
+	public void getSetPort() {
 		
 		int port = randomInt();
 		
@@ -181,7 +181,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetPrivateKey() throws Exception {
+	public void getSetPrivateKey() {
 		
 		String key = randomString();
 		
@@ -199,7 +199,7 @@ public class MNodeTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetUserName() throws Exception {
+	public void getSetUserName() {
 		
 		String name = randomString();
 		
@@ -217,7 +217,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void initializeWithoutHostname() throws Exception {
+	public void initializeWithoutHostname() {
 
 		replayAll();
 
@@ -235,7 +235,7 @@ public class MNodeTest extends AbstractTest {
 	}
 	
 	@Test
-	public void initializeWithHostname() throws Exception {
+	public void initializeWithHostname() {
 
 		replayAll();
 
@@ -256,7 +256,7 @@ public class MNodeTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetMasterNodeStatus() throws Exception {
+	public void getSetMasterNodeStatus() {
 		
 		replayAll();
 		

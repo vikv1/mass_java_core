@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -34,8 +34,8 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.easymock.Mock;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
@@ -45,7 +45,7 @@ public class MASSTest extends AbstractTest {
 	private MNode mnode;
 	
 	@Test
-	public void getSetNumThreads() throws Exception {
+	public void getSetNumThreads() {
 
 		replayAll();
 
@@ -69,7 +69,7 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetDefaultUsername() throws Exception {
+	public void getSetDefaultUsername() {
 		
 		String newUsername = randomString();
 		String originalUsername = MASS.getDefaultUsername();
@@ -86,7 +86,7 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetNodeFilePath() throws Exception {
+	public void getSetNodeFilePath() {
 		
 		String newPath = randomString();
 		String originalPath = MASS.getNodeFilePath();
@@ -103,7 +103,7 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void setLoggingLevel() throws Exception {
+	public void setLoggingLevel() {
 
 		replayAll();
 
@@ -112,7 +112,7 @@ public class MASSTest extends AbstractTest {
 		
 	}
 	
-	@After
+	@AfterEach
 	public void afterEach() {
 		
 		// clean up MASSBase
@@ -121,7 +121,7 @@ public class MASSTest extends AbstractTest {
 	}
 	
 	@Test
-	public void barrierAllSlavesNoArgumentsNoAgents() throws Exception {
+	public void barrierAllSlavesNoArgumentsNoAgents() {
 
 		replayAll();
 
@@ -131,7 +131,7 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void barrierAllSlavesNoArgumentsWithAgents() throws Exception {
+	public void barrierAllSlavesNoArgumentsWithAgents() {
 
 		Message ack = new Message( Message.ACTION_TYPE.ACK );
 		
@@ -153,7 +153,7 @@ public class MASSTest extends AbstractTest {
 	}
 
 	@Test
-	public void barrierAllSlavesWithArgumentsWithAgents() throws Exception {
+	public void barrierAllSlavesWithArgumentsWithAgents() {
 
 		Message ack = new Message( Message.ACTION_TYPE.ACK, new String[]{ "arg1", "arg2" }, 0 );
 		
@@ -179,7 +179,7 @@ public class MASSTest extends AbstractTest {
 	}
 	
 	@Test
-	public void barrierAllSlavesAgentIDsOnly() throws Exception {
+	public void barrierAllSlavesAgentIDsOnly() {
 
 		Message ack = new Message( Message.ACTION_TYPE.ACK );
 		
@@ -197,8 +197,6 @@ public class MASSTest extends AbstractTest {
 		
 		MASS.barrierAllSlaves( null );
 		
-		
 	}
-
 
 }

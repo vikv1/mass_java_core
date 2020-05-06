@@ -68,7 +68,7 @@ public class MThreadTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetLock() throws Exception {
+	public void getSetLock() {
 
 		String lockObj = new String();
 		
@@ -79,7 +79,7 @@ public class MThreadTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetThreadCreated() throws Exception {
+	public void getSetThreadCreated() {
 
 		int newThreadNumber = randomInt();
 		
@@ -90,7 +90,7 @@ public class MThreadTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetAgentBagSize() throws Exception {
+	public void getSetAgentBagSize() {
 
 		int newSize = randomInt();
 		
