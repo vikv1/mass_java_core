@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -33,18 +33,18 @@ package edu.uw.bothell.css.dsl.MASS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the AgentsBase class to verify proper
  * and consistent behavior of the class / methods
  */
-@Ignore // Fails with parallel surefire
+//@Ignore
 public class AgentsBaseTest extends AbstractTest {
 
 	// class under test
@@ -55,7 +55,7 @@ public class AgentsBaseTest extends AbstractTest {
 	private static final int AGENTS_HANDLE = randomInt();
 	private Object originalMThreadLock;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void beforeAll() {
 
 		// force MASSBase to contain a single node
@@ -72,7 +72,7 @@ public class AgentsBaseTest extends AbstractTest {
 
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterAll() {
 		
 		// clean up MASSBase
@@ -80,7 +80,7 @@ public class AgentsBaseTest extends AbstractTest {
 		
 	}
 
-	@Before
+	@BeforeEach
 	public void onSetUp() {
 		
 		// MASSBase should be made ready for use before tests are run
@@ -100,7 +100,7 @@ public class AgentsBaseTest extends AbstractTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 
 		// reset MThread back to original state

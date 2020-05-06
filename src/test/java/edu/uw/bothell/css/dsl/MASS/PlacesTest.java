@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -32,9 +32,9 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the Places class to verify proper
@@ -42,7 +42,7 @@ import org.junit.Test;
  */
 public class PlacesTest extends AbstractTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeAll() {
 		
 		// MASSBase should be made ready for use before tests are run
@@ -74,7 +74,7 @@ public class PlacesTest extends AbstractTest {
 		
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterAll() {
 		
 		// clean up MASSBase

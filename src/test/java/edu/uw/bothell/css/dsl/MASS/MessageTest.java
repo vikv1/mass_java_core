@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -37,17 +37,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Vector;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the Message class to verify proper
  * and consistent behavior of the class / methods
  */
-@Category(IntegrationTest.class)
-@Ignore
 public class MessageTest extends AbstractTest {
 
 	@Test
