@@ -5,10 +5,8 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -470,15 +468,29 @@ public class GraphPlaces extends Places implements Graph {
         int nodeId = getNodeIdFromGlobalLinearIndex(nextPlaceIndex);
 
 
-        return addVertexPlace(getHosts().get(nodeId), vertexId);
+        return addVertexPlace(getHosts().get(nodeId), vertexId, null);
     }
 
-    private int addVertexPlace(String host, Object vertexId) {
+    @Override
+    public int addVertex(Object vertexId, Object vertexInitParam) {
+        if (MASS.distributed_map.containsKey(vertexId)) {
+            return -1;
+        }
+        
+        // Placement
+        int nodeId = getNodeIdFromGlobalLinearIndex(nextPlaceIndex);
+        
+        return addVertexPlace(getHosts().get(nodeId), vertexId, vertexInitParam);
+    }
+
+    private int addVertexPlace(String host, Object vertexId, Object vertexInitParam) {
         if (MASSBase.getMyHostname().equals(host)) {
-            return addPlaceLocally(vertexId);
+            return addPlaceLocally(vertexId, vertexInitParam);
         }
 
-        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, getHandle(), (Object) vertexId);
+        Object [] param = new Object[] { vertexId, vertexInitParam };
+        
+        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, getHandle(), param);
 
         Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
 
@@ -495,7 +507,7 @@ public class GraphPlaces extends Places implements Graph {
         return -1;
     }
 
-    public int addPlaceLocally(Object vertexId) {
+    public int addPlaceLocally(Object vertexId, Object vertexInitParam) {
         Log4J2Logger logger = MASSBase.getLogger();
 
         int [] placesIndex = getPlacesIndex();
@@ -515,7 +527,7 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         try {
-            VertexPlace newPlace = objectFactory.getInstance(getClassName(), null);
+            VertexPlace newPlace = objectFactory.getInstance(getClassName(), vertexInitParam);
 
             int globalIndex = getSize()[0] + chunkSize * MASS.getMyPid() + nextPlaceIndex;
 

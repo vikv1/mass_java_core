@@ -546,8 +546,8 @@ public class MProcess {
 				String errorMessage = "MAINTENANCE_ADD_PLACE [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]";
 
 				MASSBase.getLogger().error(errorMessage);
-
-				int result = ((GraphPlaces)places).addPlaceLocally((Integer)m.getArgument());
+				
+				int result = ((GraphPlaces)places).addPlaceLocally(((Object[])argument)[0], ((Object[])argument)[1]);
 
 				sendAck(result);
 
