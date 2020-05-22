@@ -518,7 +518,7 @@ public class GraphPlaces extends Places implements Graph {
 
         int upperBoundary = lowerBoundary + chunkSize;
 
-        if (placesVector.size() <= 0 || placesVector.size() < placesIndex[0]) {
+        if (placesVector.size() <= 0 || placesVector.size() - 1 < placesIndex[0]) {
             placesVector.add(new Vector<>(chunkSize));
         } else if (placesIndex[1] < lowerBoundary || placesIndex[1] >= upperBoundary) {
             logger.error("Place index outside of bounds: " + placesIndex[1]);

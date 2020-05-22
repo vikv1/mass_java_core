@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
@@ -820,8 +821,9 @@ public class AgentsBase {
 						}
 					}
 				} else {
-
-					MASS.getLogger().error(" to destination (" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "," + evaluationAgent.getIndex()[2] + ") invalid");
+				String destinationString = Arrays.stream(evaluationAgent.getIndex()).mapToObj(Integer::toString).collect(Collectors.joining(", "));
+    			
+					MASS.getLogger().error(" to destination (" + destinationString + ") invalid");
 
 				}
 			} // end of while( true )
