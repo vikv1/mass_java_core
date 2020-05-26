@@ -38,6 +38,9 @@ import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
  */
 public interface GlobalLogicalClock {
 
+	public static final int INHIBIT = -1;
+	public static final int RESUME = 0;
+	
 	/**
 	 * Initialize the clock and prepare it for operation
 	 * @param eventDispatcher The EventDispatcher that the clock will use to invoke annotated methods

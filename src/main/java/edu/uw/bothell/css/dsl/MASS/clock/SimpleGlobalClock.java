@@ -104,6 +104,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 		for ( Place place : MASSBase.getCurrentPlacesBase().getPlaces() ) {
 			for ( Agent agent : place.getAgents() ) {
 				
+				// nothing to do if this Agent wants to sleep
+				if ( agent.getInhibitUntil() > clockValue ) continue;
+				
 				// get "OnMessage" annotated method for this Agent (if there is one)
 				Method m = AnnotationProcessor.getAnnotatedMethod( Clocked.class, null, agent.getClass() );
 				

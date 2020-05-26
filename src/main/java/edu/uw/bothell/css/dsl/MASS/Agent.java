@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.util.Objects;
 
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
@@ -73,6 +74,12 @@ public class Agent implements Serializable {
 	 * Is an array of arguments, each passed to a different new child.
 	 */
 	private transient Object[] arguments = null;
+	
+	/**
+	 * For methods executed via the Global Logical Clock, inhibit until
+	 * the clock reaches this value
+	 */
+	private long inhibitUntil;
 
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
@@ -114,18 +121,16 @@ public class Agent implements Serializable {
 	}
 	
 	/**
-	 * Intended for subclasses of Agent to override - set debug data for this Agent
-	 * @param data Debug data
-	 */
-	public void setDebugData(Number data) {}
-
-	/**
 	 * Get the current location of this Agent, or prior to migration, the new location
 	 * where this Agent is to migrate to
 	 * @return The current or migration destination for this Agent
 	 */
 	public int[] getIndex() {
 		return index;
+	}
+
+	public long getInhibitUntil() {
+		return inhibitUntil;
 	}
 
 	/**
@@ -247,6 +252,13 @@ public class Agent implements Serializable {
 	}
 
 	/**
+	 * Resume clock-driven events (starting with the next clock cycle)
+	 */
+	public void resume() {
+		sleepUntil( GlobalLogicalClock.RESUME );
+	}
+
+	/**
 	 * Set the ID number for this Agent
 	 * @param agentId This Agent's new ID number
 	 */
@@ -264,6 +276,12 @@ public class Agent implements Serializable {
 //		
 //		this.index = index;
 //	}
+
+	/**
+	 * Intended for subclasses of Agent to override - set debug data for this Agent
+	 * @param data Debug data
+	 */
+	public void setDebugData(Number data) {}
 
 	/**
 	 * Set the number of new child Agents created
@@ -292,6 +310,21 @@ public class Agent implements Serializable {
 
 		}
 		
+	}
+	
+	/**
+	 * Pause clock-driven events indefinitely
+	 */
+	public void sleep() {
+		sleepUntil( GlobalLogicalClock.INHIBIT );
+	}
+
+	/**
+	 * Pause clock-driven events until the Global Logical Clock reaches this value
+	 * @param inhibitUntil The clock value that, when reached, will resume clocked method execution
+	 */
+	public void sleepUntil(long inhibitUntil) {
+		this.inhibitUntil = inhibitUntil;
 	}
 
 	/**
