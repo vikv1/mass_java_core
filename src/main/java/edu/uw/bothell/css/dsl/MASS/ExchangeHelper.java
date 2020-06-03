@@ -222,6 +222,21 @@ public class ExchangeHelper {
     }
 
     /**
+     * Send a Message to all remote nodes
+     * @param message The message to send to all remote nodes
+     */
+    public void broadcastMessage( Message message ) {
+    	
+    	// iterate through all nodes and send the message
+    	for ( int rank = 1; rank < MASSBase.getSystemSize(); rank ++ ) {
+    		
+    		sendMessage( rank, message );
+    		
+    	}
+    	
+    }
+    
+    /**
      * Send a Message to a peer
      * @param rank The rank ID of the node that will receive the Message
      * @param exchangeReq The Message to send to the peer
