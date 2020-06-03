@@ -42,6 +42,25 @@ public interface GlobalLogicalClock {
 	public static final int RESUME = 0;
 	
 	/**
+	 * Get the next value of the clock that will trigger event execution. This method allows for the "fast forward"
+	 * feature - if there are no events that will be triggered for the next several clock cycles, might as well
+	 * advance the clock to this next trigger value and continue from there.
+	 * @return The next clock cycle value that will trigger execution of a method
+	 */
+	public long getNextEventTrigger();
+	
+	/**
+	 * Get the current clock value
+	 * @return The current clock value
+	 */
+	public long getValue();
+	
+	/**
+	 * Increment the clock by one count
+	 */
+	public void increment();
+	
+	/**
 	 * Initialize the clock and prepare it for operation
 	 * @param eventDispatcher The EventDispatcher that the clock will use to invoke annotated methods
 	 */
@@ -53,20 +72,10 @@ public interface GlobalLogicalClock {
 	public void reset();
 	
 	/**
-	 * Increment the clock by one count
-	 */
-	public void increment();
-	
-	/**
-	 * Set the global clock to a specific count
+	 * Set the global clock to a specific count. Once the new clock value has been set the clock will
+	 * automatically invoke any methods that would be triggered on the new value
 	 * @param value The new clock value
 	 */
 	public void setValue( long value );
-	
-	/**
-	 * Get the current clock value
-	 * @return The current clock value
-	 */
-	public long getValue();
 	
 }

@@ -41,10 +41,18 @@ import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 
 public class SimpleGlobalClock implements GlobalLogicalClock {
 
-	private long clockValue = 0;
+	private long clockValue;	
+	
 	private EventDispatcher eventDispatcher = null;
-	
-	
+    
+    // the next most recent clock cycle that will trigger an event
+	// this allows for "fast forwarding" the clock value - it is
+	// possible to skip incrementing the clock when there are no
+	// events that will be triggered by those values. When this
+	// happens, simply advance the clock to the next event trigger
+	// and continue from there
+	private long nextClockTrigger;
+
 	/**
      * Initializes singleton.
      *
@@ -54,50 +62,14 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
     private static class SingletonHolder {
     	private static final SimpleGlobalClock INSTANCE = new SimpleGlobalClock();
     }
-    
-    /**
+	/**
      * Return this instance of this clock, which is effectively a Singleton
      * @return The single instance of this GlobalLogicalClock implementation
      */
     public static SimpleGlobalClock getInstance() {
     	return SingletonHolder.INSTANCE;
     }
-
-	@Override
-	public void reset() {
-		
-		clockValue = 0;
-		
-		// trigger method executions
-		execClockedAgentMethods();
-		
-	}
-
-	@Override
-	public void increment() {
-		
-		clockValue ++;
-		
-		// trigger method executions
-		execClockedAgentMethods();
-		
-	}
-
-	@Override
-	public void setValue( long value ) {
-		
-		clockValue = value;
-
-		// trigger method executions
-		execClockedAgentMethods();
-		
-	}
-
-	@Override
-	public long getValue() {
-		return clockValue;
-	}
-
+	
 	private void execClockedAgentMethods() {
 		
 		// iterate through all Agents to see if there is a method to execute
@@ -125,6 +97,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 						// queue this method for execution
 						execMethod = true;
 						
+						// this Agent will trigger again on the next cycle
+						nextClockTrigger = clockValue + 1;
+						
 					}
 					
 					// check for "onMultipleOf" match
@@ -135,6 +110,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 							
 							// is the current clock value a desired multiple?
 							if ( clockValue % multiple == 0 ) execMethod = true;
+							
+							// will this multiple trigger an execution earlier than the others?
+							if ( ( clockValue + multiple ) < nextClockTrigger )  nextClockTrigger = clockValue + multiple;
 					
 						}
 						
@@ -144,12 +122,13 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 					if ( execMethod == false && execValues.length > 0 ) {
 						
 						for ( long value : execValues ) {
+
+							// execute method if a specified value was reached
+							if ( value == clockValue ) execMethod = true;
 							
-							if ( value == clockValue ) {
-								execMethod = true;
-								break;
-							}
-							
+							// will this value occur before the next trigger?
+							if ( value > clockValue && value < nextClockTrigger ) nextClockTrigger = value;
+								
 						}
 						
 					}
@@ -169,8 +148,48 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 	}
 
 	@Override
+	public long getNextEventTrigger() {
+		return nextClockTrigger;
+	}
+
+	@Override
+	public long getValue() {
+		return clockValue;
+	}
+
+	@Override
+	public void increment() {
+		
+		clockValue ++;
+		
+		// trigger method executions
+		execClockedAgentMethods();
+		
+	}
+
+	@Override
 	public void init(EventDispatcher eventDispatcher) {
 		this.eventDispatcher = eventDispatcher;
+	}
+
+	@Override
+	public void reset() {
+		
+		clockValue = 0;
+		
+		// trigger method executions
+		execClockedAgentMethods();
+		
+	}
+
+	@Override
+	public void setValue( long value ) {
+		
+		clockValue = value;
+
+		// trigger method executions
+		execClockedAgentMethods();
+		
 	}
 	
 }

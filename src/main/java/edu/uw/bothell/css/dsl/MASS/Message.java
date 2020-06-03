@@ -84,7 +84,10 @@ public class Message implements Serializable {
         MAINTENANCE_REMOVE_EDGE("Maintenance.removeEdge"),
 
         // Re-Initialize
-        MAINTENANCE_REINITIALIZE("Maintenance.reinitialize")
+        MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
+
+        // Global Logical Clock commands
+        CLOCK_SET_VALUE
         
         ;
     	

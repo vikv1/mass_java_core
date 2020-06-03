@@ -841,6 +841,9 @@ public class AgentsBase {
     	MThread.barrierThreads( tid );
     	if ( tid == 0 ) {
 
+    		// remember the earliest clock cycle value on any node which will trigger an event
+    		long nextClockTrigger = Long.MAX_VALUE;
+    		
     		MASS.getLogger().debug( "tid[{}] now enters processAgentMigrationRequest", tid );
 
     		// the main thread spawns as many communication threads as the 
@@ -890,7 +893,12 @@ public class AgentsBase {
     			MASS.getLogger().debug( "Agents_base.manageAll joined " +
     						"processAgentMigrationRequest C thread[" +
     						rank + "] = " + thread_ref[rank] );
-    		
+
+    			// get the next clock value at which this remote node will trigger an event
+    			if ( thread_ref[ rank ].getNextEventTrigger() > 0 && thread_ref[ rank ].getNextEventTrigger() < nextClockTrigger ) {
+    				nextClockTrigger = thread_ref[ rank ].getNextEventTrigger();
+    			}
+    			
     		}
 
     		localPopulation = agents.size_unreduced( );
@@ -900,9 +908,26 @@ public class AgentsBase {
     		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
     		eventDispatcher.invokeQueuedAsync( OnArrival.class );
     		
-    		// increment Global Logical Clock value
-    		clock.increment();
+    		// what should the next value be for the Global Logical Clock?
+    		if ( nextClockTrigger > clock.getNextEventTrigger() ) nextClockTrigger = clock.getNextEventTrigger();
+    		if ( nextClockTrigger > ( clock.getValue() + 1 ) ) {
 
+    			// broadcast new value to all nodes
+    			Message m = new Message( Message.ACTION_TYPE.CLOCK_SET_VALUE, nextClockTrigger );
+    			MASS.getExchange().broadcastMessage( m );		
+    			
+    			// we can fast-forward to the next trigger (local)
+    			clock.setValue( nextClockTrigger );
+    			
+    		}
+    		
+    		else {
+    			
+        		// can't fast-forward - just increment Global Logical Clock value
+        		clock.increment();
+    			
+    		}
+    		
     		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	
     	}
@@ -943,6 +968,7 @@ public class AgentsBase {
     	private int destRank;
     	private int agentHandle;
     	private int placeHandle;
+    	private long nextClockTrigger;
 
     	public ProcessAgentMigrationRequest( int destRank, int agentHandle, int placeHandle ) {
     		this.destRank = destRank;
@@ -984,6 +1010,16 @@ public class AgentsBase {
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
     		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
+    		
+    		// what is the next clock value where an event will occur on that node?
+    		if ( messageFromSrc.getArgument() != null ) {
+    			
+    			// only if the argument returned is a long will we assume its the next trigger value
+    			if ( messageFromSrc.getArgument() instanceof Long ) {
+    				this.nextClockTrigger = (long) messageFromSrc.getArgument();
+    			}
+    			
+    		}
 
     		// process a message
     		Vector<AgentMigrationRequest> receivedRequest 
@@ -1068,7 +1104,15 @@ public class AgentsBase {
     					"] completed" );
     	
     	}
-    
+    	
+    	/**
+    	 * Get the next clock value at which an event will be triggered on this remote node
+    	 * @return The next value of the clock at which an event will occur
+    	 */
+    	public long getNextEventTrigger() {
+    		return this.nextClockTrigger;
+    	}
+    	
     }
 
 }

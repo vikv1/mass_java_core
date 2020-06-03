@@ -212,6 +212,8 @@ public class MProcess {
 	private void sendAck(int localPopulation) {
 
 		Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
+		
+		
 		MASSBase.getLogger().debug("msg.getAgentPopulation = {}", msg.getAgentPopulation());
 
 		sendMessage(msg);
@@ -274,7 +276,6 @@ public class MProcess {
 			switch ( m.getAction() ) {
 
 			// NOOPs
-			case AGENTS_MIGRATION_REMOTE_REQUEST:
 			case PLACES_EXCHANGE_ALL_REMOTE_REQUEST:
 			case PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
 			case PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST:
@@ -285,6 +286,25 @@ public class MProcess {
 				sendAck();
 				break;
 
+			case AGENTS_MIGRATION_REMOTE_REQUEST:
+				
+				// if the Global Logical Clock is active, return the next value at which an event will be triggered
+				if ( MASS.getGlobalClock() != null && MASS.getGlobalClock().getNextEventTrigger() > 0 ) {
+					Message msg = new Message(Message.ACTION_TYPE.ACK, Long.valueOf( MASS.getGlobalClock().getNextEventTrigger() ) );
+					sendMessage( msg);
+				}
+				
+				break;
+			
+			case CLOCK_SET_VALUE:
+				
+				// force the Global Logical Clock to a specific value
+				if ( MASS.getGlobalClock() != null && m.getArgument() != null && m.getArgument() instanceof Long ) {
+					MASS.getGlobalClock().setValue( ( long ) m.getArgument() );
+				}
+				
+				break;
+				
 			case EMPTY:
 				MASSBase.getLogger().debug("EMPTY received!!!!");
 				sendAck();
@@ -616,7 +636,7 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
 				break;
 
-			case MAINTENANCE_GET_PLACES: {
+			case MAINTENANCE_GET_PLACES:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -625,7 +645,7 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;
-			}
+			
 
 			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
 				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
