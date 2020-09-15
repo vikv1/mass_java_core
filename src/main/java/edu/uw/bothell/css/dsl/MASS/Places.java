@@ -32,6 +32,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Vector;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 /**
@@ -264,6 +265,12 @@ public class Places extends PlacesBase {
 		
 		// Synchronized with all slave processes
 		MASS.barrierAllSlaves( );
+
+		// transmit outgoing messages
+		MASS.getMessagingProvider().flushPlaceMessages();
+		  
+		// execute methods queued by incoming messages
+		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
     
     }
 

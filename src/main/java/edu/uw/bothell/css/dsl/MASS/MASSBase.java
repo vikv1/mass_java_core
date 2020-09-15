@@ -37,12 +37,17 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
+import edu.uw.bothell.css.dsl.MASS.clock.SimpleGlobalClock;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessenging;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -92,6 +97,15 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
+    
+    // event dispatcher for annotation-based event triggers
+    private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+    
+    // messaging
+    private static MASSMessenging messenger = MASSMessenging.getInstance();
+    
+    // global logical clock
+    private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
 
 	/**
      * Add a new node to the cluster
@@ -719,4 +733,29 @@ public class MASSBase {
 	public static void reinitializeMap() {
 		initDistributedData();
 	}
+
+	/**
+	 * Get the event dispatcher currently in use
+	 * @return The event dispatcher currently being used
+	 */
+	public static EventDispatcher getEventDispatcher() {
+		return eventDispatcher;
+	}
+	
+	/**
+	 * Get the messaging provider currently in use
+	 * @return The messaging provider currently being used
+	 */
+	public static MASSMessenging getMessagingProvider() {
+		return messenger;
+	}
+	
+	/**
+	 * Get the instance of the Global Logical Clock
+	 * @return The Global Logical Clock currently in use
+	 */
+	protected static GlobalLogicalClock getGlobalClock() {
+		return clock;
+	}
+
 }

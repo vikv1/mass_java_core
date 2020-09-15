@@ -64,6 +64,7 @@ public class Message implements Serializable {
         AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
         AGENTS_MANAGE_ALL,                        // 15            
         AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
+		AGENTS_EXCHANGE_ALL,					  // 17
 
 
 		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),
@@ -82,9 +83,12 @@ public class Message implements Serializable {
         MAINTENANCE_REMOVE_PLACE("Maintenance.removePlace"),
         MAINTENANCE_REMOVE_EDGE("Maintenance.removeEdge"),
 
-
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
+
+        // Global Logical Clock commands
+        CLOCK_SET_VALUE
+        
         ;
     	
     	private final String value;

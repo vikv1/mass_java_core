@@ -51,6 +51,8 @@ import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
 import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -58,6 +60,9 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
  */
 public class MASS extends MASSBase {
 
+	// A reference to the event dispatcher, primarily for status and shutdown
+	private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+	
     // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
     public static final int LOCK_TIMEOUT = 0;
 
@@ -188,6 +193,12 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
+    	// shutdown the event dispatcher
+    	eventDispatcher.shutdown();
+    	
+    	// shutdown messaging system
+    	MASS.getMessagingProvider().shutdown();
+    	
     	MASS.getLogger().debug( "MASS::finish: done" );
 
     }
@@ -385,6 +396,12 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
+    	// initialize the messaging system
+    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	
+    	// initialize the global clock
+    	MASS.getGlobalClock().init( eventDispatcher );
+    	
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -401,6 +418,7 @@ public class MASS extends MASSBase {
     			System.exit( -1 );
     		}
     	}
+    	
     	System.err.println( "MASS.init: done" );
     }
 
@@ -496,7 +514,7 @@ public class MASS extends MASSBase {
 		
 	}
 
-  /**
+	/**
 	 * Change logger level
 	 * @param level The logging level
 	 */
@@ -712,6 +730,15 @@ public class MASS extends MASSBase {
 		} catch ( IOException e ) {
 			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
 		}
+		
+	}
+
+	public static void resetClock() {
+		getGlobalClock().reset();
+	}
+
+	public static long getClockValue() {
+		return getGlobalClock().getValue();
 	}
 
 }

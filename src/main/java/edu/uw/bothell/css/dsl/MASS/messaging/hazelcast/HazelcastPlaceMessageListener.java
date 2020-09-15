@@ -28,21 +28,35 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.annotations;
+package edu.uw.bothell.css.dsl.MASS.messaging.hazelcast;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.io.Serializable;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import com.hazelcast.core.Message;
+import com.hazelcast.core.MessageListener;
+
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 
 /**
- * OnDeparture specifies a method that will be called by:
- * Agent: before migration to a new Place
- * Place: after Agent has been associated with a new Place
+ *  HazelcastAgentMessageListener is an adapter between MASS messaging and Hazelcast messaging for Places.
  */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface OnDeparture {
+public class HazelcastPlaceMessageListener implements MessageListener< MASSMessage< Serializable > > {
+
+	private Place place;
+
+	public HazelcastPlaceMessageListener( Place place ) {
+		this.place = place;
+	}
+
+	@Override
+	public void onMessage( Message< MASSMessage< Serializable > > message ) {
+
+		// place the method in the event queue for execution at the appropriate time
+		MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessageObject() );
+		
+	}
 
 }

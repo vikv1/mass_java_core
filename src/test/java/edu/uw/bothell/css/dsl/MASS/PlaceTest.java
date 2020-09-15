@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -37,27 +37,21 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Vector;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import org.junit.experimental.categories.Category;
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the Place class to verify proper
  * and consistent behavior of the class / methods
  */
-@Category(IntegrationTest.class)
-@Ignore // using some ip that my machine doesn't know about
 public class PlaceTest extends AbstractTest {
 
 	// class under test
 	Place place = new Place();
 	
-	@Before
+	@BeforeEach
 	public void onSetUp() {
 		
 		// MASSBase should be made ready for use before tests are run
@@ -71,7 +65,7 @@ public class PlaceTest extends AbstractTest {
 
 	}
 	
-	@After
+	@AfterEach
 	public void onTearDown() {
 		
 		// reset Agents collection
@@ -86,7 +80,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void callMethod() throws Exception {
+	public void callMethod() {
 	
 		// always returns null!
 		assertNull( place.callMethod( 0, new String() ) );
@@ -94,7 +88,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getNumAgents() throws Exception {
+	public void getNumAgents() {
 		
 		place.getAgents().add( new Agent() );
 		
@@ -103,7 +97,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetDebugData() throws Exception {
+	public void getSetDebugData() {
 		
 		// intended to be overridden for debugging
 		assertNull( place.getDebugData() );
@@ -115,7 +109,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetIndex() throws Exception {
+	public void getSetIndex() {
 
 		int[] index = new int[]{ 42, 88, 89 };
 
@@ -129,7 +123,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetInMessages() throws Exception {
+	public void getSetInMessages() {
 
 		Object[] messages = new Object[]{ new Message() };
 
@@ -140,7 +134,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetNeighbors() throws Exception {
+	public void getSetNeighbors() {
 
 		Vector<int[]> neighbors = new Vector<>();
 		neighbors.add( new int[]{ 42, 88, 89 } );
@@ -152,7 +146,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetOutMessages() throws Exception {
+	public void getSetOutMessages() {
 
 		Object message = new Object();
 
@@ -163,7 +157,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetSize() throws Exception {
+	public void getSetSize() {
 
 		int[] size = new int[]{ 1, 1, 1 };
 
@@ -176,7 +170,7 @@ public class PlaceTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetVisited() throws Exception {
+	public void getSetVisited() {
 
 		place.setVisited( true );
 		
@@ -185,7 +179,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getOutMessage() throws Exception {
+	public void getOutMessage() {
 
 		// matrix dimensions
 		int[] size = new int[]{ 1, 1, 1 };
@@ -214,7 +208,7 @@ public class PlaceTest extends AbstractTest {
 	}
 	
 	@Test
-	public void putInMessage() throws Exception {
+	public void putInMessage() {
 
 		// need to force MASSBase to contain a single node for this test
 		MNode masterNode = new MNode();
@@ -250,7 +244,7 @@ public class PlaceTest extends AbstractTest {
 		
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterAll() {
 		
 		// clean up MASSBase

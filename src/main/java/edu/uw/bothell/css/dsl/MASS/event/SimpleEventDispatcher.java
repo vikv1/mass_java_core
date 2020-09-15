@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2019 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -34,7 +34,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,27 +41,36 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
+
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.annotations.AnnotationProcessor;
 
 
 /**
  * 
- * This implementation of the Singleton pattern is based on the sample code provided here:
- * https://en.wikipedia.org/wiki/Singleton_pattern
+ * SimpleEventDispatcher is a simple implementation of an EventDispatcher
  *
  */
 public class SimpleEventDispatcher implements EventDispatcher {
 
-	public static final int DEFAULT_MAX_ASYNC_THREADS = 8;
+	public static final int DEFAULT_MAX_ASYNC_THREADS = Runtime.getRuntime().availableProcessors();
+	private static final int SHUTDOWN_TIMEOUT_MS = 2000; 
 	
 	ExecutorService executorService = Executors.newFixedThreadPool( DEFAULT_MAX_ASYNC_THREADS );
 	
 	// collection of queues, one for each event annotation 
 	private Map<Class<? extends Annotation>, Queue<QueueMethod>> eventQueues = new HashMap<>();
+	
+	// Cache of Class, Event, and Methods
+	private MultiKeyMap<Class<?>, Method> methodCache = new MultiKeyMap<>();
 
 	/**
      * Initializes singleton.
@@ -82,33 +90,30 @@ public class SimpleEventDispatcher implements EventDispatcher {
     	return SingletonHolder.INSTANCE;
     }
 
-	private Method getEventMethod( Class<? extends Annotation> eventAnnotation, @SuppressWarnings("rawtypes") Class clazz ) {
+	private Method getEventMethod( Class< ? extends Annotation > eventAnnotation, Class< ? > clazz ) {
 
-		Objects.requireNonNull(eventAnnotation, "Must provide an event annotation!");
-		Objects.requireNonNull(clazz, "Must provide a source class!");
+		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
+		Objects.requireNonNull( clazz, "Must provide a source class!" );
 		
-		// get all public methods exposed by this class
-		final List<Method> allMethods = new ArrayList<Method>( Arrays.asList( clazz.getDeclaredMethods() ) );
-
-		// find requested annotated method
-		for ( final Method method : allMethods ) {
-            
-			if ( method.isAnnotationPresent( eventAnnotation ) ) {
-
-				// return the method
-				return method;
-				
-            }
-			
-		}
+		// check cache for the method
+		Method m = methodCache.get( clazz, eventAnnotation );
+		if ( m != null ) return m;
 		
-		// method not found
-		return null;
-	
+		// this happens if there is no annotation for this event, but an attempt was made to discover it
+		if ( methodCache.containsKey(clazz, eventAnnotation)) return null;
+		
+		// get the annotated method (if present - if not, a NULL will be cached for this event method)
+		m = AnnotationProcessor.getAnnotatedMethod(eventAnnotation, null, clazz);
+		
+		// cache the method for quicker retrieval later
+		methodCache.put( clazz, eventAnnotation, m );
+
+		return m;
+
 	}
 
 	@Override
-	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object, Object... arguments ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -120,12 +125,12 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		if ( method == null ) return;
 
 		// invoke the method immediately
-		method.invoke( object );
+		method.invoke( object, arguments );
 		
 	}
 
 	@Override
-	public void invokeAsync( Class<? extends Annotation> eventAnnotation, Object object ) throws IllegalArgumentException {
+	public void invokeAsync( Class< ? extends Annotation > eventAnnotation, Object object, Object... arguments ) throws IllegalArgumentException {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -137,16 +142,16 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		if ( method == null ) return;
 
 		// ExecutorService will execute this method when possible
-		CompletableFuture future = CompletableFuture.runAsync( () -> { 
+		CompletableFuture.runAsync( () -> { 
 			
 			try {
 			
-				method.invoke( object );
+				method.invoke( object, arguments );
 		
 			} 
 		
-			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				MASS.getLogger().error("Exception generated when executing async event!", e);
+			catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
+				MASS.getLogger().error( "Exception generated when executing async event!", e );
 			} 
 		
 		}, executorService );
@@ -154,7 +159,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 	}
 
 	@Override
-	public void queueAsync(Class<? extends Annotation> eventAnnotation, Object object) {
+	public void queueAsync( Class< ? extends Annotation > eventAnnotation, Object object, Object ... arguments ) {
 
 		Objects.requireNonNull( eventAnnotation, "Must provide an event annotation!" );
 		Objects.requireNonNull( object, "Must provide a target Object!" );
@@ -175,7 +180,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		}
 		
 		// build a QueueMethod and add to the queue
-		eventQueue.add( new QueueMethod( method, object ) );
+		eventQueue.add( new QueueMethod( method, object, arguments ) );
 		
 	}
 	
@@ -183,11 +188,13 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		
 		private Method methodToInvoke;
 		private Object targetObject;
+		private Object[] arguments;
 		
-		public QueueMethod( Method methodToInvoke, Object targetObject ) {
+		public QueueMethod( Method methodToInvoke, Object targetObject, Object ... arguments ) {
 			
 			this.methodToInvoke = methodToInvoke;
 			this.targetObject = targetObject;
+			this.arguments = arguments;
 			
 		}
 
@@ -199,10 +206,14 @@ public class SimpleEventDispatcher implements EventDispatcher {
 			return targetObject;
 		}
 		
+		public Object[] getArguments() {
+			return arguments;
+		}
+		
 	}
 
 	@Override
-	public void invokeQueuedAsync( Class<? extends Annotation> eventAnnotation ) {
+	public void invokeQueuedAsync( Class< ? extends Annotation > eventAnnotation ) {
 		
 		// get the queue associated with this event
 		Queue< QueueMethod > eventQueue = eventQueues.get( eventAnnotation );
@@ -211,43 +222,66 @@ public class SimpleEventDispatcher implements EventDispatcher {
 		if ( eventQueue == null ) return;
 		
 		// for each Method in the queue, attempt to invoke asynchronously
-//		Stream.generate(eventQueue::poll).limit(eventQueue.size()).forEach( m -> { CompletableFuture future = CompletableFuture.runAsync( () -> { 
-//			
-//			try {
-//			
-//				m.getMethod().invoke( m.getObject() );
-//		
-//			} 
-//		
-//			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-//			
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//		
-//			} 
-//		
-//			}, executorService ); }
-//                              
-//		);
-
-		// synchronous invocation for now, until threading problems sorted out
-		// when moving to Java 9 can use ".takeWhile(Objects::nonNull)" rather than "limit"
-		Stream.generate(eventQueue::poll).limit(eventQueue.size()).forEach( m -> { 
-
-			try {
-
-				m.getMethod().invoke( m.getObject() );
-
-			} 
-
-			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				MASS.getLogger().error("Exception caught during async event invocation!", e);
-			} 
-
-		}
-
+		List< Future< ? > > futures = new ArrayList<>( );
+		Stream.generate( eventQueue::poll ).takeWhile( Objects::nonNull ).forEach( m -> { futures.add( executorService.submit( () -> { 
+			
+				try {
+				
+					m.getMethod().invoke( m.getObject(), m.getArguments() );
+			
+				} 
+			
+				catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
+				
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+			
+				} 
+		
+			}
+                              
+				) );
+		
+			}
+		
 		);
+		
+		// check for completion of each task
+		for( Future<  ? > f: futures) { try {
+			f.get();
+		} catch ( InterruptedException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch ( ExecutionException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} }
+		
+	}
 
+	@Override
+	public void shutdown() {
+		
+		// stop the executor normally
+		executorService.shutdown();
+		
+		try {
+		    
+			// await a normal shutdown
+			if ( !executorService.awaitTermination( SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS ) ) {
+		        
+				// timeout - shutdown NOW!
+				executorService.shutdownNow();
+		    
+			} 
+		
+		} catch ( InterruptedException e ) {
+		   
+			// there was a problem encountered during shutdown, terminate NOW
+			executorService.shutdownNow();
+		
+		}
+		
 	}
 
 }

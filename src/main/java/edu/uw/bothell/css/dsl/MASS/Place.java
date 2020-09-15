@@ -455,7 +455,7 @@ public class Place implements Serializable {
 	private Place findDstPlace( int handle, int offset[] ) {
 
 		// Compute the global linear index from offset[]
-		PlacesBase places = MASSBase.getPlacesMap().get( new Integer( handle ) );
+		PlacesBase places = MASSBase.getPlacesMap().get( handle );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
 				neighborCoord );

@@ -28,21 +28,32 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.annotations;
+package edu.uw.bothell.css.dsl.MASS.messaging;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.io.Serializable;
 
 /**
- * OnDeparture specifies a method that will be called by:
- * Agent: before migration to a new Place
- * Place: after Agent has been associated with a new Place
+ * MASSMessage encapsulates all information needed by a message provider implementation to actually send a
+ * message to destination Nodes, Places, or Agents
  */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface OnDeparture {
+public class MASSMessage< T extends Serializable > {
 
+	private int destinationAddress;
+	private T message;
+	
+	public MASSMessage( int destinationAddress, T message ) {
+	
+		this.destinationAddress = destinationAddress;
+		this.message = message;
+		
+	}
+	
+	public int getDestinationAddress() {
+		return destinationAddress;
+	}
+	
+	public T getMessage() {
+		return message;
+	}
+	
 }

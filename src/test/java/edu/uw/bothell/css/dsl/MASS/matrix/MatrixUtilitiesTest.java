@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -32,7 +32,7 @@ package edu.uw.bothell.css.dsl.MASS.matrix;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import edu.uw.bothell.css.dsl.MASS.AbstractTest;
 
@@ -43,7 +43,7 @@ import edu.uw.bothell.css.dsl.MASS.AbstractTest;
 public class MatrixUtilitiesTest extends AbstractTest {
 
 	@Test
-	public void getMatrixSizeBadArrays() throws Exception {
+	public void getMatrixSizeBadArrays() {
 		
 		// should not result in an Exception
 		assertEquals( 0, MatrixUtilities.getMatrixSize( null ) );
@@ -52,7 +52,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getMatrixSize() throws Exception {
+	public void getMatrixSize() {
 		
 		// single dimension
 		assertEquals( 1, MatrixUtilities.getMatrixSize( new int[]{ 1 } ) );
@@ -64,7 +64,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getLinearIndexBadArrays() throws Exception {
+	public void getLinearIndexBadArrays() {
 		
 		// mismatched sizes or null arrays should return min integer value
 		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( null, null ) );
@@ -76,7 +76,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 
 	@Test
-	public void getLinearIndex() throws Exception {
+	public void getLinearIndex() {
 		
 		// one-dimensional matrix, first element, index should be zero
 		assertEquals( 0, MatrixUtilities.getLinearIndex( new int[]{ 1 }, new int[]{ 0 } ) );
@@ -123,7 +123,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 
 	@Test
-	public void getIndex() throws Exception {
+	public void getIndex() {
 		
 		// an index at zero in all dimensions is the first linear index
 		int[] firstElement = MatrixUtilities.getIndex( new int[]{ 10, 10, 10 }, 0 );
@@ -158,7 +158,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 
 	@Test
-	public void checkLinearSpaceConversion() throws Exception {
+	public void checkLinearSpaceConversion() {
 	
 		int[] matrix = new int[]{ 10, 10, 10 };
 		
@@ -179,7 +179,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 
 	@Test
-	public void sumArrayElements() throws Exception {
+	public void sumArrayElements() {
 		
 		// should not result in an Exception
 		assertEquals( 0, MatrixUtilities.sumArrayElements( null ) );
@@ -191,7 +191,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getRankFromGlobalLinearIndexSingleNode() throws Exception {
+	public void getRankFromGlobalLinearIndexSingleNode() {
 
 		// test matrix of 27 places
 		int matrix[] = new int[]{ 3, 3, 3 };
@@ -204,7 +204,7 @@ public class MatrixUtilitiesTest extends AbstractTest {
 	}
 
 	@Test
-	public void getRankFromGlobalLinearIndexMultipleNodes() throws Exception {
+	public void getRankFromGlobalLinearIndexMultipleNodes() {
 
 		// test matrix of 27 places
 		int matrix[] = new int[]{ 3, 3, 3 };

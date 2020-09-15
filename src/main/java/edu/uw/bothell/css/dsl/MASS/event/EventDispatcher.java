@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2019 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -43,20 +43,22 @@ public interface EventDispatcher {
 	 * Immediately (synchronous) execute a method
 	 * @param eventAnnotation The annotation associated with the event method to execute
 	 * @param object The target object the method will be invoked against
+	 * @param arguments Arguments to supply to the method being invoked
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException;
-	
+	public void invokeImmediate( Class<? extends Annotation> eventAnnotation, Object object, Object ... arguments ) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException;
+
 	/**
 	 * Asynchronously execute a method
 	 * @param eventAnnotation The annotation associated with the event method to execute
 	 * @param object The target object the method will be invoked against
+	 * @param arguments Arguments to supply to the method being invoked
 	 * @throws IllegalArgumentException
 	 */
-	public void invokeAsync( Class<? extends Annotation> eventAnnotation, Object object ) throws IllegalArgumentException;
-	
+	public void invokeAsync( Class<? extends Annotation> eventAnnotation, Object object, Object ... arguments ) throws IllegalArgumentException;
+
 	/**
 	 * Invoke all queued asynchronous methods
 	 * @param eventAnnotation
@@ -68,7 +70,13 @@ public interface EventDispatcher {
 	 * parallel execution of all methods in the queue.
 	 * @param eventAnnotation The annotation associated with the event method to execute
 	 * @param object The target object the method will be invoked against
+	 * @param arguments Arguments to supply to the method being invoked
 	 */
-	public void queueAsync( Class<? extends Annotation> eventAnnotation, Object object );
-
+	public void queueAsync( Class<? extends Annotation> eventAnnotation, Object object, Object ... arguments );
+	
+	/**
+	 * Signal the dispatcher to complete any outstanding tasks and perform an orderly shutdown
+	 */
+	public void shutdown();
+	
 }

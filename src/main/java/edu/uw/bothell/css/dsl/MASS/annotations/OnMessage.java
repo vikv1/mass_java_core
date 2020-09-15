@@ -37,12 +37,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * OnDeparture specifies a method that will be called by:
- * Agent: before migration to a new Place
- * Place: after Agent has been associated with a new Place
+ * OnMessage specifies a method that will be called when either a Place or Agent receives a Message
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface OnDeparture {
+public @interface OnMessage {
 
+	public Class messageClass() default void.class;
+		
 }

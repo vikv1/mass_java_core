@@ -139,6 +139,7 @@ public class MNode {
 	 * Set the port number used to communicate with this node, for inter-node socket communications
 	 * @return The port number
 	 */
+	@XmlElement(name = "port")
 	public int getPort() {
 		return port;
 	}

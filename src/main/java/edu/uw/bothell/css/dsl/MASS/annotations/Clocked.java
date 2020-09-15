@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2019 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2019 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -37,12 +37,24 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * OnDeparture specifies a method that will be called by:
- * Agent: before migration to a new Place
- * Place: after Agent has been associated with a new Place
+ * Clocked specifies a method that will be invoked by the Global Logical Clock
+ * 
+ * Unless otherwise specified, this method will be invoked on every cycle of the Global Clock.
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface OnDeparture {
+public @interface Clocked {
 
+	/**
+	 * Specifies on which clock values the method will be invoked
+	 * @return On which clock tick values the method will be invoked
+	 */
+	long[] onValuesOf() default {};
+
+	/**
+	 * Specifies on which multiples of the clock value the method will be invoked
+	 * @return The multiples of the clock value that will trigger method execution
+	 */
+	int[] onMultiplesOf() default { 1 };
+	
 }

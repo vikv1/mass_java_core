@@ -183,6 +183,12 @@ public class MProcess {
 
 		}
 
+    	// initialize the messaging system
+    	MASS.getMessagingProvider().init( null, null );
+    	
+    	// initialize the global clock
+    	MASS.getGlobalClock().init( MASS.getEventDispatcher() );
+
 	}
 
 	private Message receiveMessage() {
@@ -206,6 +212,8 @@ public class MProcess {
 	private void sendAck(int localPopulation) {
 
 		Message msg = new Message(Message.ACTION_TYPE.ACK, localPopulation);
+		
+		
 		MASSBase.getLogger().debug("msg.getAgentPopulation = {}", msg.getAgentPopulation());
 
 		sendMessage(msg);
@@ -268,7 +276,6 @@ public class MProcess {
 			switch ( m.getAction() ) {
 
 			// NOOPs
-			case AGENTS_MIGRATION_REMOTE_REQUEST:
 			case PLACES_EXCHANGE_ALL_REMOTE_REQUEST:
 			case PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
 			case PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST:
@@ -279,19 +286,44 @@ public class MProcess {
 				sendAck();
 				break;
 
+			case AGENTS_MIGRATION_REMOTE_REQUEST:
+				
+				// if the Global Logical Clock is active, return the next value at which an event will be triggered
+				if ( MASS.getGlobalClock() != null && MASS.getGlobalClock().getNextEventTrigger() > 0 ) {
+					Message msg = new Message(Message.ACTION_TYPE.ACK, Long.valueOf( MASS.getGlobalClock().getNextEventTrigger() ) );
+					sendMessage( msg);
+				}
+				
+				break;
+			
+			case CLOCK_SET_VALUE:
+				
+				// force the Global Logical Clock to a specific value
+				if ( MASS.getGlobalClock() != null && m.getArgument() != null && m.getArgument() instanceof Long ) {
+					MASS.getGlobalClock().setValue( ( long ) m.getArgument() );
+				}
+				
+				break;
+				
 			case EMPTY:
 				MASSBase.getLogger().debug("EMPTY received!!!!");
 				sendAck();
 				break;
 
 			case FINISH:
+
+				// shutdown messaging system
+		    	MASS.getMessagingProvider().shutdown();
+
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_TERMINATE);
+				
 				// confirm all threads are done with finish
 				MThread.barrierThreads(0);
 				MASSBase.getExchange().terminateConnection(this.myPid);
 				sendAck();
 				alive = false;
 				MASSBase.getLogger().debug("FINISH received and ACK sent");
+
 				break;
 
 			case PLACES_INITIALIZE:
@@ -471,10 +503,10 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
-				MASSBase.setCurrentFunctionId(m.getFunctionId());
-				MASSBase.setCurrentArgument(argument);
-				MASSBase.setCurrentMsgType(m.getAction());
+				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
+				MASSBase.setCurrentFunctionId( m.getFunctionId() );
+				MASSBase.setCurrentArgument( argument );
+				MASSBase.setCurrentMsgType( m.getAction() );
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
@@ -495,11 +527,11 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_RETURN_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
-				MASSBase.setCurrentFunctionId(m.getFunctionId());
-				MASSBase.setCurrentArgument(argument);
-				MASSBase.setCurrentMsgType(m.getAction());
-				MASSBase.setCurrentReturns(new Object[MASSBase.getCurrentAgentsBase().getLocalPopulation()]);
+				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
+				MASSBase.setCurrentFunctionId( m.getFunctionId() );
+				MASSBase.setCurrentArgument( argument );
+				MASSBase.setCurrentMsgType( m.getAction() );
+				MASSBase.setCurrentReturns( new Object[ MASSBase.getCurrentAgentsBase().getLocalPopulation() ] );
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
@@ -543,6 +575,16 @@ public class MProcess {
 
 				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
+				break;
+				
+			case AGENTS_EXCHANGE_ALL:
+				
+				MASSBase.getLogger().debug("AGENTS_EXCHANGE_ALL received");
+				
+				MASSBase.getCurrentAgentsBase().exchangeAll();
+				MThread.barrierThreads(0);
+				sendAck();
+				
 				break;
 
 			case MAINTENANCE_ADD_PLACE:
@@ -601,7 +643,7 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
 				break;
 
-			case MAINTENANCE_GET_PLACES: {
+			case MAINTENANCE_GET_PLACES:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -610,7 +652,7 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;
-			}
+			
 
 			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
 				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
