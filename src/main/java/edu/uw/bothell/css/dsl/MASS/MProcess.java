@@ -313,15 +313,17 @@ public class MProcess {
 			case PLACES_INITIALIZE_GRAPH:
 
 				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
+				if (argument instanceof Integer) {
+					places = new GraphPlaces(m.getHandle(), m.getClassname(), (Integer)argument, true);
+				}else{
+					// Graph initialization arguments
+					String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
 
-				// Graph initialization arguments
-				String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
+					Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
 
-				Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
-
-				//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
-				places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
-
+					//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
+					places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
+				}
 				// establish all inter-node connections within setHosts( )
 				MASSBase.setHosts( m.getHosts() );
 				MASSBase.getPlacesMap().put( m.getHandle(), places );
@@ -511,7 +513,12 @@ public class MProcess {
 				// return objects
 				MThread.barrierThreads(0);
 				MASSBase.getLogger().debug("barrier done");
-
+				MASSBase.getLogger().debug("MASSBase.getCurrentReturns()" + MASSBase.getCurrentReturns().length);
+				for(Object aObject :  MASSBase.getCurrentReturns()){
+					MASSBase.getLogger().debug("aObject: " + aObject);
+				}
+				MASSBase.getLogger().debug(" MASSBase.getCurrentAgentsBase().getLocalPopulation()" +  MASSBase.getCurrentAgentsBase().getLocalPopulation() );
+				
 				sendReturnValues(MASSBase.getCurrentReturns(), MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
 				break;
@@ -548,10 +555,10 @@ public class MProcess {
 				MASSBase.getLogger().error(errorMessage);
 				
 				int result = ((GraphPlaces)places).addPlaceLocally(((Object[])argument)[0], ((Object[])argument)[1]);
-
+				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed result: " + result);
 				sendAck(result);
 
-				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed");
+			
 				break;
 
 			case MAINTENANCE_ADD_EDGE:

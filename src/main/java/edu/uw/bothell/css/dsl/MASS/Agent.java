@@ -183,26 +183,26 @@ public class Agent implements Serializable {
 	  * @param initPopulation
 	  * @param size
 	  * @param index
+	  * @param offset
 	  */	
-	public int map( int initPopulation, int[] size, int[] index ) {
+	public int map( int initPopulation, int[] size, int[] index, int offset ) {
 
 		// compute the total # places
 		int placeTotal = MatrixUtilities.getMatrixSize( size );
-		
 		// compute the global linear index
 		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
-
+		MASSBase.getLogger().debug(offset +" :1 " + linearIndex);
 		if (place != null && VertexPlace.class.isAssignableFrom(place.getClass())) {
-			linearIndex = index[0];
+			linearIndex = index[0] - offset * MASS.getSystemSize(); // added (offset * MASS.getSystemSize()) due to empty graph not utilzing 0- size
 		}
-
+		
 		// compute #agents per place a.k.a. colonists
 		int colonists = initPopulation / placeTotal;
 		int remainders = initPopulation % placeTotal;
+		
 		if ( linearIndex < remainders ) colonists++; // add a remainder
-
+		
 		return colonists;
-
 	}
 
 	/**

@@ -142,6 +142,10 @@ public class PlacesBase {
 		init_all_graph(graphArgs, initArgs);
 	}
 
+	protected PlacesBase(int handle, String className) {
+		this.handle = handle;
+		this.className = className;
+	}
 	private class ExchangeBoundary_helper extends Thread {
 
     	int direction;

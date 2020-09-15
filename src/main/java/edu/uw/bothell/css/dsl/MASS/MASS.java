@@ -34,16 +34,23 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import edu.uw.bothell.css.dsl.MASS.MassData.AgentData;
+import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
+import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
+import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
+import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -127,14 +134,15 @@ public class MASS extends MASSBase {
     				System.arraycopy( m.getArgument( ), 0,
     								  returnValues, stripe * ( i + 1 ),
     								  copyLength );
-    				}
+    			}
+					
     				if ( stripe == 0 && localAgents != null ) {
     					// agents.callAll( ) with return values
     					System.arraycopy( m.getArgument( ), 0,
     									  returnValues, nAgentsSoFar,
     									  localAgents[i + 1] );
     				}
-    			}
+    		}
 
     		// retrieve agent population from each Mprocess
     		MASS.getLogger().debug( "localAgents[" + (i + 1) +
@@ -165,10 +173,11 @@ public class MASS extends MASSBase {
     	MThread.barrierThreads( 0 );
 
     	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
-
+		System.out.println("finsh");
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
-    		// Send a finish messages
+			// Send a finish messages
+			System.out.print(node.getHostName());
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
     	}
@@ -507,5 +516,202 @@ public class MASS extends MASSBase {
 	private static Socket client;
 	private static int placesHandle = 0;
 	static int agentsHandle = 0;
+	
+	public static void debugInit( int pHandle, int aHandle, int port ) throws IOException {
+		
+		//TODO - get rid of all params
+		agentsHandle = aHandle;
+		placesHandle = pHandle;
+
+		//connect to GUI
+		socket = new ServerSocket( port );
+		client = socket.accept();
+		outputStream = new ObjectOutputStream( client.getOutputStream() );
+		inputStream = new ObjectInputStream( client.getInputStream() );
+
+		//completely unnecessary, don't remove though!
+		@SuppressWarnings("unused")
+		MASSRequest request;
+
+		try {
+			request = ( MASSRequest )inputStream.readObject();
+		} catch ( ClassNotFoundException e ) {
+			MASS.getLogger().error( "Class not found exception caught in debugInit!", e );
+		}
+		
+		//end completely unnecessary stuff
+
+		String placesName = null;
+		String agentsName = null;
+		Class<? extends Number> placeDataType = null;
+		Class<? extends Number> agentDataType = null;
+		boolean overloadsPlaceData = false;
+		boolean overloadsAgentData = false;
+		int x = 0;
+		int y = 0;
+		int numberOfAgents = 0;
+		
+		if( getPlaces( placesHandle ) != null ) {
+			x = MASS.getPlaces( placesHandle ).getSize()[0];
+			y = MASS.getPlaces( placesHandle ).getSize()[1];
+			placesName = MASS.getPlaces( placesHandle ).getPlaces()[0].getClass().getSimpleName();
+			overloadsPlaceData = ( MASS.getPlaces( placesHandle ).getPlaces()[0].getDebugData() != null );
+			if( overloadsPlaceData ) {
+				placeDataType = MASS.getPlaces( placesHandle ).getPlaces()[0].getDebugData().getClass();
+			}
+		}
+		
+		if( getAgents( aHandle ) != null ) {
+			numberOfAgents =  MASS.getAgents( aHandle ).getInitPopulation();
+			agentsName = MASS.getAgents( aHandle ).getAgents().get(0).getClass().getSimpleName();
+			overloadsAgentData = ( MASS.getAgents( aHandle ).getAgents().get(0).getDebugData() != null );
+			if( overloadsAgentData ) {
+				agentDataType = MASS.getAgents( aHandle ).getAgents().get(0).getDebugData().getClass();
+			}
+		}
+
+		InitialData iniData = new InitialData();
+		iniData.setAgentsName( agentsName );
+		iniData.setPlacesName( placesName );
+		iniData.setPlacesX( x );
+		iniData.setPlacesY( y );
+		iniData.setNumberOfAgents( numberOfAgents );
+		iniData.setNumberOfPlaces(x * y);
+		iniData.setPlaceDataType( placeDataType );
+		iniData.setAgentDataType( agentDataType );
+		iniData.placeOverloadsGetDebugData( overloadsPlaceData );
+		iniData.agentOverloadsGetDebugData( overloadsAgentData );
+
+		outputStream.writeObject( iniData );
+		outputStream.flush();
+	}
+
+	public static void debugUpdate() throws IOException {
+
+		MASSRequest request = null;
+
+		try {
+			request = ( MASSRequest ) inputStream.readObject();
+		} catch ( ClassNotFoundException e ) {
+			MASS.getLogger().error( "Class not found exception caught in debugUpdate!", e );
+		}
+
+		if ( request != null ) {
+		switch( request.getRequest() ) {
+				case INITIAL_DATA:
+					//TODO - remove debugInit, handle from here
+					break;
+				case UPDATE_PACKAGE:
+					sendUpdate();
+					break;
+				case INJECT_PLACE:
+					injectPlace( request );
+					break;
+				case INJECT_AGENT:
+					injectAgent( request );
+					break;
+				case TERMINATE:
+					closeDebugConnection();
+					break;
+			}
+		}
+	}
+
+	private static void injectPlace(MASSRequest request) {
+		PlaceData updates = (PlaceData) request.getPacket();
+		Place place = MASS.getCurrentPlacesBase().getPlaces()[updates.getIndex()];
+
+		place.setDebugData(updates.getThisPlaceData());
+
+		try {
+			outputStream.writeObject(new UpdatePackage());
+			outputStream.flush();
+		} catch (IOException e) {
+			MASS.getLogger().error( "IO exception caught in injectPlace!", e );
+		}
+	}
+
+	private static void injectAgent( MASSRequest request ) {
+		
+		AgentData updates = ( AgentData )request.getPacket();
+
+		for ( Place place : MASS.getCurrentPlacesBase().getPlaces() ) {
+			for( Agent agent : place.getAgents() ) {
+				if( updates.getId() == agent.getAgentId() ) {
+					agent.setDebugData( updates.getDebugData() );
+				}
+			}
+		}
+
+		try {
+			outputStream.writeObject( new UpdatePackage() );
+			outputStream.flush();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in injectAgent!", e );
+		}
+
+	}
+
+	private static void closeDebugConnection() {
+
+		try {
+			outputStream.writeObject( new UpdatePackage() );
+			outputStream.flush();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while sending UpdatePackage!", e );
+		}
+
+		try {
+			//todo - send null MASSPackage back first to prevent blocking
+			outputStream.close();
+			inputStream.close();
+			client.close();
+			socket.close();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while closing streams!", e );
+		}
+
+	}
+
+	private static void sendUpdate() {
+		Place[] places = MASS.getCurrentPlacesBase().getPlaces();
+		PlaceData[] updatedPlaces = new PlaceData[places.length];
+
+		AgentData[] agentDataArr;
+
+		for ( int i = 0; i < places.length; i++ ) {
+			Number placeData = places[i].getDebugData();
+			
+			Set<Agent> agents = places[i].getAgents();
+			int j = 0;
+			agentDataArr = new AgentData[agents.size()];
+
+			for ( Agent agent : agents ) {
+				agentDataArr[j] = new AgentData();
+				agentDataArr[j].setDebugData( agent.getDebugData() );
+				agentDataArr[j].setChildren( agent.getNewChildren() );
+				agentDataArr[j].setId( agent.getAgentId() );
+				agentDataArr[j].setIsAlive( agent.isAlive() );
+				agentDataArr[j].setIndex(i);
+				j++;
+			}
+
+			updatedPlaces[i] = new PlaceData();
+			updatedPlaces[i].setAgentDataOnThisPlace( agentDataArr );
+			updatedPlaces[i].setThisPlaceData( placeData );
+			updatedPlaces[i].setHasAgents( agents.size() != 0 );
+		}
+
+		UpdatePackage newPackage = new UpdatePackage();
+		newPackage.setPlaceData( updatedPlaces );
+		
+		//write package
+		try {
+			outputStream.writeObject( newPackage );
+			outputStream.flush();
+		} catch ( IOException e ) {
+			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
+		}
+	}
 
 }

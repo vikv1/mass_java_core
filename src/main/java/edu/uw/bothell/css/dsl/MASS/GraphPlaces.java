@@ -76,6 +76,20 @@ public class GraphPlaces extends Places implements Graph {
         this.filename = "";
         this.input_format = GraphInputFormat.CSV;
     }
+    
+    /**
+     * Constructor for empty graph - remote node
+     */
+    public GraphPlaces(int handle, String className, int size, boolean _remote_node) {
+        super(handle, className);
+
+        // Should use a different indicator for empty graph
+        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
+        this.filename = "";
+        this.input_format = GraphInputFormat.CSV;
+        
+        init_all_graph_blank(size);
+    }
 
     protected void reinitialize() {
         super.reinitialize();
@@ -299,6 +313,7 @@ public class GraphPlaces extends Places implements Graph {
                 for (MNode node : MASSBase.getRemoteNodes()) {
                     if (node.getPid() == owner) {
                         node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE, getHandle(), new Object[] { vertexId, neighborId, weight }));
+                        node.receiveMessage(); // recieve ack jonathan modification 
                     }
                 }
             }
@@ -493,14 +508,18 @@ public class GraphPlaces extends Places implements Graph {
         Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, getHandle(), param);
 
         Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
-
+    
         if (hostOption.isPresent()) {
             hostOption.get().sendMessage(message);
 
             Message m = hostOption.get().receiveMessage();
 
+            nextPlaceIndex++; //added line jonathan
+            MASS.distributed_map.put(vertexId, m.getAgentPopulation()); // added jonathan Acoltzi
+            MASSBase.getLogger().debug("in addVertex Place m.getAgentPopulation(): " + m.getAgentPopulation());
             return m.getAgentPopulation();
         } else {
+            System.out.println("no host found: " + host);
             MASSBase.getLogger().error("Failed to send addPlace message to " + host + "; host not found");
         }
 
@@ -600,7 +619,7 @@ public class GraphPlaces extends Places implements Graph {
         int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
 
         if (globalIndex != -1) {
-            final int chunkSize = this.getSize()[0] / MASSBase.getSystemSize();
+            final int chunkSize = this.getSize()[0] / MASSBase.getSystemSize(); //not used
 
             id = globalIndex;
 
@@ -613,10 +632,8 @@ public class GraphPlaces extends Places implements Graph {
     // TODO: Should we make a globallinearindex type?
     // then we could do index.getNode()
     public int getNodeIdFromGlobalLinearIndex(final int globalLinearIndex) {
-        // indices per places
         int spanSize = getSize()[0];
-
-        int chunkSize = spanSize / MASS.getSystemSize();
+        int chunkSize = spanSize / MASS.getSystemSize(); // normal chunk
 
         return globalLinearIndex % spanSize / chunkSize;
     }
@@ -626,12 +643,14 @@ public class GraphPlaces extends Places implements Graph {
      * @param globalLinearIndex
      * @return
      */
+    
     public VertexPlace getVertexPlace(int globalLinearIndex) {
+        
         int networkSize = getSize()[0];
         int localPlacesIndex = globalLinearIndex / networkSize - 1;
         int chunkSize = networkSize / MASS.getSystemSize();
-
-        int placeIndex = globalLinearIndex % chunkSize;
+       
+        int placeIndex = (globalLinearIndex  )% chunkSize;
 
         return placesVector.get(localPlacesIndex).get(placeIndex);
     }

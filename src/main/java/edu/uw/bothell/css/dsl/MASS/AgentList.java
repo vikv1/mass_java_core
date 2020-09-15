@@ -46,7 +46,6 @@ public class AgentList {
 	private int currentX = -1;
 	private int nextY = 0;
 	private int iterator = 0;
-	private int population = 0; // 2/20/20 by Fukuda
 
 	/**
 	 * Instantiate an AgentList with default storage size
@@ -75,7 +74,6 @@ public class AgentList {
 		}
 		
 		array[currentX][nextY++] = item;
-		population++;
 	}
 		
 	/**
@@ -83,14 +81,13 @@ public class AgentList {
 	 * @param item The Agent to add
 	 * @param index The position at which to add the Agent
 	 */
-	public synchronized void add(Agent item, int index) {
-		int xindex = index / CAPACITY_X;
-		int yindex = index % CAPACITY_X;
-		if(array[xindex] == null) {
-			array[xindex] = new Agent[CAPACITY_Y];
-		}
-		array[xindex][yindex] = item;
-		population++;
+	public void add(Agent item, int index) {
+	  int xindex = index / CAPACITY_X;
+	  int yindex = index % CAPACITY_X;
+	  if(array[xindex] == null) {
+	    array[xindex] = new Agent[CAPACITY_Y];	    
+	  }
+	  array[xindex][yindex] = item;
 	}
 
 	/**
@@ -112,9 +109,7 @@ public class AgentList {
 		for ( int i = 0; i < size_unreduced( ); i++ )
 			remove( i );
 		reduceHelper( );
-		synchronized( this ) {
-			population = 0;
-		}
+
 	}
 
 	/**
@@ -262,7 +257,6 @@ public class AgentList {
 					
 					array[i][j] = null;
 					reduceDone = false;
-					population--;
 					return;
 				
 				}
@@ -287,8 +281,8 @@ public class AgentList {
 			int y = linear_index % capacityY;
 			array[x][y] = null;
 			reduceDone = false;
-			population--;
-		}
+
+		}	
 	}
 
 	/**
@@ -303,13 +297,9 @@ public class AgentList {
 	 * Get the current number of Agents in the collection
 	 * @return The number of Agents in the collection
 	 */
-	public synchronized int size_reduced( ) {
+	public synchronized int size( ) {
 		reduceHelper( );
 		return currentX * capacityY + nextY;
-	}
-
-	public int size( ) {
-		return population;
 	}
 
 	/**

@@ -81,7 +81,10 @@ public class Places extends PlacesBase {
 	public Places(int handle, String className, String[] graphArgs, Object[] initArgs) {
 		super(handle, className, graphArgs, initArgs);
 	}
-
+	
+	protected Places(int handle, String className) {
+		super(handle, className);
+	}
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects

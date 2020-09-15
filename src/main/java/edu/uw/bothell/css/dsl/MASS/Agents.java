@@ -62,6 +62,7 @@ public class Agents extends AgentsBase {
 
     super(handle, className, argument, places.getHandle(), initPopulation);
     localAgents = new int[MASSBase.getSystemSize()];
+    System.out.println("localAgents:" + localAgents.length);
     initMaster(argument);
 
   }
@@ -93,6 +94,7 @@ public class Agents extends AgentsBase {
 
         Object[] partitionedArgument = new Object[localAgents[i + 1]];
 
+        MASS.getLogger().debug("argument " + ((Object[]) argument).length + "partitionedArgument "+ partitionedArgument.length); 
         System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0,
             localAgents[i + 1]);
 
@@ -254,7 +256,7 @@ public class Agents extends AgentsBase {
     // resume threads
     MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
 
-    // callall implementatioin
+    // callall implementation 
     super.manageAll(0); // 0 = the main thread id
 
     // confirm all threads are done with agents.callAll
