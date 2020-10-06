@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 
 @SuppressWarnings("serial")
 public class SimpleTestAgent extends Agent {
@@ -41,6 +42,7 @@ public class SimpleTestAgent extends Agent {
 	private int arrivalEventCount = 0;
 	private int departureEventCount = 0;
 	private int creationEventCount = 0;
+	private int messageReceiveCount = 0;
 	
 	public SimpleTestAgent( Object obj ) {
 		
@@ -70,6 +72,14 @@ public class SimpleTestAgent extends Agent {
 		return departureEventCount;
 	}
 
+	/**
+	 * Get the number of times an OnMessage-annotated method was called
+	 * @return The number of OnMessage events since last counter reset
+	 */
+	public int getReceivedMessageEventCount() {
+		return messageReceiveCount;
+	}
+
 	@OnArrival
 	public void onArrivalEvent() {
 		arrivalEventCount ++;
@@ -85,6 +95,11 @@ public class SimpleTestAgent extends Agent {
 		departureEventCount ++;
 	}
 
+	@OnMessage
+	public void onMessageStringArgument( String messageBody ) {
+		messageReceiveCount ++;
+	}
+	
 	/**
 	 * Reset all event counters to zero
 	 */
@@ -93,6 +108,7 @@ public class SimpleTestAgent extends Agent {
 		arrivalEventCount = 0;
 		departureEventCount = 0;
 		creationEventCount = 0;
+		messageReceiveCount = 0;
 		
 	}
 	
