@@ -83,7 +83,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 				// nothing to do if this Agent wants to sleep
 				if ( agent.getInhibitUntil() > clockValue ) continue;
 				
-				// get "OnMessage" annotated method for this Agent (if there is one)
+				// get "Clocked" annotated method for this Agent (if there is one)
 				Method m = AnnotationProcessor.getAnnotatedMethod( Clocked.class, null, agent.getClass() );
 				
 				if ( m != null ) {
@@ -178,6 +178,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 	public void reset() {
 		
 		clockValue = 0;
+		nextClockTrigger = 0;
 		
 		// trigger method executions
 		execClockedAgentMethods();
@@ -186,6 +187,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 
 	@Override
 	public void setValue( long value ) {
+		
+		// handle negative values due to rollover
+		if ( value < 0 ) value = 0;
 		
 		clockValue = value;
 
