@@ -72,6 +72,10 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 	
 	private void execClockedAgentMethods() {
 		
+		// these conditions should happen only in a test environment, but doesn't hurt to be defensive
+		if ( eventDispatcher == null ) return;
+		if ( MASSBase.getCurrentPlacesBase() == null || MASSBase.getCurrentPlacesBase().getPlaces() == null ) return;
+		
 		// iterate through all Agents to see if there is a method to execute
 		for ( Place place : MASSBase.getCurrentPlacesBase().getPlaces() ) {
 			for ( Agent agent : place.getAgents() ) {
