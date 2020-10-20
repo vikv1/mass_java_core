@@ -116,7 +116,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 							if ( clockValue % multiple == 0 ) execMethod = true;
 							
 							// will this multiple trigger an execution earlier than the others?
-							if ( ( clockValue + multiple ) < nextClockTrigger )  nextClockTrigger = clockValue + multiple;
+							if ( nextClockTrigger == 0 || ( clockValue + multiple ) < nextClockTrigger )  nextClockTrigger = clockValue + multiple;
 					
 						}
 						
@@ -131,7 +131,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 							if ( value == clockValue ) execMethod = true;
 							
 							// will this value occur before the next trigger?
-							if ( value > clockValue && value < nextClockTrigger ) nextClockTrigger = value;
+							if ( nextClockTrigger == 0 || ( value > clockValue && value < nextClockTrigger ) ) nextClockTrigger = value;
 								
 						}
 						
@@ -163,11 +163,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 
 	@Override
 	public void increment() {
-		
-		clockValue ++;
-		
-		// trigger method executions
-		execClockedAgentMethods();
+
+		// use existing setter to consolidate rollover logic
+		setValue( getValue() + 1 );
 		
 	}
 
