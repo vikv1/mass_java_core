@@ -1,5 +1,5 @@
 ![BrandHeader-STEM-BlackPrint.png](https://bitbucket.org/repo/b9GKML/images/1347427446-BrandHeader-STEM-BlackPrint.png)
-# What is MASS? #
+# What is MASS?
 
 (Multi-Agent Spatial Simulation)
 
@@ -7,7 +7,7 @@ For more than the last two decades, multi-agent simulations have been highlighte
 
 More information about MASS can be found out the University of Washington Distributed Systems Lab [Homepage](http://depts.washington.edu/dslab/MASS).
 
-#Documentation
+# Documentation
 You may find documentation regarding the Java version of the MASS library in the [Wiki](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/Home). If you want to try out a version of the library that is still in active development, clone the "develop" branch and refer to the "MASS Developer's Guide" for instructions on building the library.
 
 # Getting Started
