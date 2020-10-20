@@ -49,12 +49,12 @@ public @interface Clocked {
 	 * Specifies on which clock values the method will be invoked
 	 * @return On which clock tick values the method will be invoked
 	 */
-	long[] onValuesOf() default {};
+	long[] onValuesOf() default { };
 
 	/**
 	 * Specifies on which multiples of the clock value the method will be invoked
 	 * @return The multiples of the clock value that will trigger method execution
 	 */
-	int[] onMultiplesOf() default { 1 };
+	int[] onMultiplesOf() default { };
 	
 }
