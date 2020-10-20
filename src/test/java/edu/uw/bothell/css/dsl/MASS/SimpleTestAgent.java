@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.Clocked;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
@@ -43,6 +44,7 @@ public class SimpleTestAgent extends Agent {
 	private int departureEventCount = 0;
 	private int creationEventCount = 0;
 	private int messageReceiveCount = 0;
+	private int onValuesOfClockedCount = 0;
 	
 	public SimpleTestAgent( Object obj ) {
 		
@@ -100,6 +102,11 @@ public class SimpleTestAgent extends Agent {
 		messageReceiveCount ++;
 	}
 	
+	@Clocked( onValuesOf = { 5, 17 } )
+	public void onValuesOfClockedMethod() {
+		onValuesOfClockedCount ++;
+	}
+	
 	/**
 	 * Reset all event counters to zero
 	 */
@@ -109,6 +116,7 @@ public class SimpleTestAgent extends Agent {
 		departureEventCount = 0;
 		creationEventCount = 0;
 		messageReceiveCount = 0;
+		onValuesOfClockedCount = 0;
 		
 	}
 	
