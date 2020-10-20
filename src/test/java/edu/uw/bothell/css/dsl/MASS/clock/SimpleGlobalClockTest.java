@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import edu.uw.bothell.css.dsl.MASS.AbstractTest;
-import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.PlacesBase;
@@ -138,6 +137,20 @@ public class SimpleGlobalClockTest extends AbstractTest {
 		
 		// next event trigger should not change
 		assertEquals( 5, clock.getNextEventTrigger() );
+		
+	}
+
+	@Test
+	public void clockValueSetAfterFirstTriggerSetToNext() throws Exception {
+		
+		// next event trigger should be set to the first "onValuesOf" value in the test Agent
+		assertEquals( 5, clock.getNextEventTrigger() );
+		
+		// increment the clock to value 6
+		clock.setValue( 6 );
+		
+		// next event trigger should be set to the next "onValuesOf"
+		assertEquals( 17, clock.getNextEventTrigger() );
 		
 	}
 

@@ -76,6 +76,9 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 		if ( eventDispatcher == null ) return;
 		if ( MASSBase.getCurrentPlacesBase() == null || MASSBase.getCurrentPlacesBase().getPlaces() == null ) return;
 		
+		// reset next trigger value for recalculation
+		nextClockTrigger = 0;
+		
 		// iterate through all Agents to see if there is a method to execute
 		for ( Place place : MASSBase.getCurrentPlacesBase().getPlaces() ) {
 			for ( Agent agent : place.getAgents() ) {
@@ -131,7 +134,8 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 							if ( value == clockValue ) execMethod = true;
 							
 							// will this value occur before the next trigger?
-							if ( nextClockTrigger == 0 || ( value > clockValue && value < nextClockTrigger ) ) nextClockTrigger = value;
+							if ( nextClockTrigger == 0 && value > clockValue ) nextClockTrigger = value;
+							if ( value > clockValue && nextClockTrigger > value ) nextClockTrigger = value;
 								
 						}
 						
@@ -167,7 +171,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 		// use existing setter to consolidate rollover logic
 		setValue( getValue() + 1 );
 		
-	}
+	}	
 
 	@Override
 	public void init(EventDispatcher eventDispatcher) {
@@ -192,7 +196,7 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 		if ( value < 0 ) value = 0;
 		
 		clockValue = value;
-
+		
 		// trigger method executions
 		execClockedAgentMethods();
 		
