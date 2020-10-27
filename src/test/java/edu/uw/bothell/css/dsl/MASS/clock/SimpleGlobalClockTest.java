@@ -154,4 +154,63 @@ public class SimpleGlobalClockTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void clockValueSetAfterLastTriggerSetToZero() throws Exception {
+		
+		// next event trigger should be set to the first "onValuesOf" value in the test Agent
+		assertEquals( 5, clock.getNextEventTrigger() );
+		
+		// increment the clock past last "onValuesOf" trigger
+		clock.setValue( 18 );
+		
+		// next event trigger should be the first multiple
+		assertEquals( 100, clock.getNextEventTrigger() );
+		
+	}
+	
+	@Test
+	public void clockValueSetBeforeFirstMultiple() throws Exception {
+		
+		// set the clock before the first "onMultiplesOf" value
+		clock.setValue( 99 );
+		
+		// next event trigger should be the first multiple
+		assertEquals( 100, clock.getNextEventTrigger() );
+		
+	}
+
+	@Test
+	public void clockValueSetBeforeSecondMultiple() throws Exception {
+		
+		// set the clock before the second "onMultiplesOf" value
+		clock.setValue( 101 );
+		
+		// next event trigger should be the first multiple
+		assertEquals( 125, clock.getNextEventTrigger() );
+		
+	}
+
+	@Test
+	public void clockValueSetForFirstMultiple() throws Exception {
+		
+		// set the clock after the second "onMultiplesOf" value
+		clock.setValue( 126 );
+		
+		// next event trigger should be a first multiple
+		assertEquals( 200, clock.getNextEventTrigger() );
+		
+	}
+
+	@Test
+	public void exerciseGetNextClockTriggerCornerCases() throws Exception {
+		
+		// this test includes checks for corner cases where next trigger calculation can be weird
+		long nextTrigger;
+		
+		// not supplying discrete values or multiples should result in trigger being next clock value
+		nextTrigger = clock.getNextClockTrigger( 0, new long[ ]{ }, new int[ ]{ } );
+		assertEquals( 1, nextTrigger );
+		
+	}
+	
 }

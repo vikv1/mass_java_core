@@ -44,7 +44,7 @@ public class SimpleTestAgent extends Agent {
 	private int departureEventCount = 0;
 	private int creationEventCount = 0;
 	private int messageReceiveCount = 0;
-	private int onValuesOfClockedCount = 0;
+	private int clockedCount = 0;
 	
 	public SimpleTestAgent( Object obj ) {
 		
@@ -56,6 +56,14 @@ public class SimpleTestAgent extends Agent {
 	 */
 	public int getArrivalEventCount() {
 		return arrivalEventCount;
+	}
+
+	/**
+	 * Get the number of times the Clocked-annotated method was called
+	 * @return The number of Clocked events since last counter reset
+	 */
+	public int getClockedEventCount() {
+		return clockedCount;
 	}
 
 	/**
@@ -102,9 +110,9 @@ public class SimpleTestAgent extends Agent {
 		messageReceiveCount ++;
 	}
 	
-	@Clocked( onValuesOf = { 5, 17 } )
+	@Clocked( onValuesOf = { 5, 17 }, onMultiplesOf = { 100, 125 } )
 	public void onValuesOfClockedMethod() {
-		onValuesOfClockedCount ++;
+		clockedCount ++;
 	}
 	
 	/**
@@ -116,7 +124,7 @@ public class SimpleTestAgent extends Agent {
 		departureEventCount = 0;
 		creationEventCount = 0;
 		messageReceiveCount = 0;
-		onValuesOfClockedCount = 0;
+		clockedCount = 0;
 		
 	}
 	

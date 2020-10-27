@@ -116,11 +116,8 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 						for ( int multiple : execMultiples ) {
 							
 							// is the current clock value a desired multiple?
-							if ( clockValue % multiple == 0 ) execMethod = true;
+							if ( clockValue > 0 && ( clockValue % multiple == 0 ) ) execMethod = true;
 							
-							// will this multiple trigger an execution earlier than the others?
-							if ( nextClockTrigger == 0 || ( clockValue + multiple ) < nextClockTrigger )  nextClockTrigger = clockValue + multiple;
-					
 						}
 						
 					}
@@ -133,16 +130,16 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 							// execute method if a specified value was reached
 							if ( value == clockValue ) execMethod = true;
 							
-							// will this value occur before the next trigger?
-							if ( nextClockTrigger == 0 && value > clockValue ) nextClockTrigger = value;
-							if ( value > clockValue && nextClockTrigger > value ) nextClockTrigger = value;
-								
 						}
 						
 					}
 
 					// queue execution of the method if it is time to do so
 					if ( execMethod ) eventDispatcher.queueAsync( Clocked.class, agent );
+					
+					// determine when the next trigger will occur
+					long nextCandidateTriggerValue = getNextClockTrigger( clockValue, execValues, execMultiples );
+					if ( nextCandidateTriggerValue < nextClockTrigger || nextClockTrigger == 0 ) nextClockTrigger = nextCandidateTriggerValue;
 					
 				}
 				
@@ -199,6 +196,61 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 		
 		// trigger method executions
 		execClockedAgentMethods();
+		
+	}
+	
+	/**
+	 * Predict the next clock value that will trigger execution of a clocked event
+	 * @param currentClockValue The current value of the clock
+	 * @param onValuesOf An array of discrete clock trigger values
+	 * @param onMultiplesOf An Array of multiples of which trigger clocked events
+	 * @return The next value of the clock that will trigger execution of a clocked method, or zero if there are no upcoming trigger values
+	 */
+	protected long getNextClockTrigger( long currentClockValue, long[] onValuesOf, int[] onMultiplesOf ) {
+
+		// no values provided means next clock value is the trigger
+		if ( onValuesOf.length == 0 && onMultiplesOf.length == 0 ) {
+			return currentClockValue + 1;
+		}
+
+		// set next trigger to the largest value possible
+		long nextTriggerValue = Long.MAX_VALUE;
+		
+		// check "onValuesOf"
+		for ( long value : onValuesOf ) {
+		
+			// will this value occur before the next trigger?
+			if ( value > clockValue && value < nextTriggerValue ) nextTriggerValue = value;
+
+		}
+		
+		// check "onMultiplesOf"
+		for ( int value : onMultiplesOf ) {
+			
+			// if the current clock value is before the multiple, then the multiple is the next trigger
+			if ( currentClockValue < value && value < nextTriggerValue ) {
+				nextTriggerValue = value;
+				continue;
+			}
+			
+			// if the current clock value is after the mutiple, will the next trigger be the mutiple?
+			if ( currentClockValue > value ) {
+				
+				// when will be the next time this multiple triggers an event?
+				long nextMultiplier = ( currentClockValue / value ) + 1;
+				
+				// will this be an earlier trigger?
+				if ( ( nextMultiplier * value ) < nextTriggerValue ) nextTriggerValue = nextMultiplier * value;
+				
+			}
+			
+		}
+		
+		// is there a next trigger value? (zero means no upcoming triggers)
+		if ( nextTriggerValue == Long.MAX_VALUE ) return 0;
+
+		// return the calculated value
+		return nextTriggerValue;
 		
 	}
 	
