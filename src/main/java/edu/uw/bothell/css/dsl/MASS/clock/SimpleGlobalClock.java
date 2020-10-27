@@ -104,9 +104,6 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 						// queue this method for execution
 						execMethod = true;
 						
-						// this Agent will trigger again on the next cycle
-						nextClockTrigger = clockValue + 1;
-						
 					}
 					
 					// check for "onMultipleOf" match
@@ -116,7 +113,10 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 						for ( int multiple : execMultiples ) {
 							
 							// is the current clock value a desired multiple?
-							if ( clockValue > 0 && ( clockValue % multiple == 0 ) ) execMethod = true;
+							if ( clockValue > 0 && ( clockValue % multiple == 0 ) ) { 
+								execMethod = true;
+								break;
+							}
 							
 						}
 						
@@ -128,7 +128,10 @@ public class SimpleGlobalClock implements GlobalLogicalClock {
 						for ( long value : execValues ) {
 
 							// execute method if a specified value was reached
-							if ( value == clockValue ) execMethod = true;
+							if ( value == clockValue ) {
+								execMethod = true;
+								break;
+							}
 							
 						}
 						

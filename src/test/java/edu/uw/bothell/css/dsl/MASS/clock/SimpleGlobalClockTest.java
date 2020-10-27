@@ -42,6 +42,7 @@ import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.PlacesBase;
 import edu.uw.bothell.css.dsl.MASS.SimpleTestAgent;
 import edu.uw.bothell.css.dsl.MASS.SimpleTestPlace;
+import edu.uw.bothell.css.dsl.MASS.annotations.Clocked;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 
 public class SimpleGlobalClockTest extends AbstractTest {
@@ -76,11 +77,12 @@ public class SimpleGlobalClockTest extends AbstractTest {
 	}
 	
 	/**
-	 * Reset clock back to known state before using
+	 * Reset clock and agent back to known states before using
 	 */
 	@BeforeEach
-	public void resetClock() {
+	public void resetClockAndAgent() {
 		clock.reset();
+		agent.resetEventCounters();
 	}
 
 	@Test
@@ -210,6 +212,72 @@ public class SimpleGlobalClockTest extends AbstractTest {
 		// not supplying discrete values or multiples should result in trigger being next clock value
 		nextTrigger = clock.getNextClockTrigger( 0, new long[ ]{ }, new int[ ]{ } );
 		assertEquals( 1, nextTrigger );
+		
+	}
+	
+	@Test
+	public void execOnValuesOf() throws Exception {
+		
+		// set the clock to the first "onValesOf" value
+		clock.setValue( 5 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+		
+		// set the clock to the second "onValesOf" value
+		clock.setValue( 17 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+
+		// should be two clocked events recorded
+		assertEquals( 2, agent.getClockedEventCount() );
+		
+	}
+
+	@Test
+	public void execOnMultipleOf() throws Exception {
+		
+		// set the clock to the first "onMultiplesOf" value
+		clock.setValue( 100 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+
+		// set the clock to a multiple of the first "onMultiplesOf" value
+		clock.setValue( 300 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+
+		// set the clock to the second "onMultiplesOf" value
+		clock.setValue( 125 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+
+		// set the clock to a multiple of the second "onMultiplesOf" value
+		clock.setValue( 625 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+
+		// should be four clocked events recorded
+		assertEquals( 4, agent.getClockedEventCount() );
+		
+	}
+
+	@Test
+	public void clockValueMatchesSeveralMultiplesOneExecution() throws Exception {
+
+		// set the clock to a multiple that would be triggered by several "onMultiplesOf" values
+		clock.setValue( 500 );
+		
+		// execute the clocked method
+		SimpleEventDispatcher.getInstance().invokeQueuedAsync( Clocked.class );
+		
+		// should be only one clocked events recorded even though it matches several multiples
+		assertEquals( 1, agent.getClockedEventCount() );
 		
 	}
 	
