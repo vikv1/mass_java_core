@@ -68,28 +68,50 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 //	private static final String AGENT_LOCAL_BROADCAST_TOPIC_PREFIX = "AgentLocalBroadcastNode";
 //	private static final String PLACE_LOCAL_BROADCAST_TOPIC_PREFIX = "PlaceLocalBroadcastNode";
 	
+	private static final String HAZELCAST_LOGGING_TYPE = "log4j2";
+	private static final String HAZELCAST_LOGGING_LEVEL = "ERROR";
+	
 	private HazelcastInstance instance;
+	private static final boolean useMulticast = true;		// experiment with this, might be good to have a setter
 	
 	@Override
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
 		
-		MASSBase.getLogger().debug("Hazelcast Messaging Provider initializing...");
+		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initializing..." );
 		
 		Config config = new Config();
+        config.setProperty( "hazelcast.logging.type", HAZELCAST_LOGGING_TYPE );
+        config.setProperty( "hazelcast.logging.level", HAZELCAST_LOGGING_LEVEL );
+
+        // common network config options
+        config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
+        config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
+
+        if ( useMulticast ) {
 		
-		// don't use multicast
-        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(true);
+        	// using multicast for node discovery and binding
+        	MASSBase.getLogger().debug( "Using multicast for cluster discovery and binding..." );
+        	config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
+        	
+        }
         
-		// explicitly add remote nodes rather than using multicast
-//        if ( remoteNodes != null) {
-//	        for ( MNode node : remoteNodes ) {
-//				config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
-//			}
-//        }
+        else {
+        
+			// explicitly add remote nodes rather than using multicast
+        	MASSBase.getLogger().debug( "Adding individual cluster members via TCP..." );
+	        if ( remoteNodes != null) {
+		        for ( MNode node : remoteNodes ) {
+		        	MASSBase.getLogger().debug( "Adding {} as a cluster member", node.getHostName() );
+					config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
+				}
+	        }
 		
+        }
+        
+    	MASSBase.getLogger().debug( "Instantiating Hazelcast instance..." );
 		instance = Hazelcast.newHazelcastInstance( config );
 		
-		MASSBase.getLogger().debug("Hazelcast Messaging Provider initialized!");
+		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initialized!" );
 		
 	}
 
@@ -212,8 +234,18 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	@Override
 	public void shutdown() {
 		
-		MASSBase.getLogger().debug("Hazelcast Messaging Provider shutdown requested");
-		instance.shutdown();
+		if ( instance != null ) {
+		
+			MASSBase.getLogger().debug("Hazelcast Messaging Provider shutdown requested");
+			instance.shutdown();
+		
+		}
+		
+		else {
+			
+			MASSBase.getLogger().debug("Hazelcast was not initialized, ignoring shutdown command");
+			
+		}
 		
 	}
 
