@@ -30,18 +30,18 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Vector;
+import java.util.stream.Collectors;
+
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Vector;
-import java.util.stream.Collectors;
 
 public class GraphPlaces extends Places implements Graph {
     private final GraphInitAlgorithm init_algorithm;

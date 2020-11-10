@@ -42,8 +42,6 @@ import com.hazelcast.core.ITopic;
 import com.hazelcast.topic.TopicOverloadPolicy;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
-import edu.uw.bothell.css.dsl.MASS.AgentList;
-import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;

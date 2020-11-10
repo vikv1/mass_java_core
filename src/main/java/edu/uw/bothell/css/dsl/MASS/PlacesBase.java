@@ -44,6 +44,16 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
@@ -51,15 +61,6 @@ import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 
 public class PlacesBase {
@@ -105,16 +106,16 @@ public class PlacesBase {
 	
 	}
 
-	private static String getSimplifiedClassname(String className) {
-		// set simple name used for logging and monitoring
-		String simpleClassName = className.contains(".")
-				? className.substring(className.lastIndexOf('.') + 1)
-				: className;
-		simpleClassName = simpleClassName.contains("$")
-				? simpleClassName.substring(simpleClassName.lastIndexOf('$') + 1)
-				: simpleClassName;
-		return simpleClassName;
-	}
+//	private static String getSimplifiedClassname(String className) {
+//		// set simple name used for logging and monitoring
+//		String simpleClassName = className.contains(".")
+//				? className.substring(className.lastIndexOf('.') + 1)
+//				: className;
+//		simpleClassName = simpleClassName.contains("$")
+//				? simpleClassName.substring(simpleClassName.lastIndexOf('$') + 1)
+//				: simpleClassName;
+//		return simpleClassName;
+//	}
 
 	/**
 	 * Instantiate a generic PlacesBase for this node

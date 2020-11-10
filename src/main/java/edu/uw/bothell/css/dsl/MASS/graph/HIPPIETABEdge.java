@@ -30,8 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS.graph;
 
-import java.net.InetAddress;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class HIPPIETABEdge {

@@ -30,19 +30,19 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.MASS.graph.Graph;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import edu.uw.bothell.css.dsl.MASS.graph.Graph;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * This class tests GraphPlaces features related to graph maintenance

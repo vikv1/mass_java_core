@@ -30,13 +30,13 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
@@ -675,17 +675,23 @@ public class MProcess {
 				sendAck();
 
 				break;
+			
+			default:
+				MASSBase.getLogger().debug( "Unrecognized Message Type!" );
+				break;
+			
 			}
 
 		}
 	}
 
-	private void sendMessage(Serializable object) {
-		try {
-			MAIN_OOS.writeObject(object);
-			MAIN_OOS.flush();
-		} catch (IOException e) {
-			MASSBase.getLogger().error("Exception sending object to remote host", e);
-		}
-	}
+//	private void sendMessage(Serializable object) {
+//		try {
+//			MAIN_OOS.writeObject(object);
+//			MAIN_OOS.flush();
+//		} catch (IOException e) {
+//			MASSBase.getLogger().error("Exception sending object to remote host", e);
+//		}
+//	}
+
 }

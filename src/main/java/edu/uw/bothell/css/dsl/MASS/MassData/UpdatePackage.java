@@ -30,13 +30,14 @@
 
 package edu.uw.bothell.css.dsl.MASS.MassData;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.LinkedTreeMap;
-import java.io.Serializable;
-import java.util.ArrayList;
 
 /**
  * Created by Nicolas on 8/10/2015.

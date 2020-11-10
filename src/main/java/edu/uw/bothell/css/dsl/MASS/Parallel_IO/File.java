@@ -30,14 +30,13 @@
 
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
-import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-import ucar.ma2.InvalidRangeException;
-
 import java.io.IOException;
 import java.nio.file.Path;
+
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import ucar.ma2.InvalidRangeException;
 
 /**
  * @author Michael G. O'Keefe

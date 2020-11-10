@@ -33,7 +33,8 @@ package edu.uw.bothell.css.dsl.MASS.graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 
 public interface Graph {
-    GraphModel getGraph();
+    
+	GraphModel getGraph();
     GraphModel getGraph(boolean all);
 
     // Graph Maintenance
@@ -45,4 +46,5 @@ public interface Graph {
     boolean removeVertex(Object vertexId);
 
     void setGraph(GraphModel newGraph);
+    
 }

@@ -32,8 +32,10 @@ package edu.uw.bothell.css.dsl.MASS.graph;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class VertexMetaValues implements Serializable {
-    public int Id;
+    
+	public int Id;
     public int OwnerPid;
 
     public VertexMetaValues(int id, int ownerPid) {

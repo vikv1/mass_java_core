@@ -30,26 +30,33 @@
 
 package edu.uw.bothell.css.dsl.MASS.graph;
 
-import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.StringReader;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.xpath.*;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
+import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 @Category(IntegrationTest.class)
 public class MATSimNetworkModelTest {

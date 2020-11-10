@@ -30,27 +30,46 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+import java.util.stream.Collectors;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfNodesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
 import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
-import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import ucar.ma2.InvalidRangeException;
 
-import javax.xml.xpath.*;
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-
+@SuppressWarnings("serial")
 public class VertexPlace extends Place implements Serializable {
-    private Map<Object, Object> neighborResults;
+    
+	private Map<Object, Object> neighborResults;
     private Object [] graphArguments;
     public Vector<Object> neighbors = new Vector<>();
     public Vector<Object> weights = new Vector<>();

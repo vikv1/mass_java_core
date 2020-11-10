@@ -34,8 +34,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("serial")
 public class GraphModel implements Serializable {
-    private String name;
+    
+	private String name;
     private List<VertexModel> vertices = new ArrayList<VertexModel>();
 
     public GraphModel() {

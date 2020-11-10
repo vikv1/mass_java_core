@@ -798,8 +798,6 @@ public class AgentsBase {
 			} else if (GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) {
 					GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
 
-					int networkSize = graphPlaces.getSize()[0];
-
 					int globalLinearIndex = evaluationAgent.getIndex()[0];
 					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
 

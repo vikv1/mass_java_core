@@ -30,7 +30,8 @@
 
 package edu.uw.bothell.css.dsl.MASS.Parallel_IO;
 
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,8 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
 
 /**
  * Created by Michael on 4/14/17.

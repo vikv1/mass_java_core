@@ -43,6 +43,7 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface OnMessage {
 
+	@SuppressWarnings("rawtypes")
 	public Class messageClass() default void.class;
 		
 }

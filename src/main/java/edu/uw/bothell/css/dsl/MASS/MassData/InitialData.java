@@ -34,6 +34,7 @@ package edu.uw.bothell.css.dsl.MASS.MassData;
  * Created by Nicolas on 8/9/2015.
  */
 import java.io.Serializable;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 

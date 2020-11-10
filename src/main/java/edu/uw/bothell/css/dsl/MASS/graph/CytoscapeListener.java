@@ -30,10 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS.graph;
 
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,6 +38,10 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 public class CytoscapeListener implements MASSListener {
     private static final int LISTENER_PORT = 8165;

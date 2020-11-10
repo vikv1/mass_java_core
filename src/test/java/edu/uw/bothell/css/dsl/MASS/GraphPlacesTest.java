@@ -30,16 +30,19 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+
+import java.util.Arrays;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.Arrays;
-
-import static junit.framework.TestCase.*;
+import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 @Category(IntegrationTest.class)
 public class GraphPlacesTest {
