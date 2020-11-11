@@ -247,6 +247,7 @@ public class MProcess {
 	/**
 	 * Start this MProcess
 	 */
+	@SuppressWarnings("unused")
 	public void start() {
 
 		MASSBase.getLogger().debug("MProcess started");
@@ -399,10 +400,15 @@ public class MProcess {
 
 				returnsSize = MASSBase.getCurrentPlacesBase().getPlacesSize();
 
-				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
-					graphPlaces = (GraphPlaces) places;
+				if ( GraphPlaces.class.isAssignableFrom( MASSBase.getCurrentPlacesBase().getClass() ) ) {
+					
+					if ( places != null ) {
+						
+						graphPlaces = (GraphPlaces) places;
+						returnsSize = returnsSize + graphPlaces.getExtendedPlacesSize();
 
-					returnsSize = returnsSize + graphPlaces.getExtendedPlacesSize();
+					}
+
 				}
 
 				MASSBase.setCurrentReturns(new Object[returnsSize]);
