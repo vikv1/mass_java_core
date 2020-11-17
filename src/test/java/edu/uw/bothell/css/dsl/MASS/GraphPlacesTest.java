@@ -30,28 +30,26 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
-
-@Category(IntegrationTest.class)
+//@Category(IntegrationTest.class)
+@Disabled
 public class GraphPlacesTest {
-    @BeforeClass
+    @BeforeAll
     public static void setupMASS() {
         MASS.init();
     }
 
-    @AfterClass
+    @AfterAll
     public static void shutdownMASS() {
         MASS.finish();
     }
@@ -103,9 +101,9 @@ public class GraphPlacesTest {
         VertexPlace vertexPlace2 = (VertexPlace) graph.getPlaces()[1];
         VertexPlace vertexPlace3 = (VertexPlace) graph.getPlaces()[2];
 
-        assertTrue("0 neighbors 1", vertexPlace1.neighbors.contains(1));
-        assertTrue("1 neighbors 2", vertexPlace2.neighbors.contains(2));
-        assertTrue("2 neighbors 0", vertexPlace3.neighbors.contains(0));
+        assertTrue( vertexPlace1.neighbors.contains(1) );
+        assertTrue( vertexPlace2.neighbors.contains(2) );
+        assertTrue( vertexPlace3.neighbors.contains(0) );
     }
 
     @Test
@@ -126,7 +124,7 @@ public class GraphPlacesTest {
     }
 
     @Test
-    @Ignore // Maybe the listeners are not closing correctly?
+    @Disabled // Maybe the listeners are not closing correctly?
     public void hippieNetworkIsComplete() {
         String [] graphArguments = new String[] {
                 "test-files/complete-small.tsv",

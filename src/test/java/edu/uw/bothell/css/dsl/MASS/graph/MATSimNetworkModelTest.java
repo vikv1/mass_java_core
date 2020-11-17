@@ -30,9 +30,9 @@
 
 package edu.uw.bothell.css.dsl.MASS.graph;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.StringReader;
 import java.util.List;
@@ -48,17 +48,17 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
-@Category(IntegrationTest.class)
+@Disabled
+//@Category(IntegrationTest.class)
 public class MATSimNetworkModelTest {
     // network-pt-simple.xml from Cytoscape repository
     private final String networkXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -84,7 +84,7 @@ public class MATSimNetworkModelTest {
 
     private MATSimNetworkModel network = null;
 
-    @Before
+    @BeforeEach
     public void importNetwork() {
         StringReader reader = new StringReader(networkXml);
 

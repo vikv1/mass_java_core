@@ -30,7 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS.clock;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

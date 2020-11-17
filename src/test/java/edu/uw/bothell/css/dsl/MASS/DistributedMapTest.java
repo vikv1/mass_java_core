@@ -30,8 +30,8 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,16 +40,14 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Vector;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
-@Category(IntegrationTest.class)
-@Ignore // TODO: Pathing is not working. run as classes dir. Copying leaves dependencies still missing
+//@Category(IntegrationTest.class)
+@Disabled // TODO: Pathing is not working. run as classes dir. Copying leaves dependencies still missing
 public class DistributedMapTest {
     private static final String graphFilename = "test-files/network-complete.xml";
 
@@ -63,12 +61,12 @@ public class DistributedMapTest {
 
     }
 
-    @Before
+    @BeforeEach
     public void initMASS() {
         MASS.init();
     }
 
-    @After
+    @AfterEach
     public void finishMASS() {
         MASS.finish();
     }

@@ -30,19 +30,19 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
-import edu.uw.bothell.css.dsl.test.IntegrationTest;
 
 /**
  * This class tests GraphPlaces features related to graph maintenance
@@ -51,16 +51,17 @@ import edu.uw.bothell.css.dsl.test.IntegrationTest;
  *   - addEdge
  *   - removeEdge
  */
-@Category(IntegrationTest.class)
+@Disabled		// TODO - fix this up so these tests work as unit tests and not integration tests (so they'll run always)
+//@Category(IntegrationTest.class)
 public class GraphMaintenanceTest {
     private Graph graph;
 
-    @After
+    @AfterEach
     public void shutdownMASS() {
         MASS.finish();
     }
 
-    @Before
+    @BeforeEach
     public void initGraph() {
         MASS.init();
 
@@ -77,11 +78,11 @@ public class GraphMaintenanceTest {
         
         boolean added = graph.addEdge(vertexA, vertexB, 0.9);
         
-        assertTrue("Add edge returns true", added);
+        assertTrue( added );
 
         VertexModel vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
         
-        assertTrue("Edge exists with correct neighbor", vertex.neighbors.contains(vertexB));
+        assertTrue( vertex.neighbors.contains(vertexB) );
     }
 
     @Test
@@ -94,17 +95,17 @@ public class GraphMaintenanceTest {
 
         boolean added = graph.addEdge(vertexA, vertexB, 0.9);
 
-        assertTrue("Add edge returns true", added);
+        assertTrue( added );
 
         VertexModel vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
 
-        assertTrue("Edge exists with correct neighbor", vertex.neighbors.contains(vertexB));
+        assertTrue( vertex.neighbors.contains( vertexB ) );
         
         graph.removeEdge(vertexA, vertexB);
         
         vertex = graph.getGraph().getVertices().stream().filter(v -> v.id.equals(vertexA)).findFirst().get();
         
-        assertTrue(!vertex.neighbors.stream().filter(n -> n.equals(vertexB)).findFirst().isPresent());
+        assertFalse( vertex.neighbors.stream().filter(n -> n.equals(vertexB)).findFirst().isPresent() );
     }
 
     @Test
@@ -113,13 +114,13 @@ public class GraphMaintenanceTest {
         
         int vertexId = graph.addVertex(vertexKey);
 
-        assertTrue("Created vertex with valid id", vertexId >= 0);
+        assertTrue( vertexId >= 0 );
 
         List<VertexModel> vertices = graph.getGraph().getVertices();
 
         VertexModel vertex = vertices.stream().filter(v -> v.id.equals(vertexKey)).findFirst().get();
 
-        assertTrue(vertex != null);
+        assertTrue( vertex != null );
         assertEquals(0, vertex.neighbors.size());
     }
 
@@ -133,7 +134,7 @@ public class GraphMaintenanceTest {
 
         boolean added = graph.addEdge(vertexIdA, vertexIdB, 0.9);
 
-        assertTrue("Created edge with new vertices", added);
+        assertTrue( added, "Created edge with new vertices" );
 
         List<VertexModel> vertices = graph.getGraph().getVertices();
 

@@ -30,17 +30,15 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-@Ignore // TODO: Fix this test
+@Disabled // TODO: Fix this test
 public class VertexPlaceTest {
     private final String graph_filename = "../matsim/network-pt-simple.xml";
 
@@ -62,12 +60,12 @@ public class VertexPlaceTest {
     public void getNeighborsReturnsTheCorrectNeighbors() {
         List<VertexPlace.Tuple> neighbors = VertexPlace.getNeighbors(graph_filename, 1);
 
-        List<VertexPlace.Tuple> realNeighbors = new ArrayList<>(Arrays.asList(
-                new VertexPlace.Tuple(2, 10)
-        ));
+//        List<VertexPlace.Tuple> realNeighbors = new ArrayList<>(Arrays.asList(
+//                new VertexPlace.Tuple(2, 10)
+//        ));
 
-        assertEquals("Has 1 neighbor", 1, neighbors.size());
-        assertEquals("Neighbor is index 2", 2, neighbors.get(0).index);
-        assertEquals("Neighbor id 2 has weight 10", 10.0, neighbors.get(0).weight, 0.05);
+        assertEquals( 1, neighbors.size() );
+        assertEquals( 2, neighbors.get(0).index );
+        assertEquals( 10.0, neighbors.get(0).weight, 0.05 );
     }
 }

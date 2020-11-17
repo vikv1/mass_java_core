@@ -31,7 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.easymock.Mock;
 import org.junit.jupiter.api.AfterEach;

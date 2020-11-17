@@ -30,7 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS.factory;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
