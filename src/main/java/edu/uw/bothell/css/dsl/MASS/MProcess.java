@@ -253,6 +253,7 @@ public class MProcess {
 		MASSBase.getLogger().debug("MProcess started");
 
 		// Synchronize with the master node first.
+		MASSBase.getLogger().debug("Sending MProcess startup ACK to master node...");
 		sendAck();
 
 		boolean alive = true;
