@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS.logging;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +161,7 @@ public class Log4J2Logger {
 		System.setProperty("MASSLogFilename", currentLogFileName);
 
 		// instruct the logger to refresh its' configuration
-		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
+		LoggerContext ctx = (LoggerContext) LogManager.getContext( LogManager.class.getClassLoader(), false );
 		ctx.reconfigure();
 		
 	}
