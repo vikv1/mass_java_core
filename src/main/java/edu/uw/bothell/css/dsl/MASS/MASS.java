@@ -350,20 +350,26 @@ public class MASS extends MASSBase {
     		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome() + "/");
     		
     		// gotta specify the JVM
-    		commandBuilder.append("java ");
-    		
+    		commandBuilder.append( "java " );
+
+    		// add arguments to prevent module warnings with Hazelcast
+    		commandBuilder.append( "--add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED " );
+
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xmx2g ");
+    		commandBuilder.append( "-Xmx2g " );
 
     		// add MASS home directory itself as part of the classpath
-   			if (node.getMassHome() != null) {
-   				String jarName = new java.io.File(MASS.class.getProtectionDomain()
-						.getCodeSource()
-						.getLocation()
-						.getPath()).getName();
-
-	    		commandBuilder.append("-cp \"" + node.getMassHome() + "/" + jarName + "\" ");
-   			}
+    		if ( node.getMassHome() != null ) commandBuilder.append( "-cp " + node.getMassHome() + "/*.jar " );
+    		
+    		// TODO - this is a nice trick, but doesn't work if running in an IDE during debugging
+//   			if (node.getMassHome() != null) {
+//   				String jarName = new java.io.File(MASS.class.getProtectionDomain()
+//						.getCodeSource()
+//						.getLocation()
+//						.getPath()).getName();
+//
+//	    		commandBuilder.append("-cp \"" + node.getMassHome() + "/" + jarName + "\" ");
+//   			}
 
     		// MProcess and its arguments
     		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
