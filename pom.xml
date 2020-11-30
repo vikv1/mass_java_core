@@ -6,7 +6,7 @@
 	<groupId>edu.uw.bothell.css.dsl.mass</groupId>
   	<artifactId>mass-core</artifactId>
   	<packaging>jar</packaging>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0-RELEASE</version>
 
 	<name>MASS Java Core Library</name>
 	<description>A Parallelizing Library for Multi-Agent Spatial Simulation (MASS)</description>
