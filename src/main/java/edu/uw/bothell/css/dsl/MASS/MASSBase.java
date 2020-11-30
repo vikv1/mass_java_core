@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -31,13 +31,23 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
+import edu.uw.bothell.css.dsl.MASS.clock.SimpleGlobalClock;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
+import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
+import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessenging;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -62,8 +72,13 @@ public class MASSBase {
 	private static Message.ACTION_TYPE currentMsgType;
 	private static MNode thisNode;			// this node configuration
 
+	// TODO: We should have access checks. This should also not just be a public static member of MASS
+	//       For example: Maybe only places should have access to the map
+	//                           key,    global index
+	public static DistributedMap<Object, Integer> distributed_map;
+
 	// TODO - this is dumb. Calculate from number of hosts identified.
-	private static int systemSize;          // # of processes (nodes) in the cluster (temporary!)
+	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
 	
 	// the collection of all nodes
     private static Vector<MNode> allNodes = new Vector<MNode>( );
@@ -82,6 +97,15 @@ public class MASSBase {
     
     // helper classes
     private static Utilities utilities = new Utilities();
+    
+    // event dispatcher for annotation-based event triggers
+    private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+    
+    // messaging
+    private static MASSMessenging messenger = MASSMessenging.getInstance();
+    
+    // global logical clock
+    private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
 
 	/**
      * Add a new node to the cluster
@@ -259,7 +283,15 @@ public class MASSBase {
 		// TODO - Need to throw an Exception if MASS hasn't been init'd yet!
 		return thisNode.getPid();
 		
-	};
+	}
+
+	/**
+	 * Get hostname for this node
+	 * @return hostname of thisNode
+	 */
+	public static String getMyHostname() {
+		return thisNode.getHostName();
+	}
 	
 	/**
 	 * Get Places object for a specific handle ID
@@ -414,7 +446,9 @@ public class MASSBase {
 		} catch (Exception e) {
 			logger.error("Exception caught while adding ObjectFactory URI",  e);
 		}
-    
+
+		initDistributedData();
+
 		logger.debug("MASSBase initialization complete");
 	
     }
@@ -673,5 +707,55 @@ public class MASSBase {
 	protected static void setSystemSize( int numNodes ) {
 		systemSize = numNodes;
 	}
+
+	protected static void initDistributedData() {
+		if (systemSize == 1) {
+			MASSBase.distributed_map = new MASSSimpleDistributedMap<>();
+		} else {
+			MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
+		}
+	}
+
+	protected static void finish() {
+		try {
+			distributed_map.close();
+		} catch (IOException e) {
+			logger.error("Error closing dmap instance:");
+
+			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
+		}
+	}
+
+	public static Integer getGlobalIndexForKey(Object key) {
+		return distributed_map.getOrDefault(key, -1);
+	}
+
+	public static void reinitializeMap() {
+		initDistributedData();
+	}
+
+	/**
+	 * Get the event dispatcher currently in use
+	 * @return The event dispatcher currently being used
+	 */
+	public static EventDispatcher getEventDispatcher() {
+		return eventDispatcher;
+	}
 	
+	/**
+	 * Get the messaging provider currently in use
+	 * @return The messaging provider currently being used
+	 */
+	public static MASSMessenging getMessagingProvider() {
+		return messenger;
+	}
+	
+	/**
+	 * Get the instance of the Global Logical Clock
+	 * @return The Global Logical Clock currently in use
+	 */
+	protected static GlobalLogicalClock getGlobalClock() {
+		return clock;
+	}
+
 }

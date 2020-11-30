@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -221,6 +221,21 @@ public class ExchangeHelper {
     
     }
 
+    /**
+     * Send a Message to all remote nodes
+     * @param message The message to send to all remote nodes
+     */
+    public void broadcastMessage( Message message ) {
+    	
+    	// iterate through all nodes and send the message
+    	for ( int rank = 1; rank < MASSBase.getSystemSize(); rank ++ ) {
+    		
+    		sendMessage( rank, message );
+    		
+    	}
+    	
+    }
+    
     /**
      * Send a Message to a peer
      * @param rank The rank ID of the node that will receive the Message

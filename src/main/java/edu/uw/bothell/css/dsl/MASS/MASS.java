@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Set;
@@ -52,6 +51,8 @@ import edu.uw.bothell.css.dsl.MASS.MassData.InitialData;
 import edu.uw.bothell.css.dsl.MASS.MassData.MASSRequest;
 import edu.uw.bothell.css.dsl.MASS.MassData.PlaceData;
 import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
+import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -59,6 +60,9 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
  */
 public class MASS extends MASSBase {
 
+	// A reference to the event dispatcher, primarily for status and shutdown
+	private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+	
     // Locks should have a timeout, if for no other reason than to trigger an exception and log message 
     public static final int LOCK_TIMEOUT = 0;
 
@@ -135,14 +139,15 @@ public class MASS extends MASSBase {
     				System.arraycopy( m.getArgument( ), 0,
     								  returnValues, stripe * ( i + 1 ),
     								  copyLength );
-    				}
+    			}
+					
     				if ( stripe == 0 && localAgents != null ) {
     					// agents.callAll( ) with return values
     					System.arraycopy( m.getArgument( ), 0,
     									  returnValues, nAgentsSoFar,
     									  localAgents[i + 1] );
     				}
-    			}
+    		}
 
     		// retrieve agent population from each Mprocess
     		MASS.getLogger().debug( "localAgents[" + (i + 1) +
@@ -167,15 +172,17 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
+		MASSBase.finish();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
     	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
-
+		System.out.println("finsh");
     	// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
-    		// Send a finish messages
+			// Send a finish messages
+			System.out.print(node.getHostName());
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
     	}
@@ -186,6 +193,12 @@ public class MASS extends MASSBase {
     	for ( MNode node : getRemoteNodes() )
     		util.disconnectRemoteNode(node);
 
+    	// shutdown the event dispatcher
+    	eventDispatcher.shutdown();
+    	
+    	// shutdown messaging system
+    	MASS.getMessagingProvider().shutdown();
+    	
     	MASS.getLogger().debug( "MASS::finish: done" );
 
     }
@@ -326,19 +339,6 @@ public class MASS extends MASSBase {
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
     		
-    		// retrieve each canonical remote machine name
-    		try {
-
-    			InetAddress addr = InetAddress.getByName( node.getHostName() );
-    			node.setHostName( addr.getCanonicalHostName( ) );
-    			
-    		} catch ( Exception e ) {
-
-    			MASS.getLogger().error( "Wrong host name: {}", node.getHostName(), e );
-    			System.exit( -1 );
-
-    		}
-
     		// For debugging
     		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
 
@@ -350,15 +350,26 @@ public class MASS extends MASSBase {
     		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome() + "/");
     		
     		// gotta specify the JVM
-    		commandBuilder.append("java ");
-    		
+    		commandBuilder.append( "java " );
+
+    		// add arguments to prevent module warnings with Hazelcast
+    		commandBuilder.append( "--add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED " );
+
     		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append("-Xmx9g ");
-    		
+    		commandBuilder.append( "-Xmx2g " );
+
     		// add MASS home directory itself as part of the classpath
-   			if (node.getMassHome() != null) {
-	    		commandBuilder.append("-cp " + node.getMassHome() + "/*.jar ");
-   			}
+    		if ( node.getMassHome() != null ) commandBuilder.append( "-cp " + node.getMassHome() + "/*.jar " );
+    		
+    		// TODO - this is a nice trick, but doesn't work if running in an IDE during debugging
+//   			if (node.getMassHome() != null) {
+//   				String jarName = new java.io.File(MASS.class.getProtectionDomain()
+//						.getCodeSource()
+//						.getLocation()
+//						.getPath()).getName();
+//
+//	    		commandBuilder.append("-cp \"" + node.getMassHome() + "/" + jarName + "\" ");
+//   			}
 
     		// MProcess and its arguments
     		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
@@ -367,7 +378,8 @@ public class MASS extends MASSBase {
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
     		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
     		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome());			// 6th arg: cur working dir
+    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
+			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
 
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +
@@ -390,6 +402,12 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
+    	// initialize the messaging system
+    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	
+    	// initialize the global clock
+    	MASS.getGlobalClock().init( eventDispatcher );
+    	
     	// Synchronize with all slave processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -406,6 +424,7 @@ public class MASS extends MASSBase {
     			System.exit( -1 );
     		}
     	}
+    	
     	System.err.println( "MASS.init: done" );
     }
 
@@ -501,7 +520,7 @@ public class MASS extends MASSBase {
 		
 	}
 
-  /**
+	/**
 	 * Change logger level
 	 * @param level The logging level
 	 */
@@ -717,6 +736,15 @@ public class MASS extends MASSBase {
 		} catch ( IOException e ) {
 			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
 		}
+		
+	}
+
+	public static void resetClock() {
+		getGlobalClock().reset();
+	}
+
+	public static long getClockValue() {
+		return getGlobalClock().getValue();
 	}
 
 }

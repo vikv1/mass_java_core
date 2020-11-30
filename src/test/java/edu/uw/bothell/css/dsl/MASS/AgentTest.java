@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,12 +30,13 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the Agent class to verify proper
@@ -47,7 +48,7 @@ public class AgentTest extends AbstractTest {
 	private Agent agent = new Agent();
 	
 	@Test
-	public void callMethod() throws Exception {
+	public void callMethod() {
 		
 		// this always returns NULL
 		assertNull( agent.callMethod( randomInt(), new String( "Pontiac!" ) ) );
@@ -55,7 +56,7 @@ public class AgentTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetAgentId() throws Exception {
+	public void getSetAgentId() {
 
 		int newID = randomInt();
 		int originalID = agent.getAgentId();
@@ -68,7 +69,7 @@ public class AgentTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetNewChildren() throws Exception {
+	public void getSetNewChildren() {
 
 		int newNumber = randomInt();
 		int originalNumber = agent.getNewChildren();
@@ -81,9 +82,9 @@ public class AgentTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetDebugData() throws Exception {
+	public void getSetDebugData() {
 		
-		Number number = new Integer( 1979 );
+		Number number = Integer.valueOf( 1979 );
 	
 		// should not result in an Exception
 		agent.setDebugData( number );
@@ -93,20 +94,20 @@ public class AgentTest extends AbstractTest {
 		
 	}
 	
+//	@Test
+//	public void getSetIndex() throws Exception {
+//
+//		int[] index = new int[]{ 1992 };
+//
+//		agent.setIndex( index );
+//		
+//		assertEquals( index.length, agent.getIndex().length );
+//		assertEquals( index[ 0 ], agent.getIndex()[ 0 ] );
+//		
+//	}
+
 	@Test
-	public void getSetIndex() throws Exception {
-
-		int[] index = new int[]{ 1992 };
-
-		agent.setIndex( index );
-		
-		assertEquals( index.length, agent.getIndex().length );
-		assertEquals( index[ 0 ], agent.getIndex()[ 0 ] );
-		
-	}
-
-	@Test
-	public void getSetPlace() throws Exception {
+	public void getSetPlace() {
 		
 		Place place = new SimpleTestPlace( new String( "WS6" ) );
 		
@@ -121,7 +122,7 @@ public class AgentTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getAliveAndKill() throws Exception {
+	public void getAliveAndKill() {
 		
 		// default is "alive"
 		assertTrue( agent.isAlive() );
@@ -135,7 +136,7 @@ public class AgentTest extends AbstractTest {
 	}
 	
 	@Test
-	public void spawn() throws Exception {
+	public void spawn() {
 
 		int numNewAgents = 1995;
 		Object[] arguments = new Object[]{ new String( "TransAm" ) };
@@ -148,7 +149,7 @@ public class AgentTest extends AbstractTest {
 	}
 	
 	@Test
-	public void spawnInvalidNumberAgents() throws Exception {
+	public void spawnInvalidNumberAgents() {
 		
 		int originalNumChildren = agent.getNewChildren();
 		
@@ -157,6 +158,29 @@ public class AgentTest extends AbstractTest {
 		
 		assertEquals( originalNumChildren, agent.getNewChildren() );
 		
+	}
+	
+	@Test
+	public void isMigrating() {
+
+		// need a PlacesBase Place associated with the Agent for this test
+		@SuppressWarnings("unused")
+		PlacesBase placesBase = new PlacesBase(0, null, 0, 0, new int[]{2, 2, 2});
+		
+		Place place = new SimpleTestPlace( new String( "WS6" ) );
+		agent.setPlace( place );
+		
+		// agent should not be migrating at first
+		assertFalse( agent.isMigrating() );
+		
+		// migrate!
+		agent.migrate( new int[]{ 1944, 1950, 1951 } );
+		
+		// agent should indicate that it will be migrating
+		assertTrue( agent.isMigrating() );
+
+		agent.setPlace( null );
+
 	}
 	
 }

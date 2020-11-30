@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -98,7 +98,7 @@ public class Place implements Serializable {
 	 */
 	private Set<Agent> agents = Collections.synchronizedSet(new HashSet<Agent>());
 
-	private Vector<int[]> neighbors = null;
+	protected Vector<int[]> neighbors = null;
 
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
@@ -192,6 +192,11 @@ public class Place implements Serializable {
 		file.open(ioType); // either NetCDFFile open or TxtFile open
 		incrementFileDescriptors();
 		fileTable.put(allPlaceFileDescriptor, file);
+
+		logFormattedDebug("size: %d, index: %d, lowerBoundary: %d",
+				getSize()[0],
+				getIndex()[0],
+				MASSBase.getCurrentPlacesBase().getLowerBoundary());
 
 		logFormattedDebug(
 				this + " or Place %d on node %d opened the file %s with the fd %d",
@@ -450,7 +455,7 @@ public class Place implements Serializable {
 	private Place findDstPlace( int handle, int offset[] ) {
 
 		// Compute the global linear index from offset[]
-		PlacesBase places = MASSBase.getPlacesMap().get( new Integer( handle ) );
+		PlacesBase places = MASSBase.getPlacesMap().get( handle );
 		int[] neighborCoord = new int[places.getSize().length];
 		places.getGlobalNeighborArrayIndex( index, offset, places.getSize(),
 				neighborCoord );

@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,29 +30,26 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the RemoteExchangeRequest class
  * to verify proper and consistent behavior of the class / methods
- * 
- * @author Matthew Sell
- *
- */
+  */
 public class RemoteExchangeRequestTest extends AbstractTest {
 
 	private RemoteExchangeRequest remoteExchangeRequest;
 
 	@Test
-	public void testObjectConstruction() throws Exception {
+	public void testObjectConstruction() {
 		
 		int destIndex = randomInt();
 		int orgIndex = randomInt();
 		int inMsgIndex = randomInt();
-		Integer intObj = new Integer( randomInt() );
+		Integer intObj = Integer.valueOf( randomInt() );
 		
 		remoteExchangeRequest = new RemoteExchangeRequest( destIndex, orgIndex, inMsgIndex, intObj );
 		

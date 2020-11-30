@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,11 +30,12 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the MThread class to verify proper
@@ -46,7 +47,7 @@ public class MThreadTest extends AbstractTest {
 	private int originalThread;
 	private int originalSize;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		// get original values before testing starts
@@ -56,7 +57,7 @@ public class MThreadTest extends AbstractTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 
 		// reset back to original state
@@ -67,7 +68,7 @@ public class MThreadTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetLock() throws Exception {
+	public void getSetLock() {
 
 		String lockObj = new String();
 		
@@ -78,7 +79,7 @@ public class MThreadTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetThreadCreated() throws Exception {
+	public void getSetThreadCreated() {
 
 		int newThreadNumber = randomInt();
 		
@@ -89,7 +90,7 @@ public class MThreadTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetAgentBagSize() throws Exception {
+	public void getSetAgentBagSize() {
 
 		int newSize = randomInt();
 		

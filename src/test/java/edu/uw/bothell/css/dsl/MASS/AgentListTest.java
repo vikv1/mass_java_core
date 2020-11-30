@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,13 +30,15 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+
 
 /**
  * Perform a series of unit tests against the AgentsList class to verify proper
@@ -49,7 +51,7 @@ public class AgentListTest extends AbstractTest {
 	
 	@Test
 	@SuppressWarnings("deprecation")
-	public void checkInternal() throws Exception {
+	public void checkInternal() {
 
 		AgentList al = new AgentList( );
 		Agent a = new SimpleTestAgent( new String() );
@@ -61,7 +63,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void size_unreducedNoAgents() throws Exception {
+	public void size_unreducedNoAgents() {
 
 		AgentList al = new AgentList( 1000 );
 
@@ -71,7 +73,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void sizeNoAgents() throws Exception {
+	public void sizeNoAgents() {
 
 		AgentList al = new AgentList( 1000 );
 
@@ -81,7 +83,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void add() throws Exception {
+	public void add() {
 
 		AgentList al = new AgentList( );
 
@@ -98,7 +100,7 @@ public class AgentListTest extends AbstractTest {
 	}
 
 	@Test
-	public void clear() throws Exception {
+	public void clear() {
 
 		AgentList al = new AgentList( );
 		Agent a = new SimpleTestAgent( new String() );
@@ -115,7 +117,7 @@ public class AgentListTest extends AbstractTest {
 	}
 
 	@Test
-	public void remove() throws Exception {
+	public void remove() {
 		
 		AgentList al = new AgentList( );
 
@@ -148,7 +150,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void removeInvalidAgent() throws Exception {
+	public void removeInvalidAgent() {
 
 		AgentList al = new AgentList( );
 
@@ -158,7 +160,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void get() throws Exception {
+	public void get() {
 
 		AgentList al = new AgentList( );
 		Agent a = new SimpleTestAgent( new String() );
@@ -172,23 +174,23 @@ public class AgentListTest extends AbstractTest {
 	}
 
 	@Test
-	public void getInvalidIndex() throws Exception {
+	public void getInvalidIndex() {
 		
 		assertNull( agentList.get( 100000 ));
 		
 	}
 	
 	@Test
-	public void reduce() throws Exception {
+	public void reduce() {
 		
 		// can only check for Exceptions - functionality checked elsewhere
 		agentList.reduce();
 		
 	}
 	
-	@Ignore		// see issues #119 and #120
+	@Disabled		// see issues #119 and #120
 	@Test
-	public void addSpecifyingIndexPosition() throws Exception {
+	public void addSpecifyingIndexPosition() {
 		
 		AgentList al = new AgentList( );
 
@@ -213,7 +215,7 @@ public class AgentListTest extends AbstractTest {
 	}
 	
 	@Test
-	public void iteratorOperationCheck() throws Exception {
+	public void iteratorOperationCheck() {
 		
 		AgentList al = new AgentList( );
 

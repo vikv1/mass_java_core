@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -59,11 +59,37 @@ public class Message implements Serializable {
 	    PLACES_EXCHANGE_BOUNDARY,                 // 10            
 	    PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST,  // 11            
 
-	    AGENTS_INITIALIZE,                        // 12            
-	    AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
-	    AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
-	    AGENTS_MANAGE_ALL,                        // 15            
-	    AGENTS_MIGRATION_REMOTE_REQUEST;          // 16
+        AGENTS_INITIALIZE,                        // 12            
+        AGENTS_CALL_ALL_VOID_OBJECT,              // 13            
+        AGENTS_CALL_ALL_RETURN_OBJECT,            // 14            
+        AGENTS_MANAGE_ALL,                        // 15            
+        AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
+		AGENTS_EXCHANGE_ALL,					  // 17
+
+
+		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),
+
+        // Retrieval
+        MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
+        MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
+
+        // Exchange all
+        GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
+
+        // Graph Maintenance
+        MAINTENANCE_ADD_PLACE("Maintenance.addPlace"),
+        MAINTENANCE_ADD_EDGE("Maintenance.addEdge"),
+
+        MAINTENANCE_REMOVE_PLACE("Maintenance.removePlace"),
+        MAINTENANCE_REMOVE_EDGE("Maintenance.removeEdge"),
+
+        // Re-Initialize
+        MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
+
+        // Global Logical Clock commands
+        CLOCK_SET_VALUE
+        
+        ;
     	
     	private final String value;
     	
@@ -116,6 +142,12 @@ public class Message implements Serializable {
     	this.action = action;
     	this.agentPopulation = localPopulation;
     
+    }
+
+    public Message(ACTION_TYPE action, int handle, Object args) {
+        this.action = action;
+        this.handle = handle;
+        this.argument = args;
     }
 
     /**

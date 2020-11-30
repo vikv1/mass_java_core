@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,10 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the AgentSerializer class to verify proper
@@ -45,7 +45,7 @@ public class AgentSerializerTest extends AbstractTest {
 	private AgentSerializer serializer = AgentSerializer.getInstance();
 	
 	@Test
-	public void defaultNumberOfAgents() throws Exception {
+	public void defaultNumberOfAgents() {
 		
 		// by default, should be set to some positive value
 		assertTrue( serializer.getMaxNumberOfAgents() > 0 );
@@ -54,7 +54,7 @@ public class AgentSerializerTest extends AbstractTest {
 	
 	@Test
 	@SuppressWarnings("rawtypes")
-	public void getSetRegisteredClasses() throws Exception {
+	public void getSetRegisteredClasses() {
 		
 		Class[] originalRegistration = serializer.getRegisteredClasses();
 		Class[] newRegistration = new Class[]{ String.class };
@@ -68,7 +68,7 @@ public class AgentSerializerTest extends AbstractTest {
 	}
 	
 	@Test
-	public void setInvalidNumberOfAgents() throws Exception {
+	public void setInvalidNumberOfAgents() {
 		
 		int originalNumAgents = serializer.getMaxNumberOfAgents();
 
@@ -83,7 +83,7 @@ public class AgentSerializerTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getSetMaxNumberOfAgents() throws Exception {
+	public void getSetMaxNumberOfAgents() {
 		
 		int originalNumAgents = serializer.getMaxNumberOfAgents();
 
@@ -96,12 +96,11 @@ public class AgentSerializerTest extends AbstractTest {
 	}
 	
 	@Test
-	public void serializeDeserializeAgent() throws Exception {
+	public void serializeDeserializeAgent() {
 
 		// a basic Agent with a few populated fields for testing 
 		Agent agent = new SimpleTestAgent( new String( randomString() ) );
 		agent.setAgentId( randomInt() );
-		agent.setIndex( new int[]{ randomInt() } );
 		
 		// serialize the Agent
 		byte[] serializedAgent = serializer.serializeAgent( agent );

@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -36,20 +36,18 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.Random;
 
-import org.easymock.EasyMockRunner;
+import org.easymock.EasyMockExtension;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
  */
-@Ignore
-@RunWith(EasyMockRunner.class)
+@ExtendWith(EasyMockExtension.class)
 public class AbstractTest extends EasyMockSupport {
 
     // Toggle for enabling Unicode in unit Tests
@@ -83,7 +81,7 @@ public class AbstractTest extends EasyMockSupport {
     /**
      * Perform any necessary operations before every unit test
      */
-    @Before
+    @BeforeEach
     public void abstractSetUp() {
     	
     	MASSBase.getLogger().setLogLevel( LogLevel.DEBUG );
@@ -93,7 +91,7 @@ public class AbstractTest extends EasyMockSupport {
 	/**
 	 * Perform any necessary cleanup and final verifications after EVERY test 
 	 */
-	@After
+	@AfterEach
 	public void abstractTearDown() {
 
 		// make sure all mock objects were called as expected

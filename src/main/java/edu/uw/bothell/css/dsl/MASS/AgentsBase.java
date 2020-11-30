@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,9 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnDeparture;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
+import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
@@ -71,6 +79,8 @@ public class AgentsBase {
 	private static int agentInitParentId;
     
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    private EventDispatcher eventDispatcher = MASS.getEventDispatcher();
+    private GlobalLogicalClock clock = MASS.getGlobalClock();
 
 	/***** Agent population control *****/
 
@@ -117,12 +127,17 @@ public class AgentsBase {
     			
     		// scan each place to see how many agents it can create
     		Place curPlace = curPlaces.getPlaces()[i];
+    		
+    		// actual size:
+    		int[] placesSize = MASSBase.getPlacesMap().get(getPlacesHandle()).getSize();
 
-    		// create as many new agents as nColonists
+			// create as many new agents as nColonists
+			// change to protoAgent.map(int initPopulation, int[] size, int[] index, int offset)
+			// added offset
     		for ( int nColonists =
-    				protoAgent.map( initPopulation, curPlace.getSize(), 
-    						curPlace.getIndex() );
-    				nColonists > 0; nColonists--, localPopulation++ ) {
+    				protoAgent.map( initPopulation, placesSize,
+    						curPlace.getIndex(), curPlaces.getSize()[0] );
+    				nColonists > 0; nColonists--, localPopulation++ ) {		
 
     			// agent instantiation and initialization
     			Agent newAgent = null;
@@ -141,18 +156,99 @@ public class AgentsBase {
     			}
 
     			newAgent.setPlace(curPlace);
-    			newAgent.setIndex(curPlace.getIndex());
-
+    			
     			// store this agent in the bag of agents
     			agents.add( newAgent );
 
     			// register newAgent into curPlace
-    			curPlace.getAgents().add( newAgent );    		
+    			curPlace.getAgents().add( newAgent );
+
+    			// register the new Agent with messaging provider
+    			MASS.getMessagingProvider().registerAgent( newAgent );
+    			
+    			// Agent has been created
+    			eventDispatcher.queueAsync( OnCreation.class, newAgent );
+    			
+    			// Place has an arriving Agent
+    			eventDispatcher.queueAsync( OnArrival.class, curPlace );
+    			
+    			// Agent has arrived at a Place
+    			eventDispatcher.queueAsync( OnArrival.class, newAgent );
+    			
     		}
+    		
     	}
+
+    	if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
+    		// TODO: This should probably be a function in GraphPlaces or maybe a brand-new GraphAgents
+			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
+		}
+
+		// invoke queued Agents OnCreation methods
+		eventDispatcher.invokeQueuedAsync( OnCreation.class );
+		
+		// invoke queued Agents OnArrival methods
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+
     }
 
-    public void callAll( int functionId, Object argument, int tid ) {
+	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
+		// TODO: Hack for Agent#map
+		protoAgent.setPlace(new VertexPlace());
+
+		// scan each place to see how many agents it can create
+		Vector<Vector<VertexPlace>> places = graphPlaces.getPlacesVector();
+
+		int graphSize = places.stream().mapToInt(layer -> layer.size()).sum();
+
+		int[] placesSize = { graphSize };
+
+		places.forEach(layer -> layer.forEach(vertexPlace -> {
+			// create as many new agents as nColonists
+			// Used graphSize as offset. 
+			// Changes from Jonathan 
+			for (int nColonists =
+				 protoAgent.map( initPopulation, placesSize,
+						 vertexPlace.getIndex(), graphSize);
+				 nColonists > 0; nColonists--, localPopulation++) {
+					 
+				// agent instantiation and initialization
+				Agent newAgent = null;
+				try {
+
+					agentInitAgentsHandle = handle;
+					agentInitPlacesHandle = placesHandle;
+					agentInitAgentId = currentAgentId++;
+					agentInitParentId = -1; // no parent
+					newAgent = objectFactory.getInstance(className, argument);
+					newAgent.setAgentId(agentInitAgentId);
+
+				} catch (Exception e) {
+					// TODO - now what? What to do when there is an exception?
+					MASS.getLogger().error("Agents_base.constructor: {} not instaitated ", className, e);
+				}
+
+				newAgent.setPlace(vertexPlace);
+
+				// store this agent in the bag of agents
+				agents.add(newAgent);
+
+				// register newAgent into curPlace
+				vertexPlace.getAgents().add(newAgent);
+
+				// Agent has been created
+				eventDispatcher.queueAsync(OnCreation.class, newAgent);
+
+				// Place has an arriving Agent
+				eventDispatcher.queueAsync(OnArrival.class, vertexPlace);
+
+				// Agent has arrived at a Place
+				eventDispatcher.queueAsync(OnArrival.class, newAgent);
+			}
+		}));
+	}
+
+	public void callAll( int functionId, Object argument, int tid ) {
 
     	int numOfOriginalVectors = MThread.getAgentBagSize();
 
@@ -185,7 +281,8 @@ public class AgentsBase {
     			MASS.getLogger().debug( "Thread [" + tid + "]: agent(" + tmpAgent + ")[" + myIndex + "] was removed " );
     			MASS.getLogger().debug( "fId = " + functionId + " argument " + argument ); 
     			
-    			//Use the Agents' callMethod to have it begin running
+				//Use the Agents' callMethod to have it begin running
+				MASS.getLogger().debug( "in the other arg: " + argument);
     			tmpAgent.callMethod( functionId, argument ); 
 
     			MASS.getLogger().debug( "Thread [" + tid + "]: (" + myIndex +	") has called its method; " +
@@ -248,15 +345,17 @@ public class AgentsBase {
     			
     			// compute where to store this agent's return value
     			// note that myIndex = agentId + 1
-    			Agent tmpAgent = agents.get( myIndex - 1 );
-    			
-    			//Use the Agents' callMethod to have it begin running
-    			( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
-    					tmpAgent.callMethod( functionId, 
-    							argument[ myIndex - 1 ] );
-
-    			MASS.getLogger().debug( "Thread [" + tid + "]: (" + myIndex +
-    						") has called its method; " );
+				Agent tmpAgent = agents.get( myIndex - 1 );
+			
+				int argIndex = myIndex;
+					
+					//Use the Agents' callMethod to have it begin running
+					( (Object[])MASSBase.getCurrentReturns() )[argIndex - 1] =
+							tmpAgent.callMethod( functionId, 
+									argument[ argIndex - 1 ] );
+					
+					MASS.getLogger().debug( "Thread [" + tid + "]: (" + argIndex +
+								") has called its method; " );
     		
     		}
     		
@@ -427,9 +526,11 @@ public class AgentsBase {
 
 					}
 
-					addAgent.setIndex(evaluationAgent.getPlace().getIndex());
     				addAgent.setPlace(evaluationAgent.getPlace());
-
+    				
+    				// Agent has been created
+    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
+    				
 					/** Agent population control work begins, execution order is important! **/
 
 					// check if the agent is going to run in the system
@@ -437,7 +538,7 @@ public class AgentsBase {
 					{
 						// check if there is available agent id
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-						if (availableAgentId > -1)
+						if (availableAgentId != null && availableAgentId > -1)
 						{
 							addAgent.setAgentId(availableAgentId);
 						}
@@ -451,6 +552,13 @@ public class AgentsBase {
 						// update the counter needed to keep track of our agents.
 						addAgent.getPlace().getAgents().add( addAgent ); // auto sync
 						this.agents.add( addAgent );           // auto syn
+						
+	    				// queue Place OnArrival method 
+						eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+						
+	    				// queue Agent OnArrival method
+						eventDispatcher.queueAsync( OnArrival.class, addAgent );
+
 					}
 
     			} catch ( Exception e ) {
@@ -516,13 +624,18 @@ public class AgentsBase {
 					}
 
 					// retrieve the corresponding places
-					PlacesBase curPlaces =
-							MASSBase.getPlacesMap().get( placesHandle );
+					PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
 					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
+					
 					// local destination
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
-
-					Place curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+					// changes from Jonathan
+					Place curPlace = null;
+					if (curPlaces.getPlaces() == null) // added line jonathan Empty graph does not initialize places[]
+						curPlace = ((GraphPlaces)curPlaces).getVertexPlace(destinationLocalLinearIndex);	// vertexPlace used instead of getPlaces[n] 
+					else
+						curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+					// changes done
 
 					// push this agent into the place and the entire agent bag.
 					agentSpawnRequest.setPlace(curPlace);
@@ -531,6 +644,21 @@ public class AgentsBase {
 					// update the counter needed to keep track of our agents.
 					agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
 					this.agents.add( agentSpawnRequest );           // auto syn
+				
+		    		// init the Agent immediately
+		    		try {
+						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						
+						e.printStackTrace();
+						MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );
+					
+					}
+
+    				// queue remaining events for the newly activated Agent
+					eventDispatcher.queueAsync( OnArrival.class, curPlace );
+    				eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );
+				
 				}
 
     			// don't go down to migrate
@@ -540,6 +668,11 @@ public class AgentsBase {
 			/****************************/
 
 			/******* MIGRATE() CHECK *******/
+
+    		// first, check to see if the Agent is actually wanting to migrate
+    		// if not, no point doing anything else
+    		if ( !evaluationAgent.isMigrating() ) continue;
+    		
     		//Iterate over all dimensions of the agent to check its location
     		//against that of its place. If they are the same, return back.
     		int agentIndex = evaluationAgent.getIndex().length;
@@ -556,7 +689,7 @@ public class AgentsBase {
     					" (destCoord[" + destCoord[0] +
     					"]..)" );
 
-    		if( destCoord[0] != -1 ) { 
+    		if( !GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass()) && destCoord[0] != -1 ) { 
     			
     			// destination valid
     			int globalLinearIndex = MatrixUtilities.getLinearIndex( evaluatedPlaces.getSize(), destCoord );
@@ -566,30 +699,31 @@ public class AgentsBase {
     						+ " upper = " + 
     						evaluatedPlaces.getUpperBoundary() + ")" );
 
+				Place oldPlace = evaluationAgent.getPlace();
+
+				// Should remove the pointer object in the place that 
+				// points to the migrating Agent
+				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
+					
+					// should not happen
+					MASS.getLogger().error( "evaluationAgent {}" + 
+								evaluationAgent.getAgentId() 
+								+ " couldn't been found in " +
+								"the old place!" );
+					
+					System.exit( -1 );
+				
+				}
+
+				MASS.getLogger().debug( "evaluationAgent " + 
+							evaluationAgent.getAgentId() 
+							+ " was removed from the oldPlace["
+							+ oldPlace.getIndex()[0] + "].." );
+
     			if ( globalLinearIndex >= evaluatedPlaces.getLowerBoundary() &&
     					globalLinearIndex <= evaluatedPlaces.getUpperBoundary() ) {
     				
     				// local destination
-
-    				// Should remove the pointer object in the place that 
-    				// points to the migrting Agent
-    				Place oldPlace = evaluationAgent.getPlace();
-    				if ( oldPlace.getAgents().remove( evaluationAgent ) == false ) {
-    					
-    					// should not happen
-    					MASS.getLogger().error( "evaluationAgent {}" + 
-    								evaluationAgent.getAgentId() 
-    								+ " couldn't been found in " +
-    								"the old place!" );
-    					
-    					System.exit( -1 );
-    				
-    				}
-
-    				MASS.getLogger().debug( "evaluationAgent " + 
-    							evaluationAgent.getAgentId() 
-    							+ " was removed from the oldPlace["
-    							+ oldPlace.getIndex()[0] + "].." );
 
     				// insert the migration Agent to a local destination place
     				int destinationLocalLinearIndex 
@@ -597,28 +731,46 @@ public class AgentsBase {
 
     				MASS.getLogger().debug( "destinationLocalLinerIndex = {}", destinationLocalLinearIndex );
 
+    				// queue up OnDeparture events
+    				eventDispatcher.queueAsync( OnDeparture.class, evaluationAgent );
+    				eventDispatcher.queueAsync( OnDeparture.class, oldPlace );
+    				
     				evaluationAgent.setPlace(MASSBase.getPlacesMap().
     						get( placesHandle ).
     						getPlaces()[destinationLocalLinearIndex]);
 
     				evaluationAgent.getPlace().getAgents().add( evaluationAgent );
-
+    				
     				MASS.getLogger().debug( "evaluationAgent " + 
     							evaluationAgent.getAgentId() +
     							" was inserted into the destPlace[" +
     							evaluationAgent.getPlace().getIndex()[0] + "].." );
+    				
+    				// if the agent actually moved, queue up OnArrival events
+    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent.getPlace() );
+    				eventDispatcher.queueAsync( OnArrival.class, evaluationAgent );
     			
     			} 
     			
     			else {
     				
     				// remote destination
-
+					MASS.getLogger().debug("going to a remoteNode");
     				// remove evaluationAgent from AgentList
     				agents.remove( myIndex - 1 );
 
     				// find the destination node
     				int destRank = evaluatedPlaces.getRankFromGlobalLinearIndex( globalLinearIndex );
+
+    				// OnDeparture events must be run immediately before agent is serialized and moved
+    				try {
+						
+    					eventDispatcher.invokeImmediate( OnDeparture.class, oldPlace );
+    					eventDispatcher.invokeImmediate( OnDeparture.class, evaluationAgent );
+					
+    				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+        				MASS.getLogger().error("Exception thrown when invoking OnDeparture events!", e);
+    				}
 
     				// relinquish the old place
     				evaluationAgent.setPlace(null);
@@ -639,19 +791,58 @@ public class AgentsBase {
 
     					MASS.getLogger().debug( "remoteRequest[" + destRank +	"].add:" + " dst = " + globalLinearIndex );
 
-    				}
+					}
+
+				}
+
+			} else if (GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) {
+					GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
+
+					int globalLinearIndex = evaluationAgent.getIndex()[0];
+					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+
+					if (nodeId == MASSBase.getMyPid()) {
+						// local migration
+						globalLinearIndex = MASSBase.getGlobalIndexForKey(globalLinearIndex); 		// if local get indexkey
+						Place oldPlace = evaluationAgent.getPlace();
+
+						if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+							// should not happen
+							String errorMessage = "evaluationAgent {}" +
+									evaluationAgent.getAgentId()
+									+ " couldn't been found in " +
+									"the old place!";
+
+							MASS.getLogger().error(errorMessage);
+
+							// throw it back to our new fatal exception handler
+							throw new RuntimeException(errorMessage);
+						}
+
+						evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+
+						evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+					} else {
+						// remote migration
+						agents.remove(myIndex - 1);
+
+						evaluationAgent.setPlace(null);
+
+						AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, evaluationAgent);
+
+						Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
+
+						synchronized (migrationRequestVector) {
+							migrationRequestVector.add(request);
+						}
+					}
+				} else {
+				String destinationString = Arrays.stream(evaluationAgent.getIndex()).mapToObj(Integer::toString).collect(Collectors.joining(", "));
     			
-    			} 
-    		
-    		}
-    		
-    		else {
-    			
-    			MASS.getLogger().error( " to destination invalid" );
-    		
-    		}
-			/*******************************/
-    	} // end of while( true )
+					MASS.getLogger().error(" to destination (" + destinationString + ") invalid");
+
+				}
+			} // end of while( true )
 
     	// When while loop finishes, all threads must barrier and tid = 0
     	// must adjust AgentList.
@@ -663,6 +854,9 @@ public class AgentsBase {
     	MThread.barrierThreads( tid );
     	if ( tid == 0 ) {
 
+    		// remember the earliest clock cycle value on any node which will trigger an event
+    		long nextClockTrigger = Long.MAX_VALUE;
+    		
     		MASS.getLogger().debug( "tid[{}] now enters processAgentMigrationRequest", tid );
 
     		// the main thread spawns as many communication threads as the 
@@ -677,7 +871,8 @@ public class AgentsBase {
     			if ( rank == MASSBase.getMyPid() ) // don't communicate with myself
     				continue;
 
-    			// start a communication thread
+				// start a communication thread
+				MASS.getLogger().debug("handle:" + evaluatedPlaces.getHandle());
     			thread_ref[rank] = new ProcessAgentMigrationRequest( rank, handle, evaluatedPlaces.getHandle() );
     			thread_ref[rank].start( );
 
@@ -712,11 +907,41 @@ public class AgentsBase {
     			MASS.getLogger().debug( "Agents_base.manageAll joined " +
     						"processAgentMigrationRequest C thread[" +
     						rank + "] = " + thread_ref[rank] );
-    		
+
+    			// get the next clock value at which this remote node will trigger an event
+    			if ( thread_ref[ rank ].getNextEventTrigger() > 0 && thread_ref[ rank ].getNextEventTrigger() < nextClockTrigger ) {
+    				nextClockTrigger = thread_ref[ rank ].getNextEventTrigger();
+    			}
+    			
     		}
 
     		localPopulation = agents.size_unreduced( );
+    		
+    		// fire queued events
+    		eventDispatcher.invokeQueuedAsync( OnCreation.class );
+    		eventDispatcher.invokeQueuedAsync( OnDeparture.class );
+    		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+    		
+    		// what should the next value be for the Global Logical Clock?
+    		if ( nextClockTrigger > clock.getNextEventTrigger() ) nextClockTrigger = clock.getNextEventTrigger();
+    		if ( nextClockTrigger > ( clock.getValue() + 1 ) ) {
 
+    			// broadcast new value to all nodes
+    			Message m = new Message( Message.ACTION_TYPE.CLOCK_SET_VALUE, nextClockTrigger );
+    			MASS.getExchange().broadcastMessage( m );		
+    			
+    			// we can fast-forward to the next trigger (local)
+    			clock.setValue( nextClockTrigger );
+    			
+    		}
+    		
+    		else {
+    			
+        		// can't fast-forward - just increment Global Logical Clock value
+        		clock.increment();
+    			
+    		}
+    		
     		MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
     	
     	}
@@ -739,11 +964,25 @@ public class AgentsBase {
     	return localPopulation; 
     }
 
-  private class ProcessAgentMigrationRequest extends Thread {
+	/**
+	 * Trigger exchange of all outgoing and incoming messages to Agents
+	 */
+	public void exchangeAll() {
+
+		// transmit outgoing messages
+		MASS.getMessagingProvider().flushAgentMessages();
+
+		// execute methods queued by incoming messages
+		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
+
+	}
+
+	private class ProcessAgentMigrationRequest extends Thread {
     	
     	private int destRank;
     	private int agentHandle;
     	private int placeHandle;
+    	private long nextClockTrigger;
 
     	public ProcessAgentMigrationRequest( int destRank, int agentHandle, int placeHandle ) {
     		this.destRank = destRank;
@@ -785,6 +1024,16 @@ public class AgentsBase {
     		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
 
     		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
+    		
+    		// what is the next clock value where an event will occur on that node?
+    		if ( messageFromSrc.getArgument() != null ) {
+    			
+    			// only if the argument returned is a long will we assume its the next trigger value
+    			if ( messageFromSrc.getArgument() instanceof Long ) {
+    				this.nextClockTrigger = (long) messageFromSrc.getArgument();
+    			}
+    			
+    		}
 
     		// process a message
     		Vector<AgentMigrationRequest> receivedRequest 
@@ -805,31 +1054,88 @@ public class AgentsBase {
     			AgentMigrationRequest request = 
     					receivedRequest.remove( receivedRequest.size( ) - 1 );
 
-    			int globalLinearIndex = request.destGlobalLinearIndex;
-    			Agent agent = request.agent;
+				int globalLinearIndex = request.destGlobalLinearIndex;
+				if (GraphPlaces.class.isAssignableFrom(dstPlaces.getClass()))
+					globalLinearIndex = MASSBase.getGlobalIndexForKey(globalLinearIndex); // ne line if graphPlaces looks for real key
+				if (globalLinearIndex > dstPlaces.getSize()[0] && GraphPlaces.class.isAssignableFrom(dstPlaces.getClass())) {
+					boolean found = true;
+					Agent evaluationAgent = request.agent;
+					GraphPlaces graphPlaces = (GraphPlaces) dstPlaces;
+					int networkSize = graphPlaces.getSize()[0];
+					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+					// local migration
+					Place oldPlace = evaluationAgent.getPlace();
+					// changed du to oldPlaces being set to null
+					if(oldPlace != null)
+						found = oldPlace.getAgents().remove(evaluationAgent);
+					// changes include found init and usage Jonathan 
+					if (found == false) {
+						// should not happen
+						String errorMessage = "evaluationAgent {}" +
+								evaluationAgent.getAgentId()
+								+ " couldn't been found in " +
+								"the old place!";
 
-    			// local destination
+						MASS.getLogger().error(errorMessage);
+
+						// throw it back to our new fatal exception handler
+						throw new RuntimeException(errorMessage);
+					}
+					
+					evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+
+					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+				} else {
+					Agent agent = request.agent;
+
+				// local destination
+				
     			int destinationLocalLinearIndex 
     			= globalLinearIndex - dstPlaces.getLowerBoundary();
-
-    			MASS.getLogger().debug( " dstLocal = {}", destinationLocalLinearIndex );
-
-    			Place dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
-
+				
+    			MASS.getLogger().debug( " dstLocal = " + destinationLocalLinearIndex + " g: " + globalLinearIndex + " d: " + dstPlaces.getLowerBoundary());
+				
+				// modified by jonathan
+				Place dstPlace = null;
+				if(dstPlaces.getPlaces() != null)
+    				dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
+				else
+					dstPlace = ((GraphPlaces)dstPlaces).getVertexPlace(globalLinearIndex);
+				// end of changes
+				
+				MASS.getLogger().debug( "dsrLocal is null:  " +  (dstPlace == null));
     			// push this agent into the place and the entire agent bag.
     			agent.setPlace(dstPlace);
-    			agent.setIndex(dstPlace.getIndex());
     			dstPlace.getAgents().add( agent ); // auto sync
     			agents.add( agent );          // auto sync
-    		
-    		}
+    			
+    			// invoke OnArrival events immediately
+    			try {
+
+						eventDispatcher.invokeImmediate(OnArrival.class, dstPlace);
+						eventDispatcher.invokeImmediate(OnArrival.class, agent);
+
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
+					}
+				}
+
+			}
 
     		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
     					"] retreive agents from rank[" + destRank + 
-    					"] complated" );
+    					"] completed" );
     	
     	}
-    
+    	
+    	/**
+    	 * Get the next clock value at which an event will be triggered on this remote node
+    	 * @return The next value of the clock at which an event will occur
+    	 */
+    	public long getNextEventTrigger() {
+    		return this.nextClockTrigger;
+    	}
+    	
     }
 
 }

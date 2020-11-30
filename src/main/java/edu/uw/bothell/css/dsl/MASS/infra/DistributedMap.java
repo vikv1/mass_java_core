@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -28,31 +28,11 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.MassData;
+package edu.uw.bothell.css.dsl.MASS.infra;
 
-import static org.junit.Assert.assertEquals;
+import java.io.Closeable;
+import java.util.Map;
 
-import org.junit.Test;
-
-import edu.uw.bothell.css.dsl.MASS.AbstractTest;
-
-/**
- * Perform a series of unit tests against the Place class to verify proper
- * and consistent behavior of the class / methods
- */
-public class MASSRequestTest extends AbstractTest {
-
-	@Test
-	public void constructor() throws Exception {
-		
-		// need a MASSPacket for this test
-		MASSPacket packet = new AgentData();
-		
-		MASSRequest request = new MASSRequest( MASSRequest.RequestType.INITIAL_DATA, packet );
-		
-		assertEquals( packet, request.getPacket() );
-		assertEquals( MASSRequest.RequestType.INITIAL_DATA, request.getRequest() );
-		
-	}
-
+public interface DistributedMap<key_type, value_type> extends Map<key_type, value_type>, Closeable {
+    key_type reverseLookup(value_type value);
 }

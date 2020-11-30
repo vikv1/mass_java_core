@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -124,12 +125,32 @@ class Utilities {
 
             // set the command to be executed upon channel connection
             MASSBase.getLogger().debug( "Executing remote command: {}", command );
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
+
+			channel = (ChannelExec) session.openChannel("exec");
+
+			channel.setErrStream(baos, true);
+            
             channel = ( ChannelExec ) session.openChannel( "exec" );
             channel.setCommand( command );
             MASSBase.getLogger().debug( "Command executed!" );
 
             MASSBase.getLogger().debug( "Setting object input/output streams with remote node..." );
     		channel.connect( CONNECT_TIMEOUT_MILLISECONDS );
+    		
+    		baos.flush();
+
+			String errorString = new String(baos.toByteArray());
+
+			// TODO: This does not work as expect BUT
+			// if you put a breakpoint here and step past, baos may contain a useful error message
+			if (!errorString.equals("")) {
+
+				MASSBase.getLogger().error("Error encountered connecting to remote host: " + errorString);
+
+			}
+    		
     		remoteNode.setOutputStream( channel.getOutputStream() );
     		remoteNode.setInputStream( channel.getInputStream() );
     		// TODO - error stream?

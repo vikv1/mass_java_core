@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,14 +30,15 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Vector;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Perform a series of unit tests against the Message class to verify proper
@@ -46,7 +47,7 @@ import org.junit.Test;
 public class MessageTest extends AbstractTest {
 
 	@Test
-	public void testNoArgsConstructor() throws Exception {
+	public void testNoArgsConstructor() {
 		
 		Message message = new Message();
 		
@@ -70,7 +71,7 @@ public class MessageTest extends AbstractTest {
 	}
 	
 	@Test
-	public void testActionTypeConstructor() throws Exception {
+	public void testActionTypeConstructor() {
 		
 		Message message = new Message( Message.ACTION_TYPE.FINISH );
 		
@@ -94,7 +95,7 @@ public class MessageTest extends AbstractTest {
 	}
 	
 	@Test
-	public void testAgentsInitAgentsCallAllConstructor() throws Exception {
+	public void testAgentsInitAgentsCallAllConstructor() {
 		
 		Message message = new Message( Message.ACTION_TYPE.AGENTS_INITIALIZE, 42 );
 		
@@ -118,7 +119,7 @@ public class MessageTest extends AbstractTest {
 	}
 	
 	@Test
-	public void testAgentsManageAllPlacesExchangeBoundaryConstructor() throws Exception {
+	public void testAgentsManageAllPlacesExchangeBoundaryConstructor() {
 		
 		Message message = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL, 42, 89 );
 		
@@ -142,7 +143,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testHandlesAndFunctionIDConstructor() throws Exception {
+	public void testHandlesAndFunctionIDConstructor() {
 		
 		Message message = new Message( Message.ACTION_TYPE.PLACES_INITIALIZE, 42, 89, 71 );
 		
@@ -166,7 +167,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testAgentInitializeConstructor() throws Exception {
+	public void testAgentInitializeConstructor() {
 		
 		Object argument = new String();
 		
@@ -192,7 +193,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testPlacesExchangeAllConstructor() throws Exception {
+	public void testPlacesExchangeAllConstructor() {
 		
 		Vector<int[]> destinations = new Vector<>();
 		
@@ -218,7 +219,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testPlacesExchangeAllRemoteRequestConstructor() throws Exception {
+	public void testPlacesExchangeAllRemoteRequestConstructor() {
 		
 		Vector<RemoteExchangeRequest> requests = new Vector<>();
 		
@@ -244,7 +245,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testCallAllConstructor() throws Exception {
+	public void testCallAllConstructor() {
 		
 		Object argument = new String();
 		
@@ -270,7 +271,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testAgentMigrationRemoteRequestConstructor() throws Exception {
+	public void testAgentMigrationRemoteRequestConstructor() {
 		
 		Vector<AgentMigrationRequest> requests = new Vector<>();
 		
@@ -296,7 +297,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testPlacesInitializeConstructor() throws Exception {
+	public void testPlacesInitializeConstructor() {
 		
 		int size[] = new int[ 0 ];
 		Object argument = new String();
@@ -324,7 +325,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testPlacesExchangeConstructor() throws Exception {
+	public void testPlacesExchangeConstructor() {
 		
 		Object returnValue = new String();
 		
@@ -350,7 +351,7 @@ public class MessageTest extends AbstractTest {
 	}
 
 	@Test
-	public void testAgentsCallAllConstructor() throws Exception {
+	public void testAgentsCallAllConstructor() {
 		
 		Object argument = new String();
 		

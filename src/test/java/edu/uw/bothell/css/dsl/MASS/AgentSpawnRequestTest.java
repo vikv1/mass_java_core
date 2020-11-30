@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2017 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -30,12 +30,12 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the AgentSpawnRequest class to verify proper
@@ -46,7 +46,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	private static final int MAX_AGENTS = 10;
 	
 	@Test
-	public void getSetSerializedAgent() throws Exception {
+	public void getSetSerializedAgent() {
 		
 		byte[] serializedAgent = new byte[ 0 ];
 		
@@ -58,7 +58,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 	
 	@Test
-	public void constructorInvalidMaxActiveSize() throws Exception {
+	public void constructorInvalidMaxActiveSize() {
 		
 		// should not result in an Exception - will default to reasonable settings
 		@SuppressWarnings("unused")
@@ -67,7 +67,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 	
 	@Test
-	public void defaultConstructor() throws Exception {
+	public void defaultConstructor() {
 		
 		// should not result in an Exception - will default to reasonable settings
 		@SuppressWarnings("unused")
@@ -76,7 +76,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 
 	@Test
-	public void shouldAgentRunInTheSystemEmpty() throws Exception {
+	public void shouldAgentRunInTheSystemEmpty() {
 		
 		// make the agent spawn request manager think there is room for this one to run
 		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
@@ -85,7 +85,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 	
 	@Test
-	public void shouldAgentRunInTheSystemFull() throws Exception {
+	public void shouldAgentRunInTheSystemFull() {
 		
 		// make the agent spawn request manager think there is no room for this one to run
 		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
@@ -94,7 +94,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 	
 	@Test
-	public void getNextAgentSpawnRequestNoSerializedAgents() throws Exception {
+	public void getNextAgentSpawnRequestNoSerializedAgents() {
 		
 		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
 
@@ -104,7 +104,7 @@ public class AgentSpawnRequestTest extends AbstractTest {
 	}
 
 	@Test
-	public void getSetNextAvailableAgentId() throws Exception {
+	public void getSetNextAvailableAgentId() {
 		
 		AgentSpawnRequestManager manager = new AgentSpawnRequestManager( MAX_AGENTS );
 
@@ -112,13 +112,13 @@ public class AgentSpawnRequestTest extends AbstractTest {
 		assertEquals( -1, manager.getNextAvailableAgentId().intValue() );
 		
 		// add an agent ID, check for return
-		manager.addAvailableAgentId( new Integer( 42 ) );
+		manager.addAvailableAgentId( Integer.valueOf( 42 ) );
 		assertEquals( 42, manager.getNextAvailableAgentId().intValue() );
 		
 	}
 
 	@Test
-	public void getNextAgentSpawnRequest() throws Exception {
+	public void getNextAgentSpawnRequest() {
 		
 		SimpleTestAgent agent = new SimpleTestAgent( new String() );
 		agent.setAgentId( randomInt() );

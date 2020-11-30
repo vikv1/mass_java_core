@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -36,6 +36,8 @@ import java.io.ObjectInputStream;         // For socket input/output
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -137,6 +139,7 @@ public class MNode {
 	 * Set the port number used to communicate with this node, for inter-node socket communications
 	 * @return The port number
 	 */
+	@XmlElement(name = "port")
 	public int getPort() {
 		return port;
 	}
@@ -211,10 +214,11 @@ public class MNode {
 
 		catch ( Exception e ) {
 
-			MASSBase.getLogger().error( "receivMessage error from rank[" + pid + "] at " +
+			MASSBase.getLogger().error( "receiveMessage error from rank[" + pid + "] at " +
 					hostName,  e );
 			
-			e.printStackTrace();
+			MASSBase.getLogger().error("stack trace: " + Arrays.stream(e.getStackTrace()).map( st -> st.toString())
+			.collect(Collectors.joining("\n")));
 
 			System.exit( -1 );
 

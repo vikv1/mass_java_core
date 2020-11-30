@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -140,6 +140,8 @@ public class SimpleObjectFactory implements ObjectFactory {
 		}
 		catch (InvocationTargetException e) {
 			throw new Exception("Exception occurred during instantiation of " + className + ": " + e.getCause(), e.getCause());
+		} catch (Exception e) {
+			throw new Exception("Exception occurred during instantiation of " + className + ": " + e.getCause(), e.getCause());
 		}
 		
 		return newObjectInstance;
@@ -152,5 +154,4 @@ public class SimpleObjectFactory implements ObjectFactory {
 	private void initClassLoader() {
 		classLoader = new URLClassLoader(classpathUrls.toArray(new URL[classpathUrls.size()]));
 	}
-
 }

@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2015 University of Washington
+	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2015 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -31,7 +31,9 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Objects;
 
+import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
@@ -58,6 +60,11 @@ public class Agent implements Serializable {
 	private boolean alive = true;
 	
 	/**
+	 * Set to TRUE when this Agent has requested to migrate to a new Place (index)
+	 */
+	private transient boolean isMigrating = false;
+	
+	/**
 	 * Is the number of new children created by this agent upon a next call to
 	 * Agents.manageAll( ).
 	 */
@@ -67,6 +74,12 @@ public class Agent implements Serializable {
 	 * Is an array of arguments, each passed to a different new child.
 	 */
 	private transient Object[] arguments = null;
+	
+	/**
+	 * For methods executed via the Global Logical Clock, inhibit until
+	 * the clock reaches this value
+	 */
+	private long inhibitUntil;
 
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
@@ -108,18 +121,16 @@ public class Agent implements Serializable {
 	}
 	
 	/**
-	 * Intended for subclasses of Agent to override - set debug data for this Agent
-	 * @param data Debug data
-	 */
-	public void setDebugData(Number data) {}
-
-	/**
 	 * Get the current location of this Agent, or prior to migration, the new location
 	 * where this Agent is to migrate to
 	 * @return The current or migration destination for this Agent
 	 */
 	public int[] getIndex() {
 		return index;
+	}
+
+	public long getInhibitUntil() {
+		return inhibitUntil;
 	}
 
 	/**
@@ -147,6 +158,15 @@ public class Agent implements Serializable {
 	}
 
 	/**
+	 * Get the migration status of this Agent. If TRUE, this Agent has requested to migrate to a new
+	 * Place, if FALSE it is remaining in it's current Place
+	 * @return Agent migration status
+	 */
+	public boolean isMigrating() {
+		return isMigrating;
+	}
+	
+	/**
 	 * Terminates the calling agent upon a next call to Agents.manageAll( ).
 	 * More specifically, kill( ) sets the "alive" variable false.
 	 */
@@ -168,42 +188,74 @@ public class Agent implements Serializable {
 	  * @param initPopulation
 	  * @param size
 	  * @param index
+	  * @param offset
 	  */	
-	public int map( int initPopulation, int[] size, int[] index ) {
+	public int map( int initPopulation, int[] size, int[] index, int offset ) {
 
 		// compute the total # places
 		int placeTotal = MatrixUtilities.getMatrixSize( size );
-		
 		// compute the global linear index
 		int linearIndex = MatrixUtilities.getLinearIndex( size, index );
-
+		MASSBase.getLogger().debug(offset +" :1 " + linearIndex);
+		if (place != null && VertexPlace.class.isAssignableFrom(place.getClass())) {
+			linearIndex = index[0] - offset * MASS.getSystemSize(); // added (offset * MASS.getSystemSize()) due to empty graph not utilzing 0- size
+		}
+		
 		// compute #agents per place a.k.a. colonists
 		int colonists = initPopulation / placeTotal;
 		int remainders = initPopulation % placeTotal;
+		
 		if ( linearIndex < remainders ) colonists++; // add a remainder
-
+		
 		return colonists;
-
 	}
 
 	/**
 	 * Initiates an agent migration upon a next call to Agents.manageAll( ). More
 	 * specifically, migrate( ) updates the calling agent’s index[].
 	 */
-	protected boolean migrate( int... index ) { 
+	protected boolean migrate( int... newIndex ) { 
+		
+		// invalid index!
+		Objects.requireNonNull( newIndex, "Must provide an index when migrating!" );
+		
+		int currentLinearIndex = 0;
 
-		int[] placesSize = place.getSize();
-		for ( int i = 0; i < placesSize.length; i++ ) {
-			if ( index[i] >= 0 && index[i] < placesSize[i] ) {
-				continue;
-			} else {
-				return false;
-			}
+		// compare where we're at now versus new index position
+		// to see if this Agent is attempting to move to a new Place
+		if ( index != null ) currentLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), this.index );
+		int newLinearIndex = MatrixUtilities.getLinearIndex( place.getSize(), newIndex );;
+
+		if (VertexPlace.class.isAssignableFrom(place.getClass())) {
+			newLinearIndex = newIndex[0];
+			currentLinearIndex = index[0];
 		}
 
-		this.index = index.clone( ); // assign the new index
+		// attempting to migrate?
+		if ( currentLinearIndex != newLinearIndex ) {
+
+			// yes - assign the new index
+			index = newIndex.clone( );
+			isMigrating = true;
+			
+		}
+		
+		else {
+			
+			// no - reset migration flag
+			isMigrating = false;
+		
+		}
+		
 		return true;
 
+	}
+
+	/**
+	 * Resume clock-driven events (starting with the next clock cycle)
+	 */
+	public void resume() {
+		sleepUntil( GlobalLogicalClock.RESUME );
 	}
 
 	/**
@@ -214,14 +266,22 @@ public class Agent implements Serializable {
 		this.agentId = agentId;
 	}
 
+//	/**
+//	 * Set the current location or intended destination after migration
+//	 * for this Agent
+//	 * @param index The current location or destination after migration
+//	 */
+//	protected void setIndex(int[] index) {
+//
+//		
+//		this.index = index;
+//	}
+
 	/**
-	 * Set the current location or intended destination after migration
-	 * for this Agent
-	 * @param index The current location or destination after migration
+	 * Intended for subclasses of Agent to override - set debug data for this Agent
+	 * @param data Debug data
 	 */
-	protected void setIndex(int[] index) {
-		this.index = index;
-	}
+	public void setDebugData(Number data) {}
 
 	/**
 	 * Set the number of new child Agents created
@@ -236,7 +296,35 @@ public class Agent implements Serializable {
 	 * @param place The current Place where this Agent resides
 	 */
 	protected void setPlace(Place place) {
+		
+		// set the Place
 		this.place = place;
+		
+		if ( place != null ) {
+			
+			// set this Agent's index (index is not transient...)
+			this.index = place.getIndex();
+
+			// reset migration flag (have arrived at a Place and no longer migrating)
+			isMigrating = false;
+
+		}
+		
+	}
+	
+	/**
+	 * Pause clock-driven events indefinitely
+	 */
+	public void sleep() {
+		sleepUntil( GlobalLogicalClock.INHIBIT );
+	}
+
+	/**
+	 * Pause clock-driven events until the Global Logical Clock reaches this value
+	 * @param inhibitUntil The clock value that, when reached, will resume clocked method execution
+	 */
+	public void sleepUntil(long inhibitUntil) {
+		this.inhibitUntil = inhibitUntil;
 	}
 
 	/**
