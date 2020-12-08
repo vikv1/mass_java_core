@@ -55,12 +55,14 @@ public class PlaceTest extends AbstractTest {
 	public void onSetUp() {
 		
 		// MASSBase should be made ready for use before tests are run
-		if ( MASSBase.getSystemSize() == 0 ) {
+		if ( MASSBase.getHosts().size() == 0 ) {
+		
 			MNode masterNode = new MNode();
 			masterNode.setHostName( randomString() );
 			masterNode.setMaster( true );
 			MASSBase.addNode( masterNode );
 			MASSBase.initMASSBase( masterNode );
+
 		}
 
 	}
@@ -209,13 +211,6 @@ public class PlaceTest extends AbstractTest {
 	
 	@Test
 	public void putInMessage() {
-
-		// need to force MASSBase to contain a single node for this test
-		MNode masterNode = new MNode();
-		masterNode.setHostName( randomString() );
-		masterNode.setMaster( true );
-		MASSBase.addNode( masterNode );
-		MASSBase.initMASSBase( masterNode );
 
 		// matrix dimensions
 		int[] size = new int[]{ 1, 1, 1 };
