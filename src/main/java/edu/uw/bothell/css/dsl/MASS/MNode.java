@@ -65,6 +65,7 @@ public class MNode {
 	private String logFileName;			// TODO - custom logging filename for this node
 	
 	private String hostName;			// the host name of this node
+	private String maxHeapSize;			// the amount of heap memory to allocate for this node
 	private String userName;			// for SSH login, the username - optional
 	private String javaHome;			// where the JVM is installed on this node - optional
 	private String massHome;			// where MASS library is located - optional
@@ -113,7 +114,7 @@ public class MNode {
     public String getJavaHome() {
 		return javaHome;
 	}
-	
+
 	/**
 	 * Get the location where MASS (MASS.jar) resides on this node
 	 * @return The location of MASS.jar
@@ -121,6 +122,15 @@ public class MNode {
 	@XmlElement(name = "masshome")
 	public String getMassHome() {
 		return massHome;
+	}
+
+	/**
+	 * Get the maximum amount of heap memory that will be allocated for this node
+	 * @return The max amount of heap memory
+	 */
+	@XmlElement(name = "maxheap")
+	public String getMaxHeapSize() {
+		return maxHeapSize;
 	}
 	
 	/**
@@ -134,8 +144,8 @@ public class MNode {
     public int getPid( ) {
     	return pid;
     }
-
-    /**
+	
+	/**
 	 * Set the port number used to communicate with this node, for inter-node socket communications
 	 * @return The port number
 	 */
@@ -144,7 +154,7 @@ public class MNode {
 		return port;
 	}
 
-	/**
+    /**
 	 * Get the path/filename of the private key used for SSH connections to this node
 	 * @return The private key path/filename
 	 */
@@ -152,7 +162,7 @@ public class MNode {
 	public String getPrivateKey() {
 		return privateKey;
 	}
-	
+
 	/**
 	 * Get the SSH login username for this node
 	 * @return The login username
@@ -185,7 +195,7 @@ public class MNode {
 		}
 		
 	}
-
+	
 	/**
 	 * Get the master status for this node - if true, then the node represented by this instance
 	 * is the master node 
@@ -295,6 +305,14 @@ public class MNode {
 	 */
 	public void setMaster(boolean isMaster) {
 		this.isMaster = isMaster;
+	}
+
+	/**
+	 * Set the maximum amount of heap memory that may be allocated on this node
+	 * @param heapSize The maximum heap memory allocation
+	 */
+	public void setMaxHeapSize(String heapSize) {
+		this.maxHeapSize = heapSize;
 	}
 
 	/**

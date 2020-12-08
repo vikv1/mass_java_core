@@ -77,7 +77,7 @@ public class MASS extends MASSBase {
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-
+    
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
     }
@@ -350,16 +350,16 @@ public class MASS extends MASSBase {
     		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome() + "/");
     		
     		// gotta specify the JVM
-    		commandBuilder.append( "java " );
+    		commandBuilder.append( "java" );
 
     		// add arguments to prevent module warnings with Hazelcast
-    		commandBuilder.append( "--add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED " );
+    		commandBuilder.append( " --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED" );
 
-    		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append( "-Xmx2g " );
+    		// configurable heap memory size per node
+    		if ( node.getMaxHeapSize() != null ) commandBuilder.append( " -Xmx" + node.getMaxHeapSize() );
 
     		// add MASS home directory itself as part of the classpath
-    		if ( node.getMassHome() != null ) commandBuilder.append( "-cp " + node.getMassHome() + "/*.jar " );
+    		if ( node.getMassHome() != null ) commandBuilder.append( " -cp " + node.getMassHome() + "/*.jar" );
     		
     		// TODO - this is a nice trick, but doesn't work if running in an IDE during debugging
 //   			if (node.getMassHome() != null) {
@@ -372,7 +372,7 @@ public class MASS extends MASSBase {
 //   			}
 
     		// MProcess and its arguments
-    		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
+    		commandBuilder.append(" " + MProcess.class.getCanonicalName() + " ");	// the program
     		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
     		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
     		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
