@@ -61,11 +61,15 @@ public class PlacesBaseTest extends AbstractTest {
 	public static void beforeAll() {
 		
 		// MASSBase should be made ready for use before tests are run
-		MNode masterNode = new MNode();
-		masterNode.setHostName( randomString() );
-		masterNode.setMaster( true );
-		MASSBase.addNode( masterNode );
-		MASSBase.initMASSBase( masterNode );
+		if ( MASSBase.getHosts().size() == 0 ) {
+			
+			MNode masterNode = new MNode();
+			masterNode.setHostName( randomString() );
+			masterNode.setMaster( true );
+			MASSBase.addNode( masterNode );
+			MASSBase.initMASSBase( masterNode );
+
+		}
 
 		// init MASSBase with three threads for these tests
 		if ( !MASSBase.isInitialized() ) {
