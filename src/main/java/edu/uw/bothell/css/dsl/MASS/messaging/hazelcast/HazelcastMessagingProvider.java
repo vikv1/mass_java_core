@@ -70,7 +70,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private static final String HAZELCAST_LOGGING_LEVEL = "ERROR";
 	
 	private HazelcastInstance instance;
-	private static final boolean useMulticast = true;		// experiment with this, might be good to have a setter
+	private static final boolean useMulticast = false;		// experiment with this, might be good to have a setter
 	
 	@Override
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
