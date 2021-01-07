@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
+        resetMASSBase();
         MNode masterNode = new MNode();
         masterNode.setHostName( randomString() );
         masterNode.setMaster( true );
