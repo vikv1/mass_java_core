@@ -41,17 +41,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-//@Category(IntegrationTest.class)
-@Disabled
-public class GraphPlacesTest {
+public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
-    public static void setupMASS() {
-        MASS.init();
+    public static void beforeAll() {
+        MNode masterNode = new MNode();
+        masterNode.setHostName( randomString() );
+        masterNode.setMaster( true );
+        MASSBase.addNode( masterNode );
+        MASSBase.initMASSBase( masterNode );
     }
 
     @AfterAll
-    public static void shutdownMASS() {
-        MASS.finish();
+    public static void afterAll() {
+        resetMASSBase();
     }
 
     @Test
@@ -68,6 +70,7 @@ public class GraphPlacesTest {
     }
 
     @Test
+    @Disabled // FIXME(Issue #150): test is failing.
     public void neighborsArePopulated() {
         String [] graphArguments = new String[] {
                 "test-files/network-triangles.xml",
@@ -88,6 +91,7 @@ public class GraphPlacesTest {
     }
 
     @Test
+    @Disabled // FIXME(Issue #151): Test is failing.
     public void networkContainsATriangle() {
         String [] graphArguments = new String[] {
                 "test-files/network-triangles.xml",
