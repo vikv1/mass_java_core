@@ -111,6 +111,35 @@ public class GraphPlacesTest extends AbstractTest {
     }
 
     @Test
+    public void addEdgeWithoutWeight() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        graph.addVertex(sourceID);
+        graph.addVertex(destinationID);
+
+        // Add an edge without specifying weight.
+        graph.addEdge(sourceID, destinationID);
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        int sourceGlobalIndex = graph.getVertexMetaValues(sourceID).Id;
+        VertexPlace vert = graph.getVertexPlace(sourceGlobalIndex);
+
+        // validate weights and neighbors list
+        assertEquals(vert.neighbors.size(), 1);
+        assertEquals(vert.weights.size(), 1);
+
+        int neighbor = (int) vert.neighbors.get(0);
+        // GraphPlaces signature requires a double for weight but VertexPlace
+        // casts it to an int.
+        int neighborWeight = (int) vert.weights.get(0);
+        
+        assertEquals(neighbor, destinationID);
+        assertEquals(neighborWeight, 1);
+    }
+
+    @Test
     public void hippieNetworkIsCreated() {
         String [] graphArguments = new String[] {
                 "test-files/complete-small.tsv",
