@@ -667,7 +667,7 @@ public class GraphPlaces extends Places implements Graph {
         if (globalLinearIndex < 0 || globalLinearIndex >= getSize()[0]) 
             return -1;
 
-        return getNodeID(globalLinearIndex, MASS.getSystemSize(), getSize()[0]);
+        return getNodeId(globalLinearIndex, MASS.getSystemSize(), getSize()[0]);
     }
 
     /**
@@ -681,7 +681,7 @@ public class GraphPlaces extends Places implements Graph {
      * 
      * @return the node ID of the node that owns the provided global linear index.
      */
-    public static int getNodeID(final int globalLinearIndex, int numNodes, int size) {
+    public static int getNodeId(final int globalLinearIndex, int numNodes, int size) {
         // Calculate stripe, remainder, and the left and right indices of our node "array"
         int stripe = size / numNodes;
         int remainder = size % numNodes;
