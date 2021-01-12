@@ -662,10 +662,65 @@ public class GraphPlaces extends Places implements Graph {
     // TODO: Should we make a globallinearindex type?
     // then we could do index.getNode()
     public int getNodeIdFromGlobalLinearIndex(final int globalLinearIndex) {
-        int spanSize = getSize()[0];
-        int chunkSize = spanSize / MASS.getSystemSize(); // normal chunk
+        // if the globalLinearIndex is outside the scope of our simulation
+        // space, just return -1.
+        if (globalLinearIndex < 0 || globalLinearIndex >= getSize()[0]) 
+            return -1;
 
-        return globalLinearIndex % spanSize / chunkSize;
+        return getNodeId(globalLinearIndex, MASS.getSystemSize(), getSize()[0]);
+    }
+
+    /**
+     * getNodeID returns the appropriate node ID for the provided globalLinearIndex
+     * given the number of nodes and the size of the simulation space.
+     * 
+     * @param globalLinearIndex the global linear index of the object whose owner we're
+     * looking for.
+     * @param numNodes the number of nodes in the system.
+     * @param size the size of the simulation space.
+     * 
+     * @return the node ID of the node that owns the provided global linear index.
+     */
+    public static int getNodeId(final int globalLinearIndex, int numNodes, int size) {
+        // Calculate stripe, remainder, and the left and right indices of our node "array"
+        int stripe = size / numNodes;
+        int remainder = size % numNodes;
+        int l = 0;
+        int r = numNodes - 1;
+
+        // Perform binary search over the node stripes to find which node this
+        // global index belongs to.
+        while (l <= r) {
+            int m = l + (r - l) / 2;
+            int left_i = getNodeLeftIndex(m, stripe, remainder);
+            int right_i = getNodeRightIndex(m, left_i, stripe, remainder);
+
+            // CHECK
+            if (globalLinearIndex >= left_i && globalLinearIndex <= right_i) {
+                return m;
+            }
+
+            if (globalLinearIndex > right_i) {
+                l = m + 1;
+            } else {
+                r = m - 1;
+            }
+        }
+        
+        // If we're unable to locate the node, return -1.
+        return -1;
+    }
+
+    // getNodeLeftIndex retreives the left-side index of the simulation space owned
+    // by the provided node ID.
+    private static int getNodeLeftIndex(int node, int stripe, int remainder) {
+        return node < remainder ? stripe * node + node : stripe * node + remainder;
+    }
+    
+    // getNodeRightIndex retreives the right-side index of the simulation space owned
+    // by the provided node ID.
+    private static int getNodeRightIndex(int node, int left_i, int stripe, int remainder ) {
+        return node < remainder ? left_i + stripe : left_i + stripe - 1;
     }
 
     /**
