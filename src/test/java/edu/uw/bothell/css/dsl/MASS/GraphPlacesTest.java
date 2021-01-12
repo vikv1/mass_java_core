@@ -41,6 +41,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
@@ -109,6 +112,32 @@ public class GraphPlacesTest extends AbstractTest {
         assertTrue( vertexPlace1.neighbors.contains(1) );
         assertTrue( vertexPlace2.neighbors.contains(2) );
         assertTrue( vertexPlace3.neighbors.contains(0) );
+    }
+
+    @ParameterizedTest(name = "{index} => gID={0}, numNodes={1}, size={2}, want={3}")
+    @CsvSource({
+            // Single-node tests
+            "0, 1, 7, 0",
+            "4, 1, 7, 0",
+            "6, 1, 7, 0",
+            "7, 1, 7, -1",
+            "-2, 1, 7, -1",
+
+            // Multi-node: size indivisible by nodes
+            "0, 4, 7, 0",
+            "6, 4, 7, 3",
+            "2, 4, 7, 1",
+            "7, 1, 7, -1",
+
+            // Multi-node: size divisible by nodes
+            "0, 4, 8, 0",
+            "7, 4, 8, 3",
+            "5, 4, 8, 2",
+            "8, 4, 8, -1"
+    })
+    public void testGetNodeId(int gID, int numNodes, int size, int want) {
+        int got = GraphPlaces.getNodeId(gID, numNodes, size);
+        assertEquals(want, got);
     }
 
     @Test
