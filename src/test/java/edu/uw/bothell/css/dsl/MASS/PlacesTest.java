@@ -46,6 +46,7 @@ public class PlacesTest extends AbstractTest {
 	public static void beforeAll() {
 		
 		// MASSBase should be made ready for use before tests are run
+		resetMASSBase();
 		MNode masterNode = new MNode();
 		masterNode.setHostName( randomString() );
 		masterNode.setMaster( true );
