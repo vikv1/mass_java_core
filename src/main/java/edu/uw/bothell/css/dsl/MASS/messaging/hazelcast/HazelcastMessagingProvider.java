@@ -83,8 +83,9 @@ public class HazelcastMessagingProvider implements MessagingProvider {
         // common network config options
         config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
         config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
-
+        
         // explicitly add remote nodes rather than using multicast
+        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );
         MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
         if ( remoteNodes != null) {
         	for ( MNode node : remoteNodes ) {
