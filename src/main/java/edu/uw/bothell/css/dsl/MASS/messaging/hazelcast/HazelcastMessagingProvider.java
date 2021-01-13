@@ -224,6 +224,8 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		
 			MASSBase.getLogger().debug("Hazelcast Messaging Provider shutdown requested");
 			instance.shutdown();
+			instance.getLifecycleService().terminate();
+			MASSBase.getLogger().debug("Hazelcast terminated");
 		
 		}
 		
