@@ -30,13 +30,11 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.Arrays;
 
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
@@ -326,6 +324,11 @@ public class MProcess {
 				alive = false;
 				MASSBase.getLogger().debug("FINISH received and ACK sent");
 
+				// force termination of this node
+				// TODO - this is an ugly hack, but it guarantees termination regardless of the state of things
+				System.exit( 0 );
+				
+				// yes, there is a "break" after system exit. just keeping things tidy.
 				break;
 
 			case PLACES_INITIALIZE:
