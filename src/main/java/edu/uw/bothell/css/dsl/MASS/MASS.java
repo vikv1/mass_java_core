@@ -321,6 +321,15 @@ public class MASS extends MASSBase {
     		MNode masterNode = new MNode();
     		masterNode.setMaster(true);
     		addNode(masterNode);
+    	
+    	}
+    	
+    	// validate configuration before attempting to start remote nodes
+    	if ( validateNodeConfiguration() == false ) {
+    		MASSBase.getLogger().error( "Node configuration validation problems found, unable to initialize!" );
+    		System.out.println( "Node configuration validation problems found, unable to initialize!" );
+    		System.out.println( "Refer to log files for details of validation exception(s)" );
+			System.exit( -1 );
     	}
     	
     	// Initialize MASS_base.constants and identify the CWD.
@@ -745,6 +754,37 @@ public class MASS extends MASSBase {
 
 	public static long getClockValue() {
 		return getGlobalClock().getValue();
+	}
+	
+	private static boolean validateNodeConfiguration() {
+		
+		// assume that everything is fine at first
+		boolean validationSuccess = true;
+		
+		// validate all node configurations
+		Set<String> nodeValidationExceptions = getMasterNode().validate();
+		for ( MNode node : getRemoteNodes() ) {
+			nodeValidationExceptions.addAll( node.validate() );
+		}
+
+		// any validation failures?
+		if ( nodeValidationExceptions.size() > 0 ) {
+
+			// failure!
+			validationSuccess = false;
+			
+			for ( String validationException : nodeValidationExceptions ) {
+			
+				String message = "Configuration exception: " + validationException;
+				System.out.println( message );
+				MASS.getLogger().error( message );
+			
+			}
+			
+		}
+		
+		return validationSuccess;
+		
 	}
 
 }

@@ -37,6 +37,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -358,6 +360,30 @@ public class MNode {
 	 */
 	public void setUserName(String userName) {
 		this.userName = userName;
+	}
+	
+	/**
+	 * Check the configuration validity of a node definition
+	 * @return A collection of error messages representing validation failures
+	 */
+	public Set<String> validate() {
+		
+		Set<String> validationExceptions = new HashSet<>(); 
+		
+		// verify common properties for all nodes
+		if ( !( port > 0 ) ) validationExceptions.add( "Port number must be provided in configuration of " + getHostName() );
+		
+		
+		// check correctness of remote node configurations
+		if ( !isMaster() ) {
+			
+			if ( getPrivateKey() == null ) validationExceptions.add( "Must provide private key filename in configuration of " + getHostName() );
+			if ( getUserName() == null ) validationExceptions.add( "Must provide username in configuration of " + getHostName() );
+			
+		}
+		
+		return validationExceptions;
+		
 	}
 
 }
