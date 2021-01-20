@@ -36,6 +36,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,55 +52,73 @@ import com.hazelcast.core.IMap;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
+import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvider;
 
 public class HazelcastDistributedMap implements DistributedMap, Closeable {
     private final IMap<Object, Object> map;
     private final HazelcastInstance instance;
 
     private HazelcastDistributedMap() {
-        Config config = new Config();
+        
+    	// is there an instance of Hazelcast already available from the messaging system?
+    	HazelcastInstance existingInstance = Hazelcast.getHazelcastInstanceByName( HazelcastMessagingProvider.HAZELCAST_INSTANCE_NAME );
+    	if ( Objects.isNull( existingInstance ) ) {
+    	
+    		// no other instance of Hazelcast has been init'd
+    		
+	    	Config config = new Config();
+	
+	        config.setProperty("hazelcast.logging.type", "log4j2");
+	        config.setProperty("hazelcast.logging.level", "ERROR");
+	
+	        //config.getNetworkConfig().setPort(10101);
+	        //config.getNetworkConfig().setReuseAddress(true);
+	
+	        NetworkConfig netConfig = config.getNetworkConfig();
+	
+	        netConfig.setPort(10011).setPortCount(100);
+	        netConfig.setPortAutoIncrement(true);
+	        netConfig.setReuseAddress(true);
+	
+	        InterfacesConfig ifConfig = netConfig.getInterfaces();
+	
+	        MASSBase.getLogger().error(MASSBase.getAllNodes().stream().map(n->String.valueOf(n.getPid())).collect(Collectors.joining(",")));
+	
+	        try {
+	            String hostname = MASSBase.getMyHostname();
+	            String ipString = InetAddress.getByName(hostname).getHostAddress();
+	
+	            MASSBase.getLogger().error("This node [host=" + hostname + "; ip=" + ipString + "pid=" + MASSBase.getMyPid() + "]");
+	            ifConfig.addInterface(ipString).setEnabled(true);
+	        } catch (UnknownHostException e) {
+	            MASSBase.getLogger().error("Error retrieving master IP address");
+	
+	            Arrays.stream(e.getStackTrace()).forEach(st -> MASSBase.getLogger().error(st.toString()));
+	        }
+	
+	        JoinConfig joinConfig = netConfig.getJoin();
+	
+	        joinConfig.getMulticastConfig().setEnabled(false);
+	
+	        MASS.getHosts().forEach(host -> joinConfig.getTcpIpConfig().addMember(host));
+	
+	        joinConfig.getTcpIpConfig().setEnabled(true);
+	
+	        new ManagementCenterConfig().setEnabled(true).setUrl("http://localhost:11110");
+	
+	        instance = Hazelcast.newHazelcastInstance(config);
 
-        config.setProperty("hazelcast.logging.type", "log4j2");
-        config.setProperty("hazelcast.logging.level", "ERROR");
-
-        //config.getNetworkConfig().setPort(10101);
-        //config.getNetworkConfig().setReuseAddress(true);
-
-        NetworkConfig netConfig = config.getNetworkConfig();
-
-        netConfig.setPort(10011).setPortCount(100);
-        netConfig.setPortAutoIncrement(true);
-        netConfig.setReuseAddress(true);
-
-        InterfacesConfig ifConfig = netConfig.getInterfaces();
-
-        MASSBase.getLogger().error(MASSBase.getAllNodes().stream().map(n->String.valueOf(n.getPid())).collect(Collectors.joining(",")));
-
-        try {
-            String hostname = MASSBase.getMyHostname();
-            String ipString = InetAddress.getByName(hostname).getHostAddress();
-
-            MASSBase.getLogger().error("This node [host=" + hostname + "; ip=" + ipString + "pid=" + MASSBase.getMyPid() + "]");
-            ifConfig.addInterface(ipString).setEnabled(true);
-        } catch (UnknownHostException e) {
-            MASSBase.getLogger().error("Error retrieving master IP address");
-
-            Arrays.stream(e.getStackTrace()).forEach(st -> MASSBase.getLogger().error(st.toString()));
-        }
-
-        JoinConfig joinConfig = netConfig.getJoin();
-
-        joinConfig.getMulticastConfig().setEnabled(false);
-
-        MASS.getHosts().forEach(host -> joinConfig.getTcpIpConfig().addMember(host));
-
-        joinConfig.getTcpIpConfig().setEnabled(true);
-
-        new ManagementCenterConfig().setEnabled(true).setUrl("http://localhost:11110");
-
-        instance = Hazelcast.newHazelcastInstance(config);
-
+    	}
+    	
+    	else {
+    		
+    		// an instance of Hazelcast from the messaging system already exists - use that one
+    		instance = existingInstance;
+    		
+    	}
+    	
         this.map = instance.getMap("base_map");
+    
     }
 
     @Override

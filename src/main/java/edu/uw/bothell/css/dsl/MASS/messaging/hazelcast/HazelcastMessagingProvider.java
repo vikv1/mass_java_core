@@ -45,6 +45,7 @@ import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
@@ -54,6 +55,9 @@ import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
 @SuppressWarnings("unused")    // TODO - remove once all methods implemented
 public class HazelcastMessagingProvider implements MessagingProvider {
 
+	// Hazelcast constants
+	public static final String HAZELCAST_INSTANCE_NAME = "mass_hazelcast_provider";
+	
 	// topic prefixes
 	private static final String AGENT_ADDRESS_PREFIX = "A";
 	private static final String PLACE_ADDRESS_PREFIX = "P";
@@ -77,6 +81,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initializing..." );
 		
 		Config config = new Config();
+		config.setInstanceName( HAZELCAST_INSTANCE_NAME ); 
         config.setProperty( "hazelcast.logging.type", HAZELCAST_LOGGING_TYPE );
         config.setProperty( "hazelcast.logging.level", HAZELCAST_LOGGING_LEVEL );
 
@@ -98,7 +103,9 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		instance = Hazelcast.newHazelcastInstance( config );
 		
 		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initialized!" );
-		
+
+		HazelcastDistributedMap testInstance = HazelcastDistributedMap.getInstance();
+
 	}
 
 	@Override
