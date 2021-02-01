@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -328,4 +329,30 @@ public class MNodeTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void validationCheckValidPortNumber() {
+		
+		// mock objects not being used for this test
+		replayAll();
+		
+		// only one node, treat it as the master node
+		mNode.setMaster( true );
+
+		// initially, MNode should have no validation failures
+		assertThat( mNode.validate().size() ).as( "Node configuration should not fail default validation rules").isEqualTo( 0 );
+		
+		// negative numbers should not be allowed
+		mNode.setPort( -1 );
+		assertThat( mNode.validate().size() ).as( "Node port number should fail validation if outside the range of 1024 to 65535").isGreaterThan( 0 );
+
+		// port numbers less than 1024 should not be allowed
+		mNode.setPort( 1023 );
+		assertThat( mNode.validate().size() ).as( "Node port number should fail validation if outside the range of 1024 to 65535").isGreaterThan( 0 );
+
+		// port numbers > 65535 should not be allowed
+		mNode.setPort( 65536 );
+		assertThat( mNode.validate().size() ).as( "Node port number should fail validation if outside the range of 1024 to 65535").isGreaterThan( 0 );
+
+	}
+	
 }

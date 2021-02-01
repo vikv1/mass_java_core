@@ -371,8 +371,7 @@ public class MNode {
 		Set<String> validationExceptions = new HashSet<>(); 
 		
 		// verify common properties for all nodes
-		if ( !( port > 0 ) ) validationExceptions.add( "Port number must be provided in configuration of " + getHostName() );
-		
+		if ( port > 65535 || port < 1024 ) validationExceptions.add( "Port number for node " + getHostName() + " is outside of the allowable range 1024 to 65535" );
 		
 		// check correctness of remote node configurations
 		if ( !isMaster() ) {
