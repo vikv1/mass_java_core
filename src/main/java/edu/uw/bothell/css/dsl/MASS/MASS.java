@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -242,6 +242,44 @@ public class MASS extends MASSBase {
 	 */
 	public static void init() {
 
+		// start MASS, providing filename of configuration
+		init( getNodeFilePath() );
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a Nodelist for configuration
+	 * Calling this method effectively begins computation.
+	 * @param nodes The Nodelist configuration to use
+	 */
+	public static void init( Nodelist nodes ) {
+	
+		// must provide nodes for configuration!
+		if ( nodes == null ) {
+			System.err.println( "No nodes provided for configuration!" );
+    		System.exit( -1 );
+		}
+
+		// iterate through the nodes, adding each
+		for ( MNode node : nodes.getNodes() ) {
+			addNode( node );
+		}
+		
+		// start MASS
+		init();
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a specific filename for Nodelist XML or machines.txt format configuration document.
+	 * Calling this method effectively begins computation.
+	 * @param nodeFilename The full path and filename of the Nodelist XML or machines.txt configuration document to use
+	 */
+	public static void init( String nodeFilename ) {
+		
+		// set config file path (in case it wasn't set already, for compatibility)
+		setNodeFilePath( nodeFilename );
+
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
 
@@ -296,18 +334,19 @@ public class MASS extends MASSBase {
             		fileReader.close();
             	} catch( Exception e ) {
 
-            		System.err.println( "machine file: " + getNodeFilePath() +
-            				" could not open." );
+            		System.err.println( "machine file: " + getNodeFilePath() + " could not open." );
 		    		MASS.getLogger().error( "Machine file: {} could not be opened!", getNodeFilePath(), e );
             		System.exit( -1 );
 
             	}
+    		
     		}  		
+
     	} else {
 			System.err.println(" No Node File Path Given" );
 			System.exit( -1 );
 		}
-    	
+
     	// For debugging
     	if ( MASSBase.getLogger().isDebugEnabled() ) {
     		for ( MNode node : getRemoteNodes() )
