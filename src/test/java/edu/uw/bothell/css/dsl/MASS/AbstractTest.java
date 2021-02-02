@@ -71,6 +71,7 @@ public class AbstractTest extends EasyMockSupport {
     		MASSBase.setCurrentAgentsBase( null );
     		MASSBase.setCurrentReturns( null );
     		MASSBase.setDestinationPlaces( null );
+    		MASSBase.getAgentsMap().clear();
     		MASSBase.getPlacesMap().clear();
     		MASSBase.getRemoteNodes().clear();
     		MASSBase.getHosts().clear();
