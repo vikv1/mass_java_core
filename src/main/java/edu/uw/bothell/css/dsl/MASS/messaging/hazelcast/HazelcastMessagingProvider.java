@@ -111,6 +111,9 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	@Override
 	public void registerAgent( Agent agent ) {
 		
+		// safety valve, mainly for unit testing
+		if ( instance == null ) return;
+		
 		// create/obtain a topic and listener for this particular agent
 		String agentSpecificTopicName = AGENT_ADDRESS_PREFIX + agent.getAgentId();  
 		

@@ -47,6 +47,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.commons.lang3.StringUtils;
+
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
@@ -272,7 +274,7 @@ public class MNode {
 	 * @param hostName The Hostname/IP address
 	 */
 	public void setHostName(String hostName) {
-		this.hostName = hostName;
+		this.hostName = StringUtils.stripToNull( hostName );
 	}
 
 	/**
@@ -290,7 +292,7 @@ public class MNode {
 	 * @param javaHome The JVM location
 	 */
 	public void setJavaHome(String javaHome) {
-		this.javaHome = javaHome;
+		this.javaHome = StringUtils.stripToNull( javaHome );
 	}
 
 	/**
@@ -298,7 +300,7 @@ public class MNode {
 	 * @param massHome The location of MASS.jar
 	 */
 	public void setMassHome(String massHome) {
-		this.massHome = massHome;
+		this.massHome = StringUtils.stripToNull( massHome );
 	}
 
 	/**
@@ -314,7 +316,7 @@ public class MNode {
 	 * @param heapSize The maximum heap memory allocation
 	 */
 	public void setMaxHeapSize(String heapSize) {
-		this.maxHeapSize = heapSize;
+		this.maxHeapSize = StringUtils.stripToNull( heapSize );
 	}
 
 	/**
@@ -351,7 +353,7 @@ public class MNode {
 	 * @param privateKey The path/filename of the private key to use when connecting to this node
 	 */
 	public void setPrivateKey(String privateKey) {
-		this.privateKey = privateKey;
+		this.privateKey = StringUtils.stripToNull( privateKey );
 	}
 
 	/**
@@ -359,7 +361,7 @@ public class MNode {
 	 * @param userName The SSH login username
 	 */
 	public void setUserName(String userName) {
-		this.userName = userName;
+		this.userName = StringUtils.stripToNull( userName );
 	}
 	
 	/**

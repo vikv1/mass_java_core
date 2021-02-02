@@ -37,14 +37,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * Perform a series of unit tests against the Agents class to verify proper
  * and consistent behavior of the class / methods
  */
-@Disabled	// TODO - fix errors related to Hazelcast
 public class AgentsTest extends AbstractTest {
 
 	private static final int PLACES_HANDLE = randomInt();

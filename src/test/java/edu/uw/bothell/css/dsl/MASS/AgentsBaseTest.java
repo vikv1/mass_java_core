@@ -45,7 +45,6 @@ import org.junit.jupiter.api.Test;
  * Perform a series of unit tests against the AgentsBase class to verify proper
  * and consistent behavior of the class / methods
  */
-@Disabled    // TODO - fix!
 public class AgentsBaseTest extends AbstractTest {
 
 	// class under test
@@ -158,6 +157,7 @@ public class AgentsBaseTest extends AbstractTest {
 	}
 	
 	@Test
+	@Disabled
 	public void manageAllLockRelease() {
 
 		// must provide something for MThread to lock against
@@ -170,6 +170,7 @@ public class AgentsBaseTest extends AbstractTest {
 	}
 
 	@Test
+	@Disabled
 	public void manageAllSingleLiveAgent() {
 
 		// must provide something for MThread to lock against

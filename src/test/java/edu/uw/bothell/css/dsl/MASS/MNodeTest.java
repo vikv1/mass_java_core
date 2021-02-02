@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.jupiter.api.AfterEach;
@@ -93,7 +94,7 @@ public class MNodeTest extends AbstractTest {
 	@Test
 	public void getSetHostname() {
 		
-		String hostname = randomString();
+		String hostname = " " + randomString() + " ";
 		
 		replayAll();
 		
@@ -104,14 +105,14 @@ public class MNodeTest extends AbstractTest {
 		mNode.setHostName( hostname );
 		
 		// should match
-		assertEquals( hostname, mNode.getHostName() );
+		assertEquals( StringUtils.stripToNull( hostname ), mNode.getHostName() );
 		
 	}
 	
 	@Test
 	public void getSetJavaHome() {
 		
-		String home = randomString();
+		String home = " " + randomString() + " ";
 		
 		replayAll();
 		
@@ -122,14 +123,14 @@ public class MNodeTest extends AbstractTest {
 		mNode.setJavaHome( home );
 		
 		// should match
-		assertEquals( home, mNode.getJavaHome() );
+		assertEquals( StringUtils.stripToNull( home ), mNode.getJavaHome() );
 		
 	}
 	
 	@Test
 	public void getSetMassHome() {
 		
-		String home = randomString();
+		String home = " " + randomString() + " ";
 		
 		replayAll();
 		
@@ -140,7 +141,7 @@ public class MNodeTest extends AbstractTest {
 		mNode.setMassHome( home );
 		
 		// should match
-		assertEquals( home, mNode.getMassHome() );
+		assertEquals( StringUtils.stripToNull( home ), mNode.getMassHome() );
 		
 	}
 	
@@ -184,7 +185,7 @@ public class MNodeTest extends AbstractTest {
 	@Test
 	public void getSetPrivateKey() {
 		
-		String key = randomString();
+		String key = " " + randomString() + " ";
 		
 		replayAll();
 		
@@ -195,14 +196,14 @@ public class MNodeTest extends AbstractTest {
 		mNode.setPrivateKey( key );
 		
 		// should match
-		assertEquals( key, mNode.getPrivateKey() );
+		assertEquals( StringUtils.stripToNull( key ), mNode.getPrivateKey() );
 		
 	}
 
 	@Test
 	public void getSetUserName() {
 		
-		String name = randomString();
+		String name = " " + randomString() + " ";
 		
 		replayAll();
 		
@@ -213,7 +214,7 @@ public class MNodeTest extends AbstractTest {
 		mNode.setUserName( name );
 		
 		// should match
-		assertEquals( name, mNode.getUserName() );
+		assertEquals( StringUtils.stripToNull( name ), mNode.getUserName() );
 		
 	}
 	
@@ -354,5 +355,61 @@ public class MNodeTest extends AbstractTest {
 		assertThat( mNode.validate().size() ).as( "Node port number should fail validation if outside the range of 1024 to 65535").isGreaterThan( 0 );
 
 	}
-	
+
+	@Test
+	public void validationCheckPrivateKey() {
+		
+		// mock objects not being used for this test
+		replayAll();
+
+		// set private key and username to some value
+		mNode.setPrivateKey( randomString() );
+		mNode.setUserName( randomString() );
+		
+		// initially, MNode should have no validation failures
+		assertThat( mNode.validate().size() ).as( "Node configuration should not fail default validation rules").isEqualTo( 0 );
+		
+		// Null private key for remote node should not be allowed
+		mNode.setPrivateKey( null );
+		assertThat( mNode.validate().size() ).as( "Remote node should fail validation if private key not specified").isGreaterThan( 0 );
+
+	}
+
+	@Test
+	public void validationCheckUsername() {
+		
+		// mock objects not being used for this test
+		replayAll();
+
+		// set private key and username to some value
+		mNode.setPrivateKey( randomString() );
+		mNode.setUserName( randomString() );
+		
+		// initially, MNode should have no validation failures
+		assertThat( mNode.validate().size() ).as( "Node configuration should not fail default validation rules").isEqualTo( 0 );
+		
+		// Null username for remote node should not be allowed
+		mNode.setUserName( null );
+		assertThat( mNode.validate().size() ).as( "Remote node should fail validation if username not specified").isGreaterThan( 0 );
+
+	}
+
+	@Test
+	public void getSeMaxHeapSize() {
+		
+		String heap = " " + randomString() + " ";
+		
+		replayAll();
+		
+		// verify null to begin with
+		assertNull( mNode.getMaxHeapSize() );
+		
+		// set to a known value
+		mNode.setMaxHeapSize( heap );
+		
+		// should match
+		assertEquals( StringUtils.stripToNull( heap ), mNode.getMaxHeapSize() );
+		
+	}
+
 }
