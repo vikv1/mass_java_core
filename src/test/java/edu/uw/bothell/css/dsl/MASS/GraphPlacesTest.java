@@ -145,7 +145,7 @@ public class GraphPlacesTest extends AbstractTest {
         // Setup graph and vertices.
         int sourceID = 0;
         int destinationID = 1;
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 10);
         graph.addVertex(sourceID);
         graph.addVertex(destinationID);
 
@@ -157,16 +157,16 @@ public class GraphPlacesTest extends AbstractTest {
         VertexPlace vert = graph.getVertexPlace(sourceGlobalIndex);
 
         // validate weights and neighbors list
-        assertEquals(vert.neighbors.size(), 1);
-        assertEquals(vert.weights.size(), 1);
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
 
         int neighbor = (int) vert.neighbors.get(0);
         // GraphPlaces signature requires a double for weight but VertexPlace
         // casts it to an int.
         int neighborWeight = (int) vert.weights.get(0);
         
-        assertEquals(neighbor, destinationID);
-        assertEquals(neighborWeight, 1);
+        assertEquals(destinationID, neighbor);
+        assertEquals(1, neighborWeight);
     }
 
     @Test
