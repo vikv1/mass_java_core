@@ -678,26 +678,27 @@ public class GraphPlaces extends Places implements Graph {
     // TODO: Should we make a globallinearindex type?
     // then we could do index.getNode()
     public int getNodeIdFromGlobalLinearIndex(final int globalLinearIndex) {
-        // if the globalLinearIndex is outside the scope of our simulation
-        // space, just return -1.
-        if (globalLinearIndex < 0 || globalLinearIndex >= getSize()[0]) 
-            return -1;
+        // Calculate layer and relative index.
+        int layer = globalLinearIndex / getSize()[0];
+        int relativeIdx = globalLinearIndex - layer * getSize()[0];
 
-        return getNodeId(globalLinearIndex, MASS.getSystemSize(), getSize()[0]);
+        return getNodeId(relativeIdx, MASS.getSystemSize(), getSize()[0]);
     }
 
     /**
-     * getNodeId returns the appropriate node ID for the provided globalLinearIndex
-     * given the number of nodes and the size of the simulation space.
+     * getNodeId returns the appropriate node ID for the provided relativeIndex
+     * given the number of nodes and the size of layers in the simulation space.
      * 
-     * @param globalLinearIndex the global linear index of the object whose owner we're
-     * looking for.
+     * @param relativeIndex the index relative to the layer. For example, if our
+     * simulation space was initialized to a size of 10, meaning we have 10 indices
+     * per layer, and we wanted the owner of index 14. Its relative index would be 
+     * index 4 of layer 1.
      * @param numNodes the number of nodes in the system.
      * @param size the size of the simulation space.
      * 
      * @return the node ID of the node that owns the provided global linear index.
      */
-    public static int getNodeId(final int globalLinearIndex, int numNodes, int size) {
+    public static int getNodeId(final int relativeIndex, int numNodes, int size) {
         // Calculate stripe, remainder, and the left and right indices of our node "array"
         int stripe = size / numNodes;
         int remainder = size % numNodes;
@@ -711,12 +712,11 @@ public class GraphPlaces extends Places implements Graph {
             int left_i = getNodeLeftIndex(m, stripe, remainder);
             int right_i = getNodeRightIndex(m, left_i, stripe, remainder);
 
-            // CHECK
-            if (globalLinearIndex >= left_i && globalLinearIndex <= right_i) {
+            if (relativeIndex >= left_i && relativeIndex <= right_i) {
                 return m;
             }
 
-            if (globalLinearIndex > right_i) {
+            if (relativeIndex > right_i) {
                 l = m + 1;
             } else {
                 r = m - 1;
@@ -744,7 +744,6 @@ public class GraphPlaces extends Places implements Graph {
      * @param globalLinearIndex
      * @return
      */
-    
     public VertexPlace getVertexPlace(int globalLinearIndex) {
         
         int networkSize = getSize()[0];
