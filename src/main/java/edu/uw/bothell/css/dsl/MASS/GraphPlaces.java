@@ -52,7 +52,7 @@ public class GraphPlaces extends Places implements Graph {
     private int localNextPlaceIndex = 0;
 
     // globalNextPlaceIndex is a global tracker for the next places index. 
-    // It's value is only meaningful on the master node.
+    // Its value is only meaningful on the master node.
     private int globalNextPlaceIndex = 0;
 
     // Graph maintenance

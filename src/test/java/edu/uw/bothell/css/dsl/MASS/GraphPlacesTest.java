@@ -145,7 +145,7 @@ public class GraphPlacesTest extends AbstractTest {
         // Setup graph and vertices.
         int sourceID = 0;
         int destinationID = 1;
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 10);
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
         graph.addVertex(sourceID);
         graph.addVertex(destinationID);
 
