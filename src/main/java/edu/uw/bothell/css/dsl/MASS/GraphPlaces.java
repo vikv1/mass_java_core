@@ -308,6 +308,22 @@ public class GraphPlaces extends Places implements Graph {
         return true;
     }
 
+    /**
+     * addEdge adds an edge between the provided vertexId and neighborId.
+     * The created edge is given a weight of 1.0.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    @Override
+    public boolean addEdge(Object vertexId, Object neighborId) {
+        // Weight is set as 1.0 to bring it in line with what the 
+        // setGraph method does.
+        return this.addEdge(vertexId, neighborId, 1.0);
+    }
+
     @Override
     public boolean addEdge(Object vertexId, Object neighborId, double weight) {
         boolean added = false;

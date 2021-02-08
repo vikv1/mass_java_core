@@ -41,17 +41,20 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-//@Category(IntegrationTest.class)
-@Disabled
-public class GraphPlacesTest {
+public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
-    public static void setupMASS() {
-        MASS.init();
+    public static void beforeAll() {
+        resetMASSBase();
+        MNode masterNode = new MNode();
+        masterNode.setHostName( randomString() );
+        masterNode.setMaster( true );
+        MASSBase.addNode( masterNode );
+        MASSBase.initMASSBase( masterNode );
     }
 
     @AfterAll
-    public static void shutdownMASS() {
-        MASS.finish();
+    public static void afterAll() {
+        resetMASSBase();
     }
 
     @Test
@@ -68,6 +71,7 @@ public class GraphPlacesTest {
     }
 
     @Test
+    @Disabled // FIXME(Issue #150): test is failing.
     public void neighborsArePopulated() {
         String [] graphArguments = new String[] {
                 "test-files/network-triangles.xml",
@@ -88,6 +92,7 @@ public class GraphPlacesTest {
     }
 
     @Test
+    @Disabled // FIXME(Issue #151): Test is failing.
     public void networkContainsATriangle() {
         String [] graphArguments = new String[] {
                 "test-files/network-triangles.xml",
@@ -104,6 +109,35 @@ public class GraphPlacesTest {
         assertTrue( vertexPlace1.neighbors.contains(1) );
         assertTrue( vertexPlace2.neighbors.contains(2) );
         assertTrue( vertexPlace3.neighbors.contains(0) );
+    }
+
+    @Test
+    public void addEdgeWithoutWeight() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        graph.addVertex(sourceID);
+        graph.addVertex(destinationID);
+
+        // Add an edge without specifying weight.
+        graph.addEdge(sourceID, destinationID);
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        int sourceGlobalIndex = graph.getVertexMetaValues(sourceID).Id;
+        VertexPlace vert = graph.getVertexPlace(sourceGlobalIndex);
+
+        // validate weights and neighbors list
+        assertEquals(vert.neighbors.size(), 1);
+        assertEquals(vert.weights.size(), 1);
+
+        int neighbor = (int) vert.neighbors.get(0);
+        // GraphPlaces signature requires a double for weight but VertexPlace
+        // casts it to an int.
+        int neighborWeight = (int) vert.weights.get(0);
+        
+        assertEquals(neighbor, destinationID);
+        assertEquals(neighborWeight, 1);
     }
 
     @Test
