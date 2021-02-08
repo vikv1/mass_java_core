@@ -150,7 +150,7 @@ public class GraphPlacesTest extends AbstractTest {
         graph.addVertex(destinationID);
 
         // Add an edge without specifying weight.
-        graph.addEdge(sourceID, destinationID);
+        assertTrue(graph.addEdge(sourceID, destinationID));
 
         // Check that the edge was added successfully and that its weight is 1.0.
         int sourceGlobalIndex = graph.getVertexMetaValues(sourceID).Id;
