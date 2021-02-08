@@ -48,7 +48,11 @@ public class GraphPlaces extends Places implements Graph {
     private final String filename;
     private final GraphInputFormat input_format;
 
-    private int nextPlaceIndex = 0;
+    // localNextPlaceIndex is a local tracker for the next places index.
+    private int localNextPlaceIndex = 0;
+
+    // globalNextPlaceIndex is a global tracker for the next places index. 
+    // It's value is only meaningful on the master node.
     private int globalNextPlaceIndex = 0;
 
     // Graph maintenance
@@ -125,7 +129,7 @@ public class GraphPlaces extends Places implements Graph {
     protected void reinitialize() {
         super.reinitialize();
 
-        nextPlaceIndex = 0;
+        localNextPlaceIndex = 0;
         globalNextPlaceIndex = 0;
         placesVector = new Vector<>(1);
     }
@@ -513,8 +517,8 @@ public class GraphPlaces extends Places implements Graph {
         int remainder = getSize()[0] % MASS.getSystemSize();
         int chunkSize = MASS.getMyPid() < remainder ? stripe + 1 : stripe;
         
-        int layer = nextPlaceIndex / chunkSize;
-        int relativeIndex = nextPlaceIndex % chunkSize;
+        int layer = localNextPlaceIndex / chunkSize;
+        int relativeIndex = localNextPlaceIndex % chunkSize;
 
         // If we require a new layer to be created, do so.
         if (layer >= placesVector.size()) {
@@ -534,7 +538,7 @@ public class GraphPlaces extends Places implements Graph {
             MASS.distributed_map.put(vertexId, globalIndex);
 
             // Increment nextPlace indices.
-            nextPlaceIndex++;
+            localNextPlaceIndex++;
             if (MASSBase.getMyPid() == 0) { globalNextPlaceIndex++; }
 
             return globalIndex;
