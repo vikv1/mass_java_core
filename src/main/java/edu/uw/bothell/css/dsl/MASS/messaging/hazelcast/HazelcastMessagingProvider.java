@@ -91,6 +91,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
         
         // explicitly add remote nodes rather than using multicast
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );
+        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
         MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
         if ( remoteNodes != null) {
         	for ( MNode node : remoteNodes ) {
