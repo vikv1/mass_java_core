@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -33,12 +33,14 @@ package edu.uw.bothell.css.dsl.MASS.messaging.hazelcast;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.ReliableTopicConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Member;
 import com.hazelcast.topic.TopicOverloadPolicy;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
@@ -56,6 +58,7 @@ import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
 public class HazelcastMessagingProvider implements MessagingProvider {
 
 	// Hazelcast constants
+	public static final boolean HAZELCAST_USE_MULTICAST_DISCOVERY = false;
 	public static final String HAZELCAST_INSTANCE_NAME = "mass_hazelcast_provider";
 	
 	// topic prefixes
@@ -89,19 +92,36 @@ public class HazelcastMessagingProvider implements MessagingProvider {
         config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
         config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
         
-        // explicitly add remote nodes rather than using multicast
-        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );
-        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
-        MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
-        if ( remoteNodes != null) {
-        	for ( MNode node : remoteNodes ) {
-        		MASSBase.getLogger().debug( "Adding {} as a Hazelcast cluster member", node.getHostName() );
-        		config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
-        	}
+        if ( HAZELCAST_USE_MULTICAST_DISCOVERY ) {
+        	
+        	// using Multicast for node discovery
+        	config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
+        	config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( false );		// probably redundant
+        	
         }
-		
+        
+        else {
+        	
+	        // explicitly add remote nodes rather than using multicast
+	        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );	// probably redundant
+	        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( true );
+	        MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
+	        if ( remoteNodes != null) {
+	        	for ( MNode node : remoteNodes ) {
+	        		MASSBase.getLogger().debug( "Adding {} as a Hazelcast cluster member", node.getHostName() );
+	        		config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
+	        	}
+	        }
+
+        }
+
     	MASSBase.getLogger().debug( "Instantiating Hazelcast instance..." );
 		instance = Hazelcast.newHazelcastInstance( config );
+		
+		Set<Member> members = instance.getCluster().getMembers();
+		for ( Member m : members ) {
+			MASSBase.getLogger().debug( "Host " + m.getAddress().getHost() + ":" + m.getAddress().getPort() + " is a member of the Hazelcast cluster" );
+		}
 		
 		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initialized!" );
 
