@@ -172,19 +172,25 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
-		MASSBase.finish();
+
+		System.out.println("MASS Shutting Down...");
+
+ 		MASSBase.finish();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
     	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
-		System.out.println("finsh");
-    	// Close connection and finish each mprocess
+    	
+		// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
-			// Send a finish messages
-			System.out.print(node.getHostName());
+			
+    		// Send finish messages
+			System.out.println( "Sending shutdown request to " + node.getHostName() );
+			MASS.getLogger().debug( "Sending shutdown request to {}", node.getHostName() );
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
+    		
     	}
 
     	// Synchronize with all slaves
@@ -200,7 +206,8 @@ public class MASS extends MASSBase {
     	MASS.getMessagingProvider().shutdown();
     	
     	MASS.getLogger().debug( "MASS::finish: done" );
-
+		System.out.println("MASS Shutdown Finished");
+    	
     }
     
 //    /**
