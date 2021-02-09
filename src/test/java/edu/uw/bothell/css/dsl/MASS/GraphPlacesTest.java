@@ -41,6 +41,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
@@ -111,6 +114,32 @@ public class GraphPlacesTest extends AbstractTest {
         assertTrue( vertexPlace3.neighbors.contains(0) );
     }
 
+    @ParameterizedTest(name = "{index} => gID={0}, numNodes={1}, size={2}, want={3}")
+    @CsvSource({
+            // Single-node tests
+            "0, 1, 7, 0",
+            "4, 1, 7, 0",
+            "6, 1, 7, 0",
+            "7, 1, 7, -1",
+            "-2, 1, 7, -1",
+
+            // Multi-node: size indivisible by nodes
+            "0, 4, 7, 0",
+            "6, 4, 7, 3",
+            "2, 4, 7, 1",
+            "7, 1, 7, -1",
+
+            // Multi-node: size divisible by nodes
+            "0, 4, 8, 0",
+            "7, 4, 8, 3",
+            "5, 4, 8, 2",
+            "8, 4, 8, -1"
+    })
+    public void testGetNodeId(int gID, int numNodes, int size, int want) {
+        int got = GraphPlaces.getNodeId(gID, numNodes, size);
+        assertEquals(want, got);
+    }
+
     @Test
     public void addEdgeWithoutWeight() {
         // Setup graph and vertices.
@@ -121,23 +150,23 @@ public class GraphPlacesTest extends AbstractTest {
         graph.addVertex(destinationID);
 
         // Add an edge without specifying weight.
-        graph.addEdge(sourceID, destinationID);
+        assertTrue(graph.addEdge(sourceID, destinationID));
 
         // Check that the edge was added successfully and that its weight is 1.0.
         int sourceGlobalIndex = graph.getVertexMetaValues(sourceID).Id;
         VertexPlace vert = graph.getVertexPlace(sourceGlobalIndex);
 
         // validate weights and neighbors list
-        assertEquals(vert.neighbors.size(), 1);
-        assertEquals(vert.weights.size(), 1);
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
 
         int neighbor = (int) vert.neighbors.get(0);
         // GraphPlaces signature requires a double for weight but VertexPlace
         // casts it to an int.
         int neighborWeight = (int) vert.weights.get(0);
         
-        assertEquals(neighbor, destinationID);
-        assertEquals(neighborWeight, 1);
+        assertEquals(destinationID, neighbor);
+        assertEquals(1, neighborWeight);
     }
 
     @Test
