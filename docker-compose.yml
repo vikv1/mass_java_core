@@ -4,5 +4,3 @@ services:
   massjavacore:
     image: mass_java_core
     build: .
-    volumes:
-      - ./target:/app/target

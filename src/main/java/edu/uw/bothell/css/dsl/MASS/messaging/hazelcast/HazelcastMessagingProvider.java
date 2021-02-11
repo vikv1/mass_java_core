@@ -92,17 +92,16 @@ public class HazelcastMessagingProvider implements MessagingProvider {
         config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
         config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
         
-        if ( HAZELCAST_USE_MULTICAST_DISCOVERY ) {
-        	
-        	// using Multicast for node discovery
-        	config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
-        	config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( false );		// probably redundant
-        	
-        }
-        
-        else {
-        	
+        if ((System.getenv("HAZELCAST_USE_MULTICAST_DISCOVERY") != null
+             && System.getenv("HAZELCAST_USE_MULTICAST_DISCOVERY").equals("true"))
+            || HAZELCAST_USE_MULTICAST_DISCOVERY) {
+            // using Multicast for node discovery
+            MASSBase.getLogger().debug( "Hazelcast using Multicast for node discovery" );
+            config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
+            config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( false );		// probably redundant
+        } else {
 	        // explicitly add remote nodes rather than using multicast
+            MASSBase.getLogger().debug( "Hazelcast using TCP/IP for node discovery" );
 	        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );	// probably redundant
 	        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( true );
 	        MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
@@ -112,7 +111,6 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	        		config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
 	        	}
 	        }
-
         }
 
     	MASSBase.getLogger().debug( "Instantiating Hazelcast instance..." );
