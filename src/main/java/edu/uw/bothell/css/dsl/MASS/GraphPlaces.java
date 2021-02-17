@@ -55,16 +55,22 @@ public class GraphPlaces extends Places implements Graph {
     // Its value is only meaningful on the master node.
     private int globalNextPlaceIndex = 0;
 
-    // Graph maintenance
+    // objectFactory is used to generate objects of the places class provided
+    // when instantiating GraphPlaces.
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
+    // placesVector is used to stored VertexPlaces added after instantiating
+    // GraphPlaces.
     private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
 
     /**
-     * Instantiate a PlacesBase for this node
-     *
-     * @param handle         The Handle ID identifying this PlacesBase
-     * @param className      The class that represents a Place
+     * Constructs a GraphPlaces object populated with data from the 
+     * "graph_n.txt" CSV text file.
+     * 
+     * @param handle The Handle ID identifying this GraphPlaces.
+     * @param className The class that represents a VertexPlace.
+     * @param graphArgs 
+     * @param initArgs 
      */
     public GraphPlaces(int handle, String className, String[] graphArgs, Object[] initArgs) {
         super(handle, className, graphArgs, initArgs);
@@ -74,6 +80,17 @@ public class GraphPlaces extends Places implements Graph {
         input_format = GraphInputFormat.CSV;
     }
 
+    /**
+     * Constructs a GraphPlaces object populated with data contained in
+     * the provided filename.
+     * 
+     * @param handle The Handle ID identifying this GraphPlaces instance.
+     * @param className The class that represents a VertexPlace.
+     * @param filename The filename of the file with which to extract graph data.
+     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
+     * @param init_algorithm The initialization algorithm used 
+     * (e.g., FULL_LIST or PARTITIONED_LIST).
+     */
     public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
                        GraphInitAlgorithm init_algorithm) {
         super(handle, className, new Object[] { filename, format, init_algorithm });
@@ -87,6 +104,20 @@ public class GraphPlaces extends Places implements Graph {
         this.input_format = format;
     }
 
+    /**
+     * Constructs a GraphPlaces object populated with data contained in
+     * the provided filename.
+     * 
+     * @param handle The Handle ID identifying this GraphPlaces instance.
+     * @param className The class that represents a VertexPlace.
+     * @param filename The filename of the file with which to extract graph data.
+     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
+     * @param init_algorithm The initialization algorithm used 
+     * (e.g., FULL_LIST or PARTITIONED_LIST).
+     * @param nVertices This is unused.
+     * @param argument The arguments to be supplied to the VertexPlace during
+     * initialization.
+     */
     public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
                        GraphInitAlgorithm init_algorithm, int nVertices, Object argument) {
         super(handle, className, argument);
@@ -101,7 +132,11 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * Constructor for empty graph
+     * Constructs an empty GraphPlaces object.
+     * 
+     * @param handle The Handle ID identifying this GraphPlaces instance.
+     * @param className The class that represents a VertexPlace.
+     * @param size The number of vertices in the graph.
      */
     public GraphPlaces(int handle, String className, int size) {
         super(handle, className, size, new int[] { size });
@@ -113,7 +148,12 @@ public class GraphPlaces extends Places implements Graph {
     }
     
     /**
-     * Constructor for empty graph - remote node
+     * Constructs an empty GraphPlaces object.
+     * 
+     * @param handle The Handle ID identifying this GraphPlaces instance.
+     * @param className The class that represents a VertexPlace.
+     * @param size The number of vertices in the graph.
+     * @param _remote_node This is unused.
      */
     public GraphPlaces(int handle, String className, int size, boolean _remote_node) {
         super(handle, className);
@@ -126,6 +166,9 @@ public class GraphPlaces extends Places implements Graph {
         init_all_graph_blank(size);
     }
 
+    // reinitialize reinitializes the GraphPlaces object by setting the 
+    // local index trackers and the placesVector to 0.
+    @Override
     protected void reinitialize() {
         super.reinitialize();
 
@@ -134,6 +177,8 @@ public class GraphPlaces extends Places implements Graph {
         placesVector = new Vector<>(1);
     }
 
+    // reinitializeGraph calls reinitialize locally and sends MAINTENANCE_REINITIALIZE
+    // messages to each of the worker nodes to reinitialize them as well.
     private void reinitializeGraph() {
         // TODO: This feels like something that could be handled by an internal callAll or something similarly
         // utilizing the infrastructure the code already has
@@ -152,9 +197,12 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * Send the place_initialize_graph message to all nodes
-     * @param argument
-     * @param boundaryWidth - unused
+     * init_master initializes GraphPlaces on the master and sends messages
+     * to all of the worker nodes to do the same.
+     * 
+     * @param argument The arguments to be supplied to the VertexPlace during
+     * initialization.
+     * @param boundaryWidth The width of the boundary between nodes, used to calculate shadow space.
      */
     @Override
     protected void init_master(Object argument, int boundaryWidth) {
@@ -169,7 +217,7 @@ public class GraphPlaces extends Places implements Graph {
         init_master_base(message);
     }
 
-
+    // init_all initializes GraphPlaces using the provided argument.
     @Override
     protected void init_all(Object argument) {
         if (argument instanceof Integer) {
@@ -178,8 +226,8 @@ public class GraphPlaces extends Places implements Graph {
             Object[] arguments = (Object[]) argument;
 
             // TODO: This is failing in kotlin
-//            String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
-//            Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
+            // String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
+            // Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
 
             String [] graphArguments = new String[2];
             Object [] initArguments = null;
@@ -222,24 +270,26 @@ public class GraphPlaces extends Places implements Graph {
         // Add all the vertices first
         newGraph.getVertices().forEach(vertex -> addVertex(vertex.id));
 
-        // TODO: Missing weights
+        // FIXME (#153): Missing weights
         newGraph.getVertices()
                 .forEach(vertex -> vertex.neighbors
                         .forEach(neighbor -> addEdge(vertex.id, neighbor, 1.0)));
     }
 
+    /**
+     * merge merges the remoteGraphs into the source graph model.
+     * 
+     * @param source The source graph to merge nodes into.
+     * @param remoteGraphs The remote graph to merge nodes from.
+     */
     public void merge(GraphModel source, GraphModel remoteGraphs) {
         source.getVertices().addAll(remoteGraphs.getVertices());
     }
 
-    private static List<Integer> mapNeighborIndicesToAttributes(Vector<Integer> neighborIndices) {
-        return neighborIndices
-                .stream()
-                .map(MASSBase.distributed_map::reverseLookup)
-                .map(Integer.class::cast)
-                .collect(Collectors.toList());
-    }
-
+    
+    /**
+     * getGraph returns a GraphModel copy of the distributed graph.
+     */
     @Override
     public GraphModel getGraph(boolean all) {
         GraphModel graph = new GraphModel();
@@ -262,8 +312,7 @@ public class GraphPlaces extends Places implements Graph {
                     attribute = place.getIndex()[0];
                 }
                 
-                //graph.addVertex(vPlace.getIndex()[0], vPlace.neighbors);
-                // TODO: Missing weights
+                // FIXME (#154): Missing weights
                 graph.addVertex(attribute, vPlace.neighbors);
             }
         }
@@ -277,13 +326,14 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         if (all) {
-            //graph.merge(getRemoteGraphs());
             merge(graph, getRemoteGraphs());
         }
 
         return graph;
     }
 
+    // getRemoteGraphs sends messages to all worker nodes requesting the graph
+    // models containing their respective vertices.
     private GraphModel getRemoteGraphs() {
         GraphModel graph = new GraphModel();
 
@@ -297,7 +347,6 @@ public class GraphPlaces extends Places implements Graph {
             } else {
                 GraphModel model = (GraphModel) m.getArgument();
 
-                //graph.merge(model);
                 merge(graph, model);
             }
         }
@@ -338,6 +387,16 @@ public class GraphPlaces extends Places implements Graph {
         return this.addEdge(vertexId, neighborId, 1.0);
     }
 
+    /**
+     * addEdge adds an edge between the provided vertexId and neighborId and
+     * assigns it the provided weigth value.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * @param weight the weight of the edge.
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
     @Override
     public boolean addEdge(Object vertexId, Object neighborId, double weight) {
         Log4J2Logger logger = MASSBase.getLogger();
@@ -385,6 +444,18 @@ public class GraphPlaces extends Places implements Graph {
         return added;
     }
 
+    /**
+     * addEdgeLocally adds an edge between the provided local vertexId and 
+     * the provided neighborId, and assigns the provided weigth as the edge 
+     * weigth.
+     * 
+     * @param vertexId the vertex ID of the source vertex. Must be local to 
+     * the calling node.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * @param weight the weight of the edge.
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
     public boolean addEdgeLocally(Object vertexId, Object neighborId, double weight) {
         int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
         int owner = getNodeIdFromGlobalLinearIndex(globalIndex);
@@ -402,6 +473,16 @@ public class GraphPlaces extends Places implements Graph {
         return true;
     }
 
+    /**
+     * removeEdgeLocally removes an edge between the provided local vertexId
+     * and the provided neighborId.
+     * 
+     * @param vertexId the vertex ID of the source vertex. Must be local to 
+     * the calling node.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
     public boolean removeEdgeLocally(Object vertexId, Object neighborId) {
         int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
         int owner = getNodeIdFromGlobalLinearIndex(globalIndex);
@@ -421,6 +502,15 @@ public class GraphPlaces extends Places implements Graph {
         return true;
     }
 
+    /**
+     * removeEdge removes the edge between the provided vertexId
+     * and neighborId.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
     @Override
     public boolean removeEdge(Object vertexId, Object neighborId) {
         Log4J2Logger logger = MASSBase.getLogger();
@@ -455,6 +545,13 @@ public class GraphPlaces extends Places implements Graph {
         return removeEdgeLocally(vertexId, neighborId);
     }
 
+    /**
+     * addVertex creates a new vertex with the provided vertexId.
+     * 
+     * @param vertexId the ID of the vertex.
+     * 
+     * @return the global index of the newly created vertex.
+     */
     @Override
     public int addVertex(Object vertexId) {
         if (MASS.distributed_map.containsKey(vertexId)) {
@@ -466,6 +563,16 @@ public class GraphPlaces extends Places implements Graph {
         return addVertexPlace(getHosts().get(nodeId), vertexId, null);
     }
 
+    /**
+     * addVertex creates a new vertex, passing the constructor the provided
+     * init paramters and assigns it the provided vertexId.
+     * 
+     * @param vertexId the ID of the vertex.
+     * @param vertexInitParam the init parameters to be passed to the 
+     * vertex constructor.
+     * 
+     * @return the global index of the newly created vertex.
+     */
     @Override
     public int addVertex(Object vertexId, Object vertexInitParam) {
         if (MASS.distributed_map.containsKey(vertexId)) {
@@ -477,6 +584,17 @@ public class GraphPlaces extends Places implements Graph {
         return addVertexPlace(getHosts().get(nodeId), vertexId, vertexInitParam);
     }
 
+    /**
+     * addVertexPlace creates a new vertex on the provide host, passing the constructor the provided
+     * init paramters and assigns it the provided vertexId.
+     * 
+     * @param host the hostname of the node on which to create the new vertex.
+     * @param vertexId the ID of the vertex.
+     * @param vertexInitParam the init parameters to be passed to the 
+     * vertex constructor.
+     * 
+     * @return the global index of the newly created vertex.
+     */
     private int addVertexPlace(String host, Object vertexId, Object vertexInitParam) {
         if (MASSBase.getMyHostname().equals(host)) {
             return addPlaceLocally(vertexId, vertexInitParam);
@@ -510,6 +628,17 @@ public class GraphPlaces extends Places implements Graph {
         return globalIndex;
     }
 
+    /**
+     * addPlaceLocally creates a new vertex on the calling node, passing the 
+     * constructor the provided init paramters and assigns it the provided 
+     * vertexId.
+     * 
+     * @param vertexId the ID of the vertex.
+     * @param vertexInitParam the init parameters to be passed to the 
+     * vertex constructor.
+     * 
+     * @return the global index of the newly created vertex.
+     */
     public int addPlaceLocally(Object vertexId, Object vertexInitParam) {
         Log4J2Logger logger = MASSBase.getLogger();
 
@@ -549,6 +678,13 @@ public class GraphPlaces extends Places implements Graph {
         return -1;
     }
 
+    /**
+     * removeVertex removes the vertex with the provided vertexId.
+     * 
+     * @param vertexId the ID of the vertex.
+     * 
+     * @return true if the vertex was successfully removed, false otherwise.
+     */
     @Override
     public boolean removeVertex(Object vertexId) {
         if (MASS.distributed_map.getOrDefault(vertexId, -1) == -1) {
@@ -567,6 +703,14 @@ public class GraphPlaces extends Places implements Graph {
         return true;
     }
 
+    /**
+     * removeVertex removes the vertex with the provided vertexId from 
+     * the calling node.
+     * 
+     * @param vertexId the ID of the vertex.
+     * 
+     * @return true if the vertex was successfully removed, false otherwise.
+     */
     public void removeVertexLocally(Object vertexId) {
         int globalIndex = MASSBase.distributed_map.get(vertexId);
 
@@ -588,6 +732,13 @@ public class GraphPlaces extends Places implements Graph {
         }
     }
 
+    /**
+     * getVertexMetaValues creates and returns a pairing fo the global
+     * index and owning node for the provided vertexId.
+     * 
+     * @param vertexId The ID of the vertex to lookup.
+     * @return The global index and ID of the node that owns it.
+     */
     public VertexMetaValues getVertexMetaValues(Object vertexId) {
         int id = -1;
         int pid = -1;
@@ -700,9 +851,14 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * Get the place associated with a global linear index
-     * @param globalLinearIndex
-     * @return
+     * Get the VertexPlace associated with a global linear index. This
+     * currently only works for local vertices.
+     * 
+     * TODO (#155): Implement ability to retrieve vertices from remote nodes.
+     * @param globalLinearIndex The global index of the VertexPlace being
+     * retrieved.
+     * @return The VertexPlace associated with the global index. null is returned
+     * if the VertexPlace cannot be found.
      */
     public VertexPlace getVertexPlace(int globalLinearIndex) {
         // Make sure the VertexPlace is owned by this node.
