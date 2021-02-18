@@ -226,4 +226,32 @@ public class MatrixUtilitiesTest extends AbstractTest {
 		
 	}
 
+	@Test
+	public void getRankFromGlobalLinearIndexMultipleNodesOddPlaceSize() {
+
+		// test matrix of 23 places, to be "distributed" across 4 nodes (all nodes except the last should receive 6 places)
+		int matrix[] = new int[]{ 23 };
+		
+		// indexes 0-5 should be on master node
+		for ( int i = 0; i < 6; i ++ ) {
+			assertEquals( 0, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 4 ) );
+		}
+		
+		// indexes 6-12 should be on second node
+		for ( int i = 6; i < 13; i ++ ) {
+			assertEquals( 1, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 4 ) );
+		}
+		
+		// indexes 13-19 should be on third node
+		for ( int i = 13; i < 20; i ++ ) {
+			assertEquals( 2, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 4 ) );
+		}
+
+		// indexes 20-23 should be on fourth node
+		for ( int i = 20; i < 24; i ++ ) {
+			assertEquals( 3, MatrixUtilities.getRankFromGlobalLinearIndex( i, matrix, 4 ) );
+		}
+
+	}
+
 }
