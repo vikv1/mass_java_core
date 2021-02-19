@@ -10,8 +10,8 @@ ENV MASS_JAR_PATH="/mass/target/mass-core.jar"
 WORKDIR /mass
 
 # add all necessary files to build MASS library
-ADD pom.xml .
-ADD ./src ./src
+COPY pom.xml .
+COPY ./src ./src
 
 # build the MASS library
 # TODO: remove -DskipTests when all unit tests are available
