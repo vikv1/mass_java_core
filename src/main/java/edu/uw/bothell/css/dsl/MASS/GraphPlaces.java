@@ -633,7 +633,7 @@ public class GraphPlaces extends Places implements Graph {
      * @param vertexID The global ID of the vertex.
      * @return true if successful, false otherwise.
      */
-    public boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+    private boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to add it.
@@ -704,6 +704,91 @@ public class GraphPlaces extends Places implements Graph {
         // of adding the vertex to the remote node.
         if (replyMsg.getAgentPopulation() < 0) {
             MASS.getLogger().debug("remote node with pid {} failed to add vertex", nodeID);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * (WIP)
+     * removes the vertex associated with the provided vertexID
+     * from the graph.
+     * 
+     * @param vertexID The ID of the vertex to be removed.
+     * @return true if successful, false otherwise.
+     */
+    public boolean removeVertex(int vertexID) {
+        // If the vertex to be deleted doesn't exist, return false.
+        if (vertexID >= nextVertexID) { return false; }
+
+        boolean success = removeVertexOnNode(
+            getOwnerID(vertexID),
+            vertexID
+        );
+        if (!success) { return false; }
+
+        // If successful, enqueue ID for use with next added vertex.
+        idQueue.add(vertexID);
+
+        return true;
+    }
+
+    /**
+     * removeVertexOnNode removes the vertex associated with the provided
+     * vertexID from the node associated with the provided node ID.
+     * @param nodeID The ID of the node with which to remove this vertex.
+     * @param vertexID The ID of the vertex to be removed.
+     * @return true if successful, false otherwise.
+     */
+    private boolean removeVertexOnNode(int nodeID, int vertexID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to remove it.
+        if (nodeID != MASS.getMyPid()) {
+            return removeRemoteVertex(nodeID, vertexID);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        // Set vertex as null to indicate it's unused
+        places.set(localIndex, null);
+        return true;
+    }
+
+    private boolean removeRemoteVertex(int nodeID, int vertexID) {
+        // Get the remote ndoe
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_PLACE,
+            getHandle(),
+            Integer.valueOf(vertexID)
+        );
+
+        // Send message and wait for reply.
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message system currently only returns an ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
             return false;
         }
 
