@@ -31,6 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +51,13 @@ public class GraphPlaces extends Places implements Graph {
     private final String filename;
     private final GraphInputFormat input_format;
 
+    // nextVertexID tracks the vertex ID associated vertices added to the graph.
+    // It is kept up to date such that it's currently value represents the ID
+    // to be assigned tot he next Vertex.
+    private int nextVertexID = 0;
+
+    private Queue<Integer> idQueue = new LinkedList<Integer>();
+
     // localNextPlaceIndex is a local tracker for the next places index.
     private int localNextPlaceIndex = 0;
 
@@ -62,7 +71,7 @@ public class GraphPlaces extends Places implements Graph {
 
     // placesVector is used to stored VertexPlaces added after instantiating
     // GraphPlaces.
-    // private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
+    private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
     private ArrayList<VertexPlace> places = new ArrayList<VertexPlace>();
 
     /**
@@ -154,8 +163,13 @@ public class GraphPlaces extends Places implements Graph {
      * @param handle
      * @param className
      */
-    public GraphPlaces(int handle, string className) {
+    public GraphPlaces(int handle, String className) {
         super(handle, className);
+
+        // Note(bluger-02/20/2021) - This seems to be required. I'm not sure why yet.
+        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
+        this.filename = "";
+        this.input_format = GraphInputFormat.CSV;
     }
     
     /**
@@ -185,7 +199,7 @@ public class GraphPlaces extends Places implements Graph {
 
         localNextPlaceIndex = 0;
         globalNextPlaceIndex = 0;
-        placesVector = new Vector<>(1);
+        places = new ArrayList<VertexPlace>();
     }
 
     // reinitializeGraph calls reinitialize locally and sends MAINTENANCE_REINITIALIZE
@@ -575,28 +589,40 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * addVertex adds an empty vertex to the graph.
+     * newVertex adds an empty vertex to the graph.
      * 
      * @return The ID of the vertex if successful, -1 otherwise.
      */
-    public int addVertex() {
-        int vertexID = globalNextPlaceIndex;
-        boolean success = addVertexToNode(
-            getOwnerIDFromGID(vertexID),
+    public int newVertex() {
+        return newVertexWithParams(null);
+    }
+
+    /**
+     * newVertexWithParams constructs a new vertex with the provided init params and 
+     * adds it to the graph.
+     * @param initParams The parameters to pass to the vertex constructor.
+     * 
+     * @return The vertexID if the vertex was successfully added, -1 otherwise.
+     */
+    public int newVertexWithParams(Object initParams) {
+        int vertexID = nextVertexID;
+        boolean success = newVertexOnNode(
+            getOwnerID(vertexID), 
             vertexID, 
-            null
+            initParams
         );
 
         // If unsuccessful, return -1 to indicate as such.
         if (!success) { return -1; }
 
-        // Otherwise, increment our index counter and return the vertex ID.
-        globalNextPlaceIndex++;
+        // Otherwise, increment our index counter and return the vertexID.
+        nextVertexID++;
+
         return vertexID;
     }
 
     /**
-     * addVertexToNode creates a new VertexPlace at the node with the provided
+     * newVertexOnNode creates a new VertexPlace at the node with the provided
      * nodeID and instantiates it with the provided vertex parameters.
      * 
      * @param nodeID The node ID of the node with which to add the vertex.
@@ -604,12 +630,12 @@ public class GraphPlaces extends Places implements Graph {
      * @param vertexID The global ID of the vertex.
      * @return true if successful, false otherwise.
      */
-    public boolean addVertexToNode(int nodeID, int vertexID, Object vertexInitParams) {
-        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return -1; }
+    public boolean newVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to add it.
         if (nodeID != MASS.getMyPid()) {
-            // Call remote node...
+            return newRemoteVertex(nodeID, vertexID, vertexInitParams);
         }
 
         // Get local index and size of places array.
@@ -621,7 +647,13 @@ public class GraphPlaces extends Places implements Graph {
         if (localIndex > localSize) { return false; }
 
         // Create new VertexPlace
-        VertexPlace vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParam);
+        VertexPlace vertexPlace;
+        try {
+            vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParams);
+        } catch (Exception e) {
+            MASS.getLogger().error("expection trying to instantiate a new vertex: ", e);
+            return false;
+        }
 
         // Set it at the appropriate index if this vertex is to occupy 
         // preallocated space or reclaiming space from a previously removed
@@ -637,14 +669,53 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * getOwnerIDFromGID returns the ID of the node that owns the provided
+     * newRemoteVertex sends a message to the node with the provided nodeID to
+     * add a vertex with the provided vertexID and init parameters.
+     */
+    private boolean newRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
+        // Get the remote node
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to add vertex.
+        Object[] msgContent = new Object[]{vertexID, vertexInitParams};
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE,
+            getHandle(),
+            msgContent
+        );
+
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // getAgentPopulation is currently overloaded to return the success/failure
+        // of adding the vertex to the remote node.
+        if (replyMsg.getAgentPopulation() < 0) {
+            MASS.getLogger().debug("remote node with pid {} failed to add vertex", nodeID);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * getOwnerID returns the ID of the node that owns the provided
      * global index.
      * 
-     * @param GID The global index for which the owner is being requested.
+     * @param vertexID The vertex ID for which the owner is being requested.
      * @return the ID of the owning node.
      */
-    public int getOwnerIDFromGID(int GID) {
-        return GID % MASS.getSystemSize();
+    public int getOwnerID(int vertexID) {
+        return vertexID % MASS.getSystemSize();
     }
 
     /**
