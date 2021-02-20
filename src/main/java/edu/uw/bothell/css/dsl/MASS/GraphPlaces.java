@@ -199,6 +199,9 @@ public class GraphPlaces extends Places implements Graph {
 
         localNextPlaceIndex = 0;
         globalNextPlaceIndex = 0;
+        placesVector = new Vector<Vector<VertexPlace>>(1);
+
+        nextVertexID = 0;
         places = new ArrayList<VertexPlace>();
     }
 
@@ -589,24 +592,24 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * newVertex adds an empty vertex to the graph.
+     * addVertex adds an empty vertex to the graph.
      * 
      * @return The ID of the vertex if successful, -1 otherwise.
      */
-    public int newVertex() {
-        return newVertexWithParams(null);
+    public int addVertex() {
+        return addVertexWithParams(null);
     }
 
     /**
-     * newVertexWithParams constructs a new vertex with the provided init params and 
+     * addVertexWithParams constructs a new vertex with the provided init params and 
      * adds it to the graph.
      * @param initParams The parameters to pass to the vertex constructor.
      * 
      * @return The vertexID if the vertex was successfully added, -1 otherwise.
      */
-    public int newVertexWithParams(Object initParams) {
+    public int addVertexWithParams(Object initParams) {
         int vertexID = nextVertexID;
-        boolean success = newVertexOnNode(
+        boolean success = addVertexOnNode(
             getOwnerID(vertexID), 
             vertexID, 
             initParams
@@ -622,7 +625,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * newVertexOnNode creates a new VertexPlace at the node with the provided
+     * addVertexOnNode creates a new VertexPlace at the node with the provided
      * nodeID and instantiates it with the provided vertex parameters.
      * 
      * @param nodeID The node ID of the node with which to add the vertex.
@@ -630,12 +633,12 @@ public class GraphPlaces extends Places implements Graph {
      * @param vertexID The global ID of the vertex.
      * @return true if successful, false otherwise.
      */
-    public boolean newVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+    public boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to add it.
         if (nodeID != MASS.getMyPid()) {
-            return newRemoteVertex(nodeID, vertexID, vertexInitParams);
+            return addRemoteVertex(nodeID, vertexID, vertexInitParams);
         }
 
         // Get local index and size of places array.
@@ -669,10 +672,10 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * newRemoteVertex sends a message to the node with the provided nodeID to
+     * addRemoteVertex sends a message to the node with the provided nodeID to
      * add a vertex with the provided vertexID and init parameters.
      */
-    private boolean newRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
+    private boolean addRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
         // Get the remote node
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
