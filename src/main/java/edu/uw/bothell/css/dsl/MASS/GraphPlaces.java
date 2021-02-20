@@ -30,11 +30,11 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Queue;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -56,7 +56,9 @@ public class GraphPlaces extends Places implements Graph {
     // to be assigned tot he next Vertex.
     private int nextVertexID = 0;
 
-    private Queue<Integer> idQueue = new LinkedList<Integer>();
+    // idQueue is used to store the IDs of vertices that have been removed 
+    // so that they may be reused for newly added nodes.
+    private Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
 
     // localNextPlaceIndex is a local tracker for the next places index.
     private int localNextPlaceIndex = 0;
@@ -72,7 +74,7 @@ public class GraphPlaces extends Places implements Graph {
     // placesVector is used to stored VertexPlaces added after instantiating
     // GraphPlaces.
     private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
-    private ArrayList<VertexPlace> places = new ArrayList<VertexPlace>();
+    private Vector<VertexPlace> places = new Vector<VertexPlace>();
 
     /**
      * Constructs a GraphPlaces object populated with data from the 
@@ -202,7 +204,7 @@ public class GraphPlaces extends Places implements Graph {
         placesVector = new Vector<Vector<VertexPlace>>(1);
 
         nextVertexID = 0;
-        places = new ArrayList<VertexPlace>();
+        places = new Vector<VertexPlace>();
     }
 
     // reinitializeGraph calls reinitialize locally and sends MAINTENANCE_REINITIALIZE
@@ -608,18 +610,37 @@ public class GraphPlaces extends Places implements Graph {
      * @return The vertexID if the vertex was successfully added, -1 otherwise.
      */
     public int addVertexWithParams(Object initParams) {
-        int vertexID = nextVertexID;
+        int vertexID;
+        boolean fromIDQueue = false;
+
+        // Get a new vertexID
+        try {
+            vertexID = idQueue.remove();
+            fromIDQueue = true;
+
+        } catch (NoSuchElementException e) {
+            vertexID = nextVertexID;
+        }
+
         boolean success = addVertexOnNode(
-            getOwnerID(vertexID), 
-            vertexID, 
+            getOwnerID(vertexID),
+            vertexID,
             initParams
         );
 
-        // If unsuccessful, return -1 to indicate as such.
-        if (!success) { return -1; }
+        // If unsuccessful
+        if (!success) {
+            // If we got the ID from our queue, re-enqueue it.
+            if (fromIDQueue) {
+                idQueue.add(vertexID);
+            }
+            
+            // return -1 to indicate as such.
+            return -1; 
+        }
 
-        // Otherwise, increment our index counter and return the vertexID.
-        nextVertexID++;
+        // Otherwise, increment if needed and return the vertexID.
+        if (!fromIDQueue) { nextVertexID++; }
 
         return vertexID;
     }
@@ -630,10 +651,10 @@ public class GraphPlaces extends Places implements Graph {
      * 
      * @param nodeID The node ID of the node with which to add the vertex.
      * @param vertexInitParams The init paramters for the VertexPlace.
-     * @param vertexID The global ID of the vertex.
+     * @param vertexID The ID of the vertex.
      * @return true if successful, false otherwise.
      */
-    private boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+    boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to add it.
@@ -711,8 +732,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * (WIP)
-     * removes the vertex associated with the provided vertexID
+     * removeVertex removes the vertex associated with the provided vertexID
      * from the graph.
      * 
      * @param vertexID The ID of the vertex to be removed.
