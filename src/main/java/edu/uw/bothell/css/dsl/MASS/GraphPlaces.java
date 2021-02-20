@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -61,7 +62,8 @@ public class GraphPlaces extends Places implements Graph {
 
     // placesVector is used to stored VertexPlaces added after instantiating
     // GraphPlaces.
-    private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
+    // private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
+    private ArrayList<VertexPlace> places = new ArrayList<VertexPlace>();
 
     /**
      * Constructs a GraphPlaces object populated with data from the 
@@ -145,6 +147,15 @@ public class GraphPlaces extends Places implements Graph {
         this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
         this.filename = "";
         this.input_format = GraphInputFormat.CSV;
+    }
+
+    /**
+     * Constructs a basic GraphPlaces object with no pre-allocated space.
+     * @param handle
+     * @param className
+     */
+    public GraphPlaces(int handle, string className) {
+        super(handle, className);
     }
     
     /**
@@ -561,6 +572,79 @@ public class GraphPlaces extends Places implements Graph {
         int nodeId = getNodeIdFromGlobalLinearIndex(globalNextPlaceIndex);
 
         return addVertexPlace(getHosts().get(nodeId), vertexId, null);
+    }
+
+    /**
+     * addVertex adds an empty vertex to the graph.
+     * 
+     * @return The ID of the vertex if successful, -1 otherwise.
+     */
+    public int addVertex() {
+        int vertexID = globalNextPlaceIndex;
+        boolean success = addVertexToNode(
+            getOwnerIDFromGID(vertexID),
+            vertexID, 
+            null
+        );
+
+        // If unsuccessful, return -1 to indicate as such.
+        if (!success) { return -1; }
+
+        // Otherwise, increment our index counter and return the vertex ID.
+        globalNextPlaceIndex++;
+        return vertexID;
+    }
+
+    /**
+     * addVertexToNode creates a new VertexPlace at the node with the provided
+     * nodeID and instantiates it with the provided vertex parameters.
+     * 
+     * @param nodeID The node ID of the node with which to add the vertex.
+     * @param vertexInitParams The init paramters for the VertexPlace.
+     * @param vertexID The global ID of the vertex.
+     * @return true if successful, false otherwise.
+     */
+    public boolean addVertexToNode(int nodeID, int vertexID, Object vertexInitParams) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return -1; }
+
+        // If another node owns this vertex, send it a message to add it.
+        if (nodeID != MASS.getMyPid()) {
+            // Call remote node...
+        }
+
+        // Get local index and size of places array.
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist,
+        // return false.
+        if (localIndex > localSize) { return false; }
+
+        // Create new VertexPlace
+        VertexPlace vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParam);
+
+        // Set it at the appropriate index if this vertex is to occupy 
+        // preallocated space or reclaiming space from a previously removed
+        // vertex.
+        if (localIndex < localSize) {
+            places.set(localIndex, vertexPlace);
+            return true;
+        }
+
+        // Otherwise, add it to the back.
+        places.add(vertexPlace);
+        return true;
+    }
+
+    /**
+     * getOwnerIDFromGID returns the ID of the node that owns the provided
+     * global index.
+     * 
+     * @param GID The global index for which the owner is being requested.
+     * @return the ID of the owning node.
+     */
+    public int getOwnerIDFromGID(int GID) {
+        return GID % MASS.getSystemSize();
     }
 
     /**
