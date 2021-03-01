@@ -146,9 +146,6 @@ public class MatrixUtilities {
 
 		int matrixSize = MatrixUtilities.getMatrixSize( size );
 
-		// more obvious answers
-		if ( globalLinearIndex == ( matrixSize - 1 ) ) return systemSize - 1;	// last Place always on last node
-		
 		// calculate where the index is in relation to the total simulation space
 		double indexPositionRelative = ( double ) globalLinearIndex / ( double ) matrixSize; 
 		
