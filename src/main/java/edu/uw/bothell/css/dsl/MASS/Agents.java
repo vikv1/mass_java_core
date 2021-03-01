@@ -59,13 +59,11 @@ public class Agents extends AgentsBase {
    * @param places The Places instance that will contain the Agents
    * @param initPopulation The number of Agents to create
    */
-  public Agents(int handle, String className, Object argument, Places places,
-      int initPopulation) {
+  public Agents(int handle, String className, Object argument, Places places, int initPopulation) {
 
-    super(handle, className, argument, places.getHandle(), initPopulation);
-    localAgents = new int[MASSBase.getSystemSize()];
-    System.out.println("localAgents:" + localAgents.length);
-    initMaster(argument);
+	  super(handle, className, argument, places.getHandle(), initPopulation);
+	  localAgents = new int[MASSBase.getSystemSize()];
+	  initMaster(argument);
 
   }
 
@@ -201,9 +199,8 @@ public class Agents extends AgentsBase {
 
     // check if MASS_base.hosts is empty (i.e., Places not yet created)
     if (MASSBase.getHosts().isEmpty()) {
-      System.err.println("Agents(" + getClassName()
-          + ") can't be created without Places!!");
-      System.exit(-1);
+    	MASS.getLogger().error("Agents(" + getClassName()+ ") can't be created without Places!! ");
+    	System.exit(-1);
     }
 
     // create a new list for message
