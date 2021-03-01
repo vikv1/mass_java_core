@@ -54,29 +54,15 @@ public class AgentsTest extends AbstractTest {
 	private Object originalMThreadLock;
 	private int[] placesMatrix = new int[]{ 1, 1, 1 };
 
-	@BeforeAll
-	public static void beforeAll() {
-		
+	@BeforeEach
+	public void onSetUp() {
+
 		// MASSBase should be made ready for use before tests are run
 		MNode masterNode = new MNode();
 		masterNode.setHostName( randomString() );
 		masterNode.setMaster( true );
 		MASSBase.addNode( masterNode );
 		MASSBase.initMASSBase( masterNode );
-
-	}
-
-	@BeforeEach
-	public void onSetUp() {
-		
-		// MASSBase should be made ready for use before tests are run
-		if ( MASSBase.getSystemSize() == 0 ) {
-			MNode masterNode = new MNode();
-			masterNode.setHostName( randomString() );
-			masterNode.setMaster( true );
-			MASSBase.addNode( masterNode );
-			MASSBase.initMASSBase( masterNode );
-		}
 
 		Places places = new Places( PLACES_HANDLE, SimpleTestPlace.class.getName(), null, 1, 1, 1 );
 		PlacesBase placesBase = new PlacesBase( PLACES_HANDLE, SimpleTestPlace.class.getName(), 1, null, placesMatrix );
@@ -95,6 +81,9 @@ public class AgentsTest extends AbstractTest {
 
 		// reset MThread back to original state
 		MThread.setLock( originalMThreadLock );
+		
+		// reset MASS
+		resetMASSBase();
 
 	}
 
