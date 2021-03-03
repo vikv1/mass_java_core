@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,11 +47,71 @@ public class AgentsTest extends AbstractTest {
 	private static final int PLACES_HANDLE = randomInt();
 	private static final int AGENTS_HANDLE = randomInt();
 
+	@AfterAll
+	public static void afterAll() {
+		
+		// clean up MASSBase
+		resetMASSBase();
+		
+	}
+
 	// class under test
 	private Agents agents;
-
 	private Object originalMThreadLock;
+
 	private int[] placesMatrix = new int[]{ 1, 1, 1 };
+
+	@Test
+	public void callAllNoException() {
+		
+		MThread.setLock( new String() );
+		
+		// check all variants of callAll()
+		agents.callAll( 0 );
+		agents.callAll( 0, new String() );
+		agents.callAll( 0, new String[1] );
+		
+	}
+
+	@Test
+	public void doAllSingleIterationsNoException() {
+		
+		MThread.setLock( new String() );
+		
+		// must check all variants of this method
+		agents.doAll( 0, 1 );
+		agents.doAll( 0, null, 1 );
+		agents.doAll( 0, new String[0], 1 );
+		assertNull( agents.doAll( 0, new String[0], 1 ) );
+		
+	}
+
+	@Test
+	public void doAllZeroIterationsNoException() {
+		
+		// must check all variants of this method
+		agents.doAll( 0, 0 );
+		agents.doAll( 0, null, 0 );
+		agents.doAll( 0, new String[0], 0 );
+		assertNull( agents.doAll( 0, new String[0], 0 ) );
+		
+	}
+	
+	@Test
+	public void manageAllNoException() {
+		
+		MThread.setLock( new String() );
+		agents.manageAll();
+		
+	}
+
+	@Test
+	public void nAgents() {
+		
+		// should only be one agent
+		assertEquals( 1, agents.nAgents() );
+		
+	}
 
 	@BeforeEach
 	public void onSetUp() {
@@ -85,66 +144,6 @@ public class AgentsTest extends AbstractTest {
 		// reset MASS
 		resetMASSBase();
 
-	}
-
-	@Test
-	public void nAgents() {
-		
-		// should only be one agent
-		assertEquals( 1, agents.nAgents() );
-		
-	}
-	
-	@Test
-	public void doAllZeroIterationsNoException() {
-		
-		// must check all variants of this method
-		agents.doAll( 0, 0 );
-		agents.doAll( 0, null, 0 );
-		agents.doAll( 0, new String[0], 0 );
-		assertNull( agents.doAll( 0, new String[0], 0 ) );
-		
-	}
-
-	@Test
-	public void doAllSingleIterationsNoException() {
-		
-		MThread.setLock( new String() );
-		
-		// must check all variants of this method
-		agents.doAll( 0, 1 );
-		agents.doAll( 0, null, 1 );
-		agents.doAll( 0, new String[0], 1 );
-		assertNull( agents.doAll( 0, new String[0], 1 ) );
-		
-	}
-
-	@Test
-	public void manageAllNoException() {
-		
-		MThread.setLock( new String() );
-		agents.manageAll();
-		
-	}
-	
-	@Test
-	public void callAllNoException() {
-		
-		MThread.setLock( new String() );
-		
-		// check all variants of callAll()
-		agents.callAll( 0 );
-		agents.callAll( 0, new String() );
-		agents.callAll( 0, new String[1] );
-		
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		
-		// clean up MASSBase
-		resetMASSBase();
-		
 	}
 
 }
