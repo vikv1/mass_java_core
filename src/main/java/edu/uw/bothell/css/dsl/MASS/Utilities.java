@@ -30,7 +30,6 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -125,31 +124,12 @@ class Utilities {
 
             // set the command to be executed upon channel connection
             MASSBase.getLogger().debug( "Executing remote command: {}", command );
-
-			ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
-
-			channel = (ChannelExec) session.openChannel("exec");
-
-			channel.setErrStream(baos, true);
-            
             channel = ( ChannelExec ) session.openChannel( "exec" );
             channel.setCommand( command );
             MASSBase.getLogger().debug( "Command executed!" );
 
             MASSBase.getLogger().debug( "Setting object input/output streams with remote node..." );
     		channel.connect( CONNECT_TIMEOUT_MILLISECONDS );
-    		
-    		baos.flush();
-
-			String errorString = new String(baos.toByteArray());
-
-			// TODO: This does not work as expect BUT
-			// if you put a breakpoint here and step past, baos may contain a useful error message
-			if (!errorString.equals("")) {
-
-				MASSBase.getLogger().error("Error encountered connecting to remote host: " + errorString);
-
-			}
     		
     		remoteNode.setOutputStream( channel.getOutputStream() );
     		remoteNode.setInputStream( channel.getInputStream() );
