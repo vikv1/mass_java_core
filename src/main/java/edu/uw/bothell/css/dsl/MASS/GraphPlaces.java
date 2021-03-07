@@ -58,6 +58,8 @@ public class GraphPlaces extends Places implements Graph {
 
     // idQueue is used to store the IDs of vertices that have been removed 
     // so that they may be reused for newly added nodes.
+    // Note: If this isn't accessed concurrently we can replace this with 
+    // a linked list. Similarly with the VertexPlace vectors.
     private Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
 
     // localNextPlaceIndex is a local tracker for the next places index.
@@ -742,16 +744,24 @@ public class GraphPlaces extends Places implements Graph {
         // If the vertex to be deleted doesn't exist, return false.
         if (vertexID >= nextVertexID) { return false; }
 
-        boolean success = removeVertexOnNode(
+        return removeVertexOnNode(
             getOwnerID(vertexID),
             vertexID
         );
-        if (!success) { return false; }
+    }
 
-        // If successful, enqueue ID for use with next added vertex.
-        idQueue.add(vertexID);
-
-        return true;
+    /**
+     * recycleID adds the provided vertexID to the idQueue
+     * to be recycled in the next call to addVertex.
+     * 
+     * @param vertexID The ID of the vertex to be recycled.
+     */
+    private void recycleID(int vertexID) {
+        // If we're the master node, add the vertex ID to our
+        // idQueue to be recycled.
+        if (MASS.getMyPid() == 0) {
+            idQueue.add(vertexID);
+        }
     }
 
     /**
@@ -761,12 +771,16 @@ public class GraphPlaces extends Places implements Graph {
      * @param vertexID The ID of the vertex to be removed.
      * @return true if successful, false otherwise.
      */
-    private boolean removeVertexOnNode(int nodeID, int vertexID) {
+    public boolean removeVertexOnNode(int nodeID, int vertexID) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to remove it.
         if (nodeID != MASS.getMyPid()) {
-            return removeRemoteVertex(nodeID, vertexID);
+            boolean success = removeRemoteVertex(nodeID, vertexID);
+            // If successful, enqueue ID for use with next added vertex.
+            if (success) { recycleID(vertexID); }
+
+            return success;
         }
 
         // Get local index and size of places array
@@ -777,8 +791,14 @@ public class GraphPlaces extends Places implements Graph {
         // return false.
         if (localIndex >= localSize) { return false; }
 
-        // Set vertex as null to indicate it's unused
+        // TODO(#165) Get VertexPlace and traverse incoming edges to ensure
+        // they're removed from the respective vertex places.
+
+        // Set vertex as null to indicate it's unused and add it to the 
+        // idQueue.
         places.set(localIndex, null);
+        recycleID(vertexID);
+
         return true;
     }
 
