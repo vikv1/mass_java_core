@@ -44,6 +44,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import jdk.jfr.Timestamp;
+
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
@@ -138,6 +140,56 @@ public class GraphPlacesTest extends AbstractTest {
     public void testGetNodeId(int gID, int numNodes, int size, int want) {
         int got = GraphPlaces.getNodeId(gID, numNodes, size);
         assertEquals(want, got);
+    }
+
+    @Test
+    public void testAddVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        
+        // Add a few vertices
+        graph.addVertex();
+        graph.addVertex();
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        graph.removeVertex(1);
+        assertEquals(2, graph.size());
+
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        graph.addVertex();
+        assertEquals(4, graph.size());
+    }
+
+    @Test
+    public void testRemoveVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+
+        // Add a few vertices
+        graph.addVertex();
+        graph.addVertex();
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        // remove a valid vertex
+        assertTrue(graph.removeVertex(1));
+        assertEquals(2, graph.size());
+
+        // remove a invalid vertex
+        assertTrue(!graph.removeVertex(3));
+        assertEquals(2, graph.size());
+
+        // remove the remaining vertices
+        graph.removeVertex(0);
+        graph.removeVertex(1);
+        assertEquals(0, graph.size());
     }
 
     @Test

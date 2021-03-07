@@ -404,6 +404,15 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * @return The number of vertices contained in the graph.
+     */
+    public int size() {
+        // The number of vertex IDs issued - the number queued to be
+        // recycled.
+        return nextVertexID - idQueue.size();
+    }
+
+    /**
      * addEdge adds an edge between the provided vertexId and neighborId.
      * The created edge is given a weight of 1.0.
      * 
@@ -734,8 +743,27 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * recycleID adds the provided vertexID to the idQueue
+     * to be recycled in the next call to addVertex.
+     * 
+     * @param vertexID The ID of the vertex to be recycled.
+     */
+    private void recycleID(int vertexID) {
+        // If we're the master node, add the vertex ID to our
+        // idQueue to be recycled.
+        if (MASS.getMyPid() == 0) {
+            idQueue.add(vertexID);
+        }
+    }
+
+    /**
      * removeVertex removes the vertex associated with the provided vertexID
      * from the graph.
+     * 
+     * Note that if a user attempts to remove a vertex ID that has been
+     * queued for recycling (i.e., already removed) this function will still
+     * return true. This is to avoid a linear traversal of IDs queued for
+     * recycling just to check if a vertex that's going to be removed exists.
      * 
      * @param vertexID The ID of the vertex to be removed.
      * @return true if successful, false otherwise.
@@ -748,20 +776,6 @@ public class GraphPlaces extends Places implements Graph {
             getOwnerID(vertexID),
             vertexID
         );
-    }
-
-    /**
-     * recycleID adds the provided vertexID to the idQueue
-     * to be recycled in the next call to addVertex.
-     * 
-     * @param vertexID The ID of the vertex to be recycled.
-     */
-    private void recycleID(int vertexID) {
-        // If we're the master node, add the vertex ID to our
-        // idQueue to be recycled.
-        if (MASS.getMyPid() == 0) {
-            idQueue.add(vertexID);
-        }
     }
 
     /**
