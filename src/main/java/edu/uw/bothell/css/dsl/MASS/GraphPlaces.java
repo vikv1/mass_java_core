@@ -30,8 +30,11 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -48,6 +51,17 @@ public class GraphPlaces extends Places implements Graph {
     private final String filename;
     private final GraphInputFormat input_format;
 
+    // nextVertexID tracks the vertex ID associated vertices added to the graph.
+    // It is kept up to date such that it's currently value represents the ID
+    // to be assigned tot he next Vertex.
+    private int nextVertexID = 0;
+
+    // idQueue is used to store the IDs of vertices that have been removed 
+    // so that they may be reused for newly added nodes.
+    // Note: If this isn't accessed concurrently we can replace this with 
+    // a linked list. Similarly with the VertexPlace vectors.
+    private Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
+
     // localNextPlaceIndex is a local tracker for the next places index.
     private int localNextPlaceIndex = 0;
 
@@ -62,6 +76,7 @@ public class GraphPlaces extends Places implements Graph {
     // placesVector is used to stored VertexPlaces added after instantiating
     // GraphPlaces.
     private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
+    private Vector<VertexPlace> places = new Vector<VertexPlace>();
 
     /**
      * Constructs a GraphPlaces object populated with data from the 
@@ -146,6 +161,20 @@ public class GraphPlaces extends Places implements Graph {
         this.filename = "";
         this.input_format = GraphInputFormat.CSV;
     }
+
+    /**
+     * Constructs a basic GraphPlaces object with no pre-allocated space.
+     * @param handle
+     * @param className
+     */
+    public GraphPlaces(int handle, String className) {
+        super(handle, className);
+
+        // Note(bluger-02/20/2021) - This seems to be required. I'm not sure why yet.
+        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
+        this.filename = "";
+        this.input_format = GraphInputFormat.CSV;
+    }
     
     /**
      * Constructs an empty GraphPlaces object.
@@ -174,7 +203,10 @@ public class GraphPlaces extends Places implements Graph {
 
         localNextPlaceIndex = 0;
         globalNextPlaceIndex = 0;
-        placesVector = new Vector<>(1);
+        placesVector = new Vector<Vector<VertexPlace>>(1);
+
+        nextVertexID = 0;
+        places = new Vector<VertexPlace>();
     }
 
     // reinitializeGraph calls reinitialize locally and sends MAINTENANCE_REINITIALIZE
@@ -372,6 +404,15 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * @return The number of vertices contained in the graph.
+     */
+    public int size() {
+        // The number of vertex IDs issued - the number queued to be
+        // recycled.
+        return nextVertexID - idQueue.size();
+    }
+
+    /**
      * addEdge adds an edge between the provided vertexId and neighborId.
      * The created edge is given a weight of 1.0.
      * 
@@ -561,6 +602,262 @@ public class GraphPlaces extends Places implements Graph {
         int nodeId = getNodeIdFromGlobalLinearIndex(globalNextPlaceIndex);
 
         return addVertexPlace(getHosts().get(nodeId), vertexId, null);
+    }
+
+    /**
+     * addVertex adds an empty vertex to the graph.
+     * 
+     * @return The ID of the vertex if successful, -1 otherwise.
+     */
+    public int addVertex() {
+        return addVertexWithParams(null);
+    }
+
+    /**
+     * addVertexWithParams constructs a new vertex with the provided init params and 
+     * adds it to the graph.
+     * @param initParams The parameters to pass to the vertex constructor.
+     * 
+     * @return The vertexID if the vertex was successfully added, -1 otherwise.
+     */
+    public int addVertexWithParams(Object initParams) {
+        int vertexID;
+        boolean fromIDQueue = false;
+
+        // Get a new vertexID
+        try {
+            vertexID = idQueue.remove();
+            fromIDQueue = true;
+
+        } catch (NoSuchElementException e) {
+            vertexID = nextVertexID;
+        }
+
+        boolean success = addVertexOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            initParams
+        );
+
+        // If unsuccessful
+        if (!success) {
+            // If we got the ID from our queue, re-enqueue it.
+            if (fromIDQueue) {
+                idQueue.add(vertexID);
+            }
+            
+            // return -1 to indicate as such.
+            return -1; 
+        }
+
+        // Otherwise, increment if needed and return the vertexID.
+        if (!fromIDQueue) { nextVertexID++; }
+
+        return vertexID;
+    }
+
+    /**
+     * addVertexOnNode creates a new VertexPlace at the node with the provided
+     * nodeID and instantiates it with the provided vertex parameters.
+     * 
+     * @param nodeID The node ID of the node with which to add the vertex.
+     * @param vertexInitParams The init paramters for the VertexPlace.
+     * @param vertexID The ID of the vertex.
+     * @return true if successful, false otherwise.
+     */
+    boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to add it.
+        if (nodeID != MASS.getMyPid()) {
+            return addRemoteVertex(nodeID, vertexID, vertexInitParams);
+        }
+
+        // Get local index and size of places array.
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist,
+        // return false.
+        if (localIndex > localSize) { return false; }
+
+        // Create new VertexPlace
+        VertexPlace vertexPlace;
+        try {
+            vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParams);
+        } catch (Exception e) {
+            MASS.getLogger().error("expection trying to instantiate a new vertex: ", e);
+            return false;
+        }
+
+        // Set it at the appropriate index if this vertex is to occupy 
+        // preallocated space or reclaiming space from a previously removed
+        // vertex.
+        if (localIndex < localSize) {
+            places.set(localIndex, vertexPlace);
+            return true;
+        }
+
+        // Otherwise, add it to the back.
+        places.add(vertexPlace);
+        return true;
+    }
+
+    /**
+     * addRemoteVertex sends a message to the node with the provided nodeID to
+     * add a vertex with the provided vertexID and init parameters.
+     */
+    private boolean addRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
+        // Get the remote node
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to add vertex.
+        Object[] msgContent = new Object[]{vertexID, vertexInitParams};
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE,
+            getHandle(),
+            msgContent
+        );
+
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // getAgentPopulation is currently overloaded to return the success/failure
+        // of adding the vertex to the remote node.
+        if (replyMsg.getAgentPopulation() < 0) {
+            MASS.getLogger().debug("remote node with pid {} failed to add vertex", nodeID);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * recycleID adds the provided vertexID to the idQueue
+     * to be recycled in the next call to addVertex.
+     * 
+     * @param vertexID The ID of the vertex to be recycled.
+     */
+    private void recycleID(int vertexID) {
+        // If we're the master node, add the vertex ID to our
+        // idQueue to be recycled.
+        if (MASS.getMyPid() == 0) {
+            idQueue.add(vertexID);
+        }
+    }
+
+    /**
+     * removeVertex removes the vertex associated with the provided vertexID
+     * from the graph.
+     * 
+     * Note that if a user attempts to remove a vertex ID that has been
+     * queued for recycling (i.e., already removed) this function will still
+     * return true. This is to avoid a linear traversal of IDs queued for
+     * recycling just to check if a vertex that's going to be removed exists.
+     * 
+     * @param vertexID The ID of the vertex to be removed.
+     * @return true if successful, false otherwise.
+     */
+    public boolean removeVertex(int vertexID) {
+        // If the vertex to be deleted doesn't exist, return false.
+        if (vertexID >= nextVertexID) { return false; }
+
+        return removeVertexOnNode(
+            getOwnerID(vertexID),
+            vertexID
+        );
+    }
+
+    /**
+     * removeVertexOnNode removes the vertex associated with the provided
+     * vertexID from the node associated with the provided node ID.
+     * @param nodeID The ID of the node with which to remove this vertex.
+     * @param vertexID The ID of the vertex to be removed.
+     * @return true if successful, false otherwise.
+     */
+    public boolean removeVertexOnNode(int nodeID, int vertexID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to remove it.
+        if (nodeID != MASS.getMyPid()) {
+            boolean success = removeRemoteVertex(nodeID, vertexID);
+            // If successful, enqueue ID for use with next added vertex.
+            if (success) { recycleID(vertexID); }
+
+            return success;
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        // TODO(#165) Get VertexPlace and traverse incoming edges to ensure
+        // they're removed from the respective vertex places.
+
+        // Set vertex as null to indicate it's unused and add it to the 
+        // idQueue.
+        places.set(localIndex, null);
+        recycleID(vertexID);
+
+        return true;
+    }
+
+    private boolean removeRemoteVertex(int nodeID, int vertexID) {
+        // Get the remote ndoe
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_PLACE,
+            getHandle(),
+            Integer.valueOf(vertexID)
+        );
+
+        // Send message and wait for reply.
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message system currently only returns an ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * getOwnerID returns the ID of the node that owns the provided
+     * global index.
+     * 
+     * @param vertexID The vertex ID for which the owner is being requested.
+     * @return the ID of the owning node.
+     */
+    public int getOwnerID(int vertexID) {
+        return vertexID % MASS.getSystemSize();
     }
 
     /**

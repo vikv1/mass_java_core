@@ -141,6 +141,56 @@ public class GraphPlacesTest extends AbstractTest {
     }
 
     @Test
+    public void testAddVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        
+        // Add a few vertices
+        graph.addVertex();
+        graph.addVertex();
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        graph.removeVertex(1);
+        assertEquals(2, graph.size());
+
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        graph.addVertex();
+        assertEquals(4, graph.size());
+    }
+
+    @Test
+    public void testRemoveVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+
+        // Add a few vertices
+        graph.addVertex();
+        graph.addVertex();
+        graph.addVertex();
+        assertEquals(3, graph.size());
+
+        // remove a valid vertex
+        assertTrue(graph.removeVertex(1));
+        assertEquals(2, graph.size());
+
+        // remove a invalid vertex
+        assertTrue(!graph.removeVertex(3));
+        assertEquals(2, graph.size());
+
+        // remove the remaining vertices
+        graph.removeVertex(0);
+        graph.removeVertex(1);
+        assertEquals(0, graph.size());
+    }
+
+    @Test
     public void addEdgeWithoutWeight() {
         // Setup graph and vertices.
         int sourceID = 0;
