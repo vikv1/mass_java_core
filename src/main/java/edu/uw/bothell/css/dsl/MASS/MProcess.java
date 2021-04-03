@@ -595,6 +595,8 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_ADD_PLACE:
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_ADD_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -642,6 +644,8 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_REMOVE_PLACE:
+			MASSBase.getLogger().warning("MAINTENANCE_REMOVE_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_REMOVE_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
