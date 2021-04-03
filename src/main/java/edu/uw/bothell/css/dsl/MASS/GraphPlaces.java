@@ -761,6 +761,13 @@ public class GraphPlaces extends Places implements Graph {
         );
     }
 
+    /**
+     * getVertexFromNode retrieves the vertex associated with the provided
+     * vertexID from the node associated with the provided node ID.
+     * @param nodeID The ID of the node with which to remove this vertex.
+     * @param vertexID The ID of the vertex to be removed.
+     * @return the requested vertex place.
+     */
     public VertexPlace getVertexFromNode(int nodeID, int vertexID) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { 
             return null; 
@@ -785,7 +792,7 @@ public class GraphPlaces extends Places implements Graph {
         return places.get(localIndex);
     }
 
-    public VertexPlace getRemoteVertex(int nodeID, int vertexID) {
+    private VertexPlace getRemoteVertex(int nodeID, int vertexID) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
