@@ -752,8 +752,6 @@ public class GraphPlaces extends Places implements Graph {
     public VertexPlace getVertex(int vertexID) {
         // If the vertex doesn't exist return null.
         if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) {
-            // TODO(bluger) - make debug log.
-            MASS.getLogger().error("Vertex doesn't exist. vID=" + vertexID + ", nextVID=" + nextVertexID);
             return null; 
         }
 
@@ -765,17 +763,15 @@ public class GraphPlaces extends Places implements Graph {
 
     public VertexPlace getVertexFromNode(int nodeID, int vertexID) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { 
-            MASS.getLogger().error("NodeID doesn't exist. nodeID=" + nodeID + ", SysSize=" + MASS.getSystemSize());
             return null; 
         };
 
         // If another node owns this vertex, send it a message to
         // retrieve it.
         if (nodeID != MASS.getMyPid()) {
-            MASS.getLogger().error("Vertex " + vertexID + " is on remote node " + nodeID + ".");
             return getRemoteVertex(nodeID, vertexID);
         }
-        MASS.getLogger().error("Vertex " + vertexID + " is local.");
+        
         // Get local index and size of places array.
         int localIndex = vertexID / MASS.getSystemSize();
         int localSize = places.size();
@@ -783,7 +779,6 @@ public class GraphPlaces extends Places implements Graph {
         // If the ID is associated with an index that doesn't exist
         // return null.
         if (localIndex >= localSize) { 
-            MASS.getLogger().error("localIndex greater than localSize. localIdx" + localIndex + ", localSize=" + localSize);
             return null; 
         }
 

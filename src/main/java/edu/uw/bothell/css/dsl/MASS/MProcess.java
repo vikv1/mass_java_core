@@ -616,7 +616,7 @@ public class MProcess {
 
 				places = MASS.getPlaces(m.getHandle());
 
-				MASSBase.getLogger().error("MAINTENANCE_ADD_VERTEX [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]");
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]");
 
 				Object[] args = (Object[])argument;
 				int vertexID = (Integer)args[0];
@@ -684,26 +684,23 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_GET_VERTEX:
-				MASSBase.getLogger().error("MAINTENANCE_GET_VERTEX received");
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX received");
 
 				places = MASS.getPlaces(m.getHandle());
 				graphPlaces = ((GraphPlaces) places);
 
-				Object vertex = graphPlaces.getVertex(
+				Object vertex = graphPlaces.getVertexFromNode(
+					MASS.getMyPid(),
 					((Integer) m.getArgument()).intValue()
 				);
-				if (vertex != null) {
-					MASSBase.getLogger().error("Found vertex");
-				} else {
-					MASSBase.getLogger().error("vertex doesn't exist.");
-				}
+
 				Message msg = new Message(
 					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
 					vertex
 				);
 
 				sendMessage(msg);
-				MASSBase.getLogger().error("MAINTENANCE_GET_VERTEX_RESPONSE sent");
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
 
 			case MAINTENANCE_GET_PLACES:
