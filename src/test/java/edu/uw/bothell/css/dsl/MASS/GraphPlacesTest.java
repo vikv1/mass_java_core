@@ -32,6 +32,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -161,6 +162,27 @@ public class GraphPlacesTest extends AbstractTest {
 
         graph.addVertex();
         assertEquals(4, graph.size());
+    }
+
+    @Test
+    public void testGetVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        
+        // Add a few vertices
+        int vertexID = graph.addVertexWithParams("D3AD10CC");
+        assertEquals(1, graph.size());
+
+        VertexPlace tut = graph.getVertex(vertexID);
+        assertNotNull(tut);
+
+        graph.removeVertex(vertexID);
+        assertEquals(0, graph.size());
+
+        tut = graph.getVertex(vertexID);
+        assertNull(tut);
     }
 
     @Test
