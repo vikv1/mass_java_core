@@ -52,7 +52,7 @@ public class GraphPlaces extends Places implements Graph {
     private final GraphInputFormat input_format;
 
     // nextVertexID tracks the vertex ID associated vertices added to the graph.
-    // It is kept up to date such that it's currently value represents the ID
+    // It is kept up to date such that it's current value represents the ID
     // to be assigned tot he next Vertex.
     private int nextVertexID = 0;
 
@@ -723,7 +723,7 @@ public class GraphPlaces extends Places implements Graph {
         // Create message to ask remote node to add vertex.
         Object[] msgContent = new Object[]{vertexID, vertexInitParams};
         Message msg = new Message(
-            Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE,
+            Message.ACTION_TYPE.MAINTENANCE_ADD_VERTEX,
             getHandle(),
             msgContent
         );
@@ -740,6 +740,81 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         return true;
+    }
+
+    /**
+     * getVertex returns the VertexPlace associated with the provided
+     * vertex ID.
+     * 
+     * @param vertexID The ID of the vertex to retrieve.
+     * @return The VertexPlace associated with the provided vertex ID.
+     */
+    public VertexPlace getVertex(int vertexID) {
+        // If the vertex doesn't exist return null.
+        if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) {
+            // TODO(bluger) - make debug log.
+            MASS.getLogger().error("Vertex doesn't exist. vID=" + vertexID + ", nextVID=" + nextVertexID);
+            return null; 
+        }
+
+        return getVertexFromNode(
+            getOwnerID(vertexID),
+            vertexID
+        );
+    }
+
+    public VertexPlace getVertexFromNode(int nodeID, int vertexID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { 
+            MASS.getLogger().error("NodeID doesn't exist. nodeID=" + nodeID + ", SysSize=" + MASS.getSystemSize());
+            return null; 
+        };
+
+        // If another node owns this vertex, send it a message to
+        // retrieve it.
+        if (nodeID != MASS.getMyPid()) {
+            MASS.getLogger().error("Vertex " + vertexID + " is on remote node " + nodeID + ".");
+            return getRemoteVertex(nodeID, vertexID);
+        }
+        MASS.getLogger().error("Vertex " + vertexID + " is local.");
+        // Get local index and size of places array.
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return null.
+        if (localIndex >= localSize) { 
+            MASS.getLogger().error("localIndex greater than localSize. localIdx" + localIndex + ", localSize=" + localSize);
+            return null; 
+        }
+
+        return places.get(localIndex);
+    }
+
+    public VertexPlace getRemoteVertex(int nodeID, int vertexID) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return null.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return null;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to get the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX,
+            getHandle(),
+            Integer.valueOf(vertexID)
+        );
+
+        // Send message and wait for reply.
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        return (VertexPlace)replyMsg.getArgument();
     }
 
     /**
@@ -770,7 +845,7 @@ public class GraphPlaces extends Places implements Graph {
      */
     public boolean removeVertex(int vertexID) {
         // If the vertex to be deleted doesn't exist, return false.
-        if (vertexID >= nextVertexID) { return false; }
+        if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) { return false; }
 
         return removeVertexOnNode(
             getOwnerID(vertexID),
@@ -817,7 +892,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     private boolean removeRemoteVertex(int nodeID, int vertexID) {
-        // Get the remote ndoe
+        // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
         }).findFirst();
@@ -831,7 +906,7 @@ public class GraphPlaces extends Places implements Graph {
 
         // Create message to ask remote node to remove the vertex.
         Message msg = new Message(
-            Message.ACTION_TYPE.MAINTENANCE_REMOVE_PLACE,
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_VERTEX,
             getHandle(),
             Integer.valueOf(vertexID)
         );

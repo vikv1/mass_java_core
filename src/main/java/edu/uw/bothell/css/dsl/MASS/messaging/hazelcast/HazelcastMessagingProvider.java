@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	Â© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	Â© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -70,6 +70,7 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private static final String HAZELCAST_LOGGING_LEVEL = "ERROR";
 	
 	private HazelcastInstance instance;
+	private static final boolean useMulticast = true;		// experiment with this, might be good to have a setter
 	
 	@Override
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
@@ -84,15 +85,27 @@ public class HazelcastMessagingProvider implements MessagingProvider {
         config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
         config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
 
-        // explicitly add remote nodes rather than using multicast
-        MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
-        if ( remoteNodes != null) {
-        	for ( MNode node : remoteNodes ) {
-        		MASSBase.getLogger().debug( "Adding {} as a Hazelcast cluster member", node.getHostName() );
-        		config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
-        	}
-        }
+        if ( useMulticast ) {
 		
+        	// using multicast for node discovery and binding
+        	MASSBase.getLogger().debug( "Using multicast for cluster discovery and binding..." );
+        	config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
+        	
+        }
+        
+        else {
+        
+			// explicitly add remote nodes rather than using multicast
+        	MASSBase.getLogger().debug( "Adding individual cluster members via TCP..." );
+	        if ( remoteNodes != null) {
+		        for ( MNode node : remoteNodes ) {
+		        	MASSBase.getLogger().debug( "Adding {} as a cluster member", node.getHostName() );
+					config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
+				}
+	        }
+		
+        }
+        
     	MASSBase.getLogger().debug( "Instantiating Hazelcast instance..." );
 		instance = Hazelcast.newHazelcastInstance( config );
 		

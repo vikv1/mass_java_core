@@ -70,18 +70,29 @@ public class Message implements Serializable {
 		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),
 
         // Retrieval
+        // Graph Maintenance (Deprecated) Use of this message type is deprecated and will be
+        // removed in a future release.
         MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
         MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
 
         // Exchange all
         GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
 
-        // Graph Maintenance
+        // Graph Maintenance (Deprecated) Use of this message type is deprecated and will be
+        // removed in a future release.
         MAINTENANCE_ADD_PLACE("Maintenance.addPlace"),
         MAINTENANCE_ADD_EDGE("Maintenance.addEdge"),
 
+        // Graph Maintenance (Deprecated) Use of this message type is deprecated and will be
+        // removed in a future release.
         MAINTENANCE_REMOVE_PLACE("Maintenance.removePlace"),
         MAINTENANCE_REMOVE_EDGE("Maintenance.removeEdge"),
+
+        // Graph maintenance messages.
+        MAINTENANCE_ADD_VERTEX("Maintenance.addVertex"),
+        MAINTENANCE_REMOVE_VERTEX("Maintenance.removeVertex"),
+        MAINTENANCE_GET_VERTEX("Maintenance.getVertex"),
+        MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
 
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
