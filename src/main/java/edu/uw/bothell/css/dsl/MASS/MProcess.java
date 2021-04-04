@@ -595,6 +595,8 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_ADD_PLACE:
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_ADD_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -606,6 +608,23 @@ public class MProcess {
 				int result = ((GraphPlaces)places).addPlaceLocally(((Object[])argument)[0], ((Object[])argument)[1]);
 				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed result: " + result);
 				sendAck(result);
+				
+				break;
+
+			case MAINTENANCE_ADD_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]");
+
+				Object[] args = (Object[])argument;
+				int vertexID = (Integer)args[0];
+				Object vertexParams = args[1];
+				
+				boolean success = ((GraphPlaces)places).addVertexOnNode(MASS.getMyPid(), vertexID, vertexParams);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX completed result: " + success);
+				sendAck(success ? 1 : 0);
 
 			
 				break;
@@ -625,6 +644,8 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_REMOVE_PLACE:
+				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_REMOVE_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -634,6 +655,18 @@ public class MProcess {
 				sendAck();
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
+				break;
+			
+			case MAINTENANCE_REMOVE_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX received");
+
+				places = MASS.getPlaces(m.getHandle());
+				
+				((GraphPlaces) places).removeVertexOnNode(MASS.getMyPid(), (Integer) m.getArgument());
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX completed");
 				break;
 
 			case MAINTENANCE_REMOVE_EDGE:
@@ -648,6 +681,26 @@ public class MProcess {
 				sendAck();
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
+				break;
+
+			case MAINTENANCE_GET_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX received");
+
+				places = MASS.getPlaces(m.getHandle());
+				graphPlaces = ((GraphPlaces) places);
+
+				Object vertex = graphPlaces.getVertexFromNode(
+					MASS.getMyPid(),
+					((Integer) m.getArgument()).intValue()
+				);
+
+				Message msg = new Message(
+					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
+					vertex
+				);
+
+				sendMessage(msg);
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
 
 			case MAINTENANCE_GET_PLACES:
