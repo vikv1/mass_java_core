@@ -10,6 +10,9 @@ More information about MASS can be found out the University of Washington Distri
 # Documentation
 You may find documentation regarding the Java version of the MASS library in the [Wiki](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/Home). If you want to try out a version of the library that is still in active development, clone the "develop" branch and refer to the [MASS Developer's Guide](https://bitbucket.org/mass_library_developers/mass_java_core/wiki/LibraryDevelopersGuide) for instructions on building the library.
 
+# Applications
+If you are interested in developing applications that use the MASS library, and not work on the library itself, you may find our sample applications [here](https://bitbucket.org/mass_application_developers/mass_java_appl).
+
 # Getting Started
 ## Maven-enabled Project
 If you are using Maven, add the following repository to your POM:
