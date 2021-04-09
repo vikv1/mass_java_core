@@ -1,21 +1,18 @@
-FROM openjdk:11
-VOLUME /tmp
-ARG JAVA_OPTS
-ENV JAVA_OPTS=$JAVA_OPTS
+FROM maven:3-openjdk-11
 
-ARG MAVEN_VERSION=3.6.3
-ARG USER_HOME_DIR="/root"
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
- && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
- && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
- && rm -f /tmp/apache-maven.tar.gz \
- && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+# build the MASS library with hazelcast mutlicast discovery enabled
+ENV HAZELCAST_USE_MULTICAST_DISCOVERY=true
 
-WORKDIR /app
-ADD . /app
+# define the path of the JAR file will be generated
+ENV MASS_JAR_PATH="/mass/target/mass-core.jar"
 
-# CMD ["mvn", "package"]
-CMD ["mvn", "package", "-DskipTests"]
+# set working directory
+WORKDIR /mass
+
+# add all necessary files to build MASS library
+COPY pom.xml .
+COPY ./src ./src
+
+# build the MASS library
+# TODO: remove -DskipTests when all unit tests are available
+RUN ["mvn", "package", "-DskipTests"]

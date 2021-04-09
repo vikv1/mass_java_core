@@ -46,7 +46,6 @@ import org.easymock.EasyMock;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.jcraft.jsch.ChannelExec;
@@ -84,7 +83,6 @@ public class UtilitiesTest extends AbstractTest {
 	private ObjectOutputStream mockObjectOutputStream;
 	
 	@Test
-	@Disabled	// TODO - some behavior has changed and this test needs to be updated
 	public void launchRemoteProcess() throws Exception {
 		
 		String command = randomString();
@@ -103,13 +101,13 @@ public class UtilitiesTest extends AbstractTest {
 		// Session will have a configuration property added to disable strict host checking
 		Capture<Properties> capturedProperties = EasyMock.newCapture();
 		mockSession.setConfig( capture(capturedProperties) );
-		
-		// connection will be completed, via Session
-		mockChannelExec.connect( DEFAULT_SESSION_TIMEOUT_MS );
 		mockSession.connect();
-		
+
 		// a Channel will be opened, in "exec mode"
 		expect( mockSession.openChannel( "exec" ) ).andReturn( mockChannelExec );
+
+		// connection will be completed, via Session
+		mockChannelExec.connect( DEFAULT_SESSION_TIMEOUT_MS );
 		
 		// command set within the Channel, but not executed yet
 		mockChannelExec.setCommand( command );

@@ -2,7 +2,5 @@ version: '3.4'
 
 services:
   massjavacore:
-    image: mass_java_core
+    image: dslabcss/mass_java_core
     build: .
-    volumes:
-      - ./target:/app/target

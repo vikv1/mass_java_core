@@ -30,6 +30,7 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -375,5 +376,19 @@ public class MessageTest extends AbstractTest {
 		assertEquals( "UNDEFINED", message.getActionString() );
 		
 	}
-
+	
+	@Test
+	public void actionHandleArgsConstructor() {
+		
+		Object argument = new String();
+		
+		Message message = new Message( Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT, 89, argument );
+		
+		// check field population
+		assertThat( message.getAction() ).as( "Message action was not set properly!" ).isEqualTo( Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT );
+		assertThat( message.getHandle() ).as( "Message handle not set properly!" ).isEqualTo( 89 );
+		assertThat( message.getArgument() ).as( "Message argument not set properly!" ).isSameAs( argument );
+		
+	}
+	
 }

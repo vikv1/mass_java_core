@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -172,19 +172,25 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
-		MASSBase.finish();
+
+		System.out.println("MASS Shutting Down...");
+
+ 		MASSBase.finish();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
     	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
-		System.out.println("finsh");
-    	// Close connection and finish each mprocess
+    	
+		// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
-			// Send a finish messages
-			System.out.print(node.getHostName());
+			
+    		// Send finish messages
+			System.out.println( "Sending shutdown request to " + node.getHostName() );
+			MASS.getLogger().debug( "Sending shutdown request to {}", node.getHostName() );
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
+    		
     	}
 
     	// Synchronize with all slaves
@@ -200,7 +206,8 @@ public class MASS extends MASSBase {
     	MASS.getMessagingProvider().shutdown();
     	
     	MASS.getLogger().debug( "MASS::finish: done" );
-
+		System.out.println("MASS Shutdown Finished");
+    	
     }
     
 //    /**
@@ -241,6 +248,44 @@ public class MASS extends MASSBase {
 	 * Calling this method effectively begins computation.
 	 */
 	public static void init() {
+
+		// start MASS, providing filename of configuration
+		init( getNodeFilePath() );
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a Nodelist for configuration
+	 * Calling this method effectively begins computation.
+	 * @param nodes The Nodelist configuration to use
+	 */
+	public static void init( Nodelist nodes ) {
+	
+		// must provide nodes for configuration!
+		if ( nodes == null ) {
+			System.err.println( "No nodes provided for configuration!" );
+    		System.exit( -1 );
+		}
+
+		// iterate through the nodes, adding each
+		for ( MNode node : nodes.getNodes() ) {
+			addNode( node );
+		}
+		
+		// start MASS
+		init();
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a specific filename for Nodelist XML or machines.txt format configuration document.
+	 * Calling this method effectively begins computation.
+	 * @param nodeFilename The full path and filename of the Nodelist XML or machines.txt configuration document to use
+	 */
+	public static void init( String nodeFilename ) {
+		
+		// set config file path (in case it wasn't set already, for compatibility)
+		setNodeFilePath( nodeFilename );
 
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
@@ -296,18 +341,19 @@ public class MASS extends MASSBase {
             		fileReader.close();
             	} catch( Exception e ) {
 
-            		System.err.println( "machine file: " + getNodeFilePath() +
-            				" could not open." );
+            		System.err.println( "machine file: " + getNodeFilePath() + " could not open." );
 		    		MASS.getLogger().error( "Machine file: {} could not be opened!", getNodeFilePath(), e );
             		System.exit( -1 );
 
             	}
+    		
     		}  		
+
     	} else {
 			System.err.println(" No Node File Path Given" );
 			System.exit( -1 );
 		}
-    	
+
     	// For debugging
     	if ( MASSBase.getLogger().isDebugEnabled() ) {
     		for ( MNode node : getRemoteNodes() )
@@ -321,6 +367,15 @@ public class MASS extends MASSBase {
     		MNode masterNode = new MNode();
     		masterNode.setMaster(true);
     		addNode(masterNode);
+    	
+    	}
+    	
+    	// validate configuration before attempting to start remote nodes
+    	if ( validateNodeConfiguration() == false ) {
+    		MASSBase.getLogger().error( "Node configuration validation problems found, unable to initialize!" );
+    		System.out.println( "Node configuration validation problems found, unable to initialize!" );
+    		System.out.println( "Refer to log files for details of validation exception(s)" );
+			System.exit( -1 );
     	}
     	
     	// Initialize MASS_base.constants and identify the CWD.
@@ -745,6 +800,37 @@ public class MASS extends MASSBase {
 
 	public static long getClockValue() {
 		return getGlobalClock().getValue();
+	}
+	
+	private static boolean validateNodeConfiguration() {
+		
+		// assume that everything is fine at first
+		boolean validationSuccess = true;
+		
+		// validate all node configurations
+		Set<String> nodeValidationExceptions = getMasterNode().validate();
+		for ( MNode node : getRemoteNodes() ) {
+			nodeValidationExceptions.addAll( node.validate() );
+		}
+
+		// any validation failures?
+		if ( nodeValidationExceptions.size() > 0 ) {
+
+			// failure!
+			validationSuccess = false;
+			
+			for ( String validationException : nodeValidationExceptions ) {
+			
+				String message = "Configuration exception: " + validationException;
+				System.out.println( message );
+				MASS.getLogger().error( message );
+			
+			}
+			
+		}
+		
+		return validationSuccess;
+		
 	}
 
 }

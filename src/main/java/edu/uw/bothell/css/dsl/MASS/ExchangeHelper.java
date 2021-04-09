@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,7 @@ public class ExchangeHelper {
     				
     				MASS.getLogger().debug( "compare with {}", hosts.get(j) );
 
-    				if ( hosts.get(j).equals( ipaddr ) ) {
+    				if ( hosts.get( j ).equalsIgnoreCase( ipaddr ) || hosts.get( j ).equals( addr.getHostAddress() ) ) {
     					
     					// matched and assigned this socket to rank j.
     					sockets[j] = socket; 

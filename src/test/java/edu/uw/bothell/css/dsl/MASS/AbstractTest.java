@@ -40,6 +40,8 @@ import org.easymock.EasyMockExtension;
 import org.easymock.EasyMockSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
@@ -47,7 +49,8 @@ import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 /**
  * Abstract Test contains helper classes and methods used by unit test classes
  */
-@ExtendWith(EasyMockExtension.class)
+@TestMethodOrder( MethodOrderer.Random.class )
+@ExtendWith( EasyMockExtension.class )
 public class AbstractTest extends EasyMockSupport {
 
     // Toggle for enabling Unicode in unit Tests
@@ -71,6 +74,7 @@ public class AbstractTest extends EasyMockSupport {
     		MASSBase.setCurrentAgentsBase( null );
     		MASSBase.setCurrentReturns( null );
     		MASSBase.setDestinationPlaces( null );
+    		MASSBase.getAgentsMap().clear();
     		MASSBase.getPlacesMap().clear();
     		MASSBase.getRemoteNodes().clear();
     		MASSBase.getHosts().clear();

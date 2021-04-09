@@ -140,19 +140,18 @@ public class MatrixUtilities {
 	 */
 	public static int getRankFromGlobalLinearIndex( int globalLinearIndex, int[] size, int systemSize ) {
 
-   		int stripeSize = MatrixUtilities.getMatrixSize( size ) / systemSize;
-    	
-    	int rank, scope;
-    	for ( rank = 0, scope = stripeSize ; rank < systemSize; 
-    			rank++, scope += stripeSize ) {
-    		
-    		if ( globalLinearIndex < scope )
-    			break;
-    	
-    	}
+		// short circuit obvious answers for performance
+		if ( systemSize == 1 ) return 0;			// system size of one means everything on node 0
+		if ( globalLinearIndex == 0 ) return 0;		// first Place always on node 0
 
-    	return ( rank == systemSize ) ? rank - 1 : rank;
-    
+		int matrixSize = MatrixUtilities.getMatrixSize( size );
+
+		// calculate where the index is in relation to the total simulation space
+		double indexPositionRelative = ( double ) globalLinearIndex / ( double ) matrixSize; 
+		
+		// linear relationship between index position and number of nodes in the system
+		return ( int ) ( systemSize * indexPositionRelative );
+   		
     }
 	
 }
