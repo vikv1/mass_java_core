@@ -636,7 +636,8 @@ public class MProcess {
 
 				graphPlaces = ((GraphPlaces) places);
 
-				graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+				graphPlaces.addEdgeOnNode(MASS.getMyPid(), (Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+				// graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
 
 				sendAck();
 
@@ -670,32 +671,34 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_REMOVE_EDGE:
-				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+				MASSBase.getLogger().error("MAINTENANCE_REMOVE_EDGE received");
 
 				places = MASS.getPlaces(m.getHandle());
 
 				graphPlaces = ((GraphPlaces) places);
 
-				graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
+				graphPlaces.removeEdgeOnNode(MASS.getMyPid(), (Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
+				// graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
 
 				sendAck();
 
-				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
+				MASSBase.getLogger().error("MAINNTENANCE_REMOVE_EDGE completed");
 				break;
 
 			case MAINTENANCE_GET_VERTEX:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX received");
-
-				places = MASS.getPlaces(m.getHandle());
+				int handle = m.getHandle();
+				places = MASS.getPlaces(handle);
 				graphPlaces = ((GraphPlaces) places);
 
-				Object vertex = graphPlaces.getVertexFromNode(
+				VertexPlace vertex = (VertexPlace)graphPlaces.getVertexFromNode(
 					MASS.getMyPid(),
 					((Integer) m.getArgument()).intValue()
 				);
-
+				MASSBase.getLogger().error("Vertex " + (Integer)m.getArgument() + " neighbors: " + vertex.neighbors.size());
 				Message msg = new Message(
 					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
+					handle,
 					vertex
 				);
 

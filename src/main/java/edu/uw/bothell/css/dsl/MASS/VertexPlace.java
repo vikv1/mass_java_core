@@ -66,8 +66,9 @@ import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import ucar.ma2.InvalidRangeException;
 
-@SuppressWarnings("serial")
 public class VertexPlace extends Place implements Serializable {
+
+    static final long serialVersionUID = 12345L;
     
 	private Map<Object, Object> neighborResults;
     private Object [] graphArguments;

@@ -473,9 +473,10 @@ public class GraphPlaces extends Places implements Graph {
         if (localIndex >= localSize) { return false; }
 
         VertexPlace vertex = places.get(localIndex);
-        vertex.removeNeighborSafely(neighborID);
+        vertex.removeNeighbor(neighborID);
         places.set(localIndex, vertex);
-
+        MASS.getLogger().error("Removed edge locally: " + vertexID + ", " + neighborID);
+        MASS.getLogger().error("Neighbors: " + places.get(localIndex).neighbors.size());
         return true;
     }
 
@@ -496,13 +497,13 @@ public class GraphPlaces extends Places implements Graph {
         Message msg = new Message(
             Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE,
             getHandle(),
-            new Object[]{ vertexID, neighborID, null }
+            new Object[]{ vertexID, neighborID }
         );
 
         // Send message and wait for reply
         remoteNode.sendMessage(msg);
         Message replyMsg = remoteNode.receiveMessage();
-
+        MASS.getLogger().debug("Send message to remove edge");
         // Message system currently only returns ACK if successful
         // so if we do not recieve one, assume failure.
         if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
@@ -962,7 +963,7 @@ public class GraphPlaces extends Places implements Graph {
         if (localIndex >= localSize) { 
             return null; 
         }
-
+        
         return places.get(localIndex);
     }
 
@@ -989,7 +990,8 @@ public class GraphPlaces extends Places implements Graph {
         // Send message and wait for reply.
         remoteNode.sendMessage(msg);
         Message replyMsg = remoteNode.receiveMessage();
-
+        MASS.getLogger().debug("Got Vertex: " + vertexID + ", neighbors=" + ((VertexPlace)replyMsg.getArgument()).neighbors.size());
+        MASS.getLogger().debug("Got Vertex: " + vertexID + ", weights=" + ((VertexPlace)replyMsg.getArgument()).weights.size());
         return (VertexPlace)replyMsg.getArgument();
     }
 
