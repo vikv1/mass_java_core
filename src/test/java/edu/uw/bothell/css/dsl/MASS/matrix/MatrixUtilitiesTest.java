@@ -119,9 +119,6 @@ public class MatrixUtilitiesTest extends AbstractTest {
 		// three-dimensional matrix, element out of bounds, index should be minimum integer value
 		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 2, 2, 2 } ) );
 
-		// zero size for a dimension is out of bounds, index should be minimum integer value
-		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 0, 2 }, new int[]{ 1, 0, 1 } ) );
-		
 		// negative location should return minimum integer value
 		assertEquals( Integer.MIN_VALUE, MatrixUtilities.getLinearIndex( new int[]{ 2, 2, 2 }, new int[]{ 1, -1, 1 } ) );
 		

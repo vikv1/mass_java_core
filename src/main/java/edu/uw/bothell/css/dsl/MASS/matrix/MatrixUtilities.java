@@ -69,41 +69,34 @@ public class MatrixUtilities {
 	 * minimum integer value if the position could not be calculated (problem in size or index arrays) 
 	 */
 	public static int getLinearIndex( int[] size, int[] index ) {
-	
+
 		// bounds checks
 		if ( size == null || index == null ) return Integer.MIN_VALUE;
 		if ( size.length != index.length ) return Integer.MIN_VALUE;
-		
+
 		// single dimension bounds check
 		if ( size.length == 1 && index[ 0 ] > size[ 0 ] - 1 ) return Integer.MIN_VALUE;
-		
-    	int linearIndex = 0;
-    	int columnWeight = 1;
 
-    	// determine last "column" (leftmost) weight (all column sizes except for rightmost)
-    	for ( int i = index.length - 1; i > 0; i-- ) {
-    		columnWeight *= size[ i ];
-    	}
-    	
-    	// determine position by iterating through each dimension and adding each position within the dimension
-    	for ( int i = 0; i < index.length - 1; i ++ ) {
+		int linearIndex = 0;
+		int columnWeight = 1;
 
-    		// invalid index or size at this position?
-    		if ( size[i] <= 0 || index[ i ] < 0 || ( index[i] > size[ i ] - 1 ) ) return Integer.MIN_VALUE;
+		// determine last "column" (leftmost) weight (all column sizes except for rightmost)
+		for ( int i = index.length - 1; i > 0; i-- ) {
+			columnWeight *= size[ i ];
+		}
 
-    		// multiply column weight by column value to get this column contributor to the linear index 
-    		linearIndex += columnWeight * index[ i ];
-    		
-    		// column weight is now ready for the next iteration
-    		columnWeight /= size[ i ];
+		for ( int i = 0; i < index.length; i++ ) {
 
-    	}
+			// invalid index or size at this position?
+			if ( size[ i ] <= 0 || index[ i ] < 0 || ( index[ i ] > size[ i ] - 1 ) ) return Integer.MIN_VALUE;
 
-    	// add the very last (rightmost) column value, column weight is one
-    	linearIndex += index[ size.length - 1 ];
+			linearIndex += columnWeight * index[i];
+			columnWeight /= ( i < index.length - 1 ) ? size[ i + 1 ] : 1;
 
-    	return linearIndex;
+		}
 
+		return linearIndex;
+	
 	}
 	
     /** 
