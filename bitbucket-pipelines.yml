@@ -39,3 +39,23 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:develop"
           services:
             - docker
+    init_integration_tests:
+      - step:
+          name: Integration test - ShortestPath
+          script:
+            - docker-compose -f ./integration-tests/ShortestPath/docker-compose.yml build
+            - docker-compose -f ./integration-tests/ShortestPath/docker-compose.yml --compatibility up -d
+            - docker exec shortestpath_agent_1 ./run.sh 4 0 1 4 1
+            - diff ./integration-tests/ShortestPath/output/log_console ./integration-tests/ShortestPath/expected_output/4_0_1_4_1.txt
+          services:
+            - docker
+      - step:
+          name: Push to DockerHub - init_integration_tests
+          deployment: Test
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - docker-compose -f ./docker-compose.yml build
+            - docker tag "${DOCKERHUB_USERNAME}/${IMAGE_NAME}" "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
+            - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
+          services:
+            - docker
