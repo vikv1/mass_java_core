@@ -587,12 +587,13 @@ public class MProcess {
 
 				break;
 				
+			// This case statement is executed by only the main thread. No MThread.barrierThreads(0) is necessary.
 			case AGENTS_EXCHANGE_ALL:
 				
 				MASSBase.getLogger().debug("AGENTS_EXCHANGE_ALL received");
 				
 				MASSBase.getCurrentAgentsBase().exchangeAll();
-				MThread.barrierThreads(0);
+
 				sendAck();
 				
 				break;
