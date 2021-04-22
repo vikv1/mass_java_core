@@ -27,7 +27,8 @@ definitions:
         - diff ./integration-tests/ShortestPath/output/log_console ./integration-tests/ShortestPath/expected_output/3000_0_1500_4_1.txt
       services:
         - docker
-
+      caches:
+        - docker
 
 
 pipelines:
@@ -38,6 +39,8 @@ pipelines:
 
   branches:
     master:
+      - step: *Build-MASS
+      - step: *Lint-Dockerfile
       - step:
           name: Push to DockerHub - master
           deployment: Production
@@ -49,6 +52,8 @@ pipelines:
           services:
             - docker
     develop:
+      - step: *Build-MASS
+      - step: *Lint-Dockerfile
       - step:
           name: Push to DockerHub - develop
           deployment: Test
