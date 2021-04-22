@@ -1,11 +1,6 @@
-FROM dslabcss/mass_java_core:1.3.0
+FROM dslabcss/mass_java_core:latest as MASS
 
-# uncomment/edit following 2 lines if required to use customized MASS JAR file
-# COPY ./dependencies/mass-core-1.3.0-RELEASE.jar /mass/target/mass-core.jar
-# ENV MASS_JAR_PATH="/mass/target/mass-core.jar"
-
-# environment variable using inside MASS library during runtime
-ENV HAZELCAST_USE_MULTICAST_DISCOVERY=true
+FROM adoptopenjdk:11-jdk
 
 # install gradle for the RangeSearch compilation
 # install ssh for connection among containers
@@ -19,12 +14,6 @@ RUN apt-get update \
 RUN mkdir /var/run/sshd
 RUN chmod 0755 /var/run/sshd
 
-# set the working directory in container to /app
-WORKDIR /app
-
-# add execution script
-COPY ./run.sh .
-
 # setup public/private keys with proper permissions
 COPY ./dependencies/key /root/.ssh/id_rsa
 COPY ./dependencies/key.pub /root/.ssh/authorized_keys
@@ -35,6 +24,21 @@ RUN chmod 700 /root/.ssh/authorized_keys
 EXPOSE 22
 EXPOSE 3400
 EXPOSE 1025-65535
+
+# add necessary runtime dependency
+COPY --from=MASS /mass /mass
+
+# define the path of the MASS JAR file will be used
+ENV MASS_JAR_PATH="/mass/target/mass-core.jar"
+
+# environment variable using inside MASS library during runtime
+ENV HAZELCAST_USE_MULTICAST_DISCOVERY=true
+
+# set the working directory in container to /app
+WORKDIR /app
+
+# add execution script
+COPY ./run.sh .
 
 # compile the MASS Java application
 COPY ./src ./src

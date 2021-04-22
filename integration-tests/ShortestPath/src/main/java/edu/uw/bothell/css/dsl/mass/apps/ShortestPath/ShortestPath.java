@@ -47,7 +47,7 @@ public class ShortestPath {
 	System.out.println( "nNodes = " + nNodes + " src = " + src +
 			    " dst = " + dst + " nProc = " + nProc +
 			    " nThr = " + nThr );
-	MASS.setLoggingLevel( LogLevel.ERROR );
+	MASS.setLoggingLevel( LogLevel.DEBUG );
 	MASS.init( arguments, nProc, nThr );
 
 	// Create a map

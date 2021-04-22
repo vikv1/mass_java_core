@@ -9,4 +9,5 @@ services:
       replicas: 4
     volumes:
       - ./resources:/resources
+      - ./logs:/app/build/libs/logs
       - ./output:/app/output

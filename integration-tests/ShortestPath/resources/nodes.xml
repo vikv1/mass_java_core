@@ -3,28 +3,28 @@
 		<hostname>shortestpath_agent_1.shortestpath_default</hostname>
 		<master>true</master>
 		<masshome>/app/build/libs</masshome>
-		<javahome>/usr/local/openjdk-11/bin</javahome>
+		<javahome>${JAVA_HOME}/bin</javahome>
 		<username>root</username>
 		<privatekey>/root/.ssh/id_rsa</privatekey>
 	</node>
 	<node>
 		<hostname>shortestpath_agent_2.shortestpath_default</hostname>
 		<masshome>/app/build/libs</masshome>
-		<javahome>/usr/local/openjdk-11/bin</javahome>
+		<javahome>${JAVA_HOME}/bin</javahome>
 		<username>root</username>
 		<privatekey>/root/.ssh/id_rsa</privatekey>
 	</node>
 	<node>
 		<hostname>shortestpath_agent_3.shortestpath_default</hostname>
 		<masshome>/app/build/libs</masshome>
-		<javahome>/usr/local/openjdk-11/bin</javahome>
+		<javahome>${JAVA_HOME}/bin</javahome>
 		<username>root</username>
 		<privatekey>/root/.ssh/id_rsa</privatekey>
 	</node>
 	<node>
 		<hostname>shortestpath_agent_4.shortestpath_default</hostname>
 		<masshome>/app/build/libs</masshome>
-		<javahome>/usr/local/openjdk-11/bin</javahome>
+		<javahome>${JAVA_HOME}/bin</javahome>
 		<username>root</username>
 		<privatekey>/root/.ssh/id_rsa</privatekey>
 	</node>
