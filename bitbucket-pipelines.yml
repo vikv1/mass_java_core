@@ -48,6 +48,8 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:master"
           services:
             - docker
+          caches:
+          - docker
     develop:
       - step: *Build-MASS
       - step: *Lint-Dockerfile
@@ -61,6 +63,8 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:develop"
           services:
             - docker
+          caches:
+          - docker
     init_integration_tests:
       - step: *Build-MASS
       - step: *Lint-Dockerfile
@@ -74,3 +78,5 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
           services:
             - docker
+          caches:
+          - docker
