@@ -14,5 +14,4 @@ COPY pom.xml .
 COPY ./src ./src
 
 # build the MASS library
-# TODO: remove -DskipTests when all unit tests are available
-RUN ["mvn", "package", "-DskipTests"]
+RUN ["mvn", "package"]

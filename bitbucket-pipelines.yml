@@ -38,6 +38,7 @@ pipelines:
     master:
       - step: *Build-MASS
       - step: *Lint-Dockerfile
+      - step: *Integration-test-ShortestPath
       - step:
           name: Push to DockerHub - master
           deployment: Production
@@ -53,6 +54,7 @@ pipelines:
     develop:
       - step: *Build-MASS
       - step: *Lint-Dockerfile
+      - step: *Integration-test-ShortestPath
       - step:
           name: Push to DockerHub - develop
           deployment: Test
@@ -61,21 +63,6 @@ pipelines:
             - docker-compose -f ./docker-compose.yml build
             - docker tag "${DOCKERHUB_USERNAME}/${IMAGE_NAME}" "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:develop"
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:develop"
-          services:
-            - docker
-          caches:
-          - docker
-    init_integration_tests:
-      - step: *Build-MASS
-      - step: *Lint-Dockerfile
-      - step: *Integration-test-ShortestPath
-      - step:
-          name: Push to DockerHub - init_integration_tests
-          deployment: Test
-          script:
-            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-            - docker tag "${DOCKERHUB_USERNAME}/${IMAGE_NAME}" "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
-            - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
           services:
             - docker
           caches:
