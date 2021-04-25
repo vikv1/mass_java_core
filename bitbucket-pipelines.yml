@@ -1,23 +1,43 @@
 image: atlassian/default-image:2
 
+definitions:
+  steps:
+  - step: &Build-MASS
+      name: Build-MASS
+      script:
+        - docker-compose -f ./docker-compose.yml build
+      services:
+        - docker
+      caches:
+        - docker
+  - step: &Lint-Dockerfile
+      name: Lint the Dockerfile
+      image: hadolint/hadolint:latest-debian
+      script:
+        - hadolint Dockerfile
+  - step: &Integration-test-ShortestPath
+      name: Integration-test-ShortestPath
+      script:
+        - docker-compose -f ./integration-tests/ShortestPath/docker-compose.yml build
+        - docker-compose -f ./integration-tests/ShortestPath/docker-compose.yml --compatibility up -d --force-recreate
+        - docker exec shortestpath_agent_1 ./run.sh 4 0 1 4 1
+        - diff ./integration-tests/ShortestPath/output/log_console ./integration-tests/ShortestPath/expected_output/4_0_1_4_1.txt
+      services:
+        - docker
+      caches:
+        - docker
+
+
 pipelines:
   default:
     - parallel:
-        - step:
-            name: Build and Test
-            script:
-              - docker-compose -f ./docker-compose.yml build
-            services:
-              - docker
-            caches:
-              - docker
-        - step:
-            name: Lint the Dockerfile
-            image: hadolint/hadolint:latest-debian
-            script:
-              - hadolint Dockerfile
+        - step: *Build-MASS
+        - step: *Lint-Dockerfile
+
   branches:
     master:
+      - step: *Build-MASS
+      - step: *Lint-Dockerfile
       - step:
           name: Push to DockerHub - master
           deployment: Production
@@ -28,7 +48,11 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:master"
           services:
             - docker
+          caches:
+          - docker
     develop:
+      - step: *Build-MASS
+      - step: *Lint-Dockerfile
       - step:
           name: Push to DockerHub - develop
           deployment: Test
@@ -39,3 +63,20 @@ pipelines:
             - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:develop"
           services:
             - docker
+          caches:
+          - docker
+    init_integration_tests:
+      - step: *Build-MASS
+      - step: *Lint-Dockerfile
+      - step: *Integration-test-ShortestPath
+      - step:
+          name: Push to DockerHub - init_integration_tests
+          deployment: Test
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - docker tag "${DOCKERHUB_USERNAME}/${IMAGE_NAME}" "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
+            - docker push "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:init_integration_tests"
+          services:
+            - docker
+          caches:
+          - docker
