@@ -68,7 +68,9 @@ import ucar.ma2.InvalidRangeException;
 
 public class VertexPlace extends Place implements Serializable, Cloneable {
 
-    static final long serialVersionUID = 12345L;
+    // serialVersionUID set to resemble semantic versioning for
+    // VertexPlace (v1.0.0 == 01 00 00)
+    static final long serialVersionUID = 010000L;
     
 	private Map<Object, Object> neighborResults;
     private Object [] graphArguments;
