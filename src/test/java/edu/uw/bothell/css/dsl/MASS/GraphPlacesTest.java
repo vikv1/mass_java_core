@@ -45,8 +45,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import jdk.jfr.Timestamp;
-
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
