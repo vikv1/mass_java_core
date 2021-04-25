@@ -963,7 +963,7 @@ public class GraphPlaces extends Places implements Graph {
         if (localIndex >= localSize) { 
             return null; 
         }
-        
+
         return places.get(localIndex);
     }
 
@@ -990,8 +990,7 @@ public class GraphPlaces extends Places implements Graph {
         // Send message and wait for reply.
         remoteNode.sendMessage(msg);
         Message replyMsg = remoteNode.receiveMessage();
-        MASS.getLogger().debug("Got Vertex: " + vertexID + ", neighbors=" + ((VertexPlace)replyMsg.getArgument()).neighbors.size());
-        MASS.getLogger().debug("Got Vertex: " + vertexID + ", weights=" + ((VertexPlace)replyMsg.getArgument()).weights.size());
+
         return (VertexPlace)replyMsg.getArgument();
     }
 
