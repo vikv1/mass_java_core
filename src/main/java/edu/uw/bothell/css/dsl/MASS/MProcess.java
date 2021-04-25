@@ -695,18 +695,31 @@ public class MProcess {
 				places = MASS.getPlaces(handle);
 				graphPlaces = ((GraphPlaces) places);
 
-				VertexPlace vertex = (VertexPlace)graphPlaces.getVertexFromNode(
-					MASS.getMyPid(),
-					((Integer) m.getArgument()).intValue()
-				);
-				MASSBase.getLogger().error("Vertex " + (Integer)m.getArgument() + " neighbors: " + vertex.neighbors.size());
+				// Retrieve and clone the vertex place. Cloning is necessary
+				// to prevent the object stream from sending a reference from
+				// an old object. The alternative is to reset the stream which 
+				// may have other unknown performance implications. Depending
+				// how how the message stream is utilized elsewhere in MASS.
+				Object vertex = null;
+				try {
+					vertex = graphPlaces.getVertexFromNode(
+						MASS.getMyPid(),
+						((Integer) m.getArgument()).intValue()
+					).clone();
+				} catch (CloneNotSupportedException cnse) {
+					MASSBase.getLogger().error("VertexPlace not cloneable: " + cnse);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("An unexpected error occurred: " + e);
+				}
+				
+				// Send vertex to requester.
 				Message msg = new Message(
 					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
 					handle,
 					vertex
 				);
-
 				sendMessage(msg);
+				
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
 
