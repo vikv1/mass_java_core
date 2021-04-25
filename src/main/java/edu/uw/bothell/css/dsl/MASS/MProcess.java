@@ -635,17 +635,39 @@ public class MProcess {
 
 			case MAINTENANCE_ADD_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_ADD_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
 				graphPlaces = ((GraphPlaces) places);
 
-				graphPlaces.addEdgeOnNode(MASS.getMyPid(), (Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
-				// graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
+				graphPlaces.addEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1], (Double)((Object[])argument)[2]);
 
 				sendAck();
 
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE completed");
+				break;
+			
+			case MAINTENANCE_ADD_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] addEdgeArgs = (Object[])argument;
+
+				graphPlaces.addEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)addEdgeArgs[0], 
+					(Integer)addEdgeArgs[1], 
+					(Double)addEdgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 completed");
 				break;
 
 			case MAINTENANCE_REMOVE_PLACE:
@@ -675,18 +697,39 @@ public class MProcess {
 				break;
 
 			case MAINTENANCE_REMOVE_EDGE:
-				MASSBase.getLogger().error("MAINTENANCE_REMOVE_EDGE received");
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_REMOVE_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
 				graphPlaces = ((GraphPlaces) places);
 
-				graphPlaces.removeEdgeOnNode(MASS.getMyPid(), (Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
-				// graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
+				graphPlaces.removeEdgeLocally((Integer) ((Object[])argument)[0], (Integer)((Object[])argument)[1]);
 
 				sendAck();
 
-				MASSBase.getLogger().error("MAINNTENANCE_REMOVE_EDGE completed");
+				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
+				break;
+			
+			case MAINTENANCE_REMOVE_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] removeEdgeArgs = (Object[])argument;
+
+				graphPlaces.removeEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)removeEdgeArgs[0], 
+					(Integer)removeEdgeArgs[1]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 completed");
 				break;
 
 			case MAINTENANCE_GET_VERTEX:
@@ -719,7 +762,7 @@ public class MProcess {
 					vertex
 				);
 				sendMessage(msg);
-				
+
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
 

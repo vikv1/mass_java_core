@@ -93,6 +93,8 @@ public class Message implements Serializable {
         MAINTENANCE_REMOVE_VERTEX("Maintenance.removeVertex"),
         MAINTENANCE_GET_VERTEX("Maintenance.getVertex"),
         MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
+        MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
+        MAINTENANCE_ADD_EDGE_V2("Maintenance.addEdgeV2"),
 
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
