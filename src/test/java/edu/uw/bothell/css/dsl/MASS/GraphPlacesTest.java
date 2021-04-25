@@ -45,6 +45,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import jdk.jfr.Timestamp;
+
 public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
     public static void beforeAll() {
@@ -234,6 +236,31 @@ public class GraphPlacesTest extends AbstractTest {
         
         assertEquals(destinationID, neighbor);
         assertEquals(1, neighborWeight);
+    }
+
+    @Test
+    public void testRemoveEdge() {
+        // Setup graph and vertices
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        int sourceID = graph.addVertex();
+        int destinationID = graph.addVertex();
+
+        // Add an edge without specifying weight.
+        assertTrue(graph.addEdge(sourceID, destinationID));
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        VertexPlace vert = graph.getVertex(sourceID);
+
+        // validate weights and neighbors list
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
+
+        assertTrue(graph.removeEdge(sourceID, destinationID));
+        vert = graph.getVertex(sourceID);
+
+        // validate that the edge is removed
+        assertEquals(0, vert.neighbors.size());
+        assertEquals(0, vert.weights.size());
     }
 
     @Test

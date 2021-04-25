@@ -495,7 +495,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * removeRemoteEdge sends a MASS message to the node associated by the provided
+     * removeRemoteEdge sends a MASS message to the node associated with the provided
      * node ID to remove the edge between the provided vertex and neighbor IDs.
      */
     private boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
@@ -615,7 +615,7 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * addRemoteEdge sends a MASS message to the node associated by the provided node ID
+     * addRemoteEdge sends a MASS message to the node associated with the provided node ID
      * to add an edge between the vertexID and neighborID with the provided edge
      * weight.
      */
