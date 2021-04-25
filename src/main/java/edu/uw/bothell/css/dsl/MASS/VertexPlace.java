@@ -66,7 +66,7 @@ import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import ucar.ma2.InvalidRangeException;
 
-public class VertexPlace extends Place implements Serializable {
+public class VertexPlace extends Place implements Serializable, Cloneable {
 
     static final long serialVersionUID = 12345L;
     
@@ -74,6 +74,35 @@ public class VertexPlace extends Place implements Serializable {
     private Object [] graphArguments;
     public Vector<Object> neighbors = new Vector<>();
     public Vector<Object> weights = new Vector<>();
+
+    // clone returns a deep copy of the VertexPlace with the exception that it's
+    // possible for the objects within the neighbors, weights, graphArguments, 
+    // and neighborResults containers to contain objects that themselves have
+    // shared references.
+    public Object clone() throws CloneNotSupportedException {
+        VertexPlace vertexClone = (VertexPlace)super.clone();
+        
+        // Clone neighbors container...
+        vertexClone.neighbors = new Vector<Object>(this.neighbors.size());
+        vertexClone.neighbors.addAll(this.neighbors);
+        
+        // Clone weights container...
+        vertexClone.weights = new Vector<Object>(this.weights.size());
+        vertexClone.weights.addAll(this.weights);
+
+        // Clone graphArguments container...
+        if (this.graphArguments != null) {
+            vertexClone.graphArguments = this.graphArguments.clone();    
+        }
+
+        // Clone neighborResults container...
+        if (this.neighborResults != null) {
+            vertexClone.neighborResults = new HashMap<>(this.neighborResults.size());
+            vertexClone.neighborResults.putAll(this.neighborResults);
+        }
+
+        return vertexClone;
+    }
 
     public void prepareForExchangeAll() {
         neighborResults = new HashMap<>(neighbors.size());
