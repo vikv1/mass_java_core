@@ -47,6 +47,12 @@ import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 public class GraphPlaces extends Places implements Graph {
+    // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
+    // edge is created without providing a weight.
+    public static final double DEFAULT_EDGE_WEIGHT = 1.0;
+
+    // TODO(bluger) Need to review the purpose of these three fields. Will
+    // do that when refactoring the GraphPlaces constructors.
     private final GraphInitAlgorithm init_algorithm;
     private final String filename;
     private final GraphInputFormat input_format;
@@ -62,20 +68,12 @@ public class GraphPlaces extends Places implements Graph {
     // a linked list. Similarly with the VertexPlace vectors.
     private Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
 
-    // localNextPlaceIndex is a local tracker for the next places index.
-    private int localNextPlaceIndex = 0;
-
-    // globalNextPlaceIndex is a global tracker for the next places index. 
-    // Its value is only meaningful on the master node.
-    private int globalNextPlaceIndex = 0;
-
     // objectFactory is used to generate objects of the places class provided
     // when instantiating GraphPlaces.
     private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
-    // placesVector is used to stored VertexPlaces added after instantiating
-    // GraphPlaces.
-    private Vector<Vector<VertexPlace>> placesVector = new Vector<>(1);
+    // places is used to stored VertexPlaces added after instantiating
+    // a GraphPlaces.
     private Vector<VertexPlace> places = new Vector<VertexPlace>();
 
     /**
@@ -201,10 +199,6 @@ public class GraphPlaces extends Places implements Graph {
     protected void reinitialize() {
         super.reinitialize();
 
-        localNextPlaceIndex = 0;
-        globalNextPlaceIndex = 0;
-        placesVector = new Vector<Vector<VertexPlace>>(1);
-
         nextVertexID = 0;
         places = new Vector<VertexPlace>();
     }
@@ -279,9 +273,7 @@ public class GraphPlaces extends Places implements Graph {
         }
     }
 
-    /**
-     * Graph interface implementation
-     */
+    /* Graph Interfeace Implementation ***************************************/
     @Override
     public GraphModel getGraph() {
         return getGraph(true);
@@ -305,7 +297,7 @@ public class GraphPlaces extends Places implements Graph {
         // FIXME (#153): Missing weights
         newGraph.getVertices()
                 .forEach(vertex -> vertex.neighbors
-                        .forEach(neighbor -> addEdge(vertex.id, neighbor, 1.0)));
+                        .forEach(neighbor -> addEdge(vertex.id, neighbor, DEFAULT_EDGE_WEIGHT)));
     }
 
     /**
@@ -349,12 +341,10 @@ public class GraphPlaces extends Places implements Graph {
             }
         }
 
-        for (Vector<VertexPlace> places : placesVector) {
-            for (VertexPlace place : places) {
-                Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
+        for (VertexPlace place : this.places) {
+            Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
 
-                graph.addVertex(attribute, place.neighbors);
-            }
+            graph.addVertex(attribute, place.neighbors);
         }
 
         if (all) {
@@ -385,447 +375,64 @@ public class GraphPlaces extends Places implements Graph {
 
         return graph;
     }
-
-    /**
-     * validNeighbor returns whether both vertexId and neighborId represent existing
-     * VertexPlaces.
-     * 
-     * @param vertexId The vertex ID of the source vertex.
-     * @param neighborId The vertex ID of the neighbor/destination vertex.
-     * @return true if an edge can be created between them, false otherwise.
-     */
-    public boolean validNeighbor(final Object vertexId, final Object neighborId) {
-        if (MASSBase.distributed_map.getOrDefault(vertexId, -1) == -1
-            || MASSBase.distributed_map.getOrDefault(neighborId, -1) == -1) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @return The number of vertices contained in the graph.
-     */
-    public int size() {
-        // The number of vertex IDs issued - the number queued to be
-        // recycled.
-        return nextVertexID - idQueue.size();
-    }
-
-    /**
-     * addEdge adds an edge between the provided vertexId and neighborId.
-     * The created edge is given a weight of 1.0.
-     * 
-     * @param vertexId the vertex ID of the source vertex.
-     * @param neighborId the vertex ID of the destination vertex (its neighbor).
-     * 
-     * @return true if the edge is added successfully, false otherwise.
-     */
-    @Override
-    public boolean addEdge(Object vertexId, Object neighborId) {
-        // Weight is set as 1.0 to bring it in line with what the 
-        // setGraph method does.
-        return this.addEdge(vertexId, neighborId, 1.0);
-    }
-
-    /**
-     * removeEdge removes the edge between the provided vertex and neighbor
-     * IDs.
-     * 
-     * @param vertexID The source vertex ID.
-     * @param neighborID The destination vertex ID.
-     * 
-     * @return true if the edge was successfully removed, false otherwise.
-     */
-    public boolean removeEdge(int vertexID, int neighborID) {
-        // Check vertexID exists
-        if (MASS.getMyPid() == 0 && 
-            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
-            
-            return false; 
-        }
-
-        // Check neighborID exists
-        if (MASS.getMyPid() == 0 && 
-            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
-                
-            return false; 
-        }
-
-        return removeEdgeOnNode(
-            getOwnerID(vertexID),
-            vertexID,
-            neighborID
-        );
-    }
-
-    /**
-     * removeEdgeOnNode removes the edge between the provided vertex and neighbor
-     * IDs on the node associated with the provided nodeID. If the node does not
-     * own the source vertex a message is created and sent to the remote node that
-     * does to remove the edge.
-     * 
-     * @param nodeID The ID of the node that owns the source vertex.
-     * @param vertexID The source vertex ID.
-     * @param neighborID The destination vertex ID (its neighbor).
-     * 
-     * @return true if the edge was successfully removed, false otherwise.
-     */
-    public boolean removeEdgeOnNode(int nodeID, int vertexID, int neighborID) {
-        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
-
-        // If another node owns this vertex, send it a message to remove the edge.
-        if (nodeID != MASS.getMyPid()) {
-            return removeRemoteEdge(nodeID, vertexID, neighborID);
-        }
-
-        // Get local index and size of places array
-        int localIndex = vertexID / MASS.getSystemSize();
-        int localSize = places.size();
-
-        // If the ID is associated with an index that doesn't exist
-        // return false.
-        if (localIndex >= localSize) { return false; }
-
-        VertexPlace vertex = places.get(localIndex);
-        vertex.removeNeighbor(neighborID);
-        places.set(localIndex, vertex);
-        
-        return true;
-    }
-
-    /**
-     * removeRemoteEdge sends a MASS message to the node associated with the provided
-     * node ID to remove the edge between the provided vertex and neighbor IDs.
-     */
-    private boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
-        // Get the remote node.
-        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
-            return node.getPid() == nodeID;
-        }).findFirst();
-
-        // If the remote node could not be located, return false.
-        if (!optionalNode.isPresent()) {
-            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
-            return false;
-        }
-        MNode remoteNode = optionalNode.get();
-
-        // Create message to ask remote node to remove the vertex.
-        Message msg = new Message(
-            Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE_V2,
-            getHandle(),
-            new Object[]{ vertexID, neighborID }
-        );
-
-        // Send message and wait for reply
-        remoteNode.sendMessage(msg);
-        Message replyMsg = remoteNode.receiveMessage();
-        
-        // Message system currently only returns ACK if successful
-        // so if we do not recieve one, assume failure.
-        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * addEdge adds an edge between the provided vertex and neighbor
-     * IDs using a default weight of 1.0.
-     * 
-     * @param vertexID The ID of source vertex.
-     * @param neighborID The ID of the destination vertex (its "neighbor").
-     * 
-     * @return true if the edge was successfully added, false otherwise.
-     */
-    public boolean addEdge(int vertexID, int neighborID) {
-        return addEdge(vertexID, neighborID, 1.0);
-    }
-
-    /**
-     * addEdge adds an edge between the provided vertex and neighbor
-     * IDs with a the provided edge weight.
-     * 
-     * @param vertexID The ID of the source vertex.
-     * @param neighborID The ID of the destination vertex.
-     * @param weight The weight of the edge.
-     *
-     * @return true if the edge was successfully added, false otherwise.
-     */
-    public boolean addEdge(int vertexID, int neighborID, double weight) {
-        // Check vertexId exists
-        if (MASS.getMyPid() == 0 && 
-            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
-            
-            return false; 
-        }
-
-        // Check neighborId exists
-        if (MASS.getMyPid() == 0 && 
-            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
-                
-            return false; 
-        }
-
-        return addEdgeOnNode(
-            getOwnerID(vertexID),
-            vertexID,
-            neighborID,
-            weight
-        );
-    }
-
-    /**
-     * addEdgeOnNode attempts to add an edge between the provided vertex
-     * and neighbor IDs on the node associated with the provided node ID.
-     * If the node associated with the provided node ID does not own the
-     * source vertex, a message is created and sent to the remote node
-     * that does own the source vertex to add the edge.
-     * 
-     * @param nodeID The ID of the node that owns the source vertex.
-     * @param vertexID The source vertex ID.
-     * @param neighborID The destination vertex ID (its neighbor).
-     * @param weight The weight of the edge.
-     * 
-     * @return true if the edge was successfully created, false otherwise.
-     */
-    public boolean addEdgeOnNode(int nodeID, int vertexID, int neighborID, double weight) {
-        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
-
-        // If another node owns this vertex, send it a message to add the edge.
-        if (nodeID != MASS.getMyPid()) {
-            return addRemoteEdge(nodeID, vertexID, neighborID, weight);
-        }
-
-        // Get local index and size of places array
-        int localIndex = vertexID / MASS.getSystemSize();
-        int localSize = places.size();
-
-        // If the ID is associated with an index that doesn't exist
-        // return false.
-        if (localIndex >= localSize) { return false; }
-
-        VertexPlace vertex = places.get(localIndex);
-        vertex.addNeighbor(neighborID, weight);
-        places.set(localIndex, vertex);
-
-        return true;
-    }
-
-    /**
-     * addRemoteEdge sends a MASS message to the node associated with the provided node ID
-     * to add an edge between the vertexID and neighborID with the provided edge
-     * weight.
-     */
-    private boolean addRemoteEdge(int nodeID, int vertexID, int neighborID, double weight) {
-        // Get the remote node.
-        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
-            return node.getPid() == nodeID;
-        }).findFirst();
-
-        // If the remote node could not be located, return false.
-        if (!optionalNode.isPresent()) {
-            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
-            return false;
-        }
-        MNode remoteNode = optionalNode.get();
-
-        // Create message to ask remote node to remove the vertex.
-        Message msg = new Message(
-            Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE_V2,
-            getHandle(),
-            new Object[]{vertexID, neighborID, weight }
-        );
-        
-        // Send message and wait for reply
-        remoteNode.sendMessage(msg);
-        Message replyMsg = remoteNode.receiveMessage();
-
-        // Message systems currently only returns ACK if successful
-        // so if we do not receive one, assume failure.
-        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * addEdge adds an edge between the provided vertexId and neighborId and
-     * assigns it the provided weigth value.
-     * 
-     * @param vertexId the vertex ID of the source vertex.
-     * @param neighborId the vertex ID of the destination vertex (its neighbor).
-     * @param weight the weight of the edge.
-     * 
-     * @return true if the edge is added successfully, false otherwise.
-     */
-    @Override
-    public boolean addEdge(Object vertexId, Object neighborId, double weight) {
-        Log4J2Logger logger = MASSBase.getLogger();
-        boolean added = false;
-
-        // If both vertex IDs don't exist in the distributed map, return false.
-        if (!validNeighbor(vertexId, neighborId)) {
-            return false;
-        }
-
-        
-
-        logger.debug(String.format("addEdge [vertexId=%s; neighborId=%s; weight=%f]", vertexId.toString(), neighborId.toString(), weight));
-
-        int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
-        if (globalIndex < 0) {
-            return false;
-        }
-
-        int ownerId = getNodeIdFromGlobalLinearIndex(globalIndex);
-
-        if (ownerId == MASSBase.getMyPid()) {
-            logger.debug("addEdge->myPlaces");
-
-            added = addEdgeLocally(vertexId, neighborId, weight);
-        } else {
-            logger.debug("addEdge->remotePlace");
-
-            VertexMetaValues values = getVertexMetaValues(vertexId);
-
-            int owner = values.OwnerPid;
-
-            if (owner != -1) {
-                for (MNode node : MASSBase.getRemoteNodes()) {
-                    if (node.getPid() == owner) {
-                        node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE, getHandle(), new Object[] { vertexId, neighborId, weight }));
-                        node.receiveMessage(); // recieve ack jonathan modification 
-                    }
-                }
-            }
-
-            logger.warning("Cannot add edge: source is out of range(" + vertexId + ")");
-        }
-
-        return added;
-    }
-
-    /**
-     * addEdgeLocally adds an edge between the provided local vertexId and 
-     * the provided neighborId, and assigns the provided weigth as the edge 
-     * weigth.
-     * 
-     * @param vertexId the vertex ID of the source vertex. Must be local to 
-     * the calling node.
-     * @param neighborId the vertex ID of the destination vertex (its neighbor).
-     * @param weight the weight of the edge.
-     * 
-     * @return true if the edge is added successfully, false otherwise.
-     */
-    public boolean addEdgeLocally(Object vertexId, Object neighborId, double weight) {
-        int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
-        int owner = getNodeIdFromGlobalLinearIndex(globalIndex);
-        if (globalIndex == -1 || owner != MASS.getMyPid()) { 
-            return false; 
-        }
-
-        // Get the layer and local index associated with the global index.
-        int layer = getLayer(globalIndex);
-        int localIdx = getLocalIndex(globalIndex);
-
-        VertexPlace place = placesVector.get(layer).get(localIdx);
-        place.addNeighbor(neighborId, weight);
-
-        return true;
-    }
-
-    /**
-     * removeEdgeLocally removes an edge between the provided local vertexId
-     * and the provided neighborId.
-     * 
-     * @param vertexId the vertex ID of the source vertex. Must be local to 
-     * the calling node.
-     * @param neighborId the vertex ID of the destination vertex (its neighbor).
-     * 
-     * @return true if the edge is added successfully, false otherwise.
-     */
-    public boolean removeEdgeLocally(Object vertexId, Object neighborId) {
-        int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
-        int owner = getNodeIdFromGlobalLinearIndex(globalIndex);
-
-        if (globalIndex == -1 || owner != MASS.getMyPid()) { 
-            return false; 
-        }
-        
-        // Get the layer and local index associated with the global index.
-        int layer = getLayer(globalIndex);
-        int localIdx = getLocalIndex(globalIndex);
-
-        VertexPlace place = placesVector.get(layer).get(localIdx);
-
-        place.removeNeighbor(neighborId);
-
-        return true;
-    }
-
-    /**
-     * removeEdge removes the edge between the provided vertexId
-     * and neighborId.
-     * 
-     * @param vertexId the vertex ID of the source vertex.
-     * @param neighborId the vertex ID of the destination vertex (its neighbor).
-     * 
-     * @return true if the edge is added successfully, false otherwise.
-     */
-    @Override
-    public boolean removeEdge(Object vertexId, Object neighborId) {
-        Log4J2Logger logger = MASSBase.getLogger();
-        int globalIndex = MASSBase.getGlobalIndexForKey(vertexId);
-        if (globalIndex == -1) {
-            return false;
-        }
-
-        logger.debug(String.format("removeEdge [vertexId=%s; neighborId=%s]", vertexId, neighborId));
-        int ownerId = getNodeIdFromGlobalLinearIndex(globalIndex);
-        
-        // If this node does not own the vertex, send the request to the 
-        // owning node and return false.
-        if (ownerId != MASSBase.getMyPid()) {
-            logger.debug("removeEdge->remotePlace");
-            VertexMetaValues values = getVertexMetaValues(vertexId);
-            int owner = values.OwnerPid;
-
-            if (owner != -1) {
-                for (MNode node : MASSBase.getRemoteNodes()) {
-                    if (node.getPid() == owner) {
-                        node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE, getHandle(), new Object[] { vertexId, neighborId, null }));
-                    }
-                }
-            }
-            
-            return false;
-        }
-        
-        logger.debug("addEdge->myPlaces");
-
-        return removeEdgeLocally(vertexId, neighborId);
-    }
+    /*************************************************************************/
 
     /**
      * addVertex creates a new vertex with the provided vertexId.
      * 
      * @param vertexId the ID of the vertex.
      * 
-     * @return the global index of the newly created vertex.
+     * @return The vertexID if the vertex was successfully added, -1 otherwise.
      */
     @Override
     public int addVertex(Object vertexId) {
         if (MASS.distributed_map.containsKey(vertexId)) {
+            MASS.getLogger().debug("the provided vertexId already exists");
             return -1;
         }
 
-        int nodeId = getNodeIdFromGlobalLinearIndex(globalNextPlaceIndex);
+        int vertId = this.addVertex();
+        MASS.distributed_map.put(vertexId, vertId);
+        
+        return vertId;
+    }
 
-        return addVertexPlace(getHosts().get(nodeId), vertexId, null);
+    /**
+     * addVertex creates a new vertex with the provided vertexId and
+     * vertex init params.
+     * 
+     * @param vertexId the ID of the vertex.
+     * @param vertexInitParam The parameters to pass to the vertex constructor.
+     * 
+     * @return The vertexID if the vertex was successfully added, -1 otherwise.
+     */
+    @Override
+    public int addVertex(Object vertexId, Object vertexInitParam) {
+        if (MASS.distributed_map.containsKey(vertexId)) {
+            MASS.getLogger().debug("the provided vertexId already exists");
+            return -1;
+        }
+
+        int vertId = this.addVertexWithParams(vertexInitParam);
+        MASS.distributed_map.put(vertexId, vertId);
+        
+        return vertId;
+    }
+
+    /**
+     * addPlaceLocally creates a new vertex.
+     * 
+     * @param vertexId the ID of the vertex.
+     * @param vertexInitParam the init parameters to be passed to the 
+     * vertex constructor.
+     * 
+     * @return The vertexID if the vertex was successfully added, -1 otherwise.
+     */
+    public int addPlaceLocally(Object vertexId, Object vertexInitParam) {
+        MASS.getLogger().warning("addPlaceLocally is deprecated and will be removed " +
+        "in a future release. Please migrate to using addVertex.");
+
+        return this.addVertex(vertexId, vertexInitParam);
     }
 
     /**
@@ -967,93 +574,48 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * getVertex returns the VertexPlace associated with the provided
-     * vertex ID.
+     * removeVertex removes the vertex with the provided vertexId.
      * 
-     * @param vertexID The ID of the vertex to retrieve.
-     * @return The VertexPlace associated with the provided vertex ID.
+     * @param vertexId the ID of the vertex.
+     * 
+     * @return true if the vertex was successfully removed, false otherwise.
      */
-    public VertexPlace getVertex(int vertexID) {
-        // If the vertex doesn't exist return null.
-        if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) {
-            return null; 
+    @Override
+    public boolean removeVertex(Object vertexId) {
+        int sourceId = MASS.distributed_map.getOrDefault(vertexId, -1);
+        if (sourceId == -1) {
+            MASS.getLogger().debug("the provided vertex id doesn't exist");
+            return false;
         }
 
-        return getVertexFromNode(
-            getOwnerID(vertexID),
-            vertexID
-        );
+        return this.removeVertex(sourceId);
     }
 
     /**
-     * getVertexFromNode retrieves the vertex associated with the provided
-     * vertexID from the node associated with the provided node ID.
-     * @param nodeID The ID of the node with which to remove this vertex.
-     * @param vertexID The ID of the vertex to be removed.
-     * @return the requested vertex place.
+     * removeVertexLocally removes the vertex with the provided vertexId from 
+     * the calling node if it exists.
+     * 
+     * @param vertexId the ID of the vertex.
+     * 
+     * @return true if the vertex was successfully removed, false otherwise.
      */
-    public VertexPlace getVertexFromNode(int nodeID, int vertexID) {
-        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { 
-            return null; 
-        };
-
-        // If another node owns this vertex, send it a message to
-        // retrieve it.
-        if (nodeID != MASS.getMyPid()) {
-            return getRemoteVertex(nodeID, vertexID);
-        }
+    public void removeVertexLocally(Object vertexId) {
+        MASS.getLogger().warning("removeVertexLocally is deprecated and will be removed " +
+        "in a future release. Please migrate to using removeVertex.");
         
-        // Get local index and size of places array.
-        int localIndex = vertexID / MASS.getSystemSize();
-        int localSize = places.size();
-
-        // If the ID is associated with an index that doesn't exist
-        // return null.
-        if (localIndex >= localSize) { 
-            return null; 
+        int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        if (sourceId == -1) {
+            MASS.getLogger().debug("vertex ID doesn't exist");
         }
 
-        return places.get(localIndex);
-    }
-
-    private VertexPlace getRemoteVertex(int nodeID, int vertexID) {
-        // Get the remote node.
-        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
-            return node.getPid() == nodeID;
-        }).findFirst();
-
-        // If the remote node could not be located, return null.
-        if (!optionalNode.isPresent()) {
-            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
-            return null;
+        // If the vertex cannot be removed locally, fail under the assumption that
+        // it MUST be.
+        if (getOwnerID(sourceId) != MASS.getMyPid()) {
+            MASS.getLogger().debug("the vertex ID is not owned by the local node");
         }
-        MNode remoteNode = optionalNode.get();
 
-        // Create message to ask remote node to get the vertex.
-        Message msg = new Message(
-            Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX,
-            getHandle(),
-            Integer.valueOf(vertexID)
-        );
-
-        // Send message and wait for reply.
-        remoteNode.sendMessage(msg);
-        Message replyMsg = remoteNode.receiveMessage();
-
-        return (VertexPlace)replyMsg.getArgument();
-    }
-
-    /**
-     * recycleID adds the provided vertexID to the idQueue
-     * to be recycled in the next call to addVertex.
-     * 
-     * @param vertexID The ID of the vertex to be recycled.
-     */
-    private void recycleID(int vertexID) {
-        // If we're the master node, add the vertex ID to our
-        // idQueue to be recycled.
-        if (MASS.getMyPid() == 0) {
-            idQueue.add(vertexID);
+        if (!this.removeVertex(vertexId)) {
+            MASS.getLogger().debug("unable to remove the vertex");
         }
     }
 
@@ -1155,6 +717,481 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * Get the VertexPlace associated with the provided
+     * vertex ID.
+     * 
+     * @param vertexID The ID of the vertex to retrieve.
+     * @return The VertexPlace associated with the provided vertex ID.
+     */
+    public VertexPlace getVertexPlace(int vertexId) {
+        MASS.getLogger().warning("getVertexPlace is deprecated and will be removed " +
+        "in a future release. Please migrate to using getVertex.");
+
+        return this.getVertex(vertexId);
+    }
+
+    /**
+     * getPlacesVector returns a copy of the places vector. It's returned 
+     * wrapped in another vector for legacy reasons.
+     */
+    public Vector<Vector<VertexPlace>> getPlacesVector() {
+        MASS.getLogger().warning("getPlacesVector is deprecated and will be removed " +
+        "in a future release. Please cease from using it.");
+        Vector<Vector<VertexPlace>> placesVector = new Vector<Vector<VertexPlace>>();
+        Vector<VertexPlace> placesClone = new Vector<VertexPlace>(this.places.size());
+        placesClone.addAll(this.places);
+        placesVector.add(placesClone);
+
+        return placesVector;
+    }
+
+    /**
+     * getVertex returns the VertexPlace associated with the provided
+     * vertex ID.
+     * 
+     * @param vertexID The ID of the vertex to retrieve.
+     * @return The VertexPlace associated with the provided vertex ID.
+     */
+    public VertexPlace getVertex(int vertexID) {
+        // If the vertex doesn't exist return null.
+        if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) {
+            return null; 
+        }
+
+        return getVertexFromNode(
+            getOwnerID(vertexID),
+            vertexID
+        );
+    }
+
+    /**
+     * getVertexFromNode retrieves the vertex associated with the provided
+     * vertexID from the node associated with the provided node ID.
+     * @param nodeID The ID of the node with which to remove this vertex.
+     * @param vertexID The ID of the vertex to be removed.
+     * @return the requested vertex place.
+     */
+    public VertexPlace getVertexFromNode(int nodeID, int vertexID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { 
+            return null; 
+        };
+
+        // If another node owns this vertex, send it a message to
+        // retrieve it.
+        if (nodeID != MASS.getMyPid()) {
+            return getRemoteVertex(nodeID, vertexID);
+        }
+        
+        // Get local index and size of places array.
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return null.
+        if (localIndex >= localSize) { 
+            return null; 
+        }
+
+        return places.get(localIndex);
+    }
+
+    private VertexPlace getRemoteVertex(int nodeID, int vertexID) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return null.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return null;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to get the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX,
+            getHandle(),
+            Integer.valueOf(vertexID)
+        );
+
+        // Send message and wait for reply.
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        return (VertexPlace)replyMsg.getArgument();
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertexId and neighborId.
+     * The created edge is given a weight of 1.0.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    @Override
+    public boolean addEdge(Object vertexId, Object neighborId) {
+        // Weight is set as 1.0 to bring it in line with what the 
+        // setGraph method does.
+        return this.addEdge(vertexId, neighborId, DEFAULT_EDGE_WEIGHT);
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertexId and neighborId and
+     * assigns it the provided weigth value.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * @param weight the weight of the edge.
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    @Override
+    public boolean addEdge(Object vertexId, Object neighborId, double weight) {
+        int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        int destinationId = MASSBase.distributed_map.getOrDefault(neighborId, -1);
+
+        if (sourceId == -1 || destinationId == -1) {
+            MASS.getLogger().debug("vertex or neighbor ID doesn't exist");
+            return false;
+        }
+
+        return this.addEdge(sourceId, destinationId, weight);
+    }
+
+    /**
+     * addEdgeLocally adds an edge between the provided local vertexId and 
+     * the provided neighborId, and assigns the provided weigth as the edge 
+     * weigth.
+     * 
+     * @param vertexId the vertex ID of the source vertex. Must be local to 
+     * the calling node.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * @param weight the weight of the edge.
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    public boolean addEdgeLocally(Object vertexId, Object neighborId, double weight) {
+        MASS.getLogger().warning("addEdgeLocally is deprecated and will be removed " +
+        "in a future release. Please migrate to using addEdge.");
+
+        int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        int destinationId = MASSBase.distributed_map.getOrDefault(neighborId, -1);
+
+        if (sourceId == -1 || destinationId == -1) {
+            MASS.getLogger().debug("vertex or neighbor ID doesn't exist");
+            return false;
+        }
+
+        // If the edge cannot be added locally, fail under the assumption that
+        // it MUST be.
+        if (getOwnerID(sourceId) != MASSBase.getMyPid()) {
+            MASS.getLogger().debug("the vertex ID is not owned by the local node");
+            return false;
+        }
+
+        return this.addEdge(sourceId, destinationId, weight);
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertex and neighbor
+     * IDs using a default weight of 1.0.
+     * 
+     * @param vertexID The ID of source vertex.
+     * @param neighborID The ID of the destination vertex (its "neighbor").
+     * 
+     * @return true if the edge was successfully added, false otherwise.
+     */
+    public boolean addEdge(int vertexID, int neighborID) {
+        return addEdge(vertexID, neighborID, 1.0);
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertex and neighbor
+     * IDs with a the provided edge weight.
+     * 
+     * @param vertexID The ID of the source vertex.
+     * @param neighborID The ID of the destination vertex.
+     * @param weight The weight of the edge.
+     *
+     * @return true if the edge was successfully added, false otherwise.
+     */
+    public boolean addEdge(int vertexID, int neighborID, double weight) {
+        // Check vertexId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return addEdgeOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID,
+            weight
+        );
+    }
+
+    /**
+     * addEdgeOnNode attempts to add an edge between the provided vertex
+     * and neighbor IDs on the node associated with the provided node ID.
+     * If the node associated with the provided node ID does not own the
+     * source vertex, a message is created and sent to the remote node
+     * that does own the source vertex to add the edge.
+     * 
+     * @param nodeID The ID of the node that owns the source vertex.
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID (its neighbor).
+     * @param weight The weight of the edge.
+     * 
+     * @return true if the edge was successfully created, false otherwise.
+     */
+    public boolean addEdgeOnNode(int nodeID, int vertexID, int neighborID, double weight) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to add the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return addRemoteEdge(nodeID, vertexID, neighborID, weight);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        VertexPlace vertex = places.get(localIndex);
+        vertex.addNeighbor(neighborID, weight);
+        places.set(localIndex, vertex);
+
+        return true;
+    }
+
+    /**
+     * addRemoteEdge sends a MASS message to the node associated with the provided node ID
+     * to add an edge between the vertexID and neighborID with the provided edge
+     * weight.
+     */
+    private boolean addRemoteEdge(int nodeID, int vertexID, int neighborID, double weight) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE_V2,
+            getHandle(),
+            new Object[]{vertexID, neighborID, weight }
+        );
+        
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message systems currently only returns ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * removeEdge removes the edge between the provided vertexId
+     * and neighborId.
+     * 
+     * @param vertexId the vertex ID of the source vertex.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    @Override
+    public boolean removeEdge(Object vertexId, Object neighborId) {
+        int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        int destinationId = MASSBase.distributed_map.getOrDefault(neighborId, -1);
+
+        if (sourceId == -1 || destinationId == -1) {
+            MASS.getLogger().debug("vertex or neighbor ID doesn't exist");
+            return false;
+        }
+
+        return this.removeEdge(sourceId, destinationId);
+    }
+
+    /**
+     * removeEdgeLocally removes an edge between the provided local vertexId
+     * and the provided neighborId.
+     * 
+     * @param vertexId the vertex ID of the source vertex. Must be local to 
+     * the calling node.
+     * @param neighborId the vertex ID of the destination vertex (its neighbor).
+     * 
+     * @return true if the edge is added successfully, false otherwise.
+     */
+    public boolean removeEdgeLocally(Object vertexId, Object neighborId) {
+        MASS.getLogger().warning("removeEdgeLocally is deprecated and will be removed " +
+        "in a future release. Please migrate to using removeEdge.");
+        int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        int destinationId = MASSBase.distributed_map.getOrDefault(neighborId, -1);
+
+        if (sourceId == -1 || destinationId == -1) {
+            MASS.getLogger().debug("vertex or neighbor ID doesn't exist");
+            return false;
+        }
+
+        // If the edge cannot be removed locally, fail under the assumption that
+        // it MUST be.
+        if (getOwnerID(sourceId) != MASSBase.getMyPid()) {
+            MASS.getLogger().debug("the vertex ID is not owned by the local node");
+            return false;
+        }
+
+        return this.removeEdge(sourceId, destinationId);
+    }
+
+    /**
+     * removeEdge removes the edge between the provided vertex and neighbor
+     * IDs.
+     * 
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID.
+     * 
+     * @return true if the edge was successfully removed, false otherwise.
+     */
+    public boolean removeEdge(int vertexID, int neighborID) {
+        // Check vertexID exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborID exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return removeEdgeOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID
+        );
+    }
+
+    /**
+     * removeEdgeOnNode removes the edge between the provided vertex and neighbor
+     * IDs on the node associated with the provided nodeID. If the node does not
+     * own the source vertex a message is created and sent to the remote node that
+     * does to remove the edge.
+     * 
+     * @param nodeID The ID of the node that owns the source vertex.
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID (its neighbor).
+     * 
+     * @return true if the edge was successfully removed, false otherwise.
+     */
+    public boolean removeEdgeOnNode(int nodeID, int vertexID, int neighborID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to remove the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return removeRemoteEdge(nodeID, vertexID, neighborID);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        VertexPlace vertex = places.get(localIndex);
+        vertex.removeNeighbor(neighborID);
+        places.set(localIndex, vertex);
+        
+        return true;
+    }
+
+    /**
+     * removeRemoteEdge sends a MASS message to the node associated with the provided
+     * node ID to remove the edge between the provided vertex and neighbor IDs.
+     */
+    private boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE_V2,
+            getHandle(),
+            new Object[]{ vertexID, neighborID }
+        );
+
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+        
+        // Message system currently only returns ACK if successful
+        // so if we do not recieve one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return The number of vertices contained in the graph.
+     */
+    public int size() {
+        // The number of vertex IDs issued - the number queued to be
+        // recycled.
+        return nextVertexID - idQueue.size();
+    }
+
+    /**
+     * getExtendedPlacesSize returns the size of the places vector.
+     */
+    public int getExtendedPlacesSize() {
+        MASS.getLogger().warning("getExtendedPlacesSize is deprecated and will be removed " +
+        "in a future release. Please cease from using it.");
+
+        return this.size();
+    }
+
+    /**
      * getOwnerID returns the ID of the node that owns the provided
      * global index.
      * 
@@ -1166,172 +1203,17 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * addVertex creates a new vertex, passing the constructor the provided
-     * init paramters and assigns it the provided vertexId.
-     * 
-     * @param vertexId the ID of the vertex.
-     * @param vertexInitParam the init parameters to be passed to the 
-     * vertex constructor.
-     * 
-     * @return the global index of the newly created vertex.
+     * getNodeIdFromGlobalLinearIndex returns the ID of the node that owns
+     * the provided vertexID.
+     * @param vertexID The vertex ID for which you would like
+     * the owner.
+     * @return the owner ID of the provided vertex ID.
      */
-    @Override
-    public int addVertex(Object vertexId, Object vertexInitParam) {
-        if (MASS.distributed_map.containsKey(vertexId)) {
-            return -1;
-        }
-        
-        int nodeId = getNodeIdFromGlobalLinearIndex(globalNextPlaceIndex);
-        
-        return addVertexPlace(getHosts().get(nodeId), vertexId, vertexInitParam);
-    }
+    public int getNodeIdFromGlobalLinearIndex(final int vertexID) {
+        MASS.getLogger().warning("getNodeIdFromGlobalLinearIndex is deprecated and will be removed " +
+        "in a future release. Please migrate to using getOwnerID.");
 
-    /**
-     * addVertexPlace creates a new vertex on the provide host, passing the constructor the provided
-     * init paramters and assigns it the provided vertexId.
-     * 
-     * @param host the hostname of the node on which to create the new vertex.
-     * @param vertexId the ID of the vertex.
-     * @param vertexInitParam the init parameters to be passed to the 
-     * vertex constructor.
-     * 
-     * @return the global index of the newly created vertex.
-     */
-    private int addVertexPlace(String host, Object vertexId, Object vertexInitParam) {
-        if (MASSBase.getMyHostname().equals(host)) {
-            return addPlaceLocally(vertexId, vertexInitParam);
-        }
-
-        Object [] param = new Object[] { vertexId, vertexInitParam };
-        
-        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, getHandle(), param);
-
-        Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
-
-        if (!hostOption.isPresent()) {
-            MASSBase.getLogger().error("Failed to send addPlace message to " + host + "; host not found");
-            return -1;
-        }
-    
-        hostOption.get().sendMessage(message);
-
-        Message m = hostOption.get().receiveMessage();
-
-        int globalIndex = m.getAgentPopulation();
-        if (globalIndex == -1) { 
-            MASSBase.getLogger().error("remote node " + host + " failed to add vertex: " + vertexId);
-            return -1; 
-        }
-
-        // update distributed map and increment globalNextPlaceIndex.
-        MASS.distributed_map.put(vertexId, m.getAgentPopulation());
-        globalNextPlaceIndex++;
-        
-        return globalIndex;
-    }
-
-    /**
-     * addPlaceLocally creates a new vertex on the calling node, passing the 
-     * constructor the provided init paramters and assigns it the provided 
-     * vertexId.
-     * 
-     * @param vertexId the ID of the vertex.
-     * @param vertexInitParam the init parameters to be passed to the 
-     * vertex constructor.
-     * 
-     * @return the global index of the newly created vertex.
-     */
-    public int addPlaceLocally(Object vertexId, Object vertexInitParam) {
-        Log4J2Logger logger = MASSBase.getLogger();
-
-        int stripe = getSize()[0] / MASS.getSystemSize();
-        int remainder = getSize()[0] % MASS.getSystemSize();
-        int chunkSize = MASS.getMyPid() < remainder ? stripe + 1 : stripe;
-        
-        int layer = localNextPlaceIndex / chunkSize;
-        int relativeIndex = localNextPlaceIndex % chunkSize;
-
-        // If we require a new layer to be created, do so.
-        if (layer >= placesVector.size()) {
-            placesVector.add(new Vector<>(chunkSize));
-        }
-
-        try {
-            VertexPlace newPlace = objectFactory.getInstance(getClassName(), vertexInitParam);
-            int leftIndex = getNodeLeftIndex(MASS.getMyPid(), stripe, remainder);
-            int globalIndex = getSize()[0] * layer + leftIndex + relativeIndex;
-
-            // Index starts after the initial set
-            newPlace.setIndex(new int[] { globalIndex });
-
-            placesVector.get(layer).add(relativeIndex, newPlace);
-
-            MASS.distributed_map.put(vertexId, globalIndex);
-
-            // Increment nextPlace indices.
-            localNextPlaceIndex++;
-            if (MASSBase.getMyPid() == 0) { globalNextPlaceIndex++; }
-
-            return globalIndex;
-        } catch (Exception e) {
-            logger.error("Exception adding new vertex place locally", e);
-        }
-
-        return -1;
-    }
-
-    /**
-     * removeVertex removes the vertex with the provided vertexId.
-     * 
-     * @param vertexId the ID of the vertex.
-     * 
-     * @return true if the vertex was successfully removed, false otherwise.
-     */
-    @Override
-    public boolean removeVertex(Object vertexId) {
-        if (MASS.distributed_map.getOrDefault(vertexId, -1) == -1) {
-            return false;
-        }
-
-        // remove the neighbor from all neighbors
-        Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_REMOVE_PLACE, getHandle(), (Object) vertexId);
-
-        // This needs to remove neighbors anyways so just send to everyone else
-        MASS.getRemoteNodes().forEach(node -> node.sendMessage(message));
-
-        // remove locally
-        removeVertexLocally(vertexId);
-
-        return true;
-    }
-
-    /**
-     * removeVertex removes the vertex with the provided vertexId from 
-     * the calling node.
-     * 
-     * @param vertexId the ID of the vertex.
-     * 
-     * @return true if the vertex was successfully removed, false otherwise.
-     */
-    public void removeVertexLocally(Object vertexId) {
-        int globalIndex = MASSBase.distributed_map.get(vertexId);
-
-        Place vertexPlace = null;
-
-        // Remove this vertex as a neighbor from all places owned
-        for (Vector<VertexPlace> layer : placesVector) {
-            for (VertexPlace place : layer) {
-                if (place.getIndex()[0] == globalIndex) {
-                    vertexPlace = place;
-                }
-                
-                place.removeNeighborSafely(vertexId);
-            }
-
-            if (vertexPlace != null) {
-                layer.remove(vertexPlace);
-            }
-        }
+        return getOwnerID(vertexID);
     }
 
     /**
@@ -1345,221 +1227,132 @@ public class GraphPlaces extends Places implements Graph {
         int id = -1;
         int pid = -1;
 
-        int globalIndex = MASSBase.distributed_map.getOrDefault(vertexId, -1);
+        int vertId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
 
-        if (globalIndex != -1) {
-            id = globalIndex;
-
-            pid = getNodeIdFromGlobalLinearIndex(globalIndex);
+        if (vertId != -1) {
+            id = vertId;
+            pid = getOwnerID(vertId);
         }
 
         return new VertexMetaValues(id, pid);
     }
 
     /**
-     * getLocalIndex returns the local index into the places vector
-     * given the globalLinearIndex.
-     * @param globalLinearIndex The global linear index for which you'd like 
-     * the local index.
-     * @return the local index into the places vector
-     * given the globalLinearIndex.
-     */
-    private int getLocalIndex(int globalLinearIndex) {
-        int layer = getLayer(globalLinearIndex);
-        int stripe = getSize()[0] / MASS.getSystemSize();
-        int remainder = getSize()[0] % MASS.getSystemSize();
-        int leftIndex = getNodeLeftIndex(MASS.getMyPid(), stripe, remainder);
-        int relativeOffset = layer * getSize()[0];
-
-        return globalLinearIndex - relativeOffset - leftIndex;
-    }
-
-    /**
-     * getLayer returns the layer for which the global linear index should 
-     * reside.
-     * @param globalLinearIndex The global linear index for which you'd like the
-     * layer.
-     * @return The layer that contains global linear index.
-     */
-    private int getLayer(int globalLinearIndex) {
-        return globalLinearIndex / getSize()[0];
-    }
-
-    /**
-     * getNodeIdFromGlobalLinearIndex returns the ID of the node that owns
-     * the provided global linear index.
-     * @param globalLinearIndex The global linear index for which you would like
-     * the owner.
-     * @return the owner ID of the provided global linear index.
-     */
-    public int getNodeIdFromGlobalLinearIndex(final int globalLinearIndex) {
-        int relativeIdx = globalLinearIndex % getSize()[0];
-
-        return getNodeId(relativeIdx, MASS.getSystemSize(), getSize()[0]);
-    }
-
-    /**
-     * getNodeId returns the appropriate node ID for the provided relativeIndex
-     * given the number of nodes and the size of layers in the simulation space.
+     * recycleID adds the provided vertexID to the idQueue
+     * to be recycled in the next call to addVertex.
      * 
-     * @param relativeIndex the index relative to the layer. For example, if our
-     * simulation space was initialized to a size of 10, meaning we have 10 indices
-     * per layer, and we wanted the owner of index 14. Its relative index would be 
-     * index 4 of layer 1.
-     * @param numNodes the number of nodes in the system.
-     * @param size the size of the simulation space.
-     * 
-     * @return the node ID of the node that owns the provided global linear index.
+     * @param vertexID The ID of the vertex to be recycled.
      */
-    public static int getNodeId(final int relativeIndex, int numNodes, int size) {
-        // Calculate stripe, remainder, and the left and right indices of our node "array"
-        int stripe = size / numNodes;
-        int remainder = size % numNodes;
-        int l = 0;
-        int r = numNodes - 1;
-
-        // Perform binary search over the node stripes to find which node this
-        // global index belongs to.
-        while (l <= r) {
-            int m = l + (r - l) / 2;
-            int left_i = getNodeLeftIndex(m, stripe, remainder);
-            int right_i = getNodeRightIndex(m, left_i, stripe, remainder);
-
-            if (relativeIndex >= left_i && relativeIndex <= right_i) {
-                return m;
-            }
-
-            if (relativeIndex > right_i) {
-                l = m + 1;
-            } else {
-                r = m - 1;
-            }
+    private void recycleID(int vertexID) {
+        // If we're the master node, add the vertex ID to our
+        // idQueue to be recycled.
+        if (MASS.getMyPid() == 0) {
+            idQueue.add(vertexID);
         }
-        
-        // If we're unable to locate the node, return -1.
-        return -1;
-    }
-
-    // getNodeLeftIndex retreives the left-side index of the simulation space owned
-    // by the provided node ID.
-    private static int getNodeLeftIndex(int node, int stripe, int remainder) {
-        return node < remainder ? stripe * node + node : stripe * node + remainder;
-    }
-    
-    // getNodeRightIndex retreives the right-side index of the simulation space owned
-    // by the provided node ID.
-    private static int getNodeRightIndex(int node, int left_i, int stripe, int remainder ) {
-        return node < remainder ? left_i + stripe : left_i + stripe - 1;
-    }
-
-    /**
-     * Get the VertexPlace associated with a global linear index. This
-     * currently only works for local vertices.
-     * 
-     * TODO (#155): Implement ability to retrieve vertices from remote nodes.
-     * @param globalLinearIndex The global index of the VertexPlace being
-     * retrieved.
-     * @return The VertexPlace associated with the global index. null is returned
-     * if the VertexPlace cannot be found.
-     */
-    public VertexPlace getVertexPlace(int globalLinearIndex) {
-        // Make sure the VertexPlace is owned by this node.
-        int owner = getNodeIdFromGlobalLinearIndex(globalLinearIndex);
-        if (owner != MASS.getMyPid()) {
-            return null;
-        }
-
-        int layer = getLayer(globalLinearIndex);
-        int localIdx = getLocalIndex(globalLinearIndex);
-
-        return placesVector.get(layer).get(localIdx);
     }
 
     public void reallyCallAll(int functionId, Object argument, int tid) {
-        for (Vector<VertexPlace> places : placesVector) {
-            for (VertexPlace place : places) {
-                place.callMethod( functionId, argument );
-            }
+        for (VertexPlace place : places) {
+            place.callMethod(functionId, argument);
         }
     }
 
-    public int getExtendedPlacesSize() {
-        return placesVector.stream().mapToInt(v -> v.size()).sum();
-    }
-
+    /**
+     * reallyCallAllWithReturns calls the function associated with the provided functionId
+     * on all VertexPlaces on the local node and stores the results in the provided 
+     * object array.
+     * 
+     * @param functionId The ID of the function to call on the VertexPlace.
+     * @param returns The array of return values from the function calls.
+     * @param arguments The arguments to pass each function.
+     */
     public void reallyCallAllWithReturns(int functionId, Object[] returns, Object[] arguments) {
-        int bIndex = this.getSize()[0];
-
-        for (int vIndex = 0; vIndex < placesVector.size(); vIndex++) {
-            Vector<VertexPlace> places = placesVector.get(vIndex);
-
-            for (int pIndex = 0; pIndex < places.size(); pIndex++) {
-                int gIndex = bIndex + bIndex * vIndex + pIndex;
-
-                if (arguments == null || (!(gIndex < arguments.length)))
-                    returns[gIndex] = places.get(pIndex).callMethod(functionId, null);
-                else
-                    returns[gIndex] = places.get(pIndex).callMethod(functionId, arguments[gIndex]);
-            }
+        Object args;
+        for (int i = 0; i < this.places.size(); i++) {
+            args = arguments == null ? null : arguments[i];
+            returns[i] = this.places.get(i).callMethod(functionId, args);
         }
     }
 
+    /**
+     * exchangeAll calls the provided function ID on all the neighbors of each
+     * VertexPlace stored in places and aggregates the results within the 
+     * source VertexPlace.
+     * 
+     * @param currentFunctionId The function Id of the function to be called on the 
+     * neighboring VertexPlace.
+     */
     public void exchangeAll(int currentFunctionId) {
-        int myRank = MASS.getMyPid();
-
         // do serially but this should be multi-threaded. Maybe we can just use a thread pool
-        for (Vector<VertexPlace> places : placesVector) {
-            for (VertexPlace place : places) {
-                Object[] neighbors = place.getNeighbors();
+        for (VertexPlace place : this.places) {
+            Object[] neighbors = place.getNeighbors();
+            place.prepareForExchangeAll();
 
-                place.prepareForExchangeAll();
+            for (Object neighborKey : neighbors) {
+                int neighborIndex = (Integer)neighborKey;
+                int ownerId = getOwnerID(neighborIndex);
 
-                for (Object neighborKey : neighbors) {
-                    int neighborGlobalLinearIndex = MASSBase.distributed_map.getOrDefault(neighborKey, -1);
-
-                    int owner = getNodeIdFromGlobalLinearIndex(neighborGlobalLinearIndex);
-
-                    Object result = null;
-
-                    if (owner == myRank) {
-                        int globalIndex = MASSBase.getGlobalIndexForKey(neighborKey);
-                        VertexPlace neighborPlace = getVertexPlace(globalIndex);
-
-                        result = neighborPlace.callMethod(currentFunctionId, null);
-                    } else {
-                        // call remote
-                        Message message = new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, getHandle(), (Object) neighborKey);
-
-                        // This should really be a map
-                        Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getPid() == owner).findFirst();
-
-                        if (hostOption.isPresent()) {
-                            hostOption.get().sendMessage(message);
-
-                            Message m = hostOption.get().receiveMessage();
-
-                            result = m.getArgument();
-                        } else {
-                            MASSBase.getLogger().error("Failed to send addPlace message to " + owner + "; host not found");
-                        }
-                    }
-
-                    place.setNeighborResult(neighborKey, result);
+                // If it's a remote node, send exchange all method to owning node, retrieve
+                // and store result, and continue...
+                if (ownerId != MASS.getMyPid()) {
+                    place.setNeighborResult(
+                        neighborKey,
+                        exchangeAllOnRemoteNode(ownerId, neighborKey, currentFunctionId)
+                    );
+                    continue;
                 }
+
+                // else if it's a local node, call the method and store result.
+                VertexPlace neighborPlace = getVertex(neighborIndex);
+                Object result = neighborPlace.callMethod(currentFunctionId, null);
+
+                place.setNeighborResult(neighborKey, result);
             }
         }
     }
 
-    public Object exchangeNeighbor(int functionId, int neighbor) {
-        Optional<VertexPlace> option = placesVector
-                .stream().flatMap(Vector::stream)
-                .filter(vertexPlace -> vertexPlace.getIndex()[0] == neighbor)
-                .findFirst();
+    // exchangeAllOnRemoteNode sends a GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT
+    // message to the provided node along with the function ID of the function to
+    // execute. It then waits for and returns the result of the execution.
+    private Object exchangeAllOnRemoteNode(int nodeId, Object neighborKey, int functionId) {
+        Optional<MNode> hostOption = MASS.getAllNodes().
+            stream().filter(node -> node.getPid() == nodeId).findFirst();
+        
+        // If the host is not present, something went wrong, log error 
+        // and return null.
+        if (!hostOption.isPresent()) {
+            MASSBase.getLogger().error("host '" + nodeId + "' not found");
+            return null;
+        }
+        MNode remoteHost = hostOption.get();
 
-        return option.isPresent() ? option.get().callMethod(functionId, null) : null;
+        remoteHost.sendMessage(new Message(
+            Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
+            getHandle(),
+            neighborKey
+        ));
+        Message m = remoteHost.receiveMessage();
+        return m.getArgument();
     }
 
-    public Vector<Vector<VertexPlace>> getPlacesVector() {
-        return placesVector;
+    /**
+     * exchangeNeighbor calls the function associated with the provided
+     * function ID on the neighbor vertex associated with the provided
+     * neighbor ID and returns the result.
+     * 
+     * @param functionId The ID of the function to be called.
+     * @param neighborId The ID of the neighbor to call the function on.
+     * 
+     * @return The result of having called the function.
+     */
+    public Object exchangeNeighbor(int functionId, int neighborId) {
+        // Get local index and size of places array.
+        VertexPlace vertex = this.getVertex(neighborId);
+        if (vertex == null) {
+            MASS.getLogger().debug("the vertex ID does not exist");
+            return null;
+        }
+
+        return vertex.callMethod(functionId, null);
     }
 }
