@@ -588,7 +588,16 @@ public class GraphPlaces extends Places implements Graph {
             return false;
         }
 
-        return this.removeVertex(sourceId);
+        // If we fail to remove the vertex, return false and do not remove it
+        // from the distributed map.
+        if (!this.removeVertex(sourceId)) {
+            return false;
+        }
+
+        // remove the key from the distributed map.
+        MASS.distributed_map.remove(vertexId);
+
+        return true;
     }
 
     /**
@@ -606,12 +615,14 @@ public class GraphPlaces extends Places implements Graph {
         int sourceId = MASSBase.distributed_map.getOrDefault(vertexId, -1);
         if (sourceId == -1) {
             MASS.getLogger().debug("vertex ID doesn't exist");
+            return;
         }
 
         // If the vertex cannot be removed locally, fail under the assumption that
         // it MUST be.
         if (getOwnerID(sourceId) != MASS.getMyPid()) {
             MASS.getLogger().debug("the vertex ID is not owned by the local node");
+            return;
         }
 
         if (!this.removeVertex(vertexId)) {
@@ -639,17 +650,37 @@ public class GraphPlaces extends Places implements Graph {
             return false; 
         }
 
-        return removeVertexOnNode(
-            getOwnerID(vertexID),
-            vertexID
-        );
+        // If we're unable to remove the vertex, return false.
+        if (!removeVertexOnNode(getOwnerID(vertexID),vertexID)) { 
+            return false; 
+        }
+
+        // Create a thread to remove the neighbor from all remote
+        // vertices. If creating the thread has too much overhead we 
+        // can implement a thread pool for use by the class as a whole.
+        Thread t = new Thread(() -> removeNeighborFromRemoteVertices(vertexID));
+
+        // While that work is being done, delete it locally.
+        removeNeighborFromLocalVertices(vertexID);
+
+        // Wait for thread to complete
+        try { t.join(); } catch (Exception e) {
+            MASS.getLogger().error("error occurred while removing a vertex: " + e);
+        }
+
+        return true;
     }
 
     /**
      * removeVertexOnNode removes the vertex associated with the provided
-     * vertexID from the node associated with the provided node ID.
+     * vertexID from the node associated with the provided node ID. This
+     * method is a MASS internal method. DO NOT use it to remove vertices. 
+     * It is public for use by the MASS messaging system. It does not 
+     * remove the target vertex from other vertex neighbor lists.
+     * 
      * @param nodeID The ID of the node with which to remove this vertex.
      * @param vertexID The ID of the vertex to be removed.
+     * 
      * @return true if successful, false otherwise.
      */
     public boolean removeVertexOnNode(int nodeID, int vertexID) {
@@ -671,9 +702,6 @@ public class GraphPlaces extends Places implements Graph {
         // If the ID is associated with an index that doesn't exist
         // return false.
         if (localIndex >= localSize) { return false; }
-
-        // TODO(#165) Get VertexPlace and traverse incoming edges to ensure
-        // they're removed from the respective vertex places.
 
         // Set vertex as null to indicate it's unused and add it to the 
         // idQueue.
@@ -714,6 +742,43 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         return true;
+    }
+
+    /**
+     * removeNeighborFromLocalVertices removes the provided neighbor
+     * vertex from all local VertexPlaces.
+     * 
+     * @param neighborID The ID of the neighbor vertex to have removed.
+     */
+    public void removeNeighborFromLocalVertices(int neighborID) {
+        for (VertexPlace place : this.places) {
+            // We do not actually remove vertices, just mark them unused
+            // so it's possible for them to be null.
+            if (place == null) { continue; }
+
+            place.removeNeighborSafely(neighborID);
+        }
+    }
+
+    // removeNeighborFromRemoteVertices sends a message to all remote
+    // nodes to remove the provide neighbor vertex from all vertex 
+    // neighbors.
+    private void removeNeighborFromRemoteVertices(int neighborID) {
+        // Send each message
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_NEIGHBOR,
+            getHandle(),
+            Integer.valueOf(neighborID)
+        )));
+
+        // Wait for each reply. This isn't fused with the above so that
+        // each node can work concurrently while we wait for ACKS
+        MASS.getRemoteNodes().forEach(node -> {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASS.getLogger().debug("failed to remove neighbor from remote node: " + node);
+            }
+        });
     }
 
     /**

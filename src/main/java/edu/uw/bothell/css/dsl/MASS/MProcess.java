@@ -696,6 +696,16 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX completed");
 				break;
 
+			case MAINTENANCE_REMOVE_NEIGHBOR:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR received");
+
+				places = MASS.getPlaces(m.getHandle());
+				((GraphPlaces) places).removeNeighborFromLocalVertices((Integer) m.getArgument());
+				sendAck();
+				
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR completed");
+				break;
+
 			case MAINTENANCE_REMOVE_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
 				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_EDGE is deprecated " +
