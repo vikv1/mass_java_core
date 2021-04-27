@@ -421,6 +421,9 @@ public class GraphPlaces extends Places implements Graph {
 
     /**
      * addPlaceLocally creates a new vertex.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using addVertex.
      * 
      * @param vertexId the ID of the vertex.
      * @param vertexInitParam the init parameters to be passed to the 
@@ -603,6 +606,9 @@ public class GraphPlaces extends Places implements Graph {
     /**
      * removeVertexLocally removes the vertex with the provided vertexId from 
      * the calling node if it exists.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using removeVertex.
      * 
      * @param vertexId the ID of the vertex.
      * 
@@ -712,6 +718,8 @@ public class GraphPlaces extends Places implements Graph {
         return true;
     }
 
+    // removeRemoteVertex sends a message to the node with the provided
+    // nodeID to remove a vertex with the provided vertexID.
     private boolean removeRemoteVertex(int nodeID, int vertexID) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
@@ -785,6 +793,9 @@ public class GraphPlaces extends Places implements Graph {
     /**
      * Get the VertexPlace associated with the provided
      * vertex ID.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using getVertex.
      * 
      * @param vertexID The ID of the vertex to retrieve.
      * @return The VertexPlace associated with the provided vertex ID.
@@ -799,6 +810,9 @@ public class GraphPlaces extends Places implements Graph {
     /**
      * getPlacesVector returns a copy of the places vector. It's returned 
      * wrapped in another vector for legacy reasons.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please cease from using it.
      */
     public Vector<Vector<VertexPlace>> getPlacesVector() {
         MASS.getLogger().warning("getPlacesVector is deprecated and will be removed " +
@@ -931,6 +945,9 @@ public class GraphPlaces extends Places implements Graph {
      * addEdgeLocally adds an edge between the provided local vertexId and 
      * the provided neighborId, and assigns the provided weigth as the edge 
      * weigth.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using addEdge.
      * 
      * @param vertexId the vertex ID of the source vertex. Must be local to 
      * the calling node.
@@ -1107,6 +1124,9 @@ public class GraphPlaces extends Places implements Graph {
     /**
      * removeEdgeLocally removes an edge between the provided local vertexId
      * and the provided neighborId.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using removeEdge.
      * 
      * @param vertexId the vertex ID of the source vertex. Must be local to 
      * the calling node.
@@ -1249,6 +1269,9 @@ public class GraphPlaces extends Places implements Graph {
 
     /**
      * getExtendedPlacesSize returns the size of the places vector.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please cease from using it.
      */
     public int getExtendedPlacesSize() {
         MASS.getLogger().warning("getExtendedPlacesSize is deprecated and will be removed " +
@@ -1271,6 +1294,10 @@ public class GraphPlaces extends Places implements Graph {
     /**
      * getNodeIdFromGlobalLinearIndex returns the ID of the node that owns
      * the provided vertexID.
+     * @deprecated
+     * This method is deprecated and will be removed in a future release.
+     * Please migrate to using getOwnerID.
+     * 
      * @param vertexID The vertex ID for which you would like
      * the owner.
      * @return the owner ID of the provided vertex ID.
