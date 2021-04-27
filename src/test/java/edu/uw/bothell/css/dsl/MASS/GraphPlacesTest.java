@@ -188,18 +188,16 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void testRemoveVertexSingleNode() {
         // Setup graph and vertices.
-        int sourceID = 0;
-        int destinationID = 1;
         GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
 
         // Add a few vertices
-        graph.addVertex();
-        graph.addVertex();
-        graph.addVertex();
+        int vertID1 = graph.addVertex();
+        int vertID2 = graph.addVertex();
+        int vertID3 = graph.addVertex();
         assertEquals(3, graph.size());
 
         // remove a valid vertex
-        assertTrue(graph.removeVertex(1));
+        assertTrue(graph.removeVertex(vertID1));
         assertEquals(2, graph.size());
 
         // remove a invalid vertex
@@ -207,26 +205,23 @@ public class GraphPlacesTest extends AbstractTest {
         assertEquals(2, graph.size());
 
         // remove the remaining vertices
-        graph.removeVertex(0);
-        graph.removeVertex(1);
+        graph.removeVertex(vertID2);
+        graph.removeVertex(vertID3);
         assertEquals(0, graph.size());
     }
 
     @Test
     public void addEdgeWithoutWeight() {
         // Setup graph and vertices.
-        int sourceID = 0;
-        int destinationID = 1;
         GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
-        graph.addVertex(sourceID);
-        graph.addVertex(destinationID);
+        int sourceID = graph.addVertex();
+        int destinationID = graph.addVertex();
 
         // Add an edge without specifying weight.
         assertTrue(graph.addEdge(sourceID, destinationID));
 
         // Check that the edge was added successfully and that its weight is 1.0.
-        int sourceGlobalIndex = graph.getVertexMetaValues(sourceID).Id;
-        VertexPlace vert = graph.getVertexPlace(sourceGlobalIndex);
+        VertexPlace vert = graph.getVertex(sourceID);
 
         // validate weights and neighbors list
         assertEquals(1, vert.neighbors.size());
@@ -239,6 +234,31 @@ public class GraphPlacesTest extends AbstractTest {
         
         assertEquals(destinationID, neighbor);
         assertEquals(1, neighborWeight);
+    }
+
+    @Test
+    public void testRemoveEdge() {
+        // Setup graph and vertices
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        int sourceID = graph.addVertex();
+        int destinationID = graph.addVertex();
+
+        // Add an edge without specifying weight.
+        assertTrue(graph.addEdge(sourceID, destinationID));
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        VertexPlace vert = graph.getVertex(sourceID);
+
+        // validate weights and neighbors list
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
+
+        assertTrue(graph.removeEdge(sourceID, destinationID));
+        vert = graph.getVertex(sourceID);
+
+        // validate that the edge is removed
+        assertEquals(0, vert.neighbors.size());
+        assertEquals(0, vert.weights.size());
     }
 
     @Test

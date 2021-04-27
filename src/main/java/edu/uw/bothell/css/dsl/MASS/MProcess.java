@@ -635,6 +635,9 @@ public class MProcess {
 
 			case MAINTENANCE_ADD_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_ADD_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
@@ -645,6 +648,26 @@ public class MProcess {
 				sendAck();
 
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE completed");
+				break;
+			
+			case MAINTENANCE_ADD_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] addEdgeArgs = (Object[])argument;
+
+				graphPlaces.addEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)addEdgeArgs[0], 
+					(Integer)addEdgeArgs[1], 
+					(Double)addEdgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 completed");
 				break;
 
 			case MAINTENANCE_REMOVE_PLACE:
@@ -675,6 +698,9 @@ public class MProcess {
 
 			case MAINTENANCE_REMOVE_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_REMOVE_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
@@ -686,24 +712,57 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
 				break;
+			
+			case MAINTENANCE_REMOVE_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] removeEdgeArgs = (Object[])argument;
+
+				graphPlaces.removeEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)removeEdgeArgs[0], 
+					(Integer)removeEdgeArgs[1]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 completed");
+				break;
 
 			case MAINTENANCE_GET_VERTEX:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX received");
-
-				places = MASS.getPlaces(m.getHandle());
+				int handle = m.getHandle();
+				places = MASS.getPlaces(handle);
 				graphPlaces = ((GraphPlaces) places);
 
-				Object vertex = graphPlaces.getVertexFromNode(
-					MASS.getMyPid(),
-					((Integer) m.getArgument()).intValue()
-				);
-
+				// Retrieve and clone the vertex place. Cloning is necessary
+				// to prevent the object stream from sending a reference from
+				// an old object. The alternative is to reset the stream which 
+				// may have other unknown performance implications. Depending
+				// how how the message stream is utilized elsewhere in MASS.
+				Object vertex = null;
+				try {
+					vertex = graphPlaces.getVertexFromNode(
+						MASS.getMyPid(),
+						((Integer) m.getArgument()).intValue()
+					).clone();
+				} catch (CloneNotSupportedException cnse) {
+					MASSBase.getLogger().error("VertexPlace not cloneable: " + cnse);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("An unexpected error occurred: " + e);
+				}
+				
+				// Send vertex to requester.
 				Message msg = new Message(
 					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
+					handle,
 					vertex
 				);
-
 				sendMessage(msg);
+
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
 

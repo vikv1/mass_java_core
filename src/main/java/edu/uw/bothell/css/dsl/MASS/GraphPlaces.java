@@ -429,6 +429,230 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * removeEdge removes the edge between the provided vertex and neighbor
+     * IDs.
+     * 
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID.
+     * 
+     * @return true if the edge was successfully removed, false otherwise.
+     */
+    public boolean removeEdge(int vertexID, int neighborID) {
+        // Check vertexID exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborID exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return removeEdgeOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID
+        );
+    }
+
+    /**
+     * removeEdgeOnNode removes the edge between the provided vertex and neighbor
+     * IDs on the node associated with the provided nodeID. If the node does not
+     * own the source vertex a message is created and sent to the remote node that
+     * does to remove the edge.
+     * 
+     * @param nodeID The ID of the node that owns the source vertex.
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID (its neighbor).
+     * 
+     * @return true if the edge was successfully removed, false otherwise.
+     */
+    public boolean removeEdgeOnNode(int nodeID, int vertexID, int neighborID) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to remove the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return removeRemoteEdge(nodeID, vertexID, neighborID);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        VertexPlace vertex = places.get(localIndex);
+        vertex.removeNeighbor(neighborID);
+        places.set(localIndex, vertex);
+        
+        return true;
+    }
+
+    /**
+     * removeRemoteEdge sends a MASS message to the node associated with the provided
+     * node ID to remove the edge between the provided vertex and neighbor IDs.
+     */
+    private boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_REMOVE_EDGE_V2,
+            getHandle(),
+            new Object[]{ vertexID, neighborID }
+        );
+
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+        
+        // Message system currently only returns ACK if successful
+        // so if we do not recieve one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertex and neighbor
+     * IDs using a default weight of 1.0.
+     * 
+     * @param vertexID The ID of source vertex.
+     * @param neighborID The ID of the destination vertex (its "neighbor").
+     * 
+     * @return true if the edge was successfully added, false otherwise.
+     */
+    public boolean addEdge(int vertexID, int neighborID) {
+        return addEdge(vertexID, neighborID, 1.0);
+    }
+
+    /**
+     * addEdge adds an edge between the provided vertex and neighbor
+     * IDs with a the provided edge weight.
+     * 
+     * @param vertexID The ID of the source vertex.
+     * @param neighborID The ID of the destination vertex.
+     * @param weight The weight of the edge.
+     *
+     * @return true if the edge was successfully added, false otherwise.
+     */
+    public boolean addEdge(int vertexID, int neighborID, double weight) {
+        // Check vertexId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return addEdgeOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID,
+            weight
+        );
+    }
+
+    /**
+     * addEdgeOnNode attempts to add an edge between the provided vertex
+     * and neighbor IDs on the node associated with the provided node ID.
+     * If the node associated with the provided node ID does not own the
+     * source vertex, a message is created and sent to the remote node
+     * that does own the source vertex to add the edge.
+     * 
+     * @param nodeID The ID of the node that owns the source vertex.
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID (its neighbor).
+     * @param weight The weight of the edge.
+     * 
+     * @return true if the edge was successfully created, false otherwise.
+     */
+    public boolean addEdgeOnNode(int nodeID, int vertexID, int neighborID, double weight) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to add the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return addRemoteEdge(nodeID, vertexID, neighborID, weight);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        VertexPlace vertex = places.get(localIndex);
+        vertex.addNeighbor(neighborID, weight);
+        places.set(localIndex, vertex);
+
+        return true;
+    }
+
+    /**
+     * addRemoteEdge sends a MASS message to the node associated with the provided node ID
+     * to add an edge between the vertexID and neighborID with the provided edge
+     * weight.
+     */
+    private boolean addRemoteEdge(int nodeID, int vertexID, int neighborID, double weight) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_ADD_EDGE_V2,
+            getHandle(),
+            new Object[]{vertexID, neighborID, weight }
+        );
+        
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message systems currently only returns ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * addEdge adds an edge between the provided vertexId and neighborId and
      * assigns it the provided weigth value.
      * 
@@ -847,7 +1071,11 @@ public class GraphPlaces extends Places implements Graph {
      */
     public boolean removeVertex(int vertexID) {
         // If the vertex to be deleted doesn't exist, return false.
-        if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) { return false; }
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+
+            return false; 
+        }
 
         return removeVertexOnNode(
             getOwnerID(vertexID),
