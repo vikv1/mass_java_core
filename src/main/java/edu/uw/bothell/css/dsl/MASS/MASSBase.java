@@ -47,7 +47,7 @@ import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessenging;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -102,7 +102,7 @@ public class MASSBase {
     private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
     
     // messaging
-    private static MASSMessenging messenger = MASSMessenging.getInstance();
+    private static MASSMessaging messenger = MASSMessaging.getInstance();
     
     // global logical clock
     private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
@@ -746,7 +746,7 @@ public class MASSBase {
 	 * Get the messaging provider currently in use
 	 * @return The messaging provider currently being used
 	 */
-	public static MASSMessenging getMessagingProvider() {
+	public static MASSMessaging getMessagingProvider() {
 		return messenger;
 	}
 	

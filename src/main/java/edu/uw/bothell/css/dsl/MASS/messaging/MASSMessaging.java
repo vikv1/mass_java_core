@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -55,7 +56,7 @@ import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvide
  * and to also provide helper methods that make the job of creating new messaging implementations easier.
  * 
  */
-public class MASSMessenging {
+public class MASSMessaging {
 
 	// the actual messaging implementation
 	private MessagingProvider messagingProviderImpl = new HazelcastMessagingProvider();
@@ -71,14 +72,14 @@ public class MASSMessenging {
      * {@link SingletonHolder#INSTANCE}, not before.
      */
     private static class SingletonHolder {
-    	private static final MASSMessenging INSTANCE = new MASSMessenging();
+    	private static final MASSMessaging INSTANCE = new MASSMessaging();
     }
 
     /**
      * Return this instance of the messaging provider, which is effectively a Singleton
      * @return The single instance of this messenger implementation
      */
-    public static MASSMessenging getInstance() {
+    public static MASSMessaging getInstance() {
     	return SingletonHolder.INSTANCE;
     }
 
@@ -283,6 +284,18 @@ public class MASSMessenging {
 		}
 
 		return localAgents;
+		
+	}
+	
+	/**
+	 * Get a random IPv4 address within the multicast group range, using a cryptographically-string random number generator
+	 * @return A random IPv4 address ("dotted quad") within the multicast address space
+	 */
+	public static String getRandomMulticastAddress() {
+		
+		SecureRandom r = new SecureRandom();
+
+		return "240." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256);
 		
 	}
 	
