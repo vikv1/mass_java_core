@@ -136,10 +136,6 @@ public class GraphPlacesTest extends AbstractTest {
             "5, 4, 8, 2",
             "8, 4, 8, -1"
     })
-    public void testGetNodeId(int gID, int numNodes, int size, int want) {
-        int got = GraphPlaces.getNodeId(gID, numNodes, size);
-        assertEquals(want, got);
-    }
 
     @Test
     public void testAddVertexSingleNode() {

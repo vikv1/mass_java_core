@@ -91,6 +91,7 @@ public class Message implements Serializable {
         // Graph maintenance messages.
         MAINTENANCE_ADD_VERTEX("Maintenance.addVertex"),
         MAINTENANCE_REMOVE_VERTEX("Maintenance.removeVertex"),
+        MAINTENANCE_REMOVE_NEIGHBOR("Maintenance.removeNeighbor"),
         MAINTENANCE_GET_VERTEX("Maintenance.getVertex"),
         MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
         MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
