@@ -659,6 +659,7 @@ public class GraphPlaces extends Places implements Graph {
         // vertices. If creating the thread has too much overhead we 
         // can implement a thread pool for use by the class as a whole.
         Thread t = new Thread(() -> removeNeighborFromRemoteVertices(vertexID));
+        t.start();
 
         // While that work is being done, delete it locally.
         removeNeighborFromLocalVertices(vertexID);
