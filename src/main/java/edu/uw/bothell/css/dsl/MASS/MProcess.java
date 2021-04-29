@@ -808,13 +808,4 @@ public class MProcess {
 		}
 	}
 
-//	private void sendMessage(Serializable object) {
-//		try {
-//			MAIN_OOS.writeObject(object);
-//			MAIN_OOS.flush();
-//		} catch (IOException e) {
-//			MASSBase.getLogger().error("Exception sending object to remote host", e);
-//		}
-//	}
-
 }

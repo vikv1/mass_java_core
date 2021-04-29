@@ -210,15 +210,6 @@ public class MASS extends MASSBase {
     	
     }
     
-//    /**
-//	 * Get the default password for connecting to remote nodes
-//	 * @return The default login password
-//	 */
-// 	@Deprecated
-//	protected static String getDefaultPassword() {
-//		return defaultPassword;
-//	}
-    
     /**
 	 * Get the default username for connecting to remote nodes
 	 * @return The default login username
