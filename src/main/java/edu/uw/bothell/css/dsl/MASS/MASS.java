@@ -419,13 +419,13 @@ public class MASS extends MASSBase {
 
     		// MProcess and its arguments
     		commandBuilder.append(" " + MProcess.class.getCanonicalName() + " ");	// the program
-    		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
-    		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
-    		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
-    		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
-    		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
-			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
+    		commandBuilder.append( MProcess.CMD_ARG_HOSTNAME + "=\"" + node.getHostName() + "\" " );
+    		commandBuilder.append( MProcess.CMD_ARG_MYPID + "=" + node.getPid() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NPROC + "=" + getAllNodes().size() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NTHREADS + "=" + getNumThreads() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_SERVER_PORT + "=" + getCommunicationPort() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_WORKING_DIRECTORY + "=\"" + node.getMassHome() + "\" " );
+			commandBuilder.append( MProcess.CMD_ARG_MAX_AGENTS + "=" + AgentSerializer.getInstance().getMaxNumberOfAgents() );
 
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +

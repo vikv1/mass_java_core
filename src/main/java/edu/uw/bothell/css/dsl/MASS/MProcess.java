@@ -36,6 +36,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
 
@@ -51,6 +54,15 @@ public class MProcess {
 	private int myPid; // my pid or rank
 	private ObjectInputStream MAIN_IOS = null; 	// input from the master process
 	private ObjectOutputStream MAIN_OOS = null; // output to the master process
+	
+	// command-line arguments
+	public static final String CMD_ARG_HOSTNAME = "HOSTNAME"; 
+	public static final String CMD_ARG_MYPID = "MYPID";
+	public static final String CMD_ARG_NPROC = "NPROC";
+	public static final String CMD_ARG_NTHREADS = "NTHREADS";
+	public static final String CMD_ARG_SERVER_PORT = "SERVERPORT";
+	public static final String CMD_ARG_WORKING_DIRECTORY = "WORKDIR";
+	public static final String CMD_ARG_MAX_AGENTS = "MAXAGENTS";
 
 	/**
 	 * MProcesses are the MASS threads executing on various machines. They are
@@ -113,21 +125,96 @@ public class MProcess {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		String hostName = args[0];
-		int myPid = Integer.parseInt(args[1]);
-		int nProc = Integer.parseInt(args[2]);
-		int nThreads = Integer.parseInt(args[3]);
-		int serverPort = Integer.parseInt(args[4]);
-		String curDir = args[5];
-		int maxNumberOfAgents = Integer.parseInt(args[6]);
+		String hostName = null;
+		int myPid = 0;
+		int nProc = 0;
+		int nThreads = 0;
+		int serverPort = 0;
+		String curDir = null;
+		int maxNumberOfAgents = 0;
 
-		MASSBase.getLogger().debug("MProcess - main");
+		MASSBase.getLogger().debug( "MProcess - main" );
 
+		MASSBase.getLogger().debug( "Parsing command-line arguments..." );
+		
+		// iterate through all arguments to pick out recognized variables
+		for ( String rawArgPair : args ) {
+			
+			// remove leading and trailing spaces
+			String argPair = StringUtils.stripToNull( rawArgPair ); 
+			
+			// split on equal sign
+			if ( !Objects.isNull( argPair ) ) {
+				
+				String[] splitArg = argPair.split( "=" );
+				
+				// sanity check
+				if ( splitArg.length == 2 ) {
+
+					String variable = StringUtils.stripToNull( splitArg[ 0 ] );
+					
+					// strip and remove quotes from value
+					String value = StringUtils.stripToNull( splitArg[ 1 ] );
+					if ( !Objects.isNull( value ) ) value = value.replaceAll( "\"", "" );
+					
+					// more sanity checking
+					if ( !Objects.isNull( variable ) && !Objects.isNull( value ) ) {
+
+						// based on argument name, populate variable
+						switch( variable ) {
+
+						case CMD_ARG_HOSTNAME:
+							hostName = value;
+							MASSBase.getLogger().debug( "Hostname is set to {}", hostName );
+							break;
+
+						case CMD_ARG_MYPID:
+							myPid = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "My PID is set to {}", myPid );
+							break;
+
+						case CMD_ARG_NPROC:
+							nProc = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NPROC is set to {}", nProc );
+							break;
+
+						case CMD_ARG_NTHREADS:
+							nThreads = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NTHREADS is set to {}", nThreads );
+							break;
+
+						case CMD_ARG_SERVER_PORT:
+							serverPort = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Server port is set to {}", serverPort );
+							break;
+
+						case CMD_ARG_WORKING_DIRECTORY:
+							curDir = value;
+							MASSBase.getLogger().debug( "Working directory is set to {}", curDir );
+							break;
+
+						case CMD_ARG_MAX_AGENTS:
+							maxNumberOfAgents = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Max number of agents set to {}", maxNumberOfAgents );
+							break;
+
+						default:
+							MASSBase.getLogger().debug( "Argument {} not recognized!", splitArg[ 1 ] );
+
+						}
+
+					}
+
+				}
+				
+			}
+			
+		}
+		
+		MASSBase.getLogger().debug( "Command-line arguments parsed!" );
+		
 		AgentSerializer agentSerializer = AgentSerializer.getInstance();
-
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
-
-		// TODO: It is officially time to design a better way to configure the remote process
 
 		try {
 			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
