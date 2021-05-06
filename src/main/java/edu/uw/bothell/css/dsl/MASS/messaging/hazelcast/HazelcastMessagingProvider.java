@@ -79,6 +79,10 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private HazelcastInstance instance;
 	
 	@Override
+	public void init( String clusterCommunicationsAddress ) {
+		init( null, null);
+	}
+	
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
 		
 		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initializing..." );
@@ -263,6 +267,18 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 			MASSBase.getLogger().debug("Hazelcast was not initialized, ignoring shutdown command");
 			
 		}
+		
+	}
+
+	@Override
+	public void unregisterAgent(Agent agent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void unregisterPlace(Place place) {
+		// TODO Auto-generated method stub
 		
 	}
 

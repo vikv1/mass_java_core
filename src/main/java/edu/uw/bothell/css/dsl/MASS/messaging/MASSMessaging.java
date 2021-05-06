@@ -32,7 +32,6 @@ package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Queue;
@@ -44,13 +43,12 @@ import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.AgentList;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
-import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvider;
+import edu.uw.bothell.css.dsl.MASS.messaging.aeron.AeronMessagingProvider;
 
 /**
- * MASSMessaging provides messaging between Nodes (MNodes), Places, and Agents in a MASS cluster
+ * MASSMessaging provides messaging between Nodes (MNode/MProcess), Places, and Agents in a MASS cluster
  * 
  * This class primarily serves to insulate the messaging provider implementation from the rest of MASS-Core,
  * and to also provide helper methods that make the job of creating new messaging implementations easier.
@@ -59,11 +57,14 @@ import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvide
 public class MASSMessaging {
 
 	// the actual messaging implementation
-	private MessagingProvider messagingProviderImpl = new HazelcastMessagingProvider();
-
+	private MessagingProvider messagingProviderImpl = new AeronMessagingProvider();
+	
 	// local message queues
 	private Queue< MASSMessage< Serializable > > placeMessageQueue = new ConcurrentLinkedQueue<>();
 	private Queue< MASSMessage< Serializable > > agentMessageQueue = new ConcurrentLinkedQueue<>();
+
+	// Cryptographically-strong random number generation
+	private static SecureRandom sRand = new SecureRandom();
 	
 	/**
      * Initializes singleton.
@@ -88,9 +89,9 @@ public class MASSMessaging {
 	 * @param masterNode The main cluster node
 	 * @param remoteNodes The remote cluster members
 	 */
-	public void init(MNode masterNode, Collection<MNode> remoteNodes) {
+	public void init( String clusterCommunicationsAddress ) {
 		MASSBase.getLogger().debug("Messaging system initialization starting");
-		messagingProviderImpl.init(masterNode, remoteNodes);
+		messagingProviderImpl.init( clusterCommunicationsAddress );
 	}
 
 	/**
@@ -288,15 +289,35 @@ public class MASSMessaging {
 	}
 	
 	/**
-	 * Get a random IPv4 address within the multicast group range, using a cryptographically-string random number generator
+	 * Get a random IPv4 address within the local multicast group range
 	 * @return A random IPv4 address ("dotted quad") within the multicast address space
 	 */
 	public static String getRandomMulticastAddress() {
-		
-		SecureRandom r = new SecureRandom();
+		return "239." + sRand.nextInt(256) + "." + sRand.nextInt(256) + ".1";
+	}
+	
+	/**
+	 * Get a random port number
+	 * @return A random port number, in the range 1024-65535
+	 */
+	public static int getRandomPort() {
+		return 1024 + sRand.nextInt( 64512 ); 
+	}
+	
+	/**
+	 * Unregister an Agent from the messaging provider
+	 * @param agent The Agent to unregister
+	 */
+	public void unregisterAgent(Agent agent) {
+		messagingProviderImpl.unregisterAgent(agent);
+	}
 
-		return "240." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256);
-		
+	/**
+	 * Unregister a Place from the messaging provider
+	 * @param place The Place to unregister
+	 */
+	public void unregisterPlace(Place place) {
+		messagingProviderImpl.unregisterPlace(place);
 	}
 	
 }

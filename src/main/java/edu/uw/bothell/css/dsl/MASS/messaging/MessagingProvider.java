@@ -31,10 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
-import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 
 /**
@@ -44,10 +42,9 @@ public interface MessagingProvider {
 
 	/**
 	 * Initialize this messaging provider
-	 * @param masterNode The main cluster node
-	 * @param remoteNodes The remote cluster members
+	 * @param clusterCommunicationsAddress The address all cluster members use for communications
 	 */
-	public void init( MNode masterNode, Collection<MNode> remoteNodes );
+	public void init( String clusterCommunicationsAddress );
 	
 	/**
 	 * Register an Agent with the messaging provider
@@ -83,5 +80,17 @@ public interface MessagingProvider {
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown
 	 */
 	public void shutdown();
+
+	/**
+	 * Unregister an Agent from the messaging provider
+	 * @param agent The Agent to unregister
+	 */
+	public void unregisterAgent( Agent agent);
+
+	/**
+	 * Unregister a Place from the messaging provider
+	 * @param place The Place to unregister
+	 */
+	public void unregisterPlace( Place place);
 
 }

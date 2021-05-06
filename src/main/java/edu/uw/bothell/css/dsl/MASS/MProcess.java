@@ -56,6 +56,7 @@ public class MProcess {
 	private ObjectOutputStream MAIN_OOS = null; // output to the master process
 	
 	// command-line arguments
+	public static final String CMD_ARG_CLUSTER_COMMS_ADDRESS = "CLUSTERCOMMS"; 
 	public static final String CMD_ARG_HOSTNAME = "HOSTNAME"; 
 	public static final String CMD_ARG_MYPID = "MYPID";
 	public static final String CMD_ARG_NPROC = "NPROC";
@@ -95,7 +96,7 @@ public class MProcess {
 		}
 
 		// perform normal init
-		init( hostName, myPid, nProc, nThr, port, curDir );
+		init( hostName, myPid, nProc, nThr, port, curDir, null );
 		
 	}
 
@@ -108,11 +109,12 @@ public class MProcess {
 	 * @param myPid The PID assigned to this node
 	 * @param nProc The total number of nodes in the cluster
 	 * @param nThr The number of threads to start on this remote node
-	 * @param port The port number to use for communications with this node
+	 * @param port The port number to use for communications with this node (legacy)
 	 * @param curDir The working directory this remote node should use
+	 * @param clusterCommunicationsAddress The IP address and port that this cluster uses for communications
 	 */
-	public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
-		init( hostName, myPid, nProc, nThr, port, curDir );
+	public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
+		init( hostName, myPid, nProc, nThr, port, curDir,  clusterCommunicationsAddress );
 	}
 
 	/**
@@ -125,6 +127,7 @@ public class MProcess {
 	 */
 	public static void main(String[] args) throws Exception {
 
+		String clusterCommunicationsAddress = null;
 		String hostName = null;
 		int myPid = 0;
 		int nProc = 0;
@@ -162,6 +165,11 @@ public class MProcess {
 
 						// based on argument name, populate variable
 						switch( variable ) {
+
+						case CMD_ARG_CLUSTER_COMMS_ADDRESS:
+							clusterCommunicationsAddress = value;
+							MASSBase.getLogger().debug( "Cluster will use {} for communications", clusterCommunicationsAddress );
+							break;
 
 						case CMD_ARG_HOSTNAME:
 							hostName = value;
@@ -217,7 +225,7 @@ public class MProcess {
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
 		try {
-			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+			MProcess mprocess = new MProcess( hostName, myPid, nProc, nThreads, serverPort, curDir, clusterCommunicationsAddress );
 			mprocess.start();
 		} catch (Exception e) {
 			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
@@ -228,7 +236,7 @@ public class MProcess {
 	}
 
 	// Initialize this MProcess (this used to be handled by a single constructor)
-	private void init(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
+	private void init( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
 
 		this.myPid = myPid;
 
@@ -269,7 +277,7 @@ public class MProcess {
 		}
 
     	// initialize the messaging system
-    	MASS.getMessagingProvider().init( null, null );
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( MASS.getEventDispatcher() );

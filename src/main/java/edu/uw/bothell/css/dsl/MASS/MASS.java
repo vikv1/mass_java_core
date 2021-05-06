@@ -54,6 +54,7 @@ import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -379,6 +380,12 @@ public class MASS extends MASSBase {
         	initMASSBase( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
     	}
 
+    	// select an IP address and port number for cluster communications, if there are remote nodes configured
+    	String clusterCommunicationsAddress = null;
+//    	if ( getRemoteNodes().size() > 0 ) {
+    		clusterCommunicationsAddress = MASSMessaging.getRandomMulticastAddress() + ":" + MASSMessaging.getRandomPort();
+//    	}
+    	
     	// Launch remote processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -427,6 +434,11 @@ public class MASS extends MASSBase {
     		commandBuilder.append( MProcess.CMD_ARG_WORKING_DIRECTORY + "=\"" + node.getMassHome() + "\" " );
 			commandBuilder.append( MProcess.CMD_ARG_MAX_AGENTS + "=" + AgentSerializer.getInstance().getMaxNumberOfAgents() );
 
+			// cluster communications address, if defined
+			if ( clusterCommunicationsAddress != null ) {
+				commandBuilder.append( MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
+			}
+			
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +
     				" run with command: " + commandBuilder );
@@ -448,8 +460,8 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
-    	// initialize the messaging system
-    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	// initialize the messaging system (if no remote nodes, comms address is NULL - which is okay)
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( eventDispatcher );

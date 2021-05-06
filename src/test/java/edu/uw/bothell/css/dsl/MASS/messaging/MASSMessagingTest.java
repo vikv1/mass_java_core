@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -30,30 +30,30 @@
 
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
-import java.io.Serializable;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+import edu.uw.bothell.css.dsl.MASS.AbstractTest;
 
 /**
- * MASSMessage encapsulates all information needed by a message provider implementation to actually send a
- * message to destination Nodes, Places, or Agents
+ * Tests functionality common to all implementations of messaging
  */
-public class MASSMessage< T extends Serializable > implements Serializable {
+public class MASSMessagingTest extends AbstractTest {
 
-	private int destinationAddress;
-	private T message;
-	
-	public MASSMessage( int destinationAddress, T message ) {
-	
-		this.destinationAddress = destinationAddress;
-		this.message = message;
+	@Test
+	public void getRandomMulticastAddress() throws Exception {
+
+		// must get *something* from calling this method
+		String address = MASSMessaging.getRandomMulticastAddress();
+		assertThat( address ).as( "Must return an IP address!" ).isNotNull();
 		
-	}
-	
-	public int getDestinationAddress() {
-		return destinationAddress;
-	}
-	
-	public T getMessage() {
-		return message;
+		
+		
+		
+		
+		
+		
 	}
 	
 }
