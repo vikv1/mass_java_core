@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -62,18 +62,22 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	
 	private final IdleStrategy idle = new SleepingIdleStrategy();
 	
+	// individual subscriptions per channel
 	Subscription agentSubscription = null;
 	Subscription placeSubscription = null;
 	Subscription nodeSubscription = null;
 
+	// publications for transmitting messages, one per channel
 	Publication agentPublication = null;
 	Publication placePublication = null;
 	Publication nodePublication = null;
 	
+	// subscriber threads for receiving and assembling messages (Java objects)
 	Subscriber agentSubscriber = null;
 	Subscriber placeSubscriber = null;
 	Subscriber nodeSubscriber = null;
 	
+	// buffers for transmitting messages
 	final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
 	final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
 	final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
@@ -158,6 +162,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		
 	}
 
+	// Subscriber accepts messages for a channel and builds up buffers for deserialization into Java objects
 	private class Subscriber extends Thread {
 
 		FragmentHandler fragmentHandler;
@@ -181,8 +186,11 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 
 			MASSBase.getLogger().debug( "Aeron messaging subscriber starting up..." );
 			
+			// assembler's job is to take fragmented messages (ones too large for a single packet)
+			// and build a single message from it
 			final FragmentAssembler assembler = new FragmentAssembler( fragmentHandler );
 
+			// continue polling until shutdown method is called
 			while ( running.get() ) {
 
 				final int fragmentsRead = subscription.poll( assembler, limit );
@@ -194,12 +202,18 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 			
 		}
 		
+		// request shutdown of message subscriber
 		public void shutdown() {
 			running.set( false );
 		}
 		
 	}
 	
+    /* 
+     * This method is called upon receiving a message on the "Agent" channel.
+     * It's job is to take a populated buffer, convert the bytes back to a 
+     * java object (deserialize), and pass the message off for delivery
+     */
     private FragmentHandler receiveAgentMessage() {
         
     	return ( buffer, offset, length, header ) -> {
@@ -226,6 +240,11 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
     
     }
 
+    /* 
+     * This method is called upon receiving a message on the "Place" channel.
+     * It's job is to take a populated buffer, convert the bytes back to a 
+     * java object (deserialize), and pass the message off for delivery
+     */
     private FragmentHandler receivePlaceMessage() {
         
     	return ( buffer, offset, length, header ) -> {
