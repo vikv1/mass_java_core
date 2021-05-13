@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.agrona.BufferUtil;
+import org.agrona.CloseHelper;
 import org.agrona.concurrent.IdleStrategy;
 import org.agrona.concurrent.SleepingIdleStrategy;
 import org.agrona.concurrent.UnsafeBuffer;
@@ -63,24 +64,26 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	private final IdleStrategy idle = new SleepingIdleStrategy();
 	
 	// individual subscriptions per channel
-	Subscription agentSubscription = null;
-	Subscription placeSubscription = null;
-	Subscription nodeSubscription = null;
+	private Subscription agentSubscription = null;
+	private Subscription placeSubscription = null;
+	private Subscription nodeSubscription = null;
 
 	// publications for transmitting messages, one per channel
-	Publication agentPublication = null;
-	Publication placePublication = null;
-	Publication nodePublication = null;
+	private Publication agentPublication = null;
+	private Publication placePublication = null;
+	private Publication nodePublication = null;
 	
 	// subscriber threads for receiving and assembling messages (Java objects)
-	Subscriber agentSubscriber = null;
-	Subscriber placeSubscriber = null;
-	Subscriber nodeSubscriber = null;
+	private Subscriber agentSubscriber = null;
+	private Subscriber placeSubscriber = null;
+	private Subscriber nodeSubscriber = null;
 	
 	// buffers for transmitting messages
-	final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
-	final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
-	final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	private final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	private final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	private final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	
+	private MediaDriver mediaDriver = null;
 	
 	final AtomicBoolean running = new AtomicBoolean( true );
 
@@ -92,7 +95,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		String url = AERON_URL_PREFIX + clusterCommunicationsAddress + AERON_URL_SUFFIX;
 		
         // Create an embedded media driver within this application
-		MediaDriver mediaDriver = MediaDriver.launchEmbedded();
+		mediaDriver = MediaDriver.launchEmbedded();
         
         // create context, using default temporary directory for memory-mapped IO
 		Aeron.Context ctx = new Aeron.Context();
@@ -102,7 +105,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         // set up subscriptions to receive messages
         agentSubscription = aeron.addSubscription( url, AGENT_COMMS_STREAM_ID );
         placeSubscription = aeron.addSubscription( url, PLACE_COMMS_STREAM_ID );
-        nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
+//        nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
         
         // associate handlers with subscriptions
         agentSubscriber = new Subscriber( receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
@@ -115,7 +118,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         // set up publications to transmit messages
         agentPublication = aeron.addPublication( url, AGENT_COMMS_STREAM_ID );
         placePublication = aeron.addPublication( url, PLACE_COMMS_STREAM_ID );
-        nodePublication = aeron.addPublication( url, NODE_COMMS_STREAM_ID );
+//        nodePublication = aeron.addPublication( url, NODE_COMMS_STREAM_ID );
         
 	}
 
@@ -142,7 +145,12 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		placeSubscriber.shutdown();
 //		nodeSubscriber.shutdown();
 		
-		aeron.close();
+		agentPublication.close();
+		placePublication.close();
+//		nodePublication.close();
+		
+		CloseHelper.quietClose( aeron );
+		CloseHelper.quietClose( mediaDriver );
 	
 	}
 
