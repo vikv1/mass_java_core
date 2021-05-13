@@ -436,7 +436,7 @@ public class MASS extends MASSBase {
 
 			// cluster communications address, if defined
 			if ( clusterCommunicationsAddress != null ) {
-				commandBuilder.append( MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
+				commandBuilder.append( " " + MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
 			}
 			
     		// debug
