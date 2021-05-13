@@ -30,9 +30,9 @@
 
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASS;
@@ -43,8 +43,8 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 public abstract class AbstractMessagingProviderImpl implements MessagingProvider {
 
 	// references to all Agents and Places located on this node - for delivery of messages
-	private Map< Integer, Agent > agents = new HashMap<>();
-	private Map< Integer, Place > places = new HashMap<>();
+	private Map< Integer, Agent > agents = new ConcurrentHashMap<>();
+	private Map< Integer, Place > places = new ConcurrentHashMap<>();
 	
 	@Override
 	public void registerAgent(Agent agent) {
