@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -42,6 +42,7 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public abstract class AbstractMessagingProviderImpl implements MessagingProvider {
 
+	// references to all Agents and Places located on this node - for delivery of messages
 	private Map< Integer, Agent > agents = new HashMap<>();
 	private Map< Integer, Place > places = new HashMap<>();
 	
@@ -111,7 +112,7 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		
 		else {
 			
-			// addressed to a single Places
+			// addressed to a single Place
 			Place place = places.get( message.getDestinationAddress() );
 			
 			// deliver the message

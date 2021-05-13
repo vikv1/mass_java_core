@@ -85,9 +85,9 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	
 	private MediaDriver mediaDriver = null;
 	
-	final AtomicBoolean running = new AtomicBoolean( true );
+	private final AtomicBoolean running = new AtomicBoolean( true );
 
-	Aeron aeron = null;
+	private Aeron aeron = null;
 	
 	@Override
 	public void init( String clusterCommunicationsAddress ) {
