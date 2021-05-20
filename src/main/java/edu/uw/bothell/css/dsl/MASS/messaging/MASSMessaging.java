@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -56,16 +56,14 @@ import edu.uw.bothell.css.dsl.MASS.messaging.aeron.AeronMessagingProvider;
  */
 public class MASSMessaging {
 
-	// the actual messaging implementation
+    // the actual messaging implementation
 	private MessagingProvider messagingProviderImpl = new AeronMessagingProvider();
-	
+
 	// local message queues
 	private Queue< MASSMessage< Serializable > > placeMessageQueue = new ConcurrentLinkedQueue<>();
+
 	private Queue< MASSMessage< Serializable > > agentMessageQueue = new ConcurrentLinkedQueue<>();
 
-	// Cryptographically-strong random number generation
-	private static SecureRandom sRand = new SecureRandom();
-	
 	/**
      * Initializes singleton.
      *
@@ -75,14 +73,63 @@ public class MASSMessaging {
     private static class SingletonHolder {
     	private static final MASSMessaging INSTANCE = new MASSMessaging();
     }
-
-    /**
+	
+	// Cryptographically-strong random number generation
+	private static SecureRandom sRand = new SecureRandom();
+	/**
      * Return this instance of the messaging provider, which is effectively a Singleton
      * @return The single instance of this messenger implementation
      */
     public static MASSMessaging getInstance() {
     	return SingletonHolder.INSTANCE;
     }
+
+	/**
+	 * Get a random IPv4 address within the local multicast group range
+	 * @return A random IPv4 address ("dotted quad") within the multicast address space
+	 */
+	public static String getRandomMulticastAddress() {
+		return "239." + sRand.nextInt(256) + "." + sRand.nextInt(256) + ".1";
+	}
+	
+	/**
+	 * Get a random port number
+	 * @return A random port number, in the range 1024-65535
+	 */
+	public static int getRandomPort() {
+		return 1024 + sRand.nextInt( 64512 ); 
+	}
+
+	/**
+	 * Flush (transmit) all queued Agent messages
+	 */
+	public void flushAgentMessages() {
+		Stream.generate( agentMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendAgentMessage( message ) );
+	}
+
+	/**
+	 * Flush (transmit) all queued Place messages
+	 */
+	public void flushPlaceMessages() {
+		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
+	}
+
+	protected Set<Agent> getLocalAgents() {
+		
+		Set<Agent> localAgents = new HashSet<>();
+		
+		// obtain the custom collection of local agents
+		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
+		
+		// reset list to starting position and iterate through collection
+		agentList.setIterator();
+		while ( agentList.hasNext() ) {
+			localAgents.add( agentList.next() );
+		}
+
+		return localAgents;
+		
+	}
 
 	/**
 	 * Initialize the message provider
@@ -150,7 +197,7 @@ public class MASSMessaging {
 		addresses.forEach( destination -> sendAgentMessage( destination, message ) );
 		
 	}
-
+	
 	/**
 	 * Send a message to a single cluster Node
 	 * @param address The ID of the Node that will receive the message
@@ -177,7 +224,7 @@ public class MASSMessaging {
 		sendNodeMessage( destination.getValue(), message );
 		
 	}
-
+	
 	/**
 	 * Send a message to multiple cluster Nodes
 	 * @param addresses A Set of addresses representing which Nodes should receive this message
@@ -232,7 +279,7 @@ public class MASSMessaging {
 		sendPlaceMessage( destination.getValue(), message );
 
 	}
-
+	
 	/**
 	 * Send a message to multiple Places
 	 * @param addresses A Set of linear indices representing which Places should receive this message
@@ -248,19 +295,13 @@ public class MASSMessaging {
 	}
 	
 	/**
-	 * Flush (transmit) all queued Agent messages
+	 * Override the messaging provider - mainly for unit testing purposes
+	 * @param provider The messaging provider to use
 	 */
-	public void flushAgentMessages() {
-		Stream.generate( agentMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendAgentMessage( message ) );
+	protected void setMessagingProvider( MessagingProvider provider ) {
+		this.messagingProviderImpl = provider;
 	}
-
-	/**
-	 * Flush (transmit) all queued Place messages
-	 */
-	public void flushPlaceMessages() {
-		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
-	}
-
+	
 	/**
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown
 	 */
@@ -270,40 +311,7 @@ public class MASSMessaging {
 		messagingProviderImpl.shutdown();
 		
 	}
-	
-	protected Set<Agent> getLocalAgents() {
-		
-		Set<Agent> localAgents = new HashSet<>();
-		
-		// obtain the custom collection of local agents
-		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
-		
-		// reset list to starting position and iterate through collection
-		agentList.setIterator();
-		while ( agentList.hasNext() ) {
-			localAgents.add( agentList.next() );
-		}
 
-		return localAgents;
-		
-	}
-	
-	/**
-	 * Get a random IPv4 address within the local multicast group range
-	 * @return A random IPv4 address ("dotted quad") within the multicast address space
-	 */
-	public static String getRandomMulticastAddress() {
-		return "239." + sRand.nextInt(256) + "." + sRand.nextInt(256) + ".1";
-	}
-	
-	/**
-	 * Get a random port number
-	 * @return A random port number, in the range 1024-65535
-	 */
-	public static int getRandomPort() {
-		return 1024 + sRand.nextInt( 64512 ); 
-	}
-	
 	/**
 	 * Unregister an Agent from the messaging provider
 	 * @param agent The Agent to unregister
@@ -311,7 +319,7 @@ public class MASSMessaging {
 	public void unregisterAgent(Agent agent) {
 		messagingProviderImpl.unregisterAgent(agent);
 	}
-
+	
 	/**
 	 * Unregister a Place from the messaging provider
 	 * @param place The Place to unregister
