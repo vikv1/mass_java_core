@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -66,20 +66,20 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
-    private int[] nextIndex;
+    protected int[] nextIndex;
     private final int handle;
     private final String className;
-    private int lowerBoundary;
-    private int upperBoundary;
-    private int placesSize;
+    protected int lowerBoundary;
+    protected int upperBoundary;
+    protected int placesSize;
     private int[] size;
-    private int shadowSize;
+	private int shadowSize;
     private int boundaryWidth;
-    private Place[] places;
+    protected Place[] places;
     private Place[] leftShadow;
     private Place[] rightShadow;
-    private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-    private EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+    protected ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    protected EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
 
 	/**
 	 * Instantiate a PlacesBase for this node
@@ -1521,4 +1521,13 @@ public class PlacesBase {
     	placesSize = 0;
     	places = null;
 	}
+    
+    /**
+     * Override simulation space size
+     * @param size Matrix dimensions, as an array of integers representing dimension sizes
+     */
+    protected void setSize(int[] size) {
+		this.size = size;
+	}
+
 }

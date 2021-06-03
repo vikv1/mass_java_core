@@ -426,6 +426,25 @@ public class MProcess {
 				// yes, there is a "break" after system exit. just keeping things tidy.
 				break;
 
+			case SPACE_PLACES_INITIALIZE:
+
+				MASSBase.getLogger().debug("SPACE_PLACES_INITIALIZE received");
+
+				// create a new SpacePlaces
+				places = new SpacePlacesBase(m.getHandle(), m.getClassname(), m.getDimensions(), m.getGranularity(), m.getMin(),
+					m.getMax(), m.getSize(), argument);
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+				MASSBase.getPlacesMap().put( m.getHandle(), places );
+				
+				SpacePlacesBase curPlaces = (SpacePlacesBase) MASSBase.getPlacesMap().get(m.getHandle());
+
+				sendAck();
+				MASSBase.getLogger().debug("SPACE_PLACES_INITIALIZE completed and ACK sent");
+			
+				break;
+
 			case PLACES_INITIALIZE:
 
 				MASSBase.getLogger().debug("PLACES_INITIALIZE received");
@@ -604,14 +623,28 @@ public class MProcess {
 
 				break;
 
+			case AGENTS_INITIALIZE_SPACE:
+
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE_SPACE received");
+
+				agents = new AgentsBase(m.getHandle(), m.getClassname(), m.getInputArgument(), argument, m.getDestHandle());
+
+				MASSBase.getAgentsMap().put(m.getHandle(), agents);
+
+				sendAck(agents.getLocalPopulation());
+
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE_SPACE completed and ACK sent");
+
+				break;
+
 			case AGENTS_CALL_ALL_VOID_OBJECT:
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
-				MASSBase.setCurrentFunctionId( m.getFunctionId() );
-				MASSBase.setCurrentArgument( argument );
-				MASSBase.setCurrentMsgType( m.getAction() );
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
@@ -791,6 +824,16 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX completed");
 				break;
 
+			case MAINTENANCE_REMOVE_NEIGHBOR:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR received");
+
+				places = MASS.getPlaces(m.getHandle());
+				((GraphPlaces) places).removeNeighborFromLocalVertices((Integer) m.getArgument());
+				sendAck();
+				
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR completed");
+				break;
+
 			case MAINTENANCE_REMOVE_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
 				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_EDGE is deprecated " +
@@ -891,6 +934,28 @@ public class MProcess {
 				graphPlaces.reinitialize();
 
 				sendAck();
+
+				break;
+
+			case AGENTS_MANAGE_ALL_SPACE:
+
+				MASSBase.getLogger().debug("AGENTS_MANAGE_ALL_SPACE received");
+
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(m.getHandle()));
+				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
+
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+				MASSBase.getCurrentAgentsBase().manageAll_space(0); // 0 = the main
+																// tid
+
+				// confirm all threads are done with agents.manageAll_space.
+				MThread.barrierThreads(0);
+
+				MASSBase.getLogger().debug("sendAck will send localPopulation = {}",
+						MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
 
 				break;
 			

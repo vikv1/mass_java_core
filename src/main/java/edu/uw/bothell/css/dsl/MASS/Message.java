@@ -37,7 +37,9 @@ import java.util.Vector;
 public class Message implements Serializable {
 
 	// until a valid handle ID is supplied, this value is used
-	public static final int VOID_HANDLE = -1;
+  public static final int VOID_HANDLE = -1;
+  public static final int VOID_DIMENSIONS = -1;
+  public static final int VOID_GRANULARITY = -1;
 
 	/**
 	 * ACTION_TYPE
@@ -66,6 +68,9 @@ public class Message implements Serializable {
         AGENTS_MIGRATION_REMOTE_REQUEST,          // 16
 		AGENTS_EXCHANGE_ALL,					  // 17
 
+		SPACE_PLACES_INITIALIZE,				// 17
+		AGENTS_INITIALIZE_SPACE,				// 18
+		AGENTS_MANAGE_ALL_SPACE,				// 19
 
 		PLACES_INITIALIZE_GRAPH("PLACES_INITIALIZE_GRAPH"),
 
@@ -91,6 +96,7 @@ public class Message implements Serializable {
         // Graph maintenance messages.
         MAINTENANCE_ADD_VERTEX("Maintenance.addVertex"),
         MAINTENANCE_REMOVE_VERTEX("Maintenance.removeVertex"),
+        MAINTENANCE_REMOVE_NEIGHBOR("Maintenance.removeNeighbor"),
         MAINTENANCE_GET_VERTEX("Maintenance.getVertex"),
         MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
         MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
@@ -121,11 +127,17 @@ public class Message implements Serializable {
     
     private ACTION_TYPE action;
     private int[] size = null;
+    private int dimensions = VOID_DIMENSIONS;
+    private int granularity = VOID_GRANULARITY;
+    private double[] min = null;
+    private double[] max = null;
     private int handle = VOID_HANDLE;
     private int destinationHandle = VOID_HANDLE;
     private int functionId = 0;
     private String classname = null;      // classname.class must be located in CWD.
+    private String filename = null;
     private Object argument = null;
+    private Object input_argument = null;
     private Vector<String> hosts = null; // all hosts participated in computation
     private Vector<int[]> destinations = null; // all destinations of exchangeAll
     private int agentPopulation = -1;
@@ -212,6 +224,25 @@ public class Message implements Serializable {
     }
 
     /**
+     * Construct a Message used for AGENTS_INITIALIZE_SPACE action ------------ yuna
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param placeHandle The handle ID for the referenced Place
+     * @param className The name of the class representing the Agent
+     * @param argument An argument to be passed to the Agent during initialization
+     */
+    public Message( ACTION_TYPE action, int handle, int placeHandle, String className, Object input_argument, Object argument ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.destinationHandle = placeHandle;
+    	this.classname = className;
+      this.argument = argument;
+      this.input_argument = input_argument;
+
+    }
+
+    /**
      * Construct a Message primarily used for PLACES_EXCHANGE_ALL action
      * @param action The ACTION_TYPE of this Message
      * @param handle The source handle ID
@@ -250,7 +281,7 @@ public class Message implements Serializable {
 
     /**
      * Construct a Message primarily used for PLACES_CALL_ALL_VOID_OBJECT, PLACES_CALL_ALL_RETURN_OBJECT,
-     * AGENTS_CALL_ALL_VOID_OBJECT, and AGENTS_CALL_ALL_RETURN_OBJECT actions
+     * AGENTS_CALL_ALL_VOID_OBJECT, AGENTS_CALL_ALL_RETURN_OBJECT and GET_LIVE_AGENTS actions
      * @param action The ACTION_TYPE of this Message
      * @param handle The source handle ID
      * @param functionId The ID of the function to call/was called
@@ -304,6 +335,31 @@ public class Message implements Serializable {
     }
 
     /**
+     * Construct a Message primarily used for SPACE_PLACES_INITIALIZE
+     * @param action The ACTION_TYPE of this Message
+     * @param size The simulation space sizes/dimensions
+     * @param handle The source handle ID
+     * @param classname The name of the class representing the Place
+     * @param argument An argument to be passed to the Place during initialization
+     * @param boundaryWidth The boundary width of the Place
+     * @param hosts A collection of hostnames that are members of the cluster
+     */
+    public Message(ACTION_TYPE action, int[] size, int handle,  int dimensions, int granularity, 
+      String classname, double[] min, double[] max, Object argument, Vector<String> hosts ) {
+      
+      this.action = action;
+      this.size = size.clone();
+      this.handle = handle;
+      this.dimensions = dimensions;
+      this.granularity = granularity;
+      this.classname = classname;
+      this.min = min.clone();
+      this.max = max.clone();
+    	this.argument = argument;
+    	this.hosts = hosts;
+    }
+
+    /**
      * Construct a Message primarily used for PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT and 
      * PLACES_EXCHANGE_BOUNDARY_REMOTE_REQUEST, and as an ACK for PLACES_CALL_ALL_RETURN_OBJECT
      * @param action The ACTION_TYPE of this Message
@@ -317,7 +373,8 @@ public class Message implements Serializable {
     }
 
     /**
-     * ACK used for AGENTS_CALL_ALL_RETURN_OBJECT and AGENT_ASYNC_RESULT
+     * ACK used for AGENTS_CALL_ALL_RETURN_OBJECT, Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT_SINGLE_ARGUMENT
+     *  and AGENT_ASYNC_RESULT
      * @param action The ACTION_TYPE of this Message
      * @param argument An argument to be passed to the Agent
      * @param localPopulation The number of local Agents
@@ -337,6 +394,18 @@ public class Message implements Serializable {
    public ACTION_TYPE getAction( ) { 
     	return action;
     }
+
+    public int getDimensions( ) { 
+    	return dimensions;
+    }
+
+    public int getGranularity( ) { 
+    	return granularity;
+    }
+
+    public String getFilename( ) { 
+    	return filename;
+    }
     
    /**
     * Get the Agent Populations
@@ -352,6 +421,10 @@ public class Message implements Serializable {
      */
     public Object getArgument( ) { 
     	return argument;
+    }
+
+    public Object getInputArgument() {
+      return input_argument;
     }
     
     /**
@@ -432,6 +505,14 @@ public class Message implements Serializable {
      */
     public int[] getSize( ) { 
     	return size; 
+    }
+
+    public double[] getMin() {
+      return min;
+    }
+
+    public double[] getMax() {
+      return max;
     }
     
     /**
