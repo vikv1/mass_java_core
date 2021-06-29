@@ -57,7 +57,7 @@ public class AgentSerializer
 //    private static final int KRYO_SERIALIZATION_CLASS_REG_BASE_ID = 10;
 
     // Max number of agent (default 40)
-    private int maxNumberOfAgents = 1000000;
+    private int maxNumberOfAgents = 40;
 
     // Serializer
     //private Kryo kryo;
