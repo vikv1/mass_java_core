@@ -31,20 +31,11 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Arrays;
-import java.util.Vector;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
-import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
-import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
-import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
-public class SpacePlacesBase extends PlacesBase {
+public class SpacePlacesBase extends Places {
     
 	private String inputFile;
     private int dimensions;
