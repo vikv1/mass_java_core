@@ -97,6 +97,9 @@ public class Message implements Serializable {
         MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
         MAINTENANCE_ADD_EDGE_V2("Maintenance.addEdgeV2"),
 
+        // HIPPIE Related Messages
+        MAINTENANCE_BULK_GRAPH_HIPPIE_OPS("Maintenance.bulkGraphHippieOps"),
+
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
 
