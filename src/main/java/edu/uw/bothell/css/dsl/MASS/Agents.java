@@ -61,25 +61,31 @@ public class Agents extends AgentsBase {
    */
   public Agents(int handle, String className, Object argument, Places places, int initPopulation) {
 
-	  super(handle, className, argument, places.getHandle(), initPopulation);
-	  localAgents = new int[MASSBase.getSystemSize()];
-	  initMaster(argument);
+    super(handle, className, argument, places.getHandle(), initPopulation);
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster(argument);
+  }
+  
+  //constructor for Space
+  public Agents(int handle, String className, Object input_argument, Object init_argument, SpacePlaces places) {
 
+    super(handle, className, input_argument, init_argument, places.getHandle());
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster_space(input_argument, init_argument);
   }
 
-  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
-
+  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {   
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
+    MASS.getLogger().debug("*************** callAllSetup ***************");
+    MASS.getLogger().debug("functionId = " + functionId);
     Message m = null;
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
 
       // create a message
-      if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
-
+      if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
         m = new Message(type, this.getHandle(), functionId, argument);
-
-      else {
+      } else {
 
         // calculate argument position
         int argumentPosition = 0;
@@ -90,19 +96,20 @@ public class Agents extends AgentsBase {
                     + " localAgents[" + (dest + 1) + "] = "
                     + localAgents[dest + 1]);
 
-        }
+        } 
 
         Object[] partitionedArgument = new Object[localAgents[i + 1]];
 
-        MASS.getLogger().debug("argument " + ((Object[]) argument).length + "partitionedArgument "+ partitionedArgument.length); 
-        System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0,
-            localAgents[i + 1]);
+        // modified by Yuna - to deal with the case that argument = null
+        if (argument != null) {
+          System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0, localAgents[i + 1]);
+        } else {
+          partitionedArgument = null;
+        }
 
-        m = new Message(type, this.getHandle(), functionId,
-            partitionedArgument);
+        m = new Message(type, this.getHandle(), functionId,partitionedArgument);
 
-        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)
-              + "] arg_pos = " + argumentPosition);
+        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)+ "] arg_pos = " + argumentPosition);
 
       }
 
@@ -111,8 +118,7 @@ public class Agents extends AgentsBase {
 
       MASS.getLogger().debug("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
-      MASS.getLogger().debug("Bag Size is: "
-            + MASSBase.getAgentsMap().get( getHandle() )
+      MASS.getLogger().debug("Bag Size is: " + MASSBase.getAgentsMap().get( getHandle() )
                 .getAgents().size_unreduced());
 
     }
@@ -225,6 +231,74 @@ public class Agents extends AgentsBase {
 
   }
 
+  //---------------------------Yuna modified------------------------------
+  private void initMaster_space(Object input_argument, Object init_argument) {
+
+    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+    if (MASSBase.getHosts().isEmpty()) {
+      System.err.println("Agents(" + getClassName() + ") can't be created without Places!!");
+      System.exit(-1);
+    }
+
+    // create a new list for message
+    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_SPACE, getHandle(), getPlacesHandle(), getClassName(), input_argument, init_argument);
+
+    // send a AGENT_INITIALIZE message to each slave
+    for (MNode node : MASS.getRemoteNodes()) {
+
+      node.sendMessage(m);
+      MASS.getLogger().debug("AGENT_INITIALIZE_SPACE sent to {}", node.getPid());
+    
+    }
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    // register this agents in the places hash map
+    MASSBase.getAgentsMap().put( getHandle(), this);
+
+  }
+
+  /**
+   * manageAll() for Space class  ------------- modified by Yuna
+   */
+  public void manageAllSpace() {
+    
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_space(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+  
   /**
    * Updates each agent’s status, based on each of its latest migrate( ),
    * spawn( ), and kill( ) calls. These methods are defined in the Agent base
