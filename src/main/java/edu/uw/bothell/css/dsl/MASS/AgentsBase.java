@@ -308,7 +308,7 @@ public class AgentsBase {
 		}
 
 		if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
-			// TODO: This should probably be a function in GraphPlaces or maybe a brand-new GraphAgents
+			// TODO: This should probably be a function in a GraphAgent implementation.
 			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
 		}
 
@@ -321,20 +321,16 @@ public class AgentsBase {
 	}
 
 	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
-		// TODO: Hack for Agent#map
-		protoAgent.setPlace(new VertexPlace());
-
 		// scan each place to see how many agents it can create
-		Vector<Vector<VertexPlace>> places = graphPlaces.getPlacesVector();
+		Vector<VertexPlace> places = graphPlaces.getGraphPlaces();
 
-		int graphSize = places.stream().mapToInt(layer -> layer.size()).sum();
+		int graphSize = places.size();
 
 		int[] placesSize = { graphSize };
 
-		places.forEach(layer -> layer.forEach(vertexPlace -> {
-			// create as many new agents as nColonists
-			// Used graphSize as offset. 
-			// Changes from Jonathan 
+		places.forEach(vertexPlace -> {
+			if (vertexPlace == null) { return; }
+			
 			for (int nColonists =
 					protoAgent.map( initPopulation, placesSize,
 							vertexPlace.getIndex(), graphSize);
@@ -373,7 +369,7 @@ public class AgentsBase {
 				// Agent has arrived at a Place
 				eventDispatcher.queueAsync(OnArrival.class, newAgent);
 			}
-		}));
+		});
 	}
 
 	public void callAll( int functionId, Object argument, int tid ) {
