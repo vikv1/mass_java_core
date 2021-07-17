@@ -99,6 +99,7 @@ public class Message implements Serializable {
 
         // HIPPIE Related Messages
         MAINTENANCE_BULK_GRAPH_HIPPIE_OPS("Maintenance.bulkGraphHippieOps"),
+        MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB("Maintenance.hippieAddEdgeAttrib"),
 
         // Re-Initialize
         MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),

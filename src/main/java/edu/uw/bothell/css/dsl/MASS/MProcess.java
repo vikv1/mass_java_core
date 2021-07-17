@@ -804,6 +804,26 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS completed");
 				break;
+			
+			case MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB:
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB received");
+
+				places = MASS.getPlaces(m.getHandle());
+				hippiePlaces = (Hippie)places;
+
+				Object[] edgeArgs = (Object[])argument;
+
+				hippiePlaces.addEdgeAttributesOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0], 
+					(Integer)edgeArgs[1], 
+					(String)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB completed");
+				break;
 
 			case MAINTENANCE_GET_PLACES:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");

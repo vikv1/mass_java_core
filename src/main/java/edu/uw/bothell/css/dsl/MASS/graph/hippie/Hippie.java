@@ -10,6 +10,7 @@ import edu.uw.bothell.css.dsl.MASS.GraphPlaces;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.*;
 import edu.uw.bothell.css.dsl.MASS.Message;
+import edu.uw.bothell.css.dsl.MASS.MNode;
 
 // Hippie is a class that extends GraphPlaces for use with HIPPIE graph data.
 public class Hippie extends GraphPlaces implements Serializable {
@@ -108,6 +109,44 @@ public class Hippie extends GraphPlaces implements Serializable {
         return (HippieVertex) super.getVertex(vertex);
     }
 
+    @Override
+    public int addVertexWithParams(Object vertexInitParam) {
+        int id = super.addVertexWithParams(vertexInitParam);
+
+        // Associate ID with HIPPIE Key/ID
+        VertexInitData params = (VertexInitData)vertexInitParam;
+        MASS.distributed_map.put(params.ID, id);
+        MASS.distributed_map.put(params.Key, id);
+
+        return id;
+    }
+
+    // addEdge adds an edge to the HippieGraph with the provided weight and
+    // attributes.
+    public boolean addEdge(int vertexID, int neighborID, double weight, String attributes) {
+        // Check vertexId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return addEdgeOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID,
+            weight,
+            attributes
+        );
+    }
+
     // addEdgeOnNode adds an edge on the provided node between the provided 
     // vertex and neighbor IDs, populated with the provided weight and 
     // attributes.
@@ -120,10 +159,91 @@ public class Hippie extends GraphPlaces implements Serializable {
             return true;
         }
 
+        return addEdgeAttributesOnNode(nodeID, vertexID, neighborID, attributes);
+    }
+
+    // addEdgeAttributes adds the provided attributes to the edge between the
+    // provided vertex and neighbor IDs.
+    public boolean addEdgeAttributes(int vertexID, int neighborID, String attributes) {
+        // Check vertexId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+            
+            return false; 
+        }
+
+        // Check neighborId exists
+        if (MASS.getMyPid() == 0 && 
+            vertexID >= nextVertexID || idQueue.contains(vertexID)) { 
+                
+            return false; 
+        }
+
+        return addEdgeAttributesOnNode(
+            getOwnerID(vertexID),
+            vertexID,
+            neighborID,
+            attributes
+        );
+    }
+
+    // addEdgeAttributesOnNode adds the provided attributes to the edge between the
+    // provided vertex and neighbor IDs. nodeID is the node that owns the 
+    // source vertex of the edge.
+    public boolean addEdgeAttributesOnNode(int nodeID, int vertexID, int neighborID, String attributes) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to add the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return addRemoteEdgeAttribute(nodeID, vertexID, neighborID, attributes);
+        }
+
+        // Get local index and size of places array
         int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
         HippieVertex vert = (HippieVertex) places.get(localIndex);
         vert.addEdgeAttributes(neighborID, attributes);
         places.set(localIndex, vert);
+
+        return true;
+    }
+
+    // addRemoteEdgeAttribute adds the provided attributes to the edge owned by the 
+    // remote node, between the provided vertex and neighbor IDs. 
+    private boolean addRemoteEdgeAttribute(int nodeID, int vertexID, int neighborID, String attributes) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+            Message.ACTION_TYPE.MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB,
+            getHandle(),
+            new Object[]{vertexID, neighborID, attributes}
+        );
+        
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message systems currently only returns ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
 
         return true;
     }
