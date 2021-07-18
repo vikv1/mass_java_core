@@ -278,7 +278,6 @@ public class Matsim extends GraphPlaces implements Serializable {
                         val = xsr.getAttributeValue(null, "modes");
                         link.modes = val != null ? val : "";
 
-                        MatsimOp op = new MatsimOp(link);
                         cacheEdge(link);
                     }
                 }
@@ -333,8 +332,6 @@ public class Matsim extends GraphPlaces implements Serializable {
             if (op.funcID == MatsimOp.FUNC_ADD_VERTEX) {
                 MatsimVertexInitData vid = new MatsimVertexInitData(op.vertID, op.vertX, op.vertY, op.vertType);
                 addVertexOnNode(myPid, op.sourceID, vid);
-            } else if (op.funcID == MatsimOp.FUNC_ADD_EDGE) {
-                // addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
             }
         }
 
