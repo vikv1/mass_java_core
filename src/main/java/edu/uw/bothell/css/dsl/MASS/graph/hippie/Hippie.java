@@ -5,7 +5,6 @@ import java.io.*;
 import java.nio.file.*;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.GraphPlaces;
 import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.*;
@@ -44,6 +43,11 @@ public class Hippie extends GraphPlaces implements Serializable {
             return "[" + this.sourceID + ", " + this.destID + ", " + this.edgeWeight + ", " + this.extendedAttribs + "]";
         }
     }
+
+    // MAX_OPERATIONS_BUFFER indicates the max number of Graph operations
+    // that can be stored in the operations cache before a flush is 
+    // required.
+    public static final int MAX_OPERATIONS_BUFFER = 500000;
 
     // cachedOperations is an operations cache used to record graph operations
     // for future distribution to cluster nodes.
@@ -251,7 +255,6 @@ public class Hippie extends GraphPlaces implements Serializable {
     // populate_graph populates the hippie graph with data from the HIPPIE file found
     // at the provided file path.
     private void populate_graph(String path) throws IOException,FileNotFoundException {
-        MASSBase.getLogger().debug("GraphPlaces - init_all_graph::hippie");
         Path filePath = Paths.get(path);
 
         BufferedReader br = new BufferedReader(new FileReader(filePath.toString()));

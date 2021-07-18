@@ -80,14 +80,6 @@ public class GraphPlaces extends Places implements Graph {
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
-    // MAX_OPERATIONS_BUFFER indicates the max number of Graph operations
-    // that can be stored in the operations cache before a flush is 
-    // required.
-    // 
-    // Back of napkin math: Assume ~72 bytes per cached operation which
-    // sets our max cache size to 36 MB.
-    public static final int MAX_OPERATIONS_BUFFER = 500000;
-
     /**
      * Constructs a GraphPlaces object populated with data from the 
      * "graph_n.txt" CSV text file.
