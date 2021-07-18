@@ -43,4 +43,7 @@ public class MATSimNetworkNode {
 
     @XmlAttribute
     public double y;
+
+	@XmlAttribute
+	public int type;
 }
