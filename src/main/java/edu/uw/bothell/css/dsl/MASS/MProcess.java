@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie.*;
 import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.VertexInitData;
 import edu.uw.bothell.css.dsl.MASS.graph.hippie.*;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.*;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.*;
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
 import edu.uw.bothell.css.dsl.MASS.GraphPlaces.InitArgs;
 import java.lang.reflect.*;
@@ -856,6 +859,51 @@ public class MProcess {
 				sendAck();
 
 				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB completed");
+				break;
+			
+			case MAINTENANCE_BULK_GRAPH_MATSIM_OPS:
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS received");
+
+				places = MASS.getPlaces(m.getHandle());
+				Matsim matsimPlaces = (Matsim)places;
+
+				ArrayList<MatsimOp> matsimOps = (ArrayList<MatsimOp>)argument;
+
+				myPid = MASS.getMyPid();
+
+				for (MatsimOp op : matsimOps) {
+					if (op.funcID == MatsimOp.FUNC_ADD_VERTEX) {
+						MatsimVertexInitData vid = new MatsimVertexInitData(op.vertID, op.vertX, op.vertY, op.vertType);
+						matsimPlaces.addVertexOnNode(myPid, op.sourceID, vid);
+					} else if (op.funcID == MatsimOp.FUNC_ADD_EDGE) {
+						matsimPlaces.addEdgeOnNode(myPid, op.sourceID, op.destID, op.edge);
+					}
+				}
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS completed");
+				break;
+			
+			case MAINTENANCE_MATSIM_ADD_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
+				matsimPlaces = (Matsim)places;
+
+				edgeArgs = (Object[])argument;
+
+				matsimPlaces.addEdgeOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0],
+					(Integer)edgeArgs[1],
+					(MatsimEdge)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE completed");
+
 				break;
 
 			case MAINTENANCE_GET_PLACES:
