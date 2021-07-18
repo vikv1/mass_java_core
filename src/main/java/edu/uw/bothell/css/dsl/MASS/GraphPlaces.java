@@ -186,6 +186,29 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * Instantiates a new GraphPlaces instance, initalized with data from the 
+     * provided DSL Graph file.
+     * 
+     * @param handle The handle associated with this GraphPlaces Instance.
+     * @param className The class name of the Vertex class.
+     * @param filePath The path to the Distributed Systems Lab (DSL) Graph File.
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    public GraphPlaces(int handle, String className, String filePath) throws IOException,FileNotFoundException {
+        super(handle, className);
+
+        int myPid = MASS.getMyPid();
+
+        if (myPid == 0) {
+            init_graph_master();
+        }
+
+        loadDSLFile(filePath);
+    }
+
+    /**
      * GraphPlaces constructor for initializing graph places with a graph file.
      * 
      * @param handle The places handle.
@@ -250,7 +273,7 @@ public class GraphPlaces extends Places implements Graph {
 
     // InitArgs are initialization args to be passed to instances of 
     // GraphPlaces that are being instantiated on remote nodes.
-    public class InitArgs implements Serializable {
+    public static class InitArgs implements Serializable {
         public int handle;
         public String className;
         public String vertexClassName;
@@ -1390,6 +1413,88 @@ public class GraphPlaces extends Places implements Graph {
         if (MASS.getMyPid() == 0) {
             idQueue.add(vertexID);
         }
+    }
+
+    // loadDSLFile loads graph data concurrently over each available node from a 
+    // Distributed Systems Lab (DSL) graph file.
+    public void loadDSLFile(String filePath)  throws IOException, FileNotFoundException {
+        // Send to each node.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.MAINTENANCE_LOAD_DSL_FILE,
+            getHandle(),
+
+            // Send all nodes the current vertex offset and path of file to load.
+            new Object[]{Integer.valueOf(nextVertexID), filePath}
+        )));
+
+        // Handle local operations
+        int vertexCount = loadDSLGraphData(nextVertexID, filePath);
+
+        // Wait for all other nodes to complete
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASS.getLogger().debug("failed to load DSL file");
+            }
+            vertexCount += msg.getAgentPopulation();
+        }
+
+        // update index counter
+        nextVertexID += vertexCount;
+    }
+
+    // loadDSLGraphData is intended to be called by the system and not by 
+    // users. It's purpose is to load data from the provided file in a
+    // distributed manner, only taking in data for vertices it owns.
+    protected int loadDSLGraphData(int vertexOffset, String filePath) throws IOException, FileNotFoundException {
+        int myRank = MASS.getMyPid();
+
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line = "";
+        int vertexID = -1;
+        String[] parts;
+        String[] edges;
+        String[] edgeAttribs;
+        int neighbor;
+        double weight;
+
+        // Track the number of vertices added.
+        int vertexCount = 0;
+
+        // Start reading file data.
+        while((line = br.readLine()) != null) {
+            parts = line.split("=");
+            vertexID = Integer.valueOf(parts[0]) + vertexOffset;
+
+            // If we don't own this vertex, skip it.
+            if (getOwnerID(vertexID) != myRank) { continue; }
+
+            // Attempt to add the vertex
+            if (!addVertexOnNode(myRank, vertexID, null)) {
+                MASS.getLogger().error("unable to add vertex from DSL file");
+                br.close();
+                return vertexCount;
+            }
+
+            vertexCount++;
+
+            // Parse edge list and add them to the vertex.
+            edges = parts[1].split(";");
+            for (String edge : edges) {
+                edgeAttribs = edge.split(",");
+                neighbor = Integer.valueOf(edgeAttribs[0]) + vertexOffset;
+                weight = Double.valueOf(edgeAttribs[1]);
+
+                if (!addEdgeOnNode(myRank, vertexID, neighbor, weight)) {
+                    MASS.getLogger().error("unable to add edge from DSL file to vertex");
+                    br.close();
+                    return vertexCount;
+                }
+            }
+        }
+
+        return vertexCount;
     }
 
     public void reallyCallAll(int functionId, Object argument, int tid) {

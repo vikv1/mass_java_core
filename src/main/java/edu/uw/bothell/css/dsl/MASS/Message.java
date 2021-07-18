@@ -101,6 +101,7 @@ public class Message implements Serializable {
         MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
         MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
         MAINTENANCE_ADD_EDGE_V2("Maintenance.addEdgeV2"),
+        MAINTENANCE_LOAD_DSL_FILE("Maintenance.loadDSLFile"),
 
         // HIPPIE Related Messages
         MAINTENANCE_BULK_GRAPH_HIPPIE_OPS("Maintenance.bulkGraphHippieOps"),

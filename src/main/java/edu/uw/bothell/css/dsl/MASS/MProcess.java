@@ -816,6 +816,28 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
+
+			case MAINTENANCE_LOAD_DSL_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				Object[] opArgs = (Object[])argument;
+				int offset = (Integer)opArgs[0];
+				String filePath = (String)opArgs[1];
+				int vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadDSLGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading DSL file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE completed");
+				break;
 			
 			case MAINTENANCE_BULK_GRAPH_HIPPIE_OPS:
 				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS received");
