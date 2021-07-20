@@ -49,7 +49,7 @@ public class Hippie extends GraphPlaces implements Serializable {
     // required.
     public static final int MAX_OPERATIONS_BUFFER = 500000;
 
-    // cachedOperations is an operations cache used to record graph operations
+    // cachedVertexOperations and cachedEdgeOperations are operation caches used to record graph operations
     // for future distribution to cluster nodes.
     protected ArrayList<ArrayList<HippieOp>> cachedVertexOperations = new ArrayList<ArrayList<HippieOp>>();
     protected ArrayList<ArrayList<HippieOp>> cachedEdgeOperations = new ArrayList<ArrayList<HippieOp>>();
@@ -310,12 +310,8 @@ public class Hippie extends GraphPlaces implements Serializable {
         // Handle local operations
         int myPid = MASS.getMyPid();
         for (HippieOp op : cachedVertexOperations.get(myPid)) {
-            if (op.funcID == HippieOp.FUNC_ADD_VERTEX) {
-                VertexInitData vid = new VertexInitData(op.sourceKeys[0], op.sourceKeys[1]);
-                addVertexOnNode(myPid, op.sourceID, vid);
-            } else if (op.funcID == HippieOp.FUNC_ADD_EDGE) {
-                addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
-            }
+            VertexInitData vid = new VertexInitData(op.sourceKeys[0], op.sourceKeys[1]);
+            addVertexOnNode(myPid, op.sourceID, vid);
         }
 
         // Wait for acknowledgment of remote operations
@@ -346,12 +342,7 @@ public class Hippie extends GraphPlaces implements Serializable {
         // Handle local operations
         int myPid = MASS.getMyPid();
         for (HippieOp op : cachedEdgeOperations.get(myPid)) {
-            if (op.funcID == HippieOp.FUNC_ADD_VERTEX) {
-                VertexInitData vid = new VertexInitData(op.sourceKeys[0], op.sourceKeys[1]);
-                addVertexOnNode(myPid, op.sourceID, vid);
-            } else if (op.funcID == HippieOp.FUNC_ADD_EDGE) {
-                addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
-            }
+            addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
         }
 
         // Wait for acknowledgment of remote operations
@@ -405,6 +396,8 @@ public class Hippie extends GraphPlaces implements Serializable {
         cachedEdgeOperations.get(sourceOwner).add(new HippieOp(HippieOp.FUNC_ADD_EDGE, sourceID, null, destID, weight, extendedAttribs));
     }
 
+    // getCacheVertexSize retrieves the total size of all cached 
+    // vertex operations.
     protected int getCacheVertexSize() {
         int opsSum = 0;
         for (int i = 0; i < cachedVertexOperations.size(); i++) {

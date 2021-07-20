@@ -88,8 +88,8 @@ public class Matsim extends GraphPlaces implements Serializable {
     // required.
     public static final int MAX_OPERATIONS_BUFFER = 500000;
 
-    // cachedOperations is an operations cache used to record graph operations
-    // for future distribution to cluster nodes.
+    // cachedVertexOperations and cachedEdgeOperations are operation caches 
+    // used to record graph operations for future distribution to cluster nodes.
     protected ArrayList<ArrayList<MatsimOp>> cachedVertexOperations = new ArrayList<ArrayList<MatsimOp>>();
     protected ArrayList<ArrayList<MatsimOp>> cachedEdgeOperations = new ArrayList<ArrayList<MatsimOp>>();
 
@@ -410,6 +410,8 @@ public class Matsim extends GraphPlaces implements Serializable {
         }
     }
 
+    // getCacheVertexSize retrieves the total size of all cached 
+    // vertex operations.
     protected int getCacheVertexSize() {
         int opsSum = 0;
         for (int i = 0; i < cachedVertexOperations.size(); i++) {
@@ -419,6 +421,8 @@ public class Matsim extends GraphPlaces implements Serializable {
         return opsSum;
     }
 
+    // getCacheEdgeSize retrieves the total size of all cached 
+    // edge operations.
     protected int getCacheEdgeSize() {
         int opsSum = 0;
         for (int i = 0; i < cachedEdgeOperations.size(); i++) {
