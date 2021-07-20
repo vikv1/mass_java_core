@@ -32,8 +32,19 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Queue;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Vector;
@@ -44,37 +55,30 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 
 public class GraphPlaces extends Places implements Graph {
     // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
     // edge is created without providing a weight.
     public static final double DEFAULT_EDGE_WEIGHT = 1.0;
 
-    // TODO(bluger) Need to review the purpose of these three fields. Will
-    // do that when refactoring the GraphPlaces constructors.
-    private final GraphInitAlgorithm init_algorithm;
-    private final String filename;
-    private final GraphInputFormat input_format;
-
     // nextVertexID tracks the vertex ID associated vertices added to the graph.
     // It is kept up to date such that it's current value represents the ID
     // to be assigned tot he next Vertex.
-    private int nextVertexID = 0;
+    protected int nextVertexID = 0;
 
     // idQueue is used to store the IDs of vertices that have been removed 
     // so that they may be reused for newly added nodes.
     // Note: If this isn't accessed concurrently we can replace this with 
     // a linked list. Similarly with the VertexPlace vectors.
-    private Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
+    protected Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
 
     // objectFactory is used to generate objects of the places class provided
     // when instantiating GraphPlaces.
-    private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    protected ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
 
     // places is used to stored VertexPlaces added after instantiating
     // a GraphPlaces.
-    private Vector<VertexPlace> places = new Vector<VertexPlace>();
+    protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
     /**
      * Constructs a GraphPlaces object populated with data from the 
@@ -84,13 +88,17 @@ public class GraphPlaces extends Places implements Graph {
      * @param className The class that represents a VertexPlace.
      * @param graphArgs 
      * @param initArgs 
+     * @deprecated 
      */
     public GraphPlaces(int handle, String className, String[] graphArgs, Object[] initArgs) {
-        super(handle, className, graphArgs, initArgs);
+        super(handle, className);
+    }
 
-        init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        filename = "graph_n.txt";
-        input_format = GraphInputFormat.CSV;
+    // Empty constructor to all for remote instantiation and serialization.
+    // This should be reserved for the system and not called by users
+    // directly.
+    public GraphPlaces() {
+        super();
     }
 
     /**
@@ -111,10 +119,6 @@ public class GraphPlaces extends Places implements Graph {
         if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
             init_algorithm = GraphInitAlgorithm.FULL_LIST;
         }
-
-        this.init_algorithm = init_algorithm;
-        this.filename = filename;
-        this.input_format = format;
     }
 
     /**
@@ -138,10 +142,6 @@ public class GraphPlaces extends Places implements Graph {
         if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
             init_algorithm = GraphInitAlgorithm.FULL_LIST;
         }
-
-        this.init_algorithm = init_algorithm;
-        this.filename = filename;
-        this.input_format = format;
     }
 
     /**
@@ -153,25 +153,6 @@ public class GraphPlaces extends Places implements Graph {
      */
     public GraphPlaces(int handle, String className, int size) {
         super(handle, className, size, new int[] { size });
-
-        // Should use a different indicator for empty graph
-        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        this.filename = "";
-        this.input_format = GraphInputFormat.CSV;
-    }
-
-    /**
-     * Constructs a basic GraphPlaces object with no pre-allocated space.
-     * @param handle
-     * @param className
-     */
-    public GraphPlaces(int handle, String className) {
-        super(handle, className);
-
-        // Note(bluger-02/20/2021) - This seems to be required. I'm not sure why yet.
-        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        this.filename = "";
-        this.input_format = GraphInputFormat.CSV;
     }
     
     /**
@@ -184,13 +165,61 @@ public class GraphPlaces extends Places implements Graph {
      */
     public GraphPlaces(int handle, String className, int size, boolean _remote_node) {
         super(handle, className);
-
-        // Should use a different indicator for empty graph
-        this.init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        this.filename = "";
-        this.input_format = GraphInputFormat.CSV;
         
         init_all_graph_blank(size);
+    }
+
+    /**
+     * Constructs a basic GraphPlaces object with no pre-allocated space.
+     * @param handle
+     * @param className
+     */
+    public GraphPlaces(int handle, String className) {
+        super(handle, className);
+
+        // Only call init_master if we're actually the master node.
+        int myPid = MASS.getMyPid();
+
+        if (myPid == 0) {
+            init_graph_master();
+        }
+    }
+
+    /**
+     * Instantiates a new GraphPlaces instance, initalized with data from the 
+     * provided DSL Graph file.
+     * 
+     * @param handle The handle associated with this GraphPlaces Instance.
+     * @param className The class name of the Vertex class.
+     * @param filePath The path to the Distributed Systems Lab (DSL) Graph File.
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    public GraphPlaces(int handle, String className, String filePath) throws IOException,FileNotFoundException {
+        super(handle, className);
+
+        int myPid = MASS.getMyPid();
+
+        if (myPid == 0) {
+            init_graph_master();
+        }
+
+        loadDSLFile(filePath);
+    }
+
+    /**
+     * GraphPlaces constructor for initializing graph places with a graph file.
+     * 
+     * @param handle The places handle.
+     * @param className The name of the VertexPlace class.
+     * @param filePath Path to the graph data file.
+     * @param fileType The file type of the graph data.
+     */
+    public GraphPlaces(int handle, String className, String filePath, GraphInputFormat fileType) throws IOException,FileNotFoundException {
+        // super(handle, className);
+        // Need to figure out why the above doesn't set places remotely but this does...
+        super(handle, className, 1, new int[] { 1 });
     }
 
     // reinitialize reinitializes the GraphPlaces object by setting the 
@@ -228,7 +257,6 @@ public class GraphPlaces extends Places implements Graph {
      * 
      * @param argument The arguments to be supplied to the VertexPlace during
      * initialization.
-     * @param boundaryWidth The width of the boundary between nodes, used to calculate shadow space.
      */
     @Override
     protected void init_master(Object argument, int boundaryWidth) {
@@ -238,7 +266,37 @@ public class GraphPlaces extends Places implements Graph {
 
         Message message = new Message(Message.ACTION_TYPE.PLACES_INITIALIZE_GRAPH, getSize(),
                 getHandle(), getClassName(),
-                argument, boundaryWidth, hosts );
+                argument, 0, hosts );
+
+        init_master_base(message);
+    }
+
+    // InitArgs are initialization args to be passed to instances of 
+    // GraphPlaces that are being instantiated on remote nodes.
+    public static class InitArgs implements Serializable {
+        public int handle;
+        public String className;
+        public String vertexClassName;
+        public Object[] initArgs;
+
+        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
+            this.handle = handle;
+            this.vertexClassName = vertexClassName;
+            this.className = className;
+            this.initArgs = initArgs;
+        }
+    }
+
+    private void init_graph_master() {
+        MASSBase.getLogger().debug("GraphPlaces - init_graph_master");
+
+        Vector<String> hosts = getHosts();
+
+        InitArgs initArgs = new InitArgs(this.getHandle(), this.getClassName(), this.getClass().getName());
+
+        Message message = new Message(Message.ACTION_TYPE.PLACES_INITIALIZE_GRAPH, getSize(),
+                getHandle(), getClassName(),
+                initArgs, 0, hosts );
 
         init_master_base(message);
     }
@@ -499,14 +557,13 @@ public class GraphPlaces extends Places implements Graph {
      * @param vertexID The ID of the vertex.
      * @return true if successful, false otherwise.
      */
-    boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
+    public boolean addVertexOnNode(int nodeID, int vertexID, Object vertexInitParams) {
         if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
 
         // If another node owns this vertex, send it a message to add it.
         if (nodeID != MASS.getMyPid()) {
             return addRemoteVertex(nodeID, vertexID, vertexInitParams);
         }
-
         // Get local index and size of places array.
         int localIndex = vertexID / MASS.getSystemSize();
         int localSize = places.size();
@@ -523,7 +580,6 @@ public class GraphPlaces extends Places implements Graph {
             MASS.getLogger().error("expection trying to instantiate a new vertex: ", e);
             return false;
         }
-
         // Set it at the appropriate index if this vertex is to occupy 
         // preallocated space or reclaiming space from a previously removed
         // vertex.
@@ -826,6 +882,21 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
+     * @return The GraphPlaces places vector containing the VertexPlaces
+     * for the calling node.
+     */
+    public Vector<VertexPlace> getGraphPlaces() {
+        return this.places;
+    }
+
+    public VertexPlace getVertex(Object vertex) {
+        int vertexID = MASS.distributed_map.getOrDefault(vertex, -1);
+        if (vertexID == -1) { return null; }
+
+        return getVertex(vertexID);
+    }
+
+    /**
      * getVertex returns the VertexPlace associated with the provided
      * vertex ID.
      * 
@@ -837,7 +908,7 @@ public class GraphPlaces extends Places implements Graph {
         if (MASS.getMyPid() == 0 && vertexID >= nextVertexID) {
             return null; 
         }
-
+        
         return getVertexFromNode(
             getOwnerID(vertexID),
             vertexID
@@ -1342,6 +1413,88 @@ public class GraphPlaces extends Places implements Graph {
         if (MASS.getMyPid() == 0) {
             idQueue.add(vertexID);
         }
+    }
+
+    // loadDSLFile loads graph data concurrently over each available node from a 
+    // Distributed Systems Lab (DSL) graph file.
+    public void loadDSLFile(String filePath)  throws IOException, FileNotFoundException {
+        // Send to each node.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.MAINTENANCE_LOAD_DSL_FILE,
+            getHandle(),
+
+            // Send all nodes the current vertex offset and path of file to load.
+            new Object[]{Integer.valueOf(nextVertexID), filePath}
+        )));
+
+        // Handle local operations
+        int vertexCount = loadDSLGraphData(nextVertexID, filePath);
+
+        // Wait for all other nodes to complete
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASS.getLogger().debug("failed to load DSL file");
+            }
+            vertexCount += msg.getAgentPopulation();
+        }
+
+        // update index counter
+        nextVertexID += vertexCount;
+    }
+
+    // loadDSLGraphData is intended to be called by the system and not by 
+    // users. It's purpose is to load data from the provided file in a
+    // distributed manner, only taking in data for vertices it owns.
+    protected int loadDSLGraphData(int vertexOffset, String filePath) throws IOException, FileNotFoundException {
+        int myRank = MASS.getMyPid();
+
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line = "";
+        int vertexID = -1;
+        String[] parts;
+        String[] edges;
+        String[] edgeAttribs;
+        int neighbor;
+        double weight;
+
+        // Track the number of vertices added.
+        int vertexCount = 0;
+
+        // Start reading file data.
+        while((line = br.readLine()) != null) {
+            parts = line.split("=");
+            vertexID = Integer.valueOf(parts[0]) + vertexOffset;
+
+            // If we don't own this vertex, skip it.
+            if (getOwnerID(vertexID) != myRank) { continue; }
+
+            // Attempt to add the vertex
+            if (!addVertexOnNode(myRank, vertexID, null)) {
+                MASS.getLogger().error("unable to add vertex from DSL file");
+                br.close();
+                return vertexCount;
+            }
+
+            vertexCount++;
+
+            // Parse edge list and add them to the vertex.
+            edges = parts[1].split(";");
+            for (String edge : edges) {
+                edgeAttribs = edge.split(",");
+                neighbor = Integer.valueOf(edgeAttribs[0]) + vertexOffset;
+                weight = Double.valueOf(edgeAttribs[1]);
+
+                if (!addEdgeOnNode(myRank, vertexID, neighbor, weight)) {
+                    MASS.getLogger().error("unable to add edge from DSL file to vertex");
+                    br.close();
+                    return vertexCount;
+                }
+            }
+        }
+
+        return vertexCount;
     }
 
     public void reallyCallAll(int functionId, Object argument, int tid) {

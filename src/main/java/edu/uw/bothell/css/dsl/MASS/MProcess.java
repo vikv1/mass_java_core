@@ -36,8 +36,16 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-
+import java.util.ArrayList;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie.*;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.VertexInitData;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.*;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.*;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.*;
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
+import edu.uw.bothell.css.dsl.MASS.GraphPlaces.InitArgs;
+import java.lang.reflect.*;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -76,10 +84,8 @@ public class MProcess {
 			if ( out != null) MAIN_OOS = new ObjectOutputStream( out );
 
 		} catch (Exception e) {
-
 			MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
 			System.exit(-1);
-
 		}
 
 		// perform normal init
@@ -369,23 +375,26 @@ public class MProcess {
 			case PLACES_INITIALIZE_GRAPH:
 
 				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
-				if (argument instanceof Integer) {
-					places = new GraphPlaces(m.getHandle(), m.getClassname(), (Integer)argument, true);
-				}else{
-					// Graph initialization arguments
-					String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
+				InitArgs initArgs = (InitArgs)argument;
 
-					Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
-
-					//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
-					places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
+				Object graphPlace = null;
+				try {
+					Class<?> cls = Class.forName(initArgs.className);
+					Constructor<?> contructor = cls.getConstructor(int.class, String.class);
+					graphPlace = contructor.newInstance(initArgs.handle, initArgs.vertexClassName);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("PLACES_INITIALIZE_GRAPH exception thrown: " + e);
 				}
+
+				places = (PlacesBase)graphPlace;
+
 				// establish all inter-node connections within setHosts( )
 				MASSBase.setHosts( m.getHosts() );
+
 				MASSBase.getPlacesMap().put( m.getHandle(), places );
 
 				sendAck();
-				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed and ACK sent");
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed");
 
 				break;
 
@@ -662,7 +671,6 @@ public class MProcess {
 				boolean success = ((GraphPlaces)places).addVertexOnNode(MASS.getMyPid(), vertexID, vertexParams);
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX completed result: " + success);
 				sendAck(success ? 1 : 0);
-
 			
 				break;
 
@@ -797,7 +805,7 @@ public class MProcess {
 				} catch (Exception e) {
 					MASSBase.getLogger().error("An unexpected error occurred: " + e);
 				}
-				
+
 				// Send vertex to requester.
 				Message msg = new Message(
 					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
@@ -807,6 +815,117 @@ public class MProcess {
 				sendMessage(msg);
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
+				break;
+
+			case MAINTENANCE_LOAD_DSL_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				Object[] opArgs = (Object[])argument;
+				int offset = (Integer)opArgs[0];
+				String filePath = (String)opArgs[1];
+				int vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadDSLGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading DSL file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE completed");
+				break;
+			
+			case MAINTENANCE_BULK_GRAPH_HIPPIE_OPS:
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS received");
+
+				places = MASS.getPlaces(m.getHandle());
+				Hippie hippiePlaces = (Hippie)places;
+
+				ArrayList<HippieOp> ops = (ArrayList<HippieOp>)argument;
+
+				int myPid = MASS.getMyPid();
+
+				for (HippieOp op : ops) {
+					if (op.funcID == HippieOp.FUNC_ADD_VERTEX) {
+						VertexInitData vid = new VertexInitData(op.sourceKeys[0], op.sourceKeys[1]);
+						hippiePlaces.addVertexOnNode(myPid, op.sourceID, vid);
+					} else if (op.funcID == HippieOp.FUNC_ADD_EDGE) {
+						hippiePlaces.addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
+					}
+				}
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS completed");
+				break;
+			
+			case MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB:
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB received");
+
+				places = MASS.getPlaces(m.getHandle());
+				hippiePlaces = (Hippie)places;
+
+				Object[] edgeArgs = (Object[])argument;
+
+				hippiePlaces.addEdgeAttributesOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0], 
+					(Integer)edgeArgs[1], 
+					(String)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB completed");
+				break;
+			
+			case MAINTENANCE_BULK_GRAPH_MATSIM_OPS:
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS received");
+
+				places = MASS.getPlaces(m.getHandle());
+				Matsim matsimPlaces = (Matsim)places;
+
+				ArrayList<MatsimOp> matsimOps = (ArrayList<MatsimOp>)argument;
+
+				myPid = MASS.getMyPid();
+
+				for (MatsimOp op : matsimOps) {
+					if (op.funcID == MatsimOp.FUNC_ADD_VERTEX) {
+						MatsimVertexInitData vid = new MatsimVertexInitData(op.vertID, op.vertX, op.vertY, op.vertType);
+						matsimPlaces.addVertexOnNode(myPid, op.sourceID, vid);
+					} else if (op.funcID == MatsimOp.FUNC_ADD_EDGE) {
+						matsimPlaces.addEdgeOnNode(myPid, op.sourceID, op.destID, op.edge);
+					}
+				}
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS completed");
+				break;
+			
+			case MAINTENANCE_MATSIM_ADD_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
+				matsimPlaces = (Matsim)places;
+
+				edgeArgs = (Object[])argument;
+
+				matsimPlaces.addEdgeOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0],
+					(Integer)edgeArgs[1],
+					(MatsimEdge)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE completed");
+
 				break;
 
 			case MAINTENANCE_GET_PLACES:

@@ -36,6 +36,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -147,6 +148,15 @@ public class PlacesBase {
 		this.handle = handle;
 		this.className = className;
 	}
+
+	// Empty constructor to allow for remote instantiation and serialization.
+	// This should be reserved by the system. Users should not call this 
+	// directly.
+	protected PlacesBase() {
+		this.handle = -1;
+		this.className = "";
+	}
+
 	private class ExchangeBoundary_helper extends Thread {
 
     	int direction;

@@ -175,8 +175,6 @@ public class VertexPlace extends Place implements Serializable, Cloneable {
     public VertexPlace() {
         super();
 
-        System.err.println("VertexPlace constructed");
-
         MASSBase.getLogger().debug("VertexPlace constructed.");
     }
 

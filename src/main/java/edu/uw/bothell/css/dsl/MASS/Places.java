@@ -86,6 +86,14 @@ public class Places extends PlacesBase {
 	protected Places(int handle, String className) {
 		super(handle, className);
 	}
+
+	// Empty constructor to allow for remote instantiation and serialization.
+	// This should be reserved by the system. Users should not call this 
+	// directly.
+	protected Places() {
+		super();
+	}
+	
 	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
