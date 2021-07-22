@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Vector;
 
 @SuppressWarnings("serial")
@@ -66,6 +67,11 @@ public class Message implements Serializable {
 		SPACE_PLACES_INITIALIZE,
 		AGENTS_INITIALIZE_SPACE,
 		AGENTS_MANAGE_ALL_SPACE,
+
+		BINARY_TREE_PLACES_INITIALIZE,
+		BINARY_TREE_PLACES_ADD_PLACE,
+		AGENTS_INITIALIZE_BINARY,
+		AGENTS_MANAGE_ALL_BINARY,
 
 		QUADTREE_PLACES_INITIALIZE,
 		SEND_MAX_LEVEL,
@@ -136,6 +142,7 @@ public class Message implements Serializable {
 			return value;
 		}
 	}
+	
 	// until a valid handle ID is supplied, this value is used
 	public static final int VOID_HANDLE = -1;
 	public static final int VOID_DIMENSIONS = -1;
@@ -156,6 +163,8 @@ public class Message implements Serializable {
 	private int functionId = 0;
 	private int maxLevel = 0;  // max level of quad tree
 	private int numOfLeaf = 0;
+    private double[] pivot;
+    private BinaryTreePlace place;
 	private String classname = null;      // classname.class must be located in CWD.
 	private String filename = null;
 	private Object argument = null;
@@ -205,6 +214,44 @@ public class Message implements Serializable {
 
 	}
 
+	/**
+	 * Construct a Message primarily used for BINARY_TREE_PLACES_INITIALIZE
+	 * @param action The ACTION_TYPE of this Message
+	 * @param handle The source handle ID
+	 * @param dimensions The dimensions of Place
+	 * @param classname The name of the class representing the Place
+	 * @param filename The filename of inputs data points
+	 * @param argument An argument to be passed to the Place during initialization
+	 * @param boundaryWidth The boundary width of the Place
+	 * @param hosts A collection of hostnames that are members of the cluster
+	 */
+	public Message(ACTION_TYPE action, int handle, double[] pivot, int numOfNodes, String classname, String filename, Object argument, Vector<String> hosts ) {
+	
+		this.action = action;
+		MASSBase.getLogger().debug("action = " + action);
+
+		this.handle = handle;
+		MASSBase.getLogger().debug("handle = " + handle);
+
+		this.pivot = pivot;
+		MASSBase.getLogger().debug("pivot = " + Arrays.toString(pivot));
+		this.numOfNodes = numOfNodes;
+		MASSBase.getLogger().debug("numOfNodes = " + numOfNodes);
+
+		this.classname = classname;
+		MASSBase.getLogger().debug("classname = " + classname);
+
+		this.filename = filename;
+		MASSBase.getLogger().debug("filename = " + filename);
+
+		this.argument = argument;
+		MASSBase.getLogger().debug("argument = " + argument);
+
+		this.hosts = hosts;
+		MASSBase.getLogger().debug("host = " + hosts.toString());
+
+	}
+    
 	/**
 	 * Construct a Message primarily used for QUADTREE_PLACES_INITIALIZE
 	 * @param action The ACTION_TYPE of this Message

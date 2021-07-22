@@ -41,7 +41,17 @@ public class Boundary implements Serializable{
     
 	//double[] topLeft, topRight, bottomLeft, bottomRight;
     double[] min, max;
-    
+ 
+	// constructor for 1D boundary 
+	public Boundary(double minValue, double maxValue) {
+
+		min = new double[1];
+		min[0] = minValue;
+		max = new double[1];
+		max[0] = maxValue; 
+	
+	}
+
     public Boundary(double[] min, double[] max) {
 		/*
         this.topLeft = new double[]{min[0], max[1]};
