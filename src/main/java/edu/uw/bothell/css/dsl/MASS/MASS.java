@@ -833,4 +833,118 @@ public class MASS extends MASSBase {
 		
 	}
 
+	/**
+	 * Receive values (num = 2) from remote nodes' MASS
+	 * @param maxLevel
+	 * @param numOfLeaf
+	 */
+	static void barrierAllSlaves(int[] maxLevel, int[] numOfLeaf) { 
+
+		MASS.getLogger().debug( "barrierAllSlaves(int[] maxLevel, int[] numOfLeaf) remote size = " + getRemoteNodes().size());
+		// Synchronize with all slave processes
+		for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
+
+			MASS.getLogger().debug( "barrier waits for ack from " + getRemoteNodes().get(i).getHostName( ) );
+
+			Message m = getRemoteNodes().get(i).receiveMessage( );
+
+			MASS.getLogger().debug( "barrier received a message from " + getRemoteNodes().get(i).getHostName( ) + "...message = " + m );
+
+			// check this is an Ack
+			if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
+
+				MASS.getLogger().error( "barrier didn't receive ack from rank " +
+						( i + 1 ) + " at " + getRemoteNodes().get(i).getHostName( ) + " message action type = " + m.getAction());
+
+				System.exit( -1 );
+			} 
+
+			if ( maxLevel != null && numOfLeaf != null) {
+				maxLevel[i + 1] = m.getMaxLevel();
+				numOfLeaf[i + 1] = m.getNumOfLeaf();
+			} 
+
+			// retrieve agent population from each Mprocess
+			MASS.getLogger().debug( "maxLevel[" + (i + 1) + "] = m.getMaxLevel: "
+					+ m.getMaxLevel() + ", numOfLeaf[" + (i + 1) + "] = m.getNumOfLeaf: " + m.getNumOfLeaf());
+
+			MASS.getLogger().debug( "message deleted" );
+
+		}
+
+	}
+
+	/**
+	 * barrierAllSlaves for treePlaces
+	 * @param returnValues
+	 * @param numOfLeaf
+	 * @param localAgents
+	 */
+	static void barrierAllSlaves_treePlaces( Object[] returnValues, int[] numOfLeaf, int localAgents[] ) {
+
+    	// counts the agent population from each Mprocess
+    	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
+		int destPos = numOfLeaf[0];
+    	// Synchronize with all slave processes
+    	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
+    		
+    		MASS.getLogger().debug( "barrier waits for ack from " + getRemoteNodes().get(i).getHostName( ) );
+
+    		Message m = getRemoteNodes().get(i).receiveMessage( );
+
+    		MASS.getLogger().debug( "barrier received a message from " + getRemoteNodes().get(i).getHostName( ) +
+    			"...message = " + m );
+
+    		// check this is an Ack
+    		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
+    			
+    			MASS.getLogger().error( "barrier didn't receive ack from rank " + ( i + 1 ) + " at " +
+    				getRemoteNodes().get(i).getHostName( ) + " message action type = " + m.getAction());
+    			System.exit( -1 );
+    		}
+
+    		// retrieve arguments back from each Mprocess
+    		// places.callAll( ) with return values
+    		if ( returnValues != null ) {
+				MASS.getLogger().debug("i = " + i + ", numOfLeaf[" + (i + 1) + "]=" + numOfLeaf[i + 1]);
+    			if ( numOfLeaf[i + 1] > 0 && localAgents == null ) {
+
+    				// check if the message is from the last mNode as
+    				// the last mNode might have a remainder (stripe + rem)
+    				// for simplicity, we just use the length of the returned
+    				// array
+					int copyLength;
+    				copyLength = numOfLeaf[i + 1];
+
+					MASS.getLogger().debug("copylength = " + copyLength + ", destPos = " + destPos + 
+						", m.getArgument().size = " + ((Object[]) m.getArgument()).length + ", returnValue.length = " + returnValues.length);
+    				// copy the partial array into the return_values array
+					System.arraycopy( m.getArgument(), 0, returnValues, destPos, copyLength );
+					destPos += copyLength;
+				}
+				
+    			if ( numOfLeaf[i + 1] == 0 && localAgents != null ) {
+    				// agents.callAll( ) with return values
+    				System.arraycopy( m.getArgument( ), 0, returnValues, nAgentsSoFar, localAgents[i + 1] );
+				}
+				
+    		}
+
+    		// retrieve agent population from each Mprocess
+    		MASS.getLogger().debug( "localAgents[" + (i + 1) + "] = m.getAgentPopulation: " + m.getAgentPopulation( ) );
+
+    		if ( localAgents != null ) {
+    			localAgents[i + 1] = m.getAgentPopulation( );
+    			nAgentsSoFar += localAgents[i + 1];
+    		}
+
+    		MASS.getLogger().debug( "message deleted" ); 
+    	}
+    	
+	}
+
+	static void barrierAllSlaves_treePlaces( Object[] returnValues, int[] numOfLeaf ) {
+    	barrierAllSlaves_treePlaces( returnValues, numOfLeaf, null ); 
+	}
+
 }
