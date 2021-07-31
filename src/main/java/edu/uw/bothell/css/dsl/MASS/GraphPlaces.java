@@ -186,29 +186,6 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * Instantiates a new GraphPlaces instance, initalized with data from the 
-     * provided DSL Graph file.
-     * 
-     * @param handle The handle associated with this GraphPlaces Instance.
-     * @param className The class name of the Vertex class.
-     * @param filePath The path to the Distributed Systems Lab (DSL) Graph File.
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public GraphPlaces(int handle, String className, String filePath) throws IOException,FileNotFoundException {
-        super(handle, className);
-
-        int myPid = MASS.getMyPid();
-
-        if (myPid == 0) {
-            init_graph_master();
-        }
-
-        loadDSLFile(filePath);
-    }
-
-    /**
      * GraphPlaces constructor for initializing graph places with a graph file.
      * 
      * @param handle The places handle.
@@ -1474,6 +1451,7 @@ public class GraphPlaces extends Places implements Graph {
             if (!addVertexOnNode(myRank, vertexID, null)) {
                 MASS.getLogger().error("unable to add vertex from DSL file");
                 br.close();
+
                 return vertexCount;
             }
 
@@ -1489,6 +1467,94 @@ public class GraphPlaces extends Places implements Graph {
                 if (!addEdgeOnNode(myRank, vertexID, neighbor, weight)) {
                     MASS.getLogger().error("unable to add edge from DSL file to vertex");
                     br.close();
+                    
+                    return vertexCount;
+                }
+            }
+        }
+
+        return vertexCount;
+    }
+
+    // loadSARFile loads graph data concurrently over each available node from an SAR
+    // graph file. For more information on SAR files, see Appendix D (MASS Parallel I/O
+    // File Format) in Justin Gilroy's Dynamic Graph Construction and Maintenance
+    // whitepaper. This can be found here:
+    //
+    // https://depts.washington.edu/dslab/MASS/reports/JustinGilroy_whitepaper.pdf
+    public void loadSARFile(String filePath) throws IOException, FileNotFoundException {
+        // Send load request to each node.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.MAINTENANCE_LOAD_SAR_FILE,
+            getHandle(),
+
+            // Send all nodes the current vertex offset and path of file to load.
+            new Object[]{Integer.valueOf(nextVertexID), filePath}
+        )));
+
+        // Handle local operations
+        int vertexCount = loadSARGraphData(nextVertexID, filePath);
+
+        // Wait for all other nodes to complete
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASS.getLogger().debug("failed to load SAR file");
+            }
+            vertexCount += msg.getAgentPopulation();
+        }
+
+        nextVertexID += vertexCount;
+    }
+
+    // loadSARGraphData is intended to be called by the system and not by 
+    // users. It's purpose is to laod data from the provided SAR file in a
+    // distributed manner, only taking in data from vertices it owns.
+    protected int loadSARGraphData(int vertexOffset, String filePath) throws IOException, FileNotFoundException {
+        int myRank = MASS.getMyPid();
+
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line = "";
+        int vertexID = -1;
+        String[] edges;
+        int neighbor;
+
+        // Track the number of vertices added.
+        int vertexCount = 0;
+        int lineCount = 0;
+
+        // discard first line as we do not care about the number of vertices or their
+        // edges.
+        br.readLine();
+
+        while((line = br.readLine()) != null) {
+            vertexID = lineCount + vertexOffset;
+            lineCount++;
+
+            // If we don't own this vertex, skip it
+            if (getOwnerID(vertexID) != myRank) { continue; }
+
+            // Attempt to add the vertex
+            if (!addVertexOnNode(myRank, vertexID, null)) {
+                MASS.getLogger().error("unable to add vertex from SAR file");
+                br.close();
+
+                return vertexCount;
+            }
+
+            vertexCount++;
+
+            // Parse edge list and add them to the vertex.
+            edges = line.split("\t");
+            for (String edge : edges) {
+                if (edge.isEmpty()) { continue; }
+
+                neighbor = Integer.valueOf(edge);
+                if (!addEdgeOnNode(myRank, vertexID, neighbor, DEFAULT_EDGE_WEIGHT)) {
+                    MASS.getLogger().error("unable to add edge from SAR file to vertex");
+                    br.close();
+                    
                     return vertexCount;
                 }
             }

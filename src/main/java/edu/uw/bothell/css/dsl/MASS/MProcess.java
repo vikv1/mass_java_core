@@ -839,6 +839,28 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE completed");
 				break;
 			
+			case MAINTENANCE_LOAD_SAR_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				opArgs = (Object[])argument;
+				offset = (Integer)opArgs[0];
+				filePath = (String)opArgs[1];
+				vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadSARGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading SAR file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE completed");
+				
+				break;
+			
 			case MAINTENANCE_BULK_GRAPH_HIPPIE_OPS:
 				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS received");
 
