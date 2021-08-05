@@ -61,7 +61,7 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void dslNetworkIsCreated() throws Exception {
         GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
-        graph.loadDSLFile("test-files/test-graph.dsl");
+        graph.loadDSLFile("src/resources/test-files/test-graph.dsl");
 
         assertNotNull(graph);
         assertEquals(10, graph.size());
@@ -70,7 +70,7 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void sarNetworkIsCreated() throws Exception {
         GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
-        graph.loadSARFile("test-files/test-graph.sar");
+        graph.loadSARFile("src/resources/test-files/test-graph.sar");
 
         assertNotNull(graph);
         assertEquals(10, graph.size());
@@ -79,7 +79,7 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void neighborsArePopulated() throws Exception {
         GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
-        graph.loadDSLFile("test-files/test-graph.dsl");
+        graph.loadDSLFile("src/resources/test-files/test-graph.dsl");
 
         Place place = graph.getPlaces()[0];
 

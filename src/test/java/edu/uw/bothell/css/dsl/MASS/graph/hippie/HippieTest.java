@@ -37,7 +37,7 @@ public class HippieTest extends AbstractTest {
     @Test
     public void hippieNetworkIsComplete() throws Exception {
         Hippie graph = new Hippie(0);
-        graph.loadFromFile("test-files/test-hippie.tsv");
+        graph.loadFromFile("src/resources/test-files/test-hippie.tsv");
         
 
         Place [] places = graph.getPlaces();

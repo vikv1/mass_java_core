@@ -37,7 +37,7 @@ public class MatsimTest extends AbstractTest {
     @Test
     public void matsimNetworkIsComplete() throws Exception {
         Matsim graph = new Matsim(0);
-        graph.loadFromFile("test-files/test-matsim.xml");
+        graph.loadFromFile("src/resources/test-files/test-matsim.xml");
         
 
         Place [] places = graph.getPlaces();
