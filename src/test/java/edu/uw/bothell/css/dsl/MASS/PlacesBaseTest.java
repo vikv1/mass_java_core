@@ -276,22 +276,4 @@ public class PlacesBaseTest extends AbstractTest {
 		placesBase.callAll( 0, arguments, arguments.length, 0 );
 		
 	}
-
-	@Test
-	@Disabled  // no MATSIM test document included in test files
-	public void getXmlNodeCountCorrect() {
-		final String graphFilename = "../matsim/network-pt-simple.xml";
-
-		long start = System.currentTimeMillis();
-
-		int nodeCount = PlacesBase.getMatsimNetworkNodeCount(graphFilename);
-
-		long end = System.currentTimeMillis();
-
-		long runtime = end - start;
-
-		System.out.println("Runtime: " + runtime);
-
-		assertEquals(6, nodeCount);
-	}
 }

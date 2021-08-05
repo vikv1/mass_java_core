@@ -55,6 +55,7 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 
 public class GraphPlaces extends Places implements Graph {
     // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
@@ -80,93 +81,11 @@ public class GraphPlaces extends Places implements Graph {
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
-    /**
-     * Constructs a GraphPlaces object populated with data from the 
-     * "graph_n.txt" CSV text file.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces.
-     * @param className The class that represents a VertexPlace.
-     * @param graphArgs 
-     * @param initArgs 
-     * @deprecated 
-     */
-    public GraphPlaces(int handle, String className, String[] graphArgs, Object[] initArgs) {
-        super(handle, className);
-    }
-
     // Empty constructor to all for remote instantiation and serialization.
     // This should be reserved for the system and not called by users
     // directly.
     public GraphPlaces() {
         super();
-    }
-
-    /**
-     * Constructs a GraphPlaces object populated with data contained in
-     * the provided filename.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param filename The filename of the file with which to extract graph data.
-     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
-     * @param init_algorithm The initialization algorithm used 
-     * (e.g., FULL_LIST or PARTITIONED_LIST).
-     */
-    public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
-                       GraphInitAlgorithm init_algorithm) {
-        super(handle, className, new Object[] { filename, format, init_algorithm });
-
-        if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
-            init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        }
-    }
-
-    /**
-     * Constructs a GraphPlaces object populated with data contained in
-     * the provided filename.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param filename The filename of the file with which to extract graph data.
-     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
-     * @param init_algorithm The initialization algorithm used 
-     * (e.g., FULL_LIST or PARTITIONED_LIST).
-     * @param nVertices This is unused.
-     * @param argument The arguments to be supplied to the VertexPlace during
-     * initialization.
-     */
-    public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
-                       GraphInitAlgorithm init_algorithm, int nVertices, Object argument) {
-        super(handle, className, argument);
-
-        if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
-            init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        }
-    }
-
-    /**
-     * Constructs an empty GraphPlaces object.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param size The number of vertices in the graph.
-     */
-    public GraphPlaces(int handle, String className, int size) {
-        super(handle, className, size, new int[] { size });
-    }
-    
-    /**
-     * Constructs an empty GraphPlaces object.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param size The number of vertices in the graph.
-     * @param _remote_node This is unused.
-     */
-    public GraphPlaces(int handle, String className, int size, boolean _remote_node) {
-        super(handle, className);
-        
-        init_all_graph_blank(size);
     }
 
     /**
@@ -183,20 +102,6 @@ public class GraphPlaces extends Places implements Graph {
         if (myPid == 0) {
             init_graph_master();
         }
-    }
-
-    /**
-     * GraphPlaces constructor for initializing graph places with a graph file.
-     * 
-     * @param handle The places handle.
-     * @param className The name of the VertexPlace class.
-     * @param filePath Path to the graph data file.
-     * @param fileType The file type of the graph data.
-     */
-    public GraphPlaces(int handle, String className, String filePath, GraphInputFormat fileType) throws IOException,FileNotFoundException {
-        // super(handle, className);
-        // Need to figure out why the above doesn't set places remotely but this does...
-        super(handle, className, 1, new int[] { 1 });
     }
 
     // reinitialize reinitializes the GraphPlaces object by setting the 
@@ -276,36 +181,6 @@ public class GraphPlaces extends Places implements Graph {
                 initArgs, 0, hosts );
 
         init_master_base(message);
-    }
-
-    // init_all initializes GraphPlaces using the provided argument.
-    @Override
-    protected void init_all(Object argument) {
-        if (argument instanceof Integer) {
-            init_all_graph_blank((Integer) argument);
-        } else {
-            Object[] arguments = (Object[]) argument;
-
-            // TODO: This is failing in kotlin
-            // String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
-            // Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
-
-            String [] graphArguments = new String[2];
-            Object [] initArguments = null;
-
-            graphArguments[0] = arguments[0].toString();
-            graphArguments[1] = arguments[1].toString();
-
-            if (arguments.length > 2) {
-                initArguments = new Object[arguments.length - 2];
-
-                for (int i = 0; i < initArguments.length; i++) {
-                    initArguments[i] = arguments[i + 2];
-                }
-            }
-
-            init_all_graph(graphArguments, initArguments);
-        }
     }
 
     /* Graph Interfeace Implementation ***************************************/
@@ -864,6 +739,11 @@ public class GraphPlaces extends Places implements Graph {
      */
     public Vector<VertexPlace> getGraphPlaces() {
         return this.places;
+    }
+
+    @Override
+    public Place[] getPlaces() {
+        return this.places.toArray(new Place[]{});
     }
 
     public VertexPlace getVertex(Object vertex) {
@@ -1569,6 +1449,22 @@ public class GraphPlaces extends Places implements Graph {
         }
     }
 
+    @Override
+    public void callAll( int functionId, Object argument, int tid ) {
+        super.callAll(functionId, argument, tid);
+
+		reallyCallAll(functionId, argument, tid);
+    }
+
+    @Override
+    public Object callAll( int functionId, Object[] arguments, int length, int tid ) {
+        Object obj = super.callAll(functionId, arguments, length, tid);
+
+        reallyCallAllWithReturns(functionId, MASSBase.getCurrentReturns(), arguments);
+
+        return obj;
+    }
+
     /**
      * reallyCallAllWithReturns calls the function associated with the provided functionId
      * on all VertexPlaces on the local node and stores the results in the provided 
@@ -1584,6 +1480,48 @@ public class GraphPlaces extends Places implements Graph {
             args = arguments == null ? null : arguments[i];
             returns[i] = this.places.get(i).callMethod(functionId, args);
         }
+    }
+
+    @Override
+    public void exchangeAll( int destinationHandle, int functionId ) {
+		// send a PLACES_EXCHANGE_ALL message to each slave
+		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
+		
+		MASSBase.getLogger().debug( "dest_handle = {}", destinationHandle );
+		
+		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
+		
+		// retrieve the corresponding places
+		MASSBase.setCurrentPlacesBase(this);
+		MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( destinationHandle ) );
+		MASSBase.setCurrentFunctionId(functionId);
+		
+		// reset requestCounter by the main thread
+		MASSBase.resetRequestCounter();
+		
+		// for debug
+		MASSBase.showHosts( );
+		
+		// resume threads
+		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
+		
+		// exchangeall implementation
+		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
+
+		// Perform graph exchangeAll separately for now
+		exchangeAll(MASSBase.getCurrentFunctionId());
+
+		// confirm all threads are done with exchangeAll.
+		MThread.barrierThreads( 0 );
+		
+		// Synchronized with all slave processes
+		MASS.barrierAllSlaves( );
+
+		// transmit outgoing messages
+		MASS.getMessagingProvider().flushPlaceMessages();
+		  
+		// execute methods queued by incoming messages
+		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
     }
 
     /**

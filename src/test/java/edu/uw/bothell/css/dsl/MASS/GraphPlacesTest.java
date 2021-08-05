@@ -62,28 +62,27 @@ public class GraphPlacesTest extends AbstractTest {
     }
 
     @Test
-    public void networkIsCreated() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
-
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+    public void dslNetworkIsCreated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadDSLFile("test-files/test-graph.dsl");
 
         assertNotNull(graph);
+        assertEquals(10, graph.size());
     }
 
     @Test
-    @Disabled // FIXME(Issue #150): test is failing.
-    public void neighborsArePopulated() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
+    public void sarNetworkIsCreated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadSARFile("test-files/test-graph.sar");
 
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        assertNotNull(graph);
+        assertEquals(10, graph.size());
+    }
+
+    @Test
+    public void neighborsArePopulated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadDSLFile("test-files/test-graph.dsl");
 
         Place place = graph.getPlaces()[0];
 
@@ -91,28 +90,9 @@ public class GraphPlacesTest extends AbstractTest {
 
         VertexPlace vertexPlace = (VertexPlace) place;
 
-        assertTrue(vertexPlace.neighbors.size() == 1);
-        assertTrue(vertexPlace.neighbors.get(0).equals(1));
-    }
-
-    @Test
-    @Disabled // FIXME(Issue #151): Test is failing.
-    public void networkContainsATriangle() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
-
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
-
-        VertexPlace vertexPlace1 = (VertexPlace) graph.getPlaces()[0];
-        VertexPlace vertexPlace2 = (VertexPlace) graph.getPlaces()[1];
-        VertexPlace vertexPlace3 = (VertexPlace) graph.getPlaces()[2];
-
-        assertTrue( vertexPlace1.neighbors.contains(1) );
-        assertTrue( vertexPlace2.neighbors.contains(2) );
-        assertTrue( vertexPlace3.neighbors.contains(0) );
+        assertTrue(vertexPlace.neighbors.size() == 3);
+        assertTrue(vertexPlace.neighbors.get(0).equals(8));
+        assertTrue(vertexPlace.weights.get(0).equals(9));
     }
 
     @ParameterizedTest(name = "{index} => gID={0}, numNodes={1}, size={2}, want={3}")
@@ -209,7 +189,7 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void addEdgeWithoutWeight() {
         // Setup graph and vertices.
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
         int sourceID = graph.addVertex();
         int destinationID = graph.addVertex();
 
@@ -235,7 +215,7 @@ public class GraphPlacesTest extends AbstractTest {
     @Test
     public void testRemoveEdge() {
         // Setup graph and vertices
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), 2);
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
         int sourceID = graph.addVertex();
         int destinationID = graph.addVertex();
 
@@ -256,63 +236,4 @@ public class GraphPlacesTest extends AbstractTest {
         assertEquals(0, vert.neighbors.size());
         assertEquals(0, vert.weights.size());
     }
-
-    @Test
-    public void hippieNetworkIsCreated() {
-        String [] graphArguments = new String[] {
-                "test-files/complete-small.tsv",
-                "/dev/null"
-        };
-
-        // TODO: Cleanup the constructor for graphplaces to something more like this
-//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
-//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
-
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
-
-        assertNotNull(graph);
-    }
-
-    @Test
-    @Disabled // Maybe the listeners are not closing correctly?
-    public void hippieNetworkIsComplete() {
-        String [] graphArguments = new String[] {
-                "test-files/complete-small.tsv",
-                "/dev/null"
-        };
-
-        // TODO: Cleanup the constructor for graphplaces to something more like this
-//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
-//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
-
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
-
-        Place [] places = graph.getPlaces();
-
-        assertEquals(7, places.length);
-
-        assertEquals(VertexPlace.class.getName(), places[0].getClass().getName());
-
-        int [] vertices = {
-                0, 1, 2, 3, 4, 5, 6
-        };
-
-        for (Place place : places) {
-            VertexPlace vPlace = (VertexPlace) place;
-            int id = place.getIndex()[0];
-
-            int [] expectedNeighbors = Arrays.stream(vertices).filter(pid -> pid != id).toArray();
-
-            Object [] neighbors = vPlace.getNeighbors();
-
-            for (int i = 0; i < expectedNeighbors.length; i++) {
-                assertEquals(expectedNeighbors[i], neighbors[i]);
-            }
-        }
-    }
-
-//    @Test
-//    public void hippieNetworkIs
 }
