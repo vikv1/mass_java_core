@@ -83,6 +83,22 @@ public class GraphPlaces extends Places implements Graph {
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
+    // InitArgs are initialization args to be passed to instances of 
+    // GraphPlaces that are being instantiated on remote nodes.
+    public static class InitArgs implements Serializable {
+        public int handle;
+        public String className;
+        public String vertexClassName;
+        public Object[] initArgs;
+
+        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
+            this.handle = handle;
+            this.vertexClassName = vertexClassName;
+            this.className = className;
+            this.initArgs = initArgs;
+        }
+    }
+
     // Empty constructor to all for remote instantiation and serialization.
     // This should be reserved for the system and not called by users
     // directly.
@@ -133,42 +149,6 @@ public class GraphPlaces extends Places implements Graph {
 
         // Early clear is inconsequential. We just need to make sure we don't move forward before all nodes are done
         MASS.barrierAllSlaves();
-    }
-
-    /**
-     * init_master initializes GraphPlaces on the master and sends messages
-     * to all of the worker nodes to do the same.
-     * 
-     * @param argument The arguments to be supplied to the VertexPlace during
-     * initialization.
-     */
-    @Override
-    protected void init_master(Object argument, int boundaryWidth) {
-        MASSBase.getLogger().debug("GraphPlaces - init_master");
-
-        Vector<String> hosts = getHosts();
-
-        Message message = new Message(Message.ACTION_TYPE.PLACES_INITIALIZE_GRAPH, getSize(),
-                getHandle(), getClassName(),
-                argument, 0, hosts );
-
-        init_master_base(message);
-    }
-
-    // InitArgs are initialization args to be passed to instances of 
-    // GraphPlaces that are being instantiated on remote nodes.
-    public static class InitArgs implements Serializable {
-        public int handle;
-        public String className;
-        public String vertexClassName;
-        public Object[] initArgs;
-
-        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
-            this.handle = handle;
-            this.vertexClassName = vertexClassName;
-            this.className = className;
-            this.initArgs = initArgs;
-        }
     }
 
     private void init_graph_master() {
