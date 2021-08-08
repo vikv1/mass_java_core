@@ -816,6 +816,32 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
+			
+			case GRAPH_PLACES_CALL_ALL_VOID_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				
+				graphPlaces.callVertexPlaceMethod(m.getFunctionId(), argument);
+
+				sendAck();
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT complete");
+				break;
+
+			case GRAPH_PLACES_CALL_ALL_RETURN_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT received");
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				ArrayList<Object> callArgs = (ArrayList<Object>) argument;
+
+				Object[] retVals = graphPlaces.callVertexPlaceMethod(m.getFunctionId(), callArgs);
+
+				sendMessage( new Message( Message.ACTION_TYPE.ACK, retVals ) );
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT complete");
+				break;
 
 			case MAINTENANCE_LOAD_DSL_FILE:
 				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE received");

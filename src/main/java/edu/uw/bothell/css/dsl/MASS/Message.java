@@ -89,6 +89,10 @@ public class Message implements Serializable {
 		MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
 		MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
 
+		// CallAll
+		GRAPH_PLACES_CALL_ALL_VOID_OBJECT("GraphPlaces.callAllVoidObject"),
+		GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("GraphPlaces.callAllReturnObject"),
+
 		// Exchange all
 		GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
 

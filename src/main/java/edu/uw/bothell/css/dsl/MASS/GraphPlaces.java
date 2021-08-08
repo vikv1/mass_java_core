@@ -42,6 +42,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.MThread;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
@@ -1337,7 +1339,9 @@ public class GraphPlaces extends Places implements Graph {
 
             vertexCount++;
 
-            // Parse edge list and add them to the vertex.
+            // Parse edge list if vertex has neighbors, 
+            // and add them to the vertex.
+            if (parts.length != 2) { continue; }
             edges = parts[1].split(";");
             for (String edge : edges) {
                 edgeAttribs = edge.split(",");
@@ -1443,43 +1447,133 @@ public class GraphPlaces extends Places implements Graph {
         return vertexCount;
     }
 
-    public void reallyCallAll(int functionId, Object argument, int tid) {
-        for (VertexPlace place : places) {
-            place.callMethod(functionId, argument);
+    @Override
+    public void callAll( int functionId ) {
+        this.callAll(functionId, (Object)null);
+    }
+
+    @Override
+    public void callAll(int functionId, Object argument) {
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.GRAPH_PLACES_CALL_ALL_VOID_OBJECT,
+            this.getHandle(),
+            functionId,
+            argument
+        )));
+
+        this.callVertexPlaceMethod(functionId, argument);
+
+        // Synchronize with all secondary processes
+        MASSBase.getLogger().debug("Attempting to barrierAllSlaves...");
+        MASS.barrierAllSlaves();
+        MASSBase.getLogger().debug("barrierAllSlaves completed!");
+    }
+
+    protected void callVertexPlaceMethod(int functionId, Object argument) {
+        // resume threads? Not sure why this is needed, it's copied from the Places
+        // implementation.
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+        
+        // callAll on all local places objects
+        for (int i = 0; i < places.size(); i++) {
+            if (places.get(i) == null) { continue; }
+
+            places.get(i).callMethod(functionId, argument);
         }
+
+        // confirm all threads are done with callAll.
+        MThread.barrierThreads( 0 );
+    }
+
+    @Override
+    public Object[] callAll(int functionId, Object argument[]) {
+        // return ca_setup( functionId, ( Object )argument,
+		// 		 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
+
+        // Allocate space for return values;
+        Object[] returnValues = new Object[argument.length];
+
+        // split arguments across available system nodes.
+        int numNodes = MASS.getSystemSize();
+        ArrayList<ArrayList<Object>> args = new ArrayList<ArrayList<Object>>();
+        for (int i = 0; i < numNodes; i++) {
+            args.add(new ArrayList<Object>());
+        }
+
+        for (int i = 0; i < argument.length; i++) {
+            args.get(i % numNodes).add(argument[i]);
+        }
+
+        // Send arguments to respective nodes and have them call the appropriate
+        // method.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.GRAPH_PLACES_CALL_ALL_RETURN_OBJECT,
+            this.getHandle(),
+            functionId,
+            args.get(node.getPid())
+        )));
+
+        // callAll locally
+        int myRank = MASS.getMyPid();
+        Object[] retVals = callVertexPlaceMethod(functionId, args.get(myRank));
+        // set appropriate return values
+        for (int i = 0; i < retVals.length; i++) {
+            returnValues[myRank + numNodes * i] = retVals[i];
+        }
+
+        // get the return values from remote nodes
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASSBase.getLogger().error("an unknown error occured during callAll. invalid message type received");
+                return null;
+            }
+
+            int nodeRank = node.getPid();
+            retVals = (Object[]) msg.getArgument();
+            for (int i = 0; i < retVals.length; i++) {
+                returnValues[nodeRank + numNodes * i] = retVals[i];
+            }   
+        }
+
+        return returnValues;
+    }
+
+    protected Object[] callVertexPlaceMethod(int functionId, ArrayList<Object> args) {
+        if (args.size() != places.size()) {
+            MASS.getLogger().warning("number of callAll args does not match number of places");
+        }
+
+        // Allocate memory for return values
+        Object[] retVals = new Object[args.size()];
+        
+        // resume threads? Not sure why this is needed, it's copied from the Places
+        // implementation.
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+        
+        int numPlaces = places.size();
+        for (int i = 0; i < args.size() && i < numPlaces; i++) {
+            if (places.get(i) == null) { continue; }
+
+            retVals[i] = places.get(i).callMethod(functionId, args.get(i));
+        }
+
+        // confirm all threads are done with callAll.
+        MThread.barrierThreads( 0 );
+
+        return retVals;
     }
 
     @Override
     public void callAll( int functionId, Object argument, int tid ) {
-        super.callAll(functionId, argument, tid);
-
-		reallyCallAll(functionId, argument, tid);
+        this.callAll(functionId, argument);
     }
 
     @Override
     public Object callAll( int functionId, Object[] arguments, int length, int tid ) {
-        Object obj = super.callAll(functionId, arguments, length, tid);
+        Object[] retVals = this.callAll(functionId, arguments);
 
-        reallyCallAllWithReturns(functionId, MASSBase.getCurrentReturns(), arguments);
-
-        return obj;
-    }
-
-    /**
-     * reallyCallAllWithReturns calls the function associated with the provided functionId
-     * on all VertexPlaces on the local node and stores the results in the provided 
-     * object array.
-     * 
-     * @param functionId The ID of the function to call on the VertexPlace.
-     * @param returns The array of return values from the function calls.
-     * @param arguments The arguments to pass each function.
-     */
-    public void reallyCallAllWithReturns(int functionId, Object[] returns, Object[] arguments) {
-        Object args;
-        for (int i = 0; i < this.places.size(); i++) {
-            args = arguments == null ? null : arguments[i];
-            returns[i] = this.places.get(i).callMethod(functionId, args);
-        }
+        return retVals;
     }
 
     @Override
@@ -1489,7 +1583,7 @@ public class GraphPlaces extends Places implements Graph {
 		
 		MASSBase.getLogger().debug( "dest_handle = {}", destinationHandle );
 		
-		MASS.getRemoteNodes().forEach( place -> place.sendMessage( m ) );
+		MASS.getRemoteNodes().forEach( node -> node.sendMessage( m ) );
 		
 		// retrieve the corresponding places
 		MASSBase.setCurrentPlacesBase(this);
@@ -1505,10 +1599,10 @@ public class GraphPlaces extends Places implements Graph {
 		// resume threads
 		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
 		
-		// exchangeall implementation
-		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
-
-		// Perform graph exchangeAll separately for now
+		// For some reason, the original implementation for GraphPlaces
+        // discards the destinationHandle. It isn't clear to me yet how this
+        // is intended to work. Need to look into the purpose of destination
+        // handle.
 		exchangeAll(MASSBase.getCurrentFunctionId());
 
 		// confirm all threads are done with exchangeAll.
@@ -1524,6 +1618,18 @@ public class GraphPlaces extends Places implements Graph {
 		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
     }
 
+    @Override
+    @Deprecated
+    public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors) {
+        MASS.getLogger().error("Parent function deprecated and not implemented by GraphPlaces");
+    }
+
+    @Override
+    public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) { 
+        this.exchangeAll(dstPlaces.getHandle(), functionId);
+    }
+
+
     /**
      * exchangeAll calls the provided function ID on all the neighbors of each
      * VertexPlace stored in places and aggregates the results within the 
@@ -1532,7 +1638,7 @@ public class GraphPlaces extends Places implements Graph {
      * @param currentFunctionId The function Id of the function to be called on the 
      * neighboring VertexPlace.
      */
-    public void exchangeAll(int currentFunctionId) {
+    protected void exchangeAll(int currentFunctionId) {
         // do serially but this should be multi-threaded. Maybe we can just use a thread pool
         for (VertexPlace place : this.places) {
             Object[] neighbors = place.getNeighbors();
@@ -1595,7 +1701,7 @@ public class GraphPlaces extends Places implements Graph {
      * 
      * @return The result of having called the function.
      */
-    public Object exchangeNeighbor(int functionId, int neighborId) {
+    protected Object exchangeNeighbor(int functionId, int neighborId) {
         // Get local index and size of places array.
         VertexPlace vertex = this.getVertex(neighborId);
         if (vertex == null) {
