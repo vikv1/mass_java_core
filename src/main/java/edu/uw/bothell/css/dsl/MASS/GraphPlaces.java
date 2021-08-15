@@ -419,6 +419,7 @@ public class GraphPlaces extends Places implements Graph {
         VertexPlace vertexPlace;
         try {
             vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParams);
+            vertexPlace.setIndex(new int[]{vertexID});
         } catch (Exception e) {
             MASS.getLogger().error("expection trying to instantiate a new vertex: ", e);
             return false;
