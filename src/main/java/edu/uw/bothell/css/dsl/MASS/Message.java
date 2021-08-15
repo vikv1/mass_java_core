@@ -93,8 +93,9 @@ public class Message implements Serializable {
 		GRAPH_PLACES_CALL_ALL_VOID_OBJECT("GraphPlaces.callAllVoidObject"),
 		GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("GraphPlaces.callAllReturnObject"),
 
-		// Exchange all
-		GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
+		// Exchange all messages used with the ExchangeHelper.
+		GRAPH_PLACES_REQUEST_DATA("GraphPlaces.requestData"),
+		GRAPH_PLACES_SEND_DATA("GraphPlaces.sendData"),
 
 		// Graph Maintenance (Deprecated) Use of this message type is deprecated and will be
 		// removed in a future release.

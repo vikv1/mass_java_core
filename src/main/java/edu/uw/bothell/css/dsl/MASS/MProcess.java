@@ -483,15 +483,16 @@ public class MProcess {
 				// resume threads to work on call all.
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
-				// exchangeall implementation
-				MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
-						MASSBase.getCurrentFunctionId(), 0);
-
 				// Perform graph exchangeAll separately for now
 				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					MASS.getLogger().debug("executing exchangeAll on GraphPlaces");
 					graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
 
 					graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+				} else {
+					// exchangeall implementation
+					MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
+					MASSBase.getCurrentFunctionId(), 0);
 				}
 
 				// confirm all threads are done with places.exchangeall.
@@ -985,19 +986,12 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;
-			
 
-			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
-				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
-
-				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
-
-				Object o = graphPlaces.exchangeNeighbor(m.getFunctionId(), (Integer) m.getArgument());
-
-				sendMessage(new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, o));
-
+			// These are NOOPs in MProcess. They are used with the ExchangeHelper.
+			case GRAPH_PLACES_REQUEST_DATA:
+			case GRAPH_PLACES_SEND_DATA:
 				break;
-
+			
 			case MAINTENANCE_REINITIALIZE:
 				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
 
