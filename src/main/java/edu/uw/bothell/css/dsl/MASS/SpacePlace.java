@@ -40,7 +40,8 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public class SpacePlace extends Place{
 
-
+    public static final int COLLECT_AGENTS = 2;
+    
     private int handle;
     private double[] min;  //min value of the SpacePlace (not whole places)
     private double[] max;

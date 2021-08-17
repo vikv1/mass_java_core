@@ -252,66 +252,62 @@ public class AgentsBase {
 		// retrieve the corresponding places
 		PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
 
-		//for (int i = 0; i < curPlaces.getNumberOfPlacesOnCurrentNode( ); i++ ) {
-		for (int i = 0; i < curPlaces.getPlacesSize(); i++ ) {
-
-			// scan each place to see how many agents it can create
-			Place curPlace = curPlaces.getPlaces()[i];
-
-			// actual size:
-			int[] placesSize = MASSBase.getPlacesMap().get(getPlacesHandle()).getSize();
-
-			// create as many new agents as nColonists
-			// change to protoAgent.map(int initPopulation, int[] size, int[] index, int offset)
-			// added offset
-			for ( int nColonists =
-					protoAgent.map( initPopulation, placesSize,
-							curPlace.getIndex(), curPlaces.getSize()[0] );
-					nColonists > 0; nColonists--, localPopulation++ ) {		
-
-				// agent instantiation and initialization
-				Agent newAgent = null;
-				try {
-
-					agentInitAgentsHandle = handle;
-					agentInitPlacesHandle = placesHandle;
-					agentInitAgentId = currentAgentId++;
-					agentInitParentId = -1; // no parent
-					newAgent = objectFactory.getInstance(className, argument);
-					newAgent.setAgentId( agentInitAgentId );
-
-				} catch ( Exception e ) {
-					// TODO - now what? What to do when there is an exception?
-					MASS.getLogger().error( "Agents_base.constructor: {} not instaitated ", className, e );    			
-				}
-
-				newAgent.setPlace(curPlace);
-
-				// store this agent in the bag of agents
-				agents.add( newAgent );
-
-				// register newAgent into curPlace
-				curPlace.getAgents().add( newAgent );
-
-				// register the new Agent with messaging provider
-				MASS.getMessagingProvider().registerAgent( newAgent );
-
-				// Agent has been created
-				eventDispatcher.queueAsync( OnCreation.class, newAgent );
-
-				// Place has an arriving Agent
-				eventDispatcher.queueAsync( OnArrival.class, curPlace );
-
-				// Agent has arrived at a Place
-				eventDispatcher.queueAsync( OnArrival.class, newAgent );
-
-			}
-
-		}
-
 		if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
-			// TODO: This should probably be a function in GraphPlaces or maybe a brand-new GraphAgents
 			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
+		} else {
+			for (int i = 0; i < curPlaces.getPlacesSize(); i++ ) {
+
+				// scan each place to see how many agents it can create
+				Place curPlace = curPlaces.getPlaces()[i];
+	
+				// actual size:
+				int[] placesSize = MASSBase.getPlacesMap().get(getPlacesHandle()).getSize();
+	
+				// create as many new agents as nColonists
+				// change to protoAgent.map(int initPopulation, int[] size, int[] index, int offset)
+				// added offset
+				for ( int nColonists =
+						protoAgent.map( initPopulation, placesSize,
+								curPlace.getIndex(), curPlaces.getSize()[0] );
+						nColonists > 0; nColonists--, localPopulation++ ) {		
+	
+					// agent instantiation and initialization
+					Agent newAgent = null;
+					try {
+	
+						agentInitAgentsHandle = handle;
+						agentInitPlacesHandle = placesHandle;
+						agentInitAgentId = currentAgentId++;
+						agentInitParentId = -1; // no parent
+						newAgent = objectFactory.getInstance(className, argument);
+						newAgent.setAgentId( agentInitAgentId );
+	
+					} catch ( Exception e ) {
+						// TODO - now what? What to do when there is an exception?
+						MASS.getLogger().error( "Agents_base.constructor: {} not instaitated ", className, e );    			
+					}
+	
+					newAgent.setPlace(curPlace);
+	
+					// store this agent in the bag of agents
+					agents.add( newAgent );
+	
+					// register newAgent into curPlace
+					curPlace.getAgents().add( newAgent );
+	
+					// register the new Agent with messaging provider
+					MASS.getMessagingProvider().registerAgent( newAgent );
+	
+					// Agent has been created
+					eventDispatcher.queueAsync( OnCreation.class, newAgent );
+	
+					// Place has an arriving Agent
+					eventDispatcher.queueAsync( OnArrival.class, curPlace );
+	
+					// Agent has arrived at a Place
+					eventDispatcher.queueAsync( OnArrival.class, newAgent );
+				}
+			}
 		}
 
 		// invoke queued Agents OnCreation methods
@@ -323,29 +319,21 @@ public class AgentsBase {
 	}
 
 	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
-		// TODO: Hack for Agent#map
-		protoAgent.setPlace(new VertexPlace());
-
 		// scan each place to see how many agents it can create
-		Vector<Vector<VertexPlace>> places = graphPlaces.getPlacesVector();
+		Vector<VertexPlace> places = graphPlaces.getGraphPlaces();
 
-		int graphSize = places.stream().mapToInt(layer -> layer.size()).sum();
-
+		int graphSize = places.size();
 		int[] placesSize = { graphSize };
 
-		places.forEach(layer -> layer.forEach(vertexPlace -> {
-			// create as many new agents as nColonists
-			// Used graphSize as offset. 
-			// Changes from Jonathan 
-			for (int nColonists =
-					protoAgent.map( initPopulation, placesSize,
-							vertexPlace.getIndex(), graphSize);
-					nColonists > 0; nColonists--, localPopulation++) {
+		for (int i = 0; i < graphSize; i++) {
+			// not sure what offset is supposed to be. The previous code was passing it the
+			// graph size so I continue to do that here.
+			int nColonists = protoAgent.map(initPopulation, placesSize, new int[]{i}, graphSize);
 
-				// agent instantiation and initialization
+			// Create nColonists agents
+			for (int j = 0; j < nColonists; j++) {
 				Agent newAgent = null;
 				try {
-
 					agentInitAgentsHandle = handle;
 					agentInitPlacesHandle = placesHandle;
 					agentInitAgentId = currentAgentId++;
@@ -354,17 +342,19 @@ public class AgentsBase {
 					newAgent.setAgentId(agentInitAgentId);
 
 				} catch (Exception e) {
-					// TODO - now what? What to do when there is an exception?
-					MASS.getLogger().error("Agents_base.constructor: {} not instaitated ", className, e);
+					MASS.getLogger().error("Agents_base.constructor::initForGraph: {} not instaitated ", className, e);
 				}
 
-				newAgent.setPlace(vertexPlace);
+				newAgent.setPlace(places.get(i));
 
 				// store this agent in the bag of agents
 				agents.add(newAgent);
 
+				// increment local population
+				localPopulation++;
+
 				// register newAgent into curPlace
-				vertexPlace.getAgents().add(newAgent);
+				places.get(i).getAgents().add(newAgent);
 
     			// register the new Agent with messaging provider
     			MASS.getMessagingProvider().registerAgent( newAgent );
@@ -373,12 +363,12 @@ public class AgentsBase {
 				eventDispatcher.queueAsync(OnCreation.class, newAgent);
 
 				// Place has an arriving Agent
-				eventDispatcher.queueAsync(OnArrival.class, vertexPlace);
+				eventDispatcher.queueAsync(OnArrival.class, places.get(i));
 
 				// Agent has arrived at a Place
 				eventDispatcher.queueAsync(OnArrival.class, newAgent);
 			}
-		}));
+		}
 	}
 
 	public void callAll( int functionId, Object argument, int tid ) {
@@ -422,7 +412,6 @@ public class AgentsBase {
 
 				MASS.getLogger().debug( "Thread [" + tid + "]: (" + myIndex +	") has called its method; " +
 						"Current Agent Bag Size is: " + MThread.getAgentBagSize() );
-
 			}
 
 			//Otherwise, we are out of agents and should stop
@@ -447,7 +436,6 @@ public class AgentsBase {
 			MASS.getLogger().debug( "Agents_base:callAll: agentsBagSize = {}", MThread.getAgentBagSize() );
 
 		}
-
 	}
 
 	public void callAll( int functionId, Object[] argument, int tid ) {
@@ -950,11 +938,11 @@ public class AgentsBase {
 				GraphPlaces graphPlaces = (GraphPlaces) evaluatedPlaces;
 
 				int globalLinearIndex = evaluationAgent.getIndex()[0];
-				int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+				int nodeId = graphPlaces.getOwnerID(globalLinearIndex);
 
 				if (nodeId == MASSBase.getMyPid()) {
 					// local migration
-					globalLinearIndex = MASSBase.getGlobalIndexForKey(globalLinearIndex); 		// if local get indexkey
+					int localIndex = globalLinearIndex / MASS.getSystemSize();
 					Place oldPlace = evaluationAgent.getPlace();
 
 					if (oldPlace.getAgents().remove(evaluationAgent) == false) {
@@ -970,7 +958,7 @@ public class AgentsBase {
 						throw new RuntimeException(errorMessage);
 					}
 
-					evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
+					evaluationAgent.setPlace(graphPlaces.places.get(localIndex));
 
 					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
 				} else {
@@ -1556,19 +1544,17 @@ public class AgentsBase {
 						receivedRequest.remove( receivedRequest.size( ) - 1 );
 
 				int globalLinearIndex = request.destGlobalLinearIndex;
-				if (GraphPlaces.class.isAssignableFrom(dstPlaces.getClass()))
-					globalLinearIndex = MASSBase.getGlobalIndexForKey(globalLinearIndex); // ne line if graphPlaces looks for real key
-				if (globalLinearIndex > dstPlaces.getSize()[0] && GraphPlaces.class.isAssignableFrom(dstPlaces.getClass())) {
+				if (GraphPlaces.class.isAssignableFrom(dstPlaces.getClass())) {
 					boolean found = true;
 					Agent evaluationAgent = request.agent;
 					GraphPlaces graphPlaces = (GraphPlaces) dstPlaces;
-					int networkSize = graphPlaces.getSize()[0];
-					int nodeId = graphPlaces.getNodeIdFromGlobalLinearIndex(globalLinearIndex);
+					int localIndex = globalLinearIndex / MASS.getSystemSize();
+
 					// local migration
 					Place oldPlace = evaluationAgent.getPlace();
-					// changed du to oldPlaces being set to null
 					if(oldPlace != null)
 						found = oldPlace.getAgents().remove(evaluationAgent);
+
 					// changes include found init and usage Jonathan 
 					if (found == false) {
 						// should not happen
@@ -1583,9 +1569,17 @@ public class AgentsBase {
 						throw new RuntimeException(errorMessage);
 					}
 
-					evaluationAgent.setPlace(graphPlaces.getVertexPlace(globalLinearIndex));
-
+					evaluationAgent.setPlace(graphPlaces.places.get(localIndex));
 					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+					agents.add(evaluationAgent);
+
+					// invoke OnArrival events immediately
+					try {
+						eventDispatcher.invokeImmediate(OnArrival.class, graphPlaces.places.get(localIndex));
+						eventDispatcher.invokeImmediate(OnArrival.class, evaluationAgent);
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
+					}
 				} else {
 					Agent agent = request.agent;
 
@@ -1600,8 +1594,6 @@ public class AgentsBase {
 					Place dstPlace = null;
 					if(dstPlaces.getPlaces() != null)
 						dstPlace = dstPlaces.getPlaces()[destinationLocalLinearIndex];
-					else
-						dstPlace = ((GraphPlaces)dstPlaces).getVertexPlace(globalLinearIndex);
 					// end of changes
 
 					MASS.getLogger().debug( "dsrLocal is null:  " +  (dstPlace == null));

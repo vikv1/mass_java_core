@@ -30,17 +30,12 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Vector;
 
-import java.util.stream.Stream;
-import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public class SpacePlaces extends SpacePlacesBase {
 

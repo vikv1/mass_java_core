@@ -72,7 +72,7 @@ public class VertexPlace extends Place implements Serializable, Cloneable {
     // VertexPlace (v1.0.0 == 01 00 00)
     static final long serialVersionUID = 010000L;
     
-	private Map<Object, Object> neighborResults;
+	protected Map<Object, Object> neighborResults;
     private Object [] graphArguments;
     public Vector<Object> neighbors = new Vector<>();
     public Vector<Object> weights = new Vector<>();
@@ -174,8 +174,6 @@ public class VertexPlace extends Place implements Serializable, Cloneable {
 
     public VertexPlace() {
         super();
-
-        System.err.println("VertexPlace constructed");
 
         MASSBase.getLogger().debug("VertexPlace constructed.");
     }

@@ -80,7 +80,9 @@ public class Agent implements Serializable {
 	 * the clock reaches this value
 	 */
 	private long inhibitUntil;
-	
+
+  	private double[] currentCoordinates;
+
 	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
 	 * functionId as passing arguments to this function. A user-derived Agent
@@ -355,4 +357,13 @@ public class Agent implements Serializable {
 		}
 
 	}
+	
+	public double[] getCurrentCoordinates() {
+		return currentCoordinates;
+	}
+
+	public void setCurrentCoordinates(double[] coordinates) {
+		this.currentCoordinates = coordinates.clone();
+	}
+
 }

@@ -30,15 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS; 
 
-import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-
-import java.util.Vector;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class SpaceAgent extends Agent {
+    
+    public static final int MIGRATE = 0; 
+    public static final int SPAWN_AGENTS = 1;
+    public static final int KILL_PARENTS =2;
+    public static final int PROPAGATE_AGENTS = 3;
+    public static final int KILL_DUPLICATES = 4;
     
     private double[] currentCoordinates;
     private double[] nextCoordinates;  //coordinates where agent is migrating to

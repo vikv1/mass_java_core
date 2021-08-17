@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -28,22 +28,31 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.graph;
+/**
+ * The Comparator class for Data. 
+ */
+package edu.uw.bothell.css.dsl.MASS;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Comparator;
 
-@XmlRootElement(name = "node")
-public class MATSimNetworkNode {
-    @XmlAttribute
-    public long id;
+public class DataComparator implements Comparator<Data> {
 
-    @XmlAttribute
-    public double x;
+    int dim;  //the dimension for data comparison
 
-    @XmlAttribute
-    public double y;
+    public DataComparator (int dim) {
+        this.dim = dim;
+    }
+    
+    @Override
+    public int compare(Data a, Data b) 
+    { 
+        if (a.getValue()[dim] > b.getValue()[dim]){
+            return 1;
+        } else if (a.getValue()[dim] < b.getValue()[dim]) {
+            return -1;
+        } else {
+            return 0;
+        }
+    } 
 
-	@XmlAttribute
-	public int type;
 }

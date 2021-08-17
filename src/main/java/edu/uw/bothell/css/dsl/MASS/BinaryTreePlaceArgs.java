@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -28,22 +28,37 @@
 
 */
 
-package edu.uw.bothell.css.dsl.MASS.graph;
+/**
+ * Class for the argument of BinaryTreePlace which is used for the constructor. 
+ */
+package edu.uw.bothell.css.dsl.MASS;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 
-@XmlRootElement(name = "node")
-public class MATSimNetworkNode {
-    @XmlAttribute
-    public long id;
+@SuppressWarnings("serial")
+public class BinaryTreePlaceArgs implements Serializable {
 
-    @XmlAttribute
-    public double x;
+    private Data data;
+    private int handle;
 
-    @XmlAttribute
-    public double y;
+    public BinaryTreePlaceArgs(){
+        super();
+    }
 
-	@XmlAttribute
-	public int type;
+    public BinaryTreePlaceArgs(Data data, int handle) {
+
+        this.handle = handle;
+        this.data = data;
+
+    }
+
+
+    public Data getData() {
+        return data;
+    }
+    
+    public int getHandle() {
+        return handle;
+    }
+
 }
