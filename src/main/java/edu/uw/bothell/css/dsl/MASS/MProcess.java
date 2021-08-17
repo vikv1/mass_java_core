@@ -483,15 +483,16 @@ public class MProcess {
 				// resume threads to work on call all.
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
-				// exchangeall implementation
-				MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
-						MASSBase.getCurrentFunctionId(), 0);
-
 				// Perform graph exchangeAll separately for now
 				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					MASS.getLogger().debug("executing exchangeAll on GraphPlaces");
 					graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
 
 					graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+				} else {
+					// exchangeall implementation
+					MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
+					MASSBase.getCurrentFunctionId(), 0);
 				}
 
 				// confirm all threads are done with places.exchangeall.
@@ -816,6 +817,32 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
+			
+			case GRAPH_PLACES_CALL_ALL_VOID_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				
+				graphPlaces.callVertexPlaceMethod(m.getFunctionId(), argument);
+
+				sendAck();
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT complete");
+				break;
+
+			case GRAPH_PLACES_CALL_ALL_RETURN_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT received");
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				ArrayList<Object> callArgs = (ArrayList<Object>) argument;
+
+				Object[] retVals = graphPlaces.callVertexPlaceMethod(m.getFunctionId(), callArgs);
+
+				sendMessage( new Message( Message.ACTION_TYPE.ACK, retVals ) );
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT complete");
+				break;
 
 			case MAINTENANCE_LOAD_DSL_FILE:
 				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE received");
@@ -837,6 +864,28 @@ public class MProcess {
 				sendAck(vertexCount);
 
 				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE completed");
+				break;
+			
+			case MAINTENANCE_LOAD_SAR_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				opArgs = (Object[])argument;
+				offset = (Integer)opArgs[0];
+				filePath = (String)opArgs[1];
+				vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadSARGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading SAR file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE completed");
+				
 				break;
 			
 			case MAINTENANCE_BULK_GRAPH_HIPPIE_OPS:
@@ -937,19 +986,12 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;
-			
 
-			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
-				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
-
-				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
-
-				Object o = graphPlaces.exchangeNeighbor(m.getFunctionId(), (Integer) m.getArgument());
-
-				sendMessage(new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, o));
-
+			// These are NOOPs in MProcess. They are used with the ExchangeHelper.
+			case GRAPH_PLACES_REQUEST_DATA:
+			case GRAPH_PLACES_SEND_DATA:
 				break;
-
+			
 			case MAINTENANCE_REINITIALIZE:
 				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
 

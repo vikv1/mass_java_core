@@ -89,8 +89,13 @@ public class Message implements Serializable {
 		MAINTENANCE_GET_PLACES("Maintenance.getPlaces"),
 		MAINTENANCE_GET_PLACES_RESPONSE("Maintenance.getPlacesResponse"),
 
-		// Exchange all
-		GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT("GraphPlaces.remoteExchangeAll"),
+		// CallAll
+		GRAPH_PLACES_CALL_ALL_VOID_OBJECT("GraphPlaces.callAllVoidObject"),
+		GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("GraphPlaces.callAllReturnObject"),
+
+		// Exchange all messages used with the ExchangeHelper.
+		GRAPH_PLACES_REQUEST_DATA("GraphPlaces.requestData"),
+		GRAPH_PLACES_SEND_DATA("GraphPlaces.sendData"),
 
 		// Graph Maintenance (Deprecated) Use of this message type is deprecated and will be
 		// removed in a future release.
@@ -111,6 +116,7 @@ public class Message implements Serializable {
 		MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
 		MAINTENANCE_ADD_EDGE_V2("Maintenance.addEdgeV2"),
 		MAINTENANCE_LOAD_DSL_FILE("Maintenance.loadDSLFile"),
+		MAINTENANCE_LOAD_SAR_FILE("Maintenance.loadSARFile"),
 
 		// HIPPIE Related Messages
 		MAINTENANCE_BULK_GRAPH_HIPPIE_OPS("Maintenance.bulkGraphHippieOps"),

@@ -76,13 +76,6 @@ public class Places extends PlacesBase {
     
     }
 
-	/**
-	 * this is a special passthrough constructor to allow remote node to instantiate places by skipping init_master
-	 */
-	public Places(int handle, String className, String[] graphArgs, Object[] initArgs) {
-		super(handle, className, graphArgs, initArgs);
-	}
-	
 	protected Places(int handle, String className) {
 		super(handle, className);
 	}
@@ -260,13 +253,6 @@ public class Places extends PlacesBase {
 		
 		// exchangeall implementation
 		super.exchangeAll( MASSBase.getDestinationPlaces(), functionId, 0 );
-
-		// Perform graph exchangeAll separately for now
-		if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
-			GraphPlaces graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
-
-			graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
-		}
 
 		// confirm all threads are done with exchangeAll.
 		MThread.barrierThreads( 0 );

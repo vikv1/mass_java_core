@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Queue;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +43,11 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -52,9 +57,11 @@ import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
+import edu.uw.bothell.css.dsl.MASS.MThread;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 
 public class GraphPlaces extends Places implements Graph {
     // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
@@ -80,18 +87,20 @@ public class GraphPlaces extends Places implements Graph {
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
-    /**
-     * Constructs a GraphPlaces object populated with data from the 
-     * "graph_n.txt" CSV text file.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces.
-     * @param className The class that represents a VertexPlace.
-     * @param graphArgs 
-     * @param initArgs 
-     * @deprecated 
-     */
-    public GraphPlaces(int handle, String className, String[] graphArgs, Object[] initArgs) {
-        super(handle, className);
+    // InitArgs are initialization args to be passed to instances of 
+    // GraphPlaces that are being instantiated on remote nodes.
+    public static class InitArgs implements Serializable {
+        public int handle;
+        public String className;
+        public String vertexClassName;
+        public Object[] initArgs;
+
+        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
+            this.handle = handle;
+            this.vertexClassName = vertexClassName;
+            this.className = className;
+            this.initArgs = initArgs;
+        }
     }
 
     // Empty constructor to all for remote instantiation and serialization.
@@ -99,74 +108,6 @@ public class GraphPlaces extends Places implements Graph {
     // directly.
     public GraphPlaces() {
         super();
-    }
-
-    /**
-     * Constructs a GraphPlaces object populated with data contained in
-     * the provided filename.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param filename The filename of the file with which to extract graph data.
-     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
-     * @param init_algorithm The initialization algorithm used 
-     * (e.g., FULL_LIST or PARTITIONED_LIST).
-     */
-    public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
-                       GraphInitAlgorithm init_algorithm) {
-        super(handle, className, new Object[] { filename, format, init_algorithm });
-
-        if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
-            init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        }
-    }
-
-    /**
-     * Constructs a GraphPlaces object populated with data contained in
-     * the provided filename.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param filename The filename of the file with which to extract graph data.
-     * @param format The format of the file (e.g., CSV, HIPPIE, etc..).
-     * @param init_algorithm The initialization algorithm used 
-     * (e.g., FULL_LIST or PARTITIONED_LIST).
-     * @param nVertices This is unused.
-     * @param argument The arguments to be supplied to the VertexPlace during
-     * initialization.
-     */
-    public GraphPlaces(int handle, String className, String filename, GraphInputFormat format,
-                       GraphInitAlgorithm init_algorithm, int nVertices, Object argument) {
-        super(handle, className, argument);
-
-        if (init_algorithm != GraphInitAlgorithm.FULL_LIST || init_algorithm != GraphInitAlgorithm.PARTITIONED_LIST) {
-            init_algorithm = GraphInitAlgorithm.FULL_LIST;
-        }
-    }
-
-    /**
-     * Constructs an empty GraphPlaces object.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param size The number of vertices in the graph.
-     */
-    public GraphPlaces(int handle, String className, int size) {
-        super(handle, className, size, new int[] { size });
-    }
-    
-    /**
-     * Constructs an empty GraphPlaces object.
-     * 
-     * @param handle The Handle ID identifying this GraphPlaces instance.
-     * @param className The class that represents a VertexPlace.
-     * @param size The number of vertices in the graph.
-     * @param _remote_node This is unused.
-     */
-    public GraphPlaces(int handle, String className, int size, boolean _remote_node) {
-        super(handle, className);
-        
-        init_all_graph_blank(size);
     }
 
     /**
@@ -183,43 +124,6 @@ public class GraphPlaces extends Places implements Graph {
         if (myPid == 0) {
             init_graph_master();
         }
-    }
-
-    /**
-     * Instantiates a new GraphPlaces instance, initalized with data from the 
-     * provided DSL Graph file.
-     * 
-     * @param handle The handle associated with this GraphPlaces Instance.
-     * @param className The class name of the Vertex class.
-     * @param filePath The path to the Distributed Systems Lab (DSL) Graph File.
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public GraphPlaces(int handle, String className, String filePath) throws IOException,FileNotFoundException {
-        super(handle, className);
-
-        int myPid = MASS.getMyPid();
-
-        if (myPid == 0) {
-            init_graph_master();
-        }
-
-        loadDSLFile(filePath);
-    }
-
-    /**
-     * GraphPlaces constructor for initializing graph places with a graph file.
-     * 
-     * @param handle The places handle.
-     * @param className The name of the VertexPlace class.
-     * @param filePath Path to the graph data file.
-     * @param fileType The file type of the graph data.
-     */
-    public GraphPlaces(int handle, String className, String filePath, GraphInputFormat fileType) throws IOException,FileNotFoundException {
-        // super(handle, className);
-        // Need to figure out why the above doesn't set places remotely but this does...
-        super(handle, className, 1, new int[] { 1 });
     }
 
     // reinitialize reinitializes the GraphPlaces object by setting the 
@@ -251,42 +155,6 @@ public class GraphPlaces extends Places implements Graph {
         MASS.barrierAllSlaves();
     }
 
-    /**
-     * init_master initializes GraphPlaces on the master and sends messages
-     * to all of the worker nodes to do the same.
-     * 
-     * @param argument The arguments to be supplied to the VertexPlace during
-     * initialization.
-     */
-    @Override
-    protected void init_master(Object argument, int boundaryWidth) {
-        MASSBase.getLogger().debug("GraphPlaces - init_master");
-
-        Vector<String> hosts = getHosts();
-
-        Message message = new Message(Message.ACTION_TYPE.PLACES_INITIALIZE_GRAPH, getSize(),
-                getHandle(), getClassName(),
-                argument, 0, hosts );
-
-        init_master_base(message);
-    }
-
-    // InitArgs are initialization args to be passed to instances of 
-    // GraphPlaces that are being instantiated on remote nodes.
-    public static class InitArgs implements Serializable {
-        public int handle;
-        public String className;
-        public String vertexClassName;
-        public Object[] initArgs;
-
-        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
-            this.handle = handle;
-            this.vertexClassName = vertexClassName;
-            this.className = className;
-            this.initArgs = initArgs;
-        }
-    }
-
     private void init_graph_master() {
         MASSBase.getLogger().debug("GraphPlaces - init_graph_master");
 
@@ -301,34 +169,9 @@ public class GraphPlaces extends Places implements Graph {
         init_master_base(message);
     }
 
-    // init_all initializes GraphPlaces using the provided argument.
     @Override
-    protected void init_all(Object argument) {
-        if (argument instanceof Integer) {
-            init_all_graph_blank((Integer) argument);
-        } else {
-            Object[] arguments = (Object[]) argument;
-
-            // TODO: This is failing in kotlin
-            // String[] graphArguments = (String[]) Arrays.copyOfRange(arguments, 0, 2);
-            // Object[] initArguments = (Object[]) Arrays.copyOfRange(arguments, 2, arguments.length);
-
-            String [] graphArguments = new String[2];
-            Object [] initArguments = null;
-
-            graphArguments[0] = arguments[0].toString();
-            graphArguments[1] = arguments[1].toString();
-
-            if (arguments.length > 2) {
-                initArguments = new Object[arguments.length - 2];
-
-                for (int i = 0; i < initArguments.length; i++) {
-                    initArguments[i] = arguments[i + 2];
-                }
-            }
-
-            init_all_graph(graphArguments, initArguments);
-        }
+    public int[] getSize() {
+        return new int[]{size()};
     }
 
     /* Graph Interfeace Implementation ***************************************/
@@ -576,6 +419,7 @@ public class GraphPlaces extends Places implements Graph {
         VertexPlace vertexPlace;
         try {
             vertexPlace = objectFactory.getInstance(getClassName(), vertexInitParams);
+            vertexPlace.setIndex(new int[]{vertexID});
         } catch (Exception e) {
             MASS.getLogger().error("expection trying to instantiate a new vertex: ", e);
             return false;
@@ -887,6 +731,11 @@ public class GraphPlaces extends Places implements Graph {
      */
     public Vector<VertexPlace> getGraphPlaces() {
         return this.places;
+    }
+
+    @Override
+    public Place[] getPlaces() {
+        return this.places.toArray(new Place[]{});
     }
 
     public VertexPlace getVertex(Object vertex) {
@@ -1474,12 +1323,15 @@ public class GraphPlaces extends Places implements Graph {
             if (!addVertexOnNode(myRank, vertexID, null)) {
                 MASS.getLogger().error("unable to add vertex from DSL file");
                 br.close();
+
                 return vertexCount;
             }
 
             vertexCount++;
 
-            // Parse edge list and add them to the vertex.
+            // Parse edge list if vertex has neighbors, 
+            // and add them to the vertex.
+            if (parts.length != 2) { continue; }
             edges = parts[1].split(";");
             for (String edge : edges) {
                 edgeAttribs = edge.split(",");
@@ -1489,6 +1341,7 @@ public class GraphPlaces extends Places implements Graph {
                 if (!addEdgeOnNode(myRank, vertexID, neighbor, weight)) {
                     MASS.getLogger().error("unable to add edge from DSL file to vertex");
                     br.close();
+                    
                     return vertexCount;
                 }
             }
@@ -1497,27 +1350,267 @@ public class GraphPlaces extends Places implements Graph {
         return vertexCount;
     }
 
-    public void reallyCallAll(int functionId, Object argument, int tid) {
-        for (VertexPlace place : places) {
-            place.callMethod(functionId, argument);
+    // loadSARFile loads graph data concurrently over each available node from an SAR
+    // graph file. For more information on SAR files, see Appendix D (MASS Parallel I/O
+    // File Format) in Justin Gilroy's Dynamic Graph Construction and Maintenance
+    // whitepaper. This can be found here:
+    //
+    // https://depts.washington.edu/dslab/MASS/reports/JustinGilroy_whitepaper.pdf
+    public void loadSARFile(String filePath) throws IOException, FileNotFoundException {
+        // Send load request to each node.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.MAINTENANCE_LOAD_SAR_FILE,
+            getHandle(),
+
+            // Send all nodes the current vertex offset and path of file to load.
+            new Object[]{Integer.valueOf(nextVertexID), filePath}
+        )));
+
+        // Handle local operations
+        int vertexCount = loadSARGraphData(nextVertexID, filePath);
+
+        // Wait for all other nodes to complete
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASS.getLogger().debug("failed to load SAR file");
+            }
+            vertexCount += msg.getAgentPopulation();
         }
+
+        nextVertexID += vertexCount;
     }
 
-    /**
-     * reallyCallAllWithReturns calls the function associated with the provided functionId
-     * on all VertexPlaces on the local node and stores the results in the provided 
-     * object array.
-     * 
-     * @param functionId The ID of the function to call on the VertexPlace.
-     * @param returns The array of return values from the function calls.
-     * @param arguments The arguments to pass each function.
-     */
-    public void reallyCallAllWithReturns(int functionId, Object[] returns, Object[] arguments) {
-        Object args;
-        for (int i = 0; i < this.places.size(); i++) {
-            args = arguments == null ? null : arguments[i];
-            returns[i] = this.places.get(i).callMethod(functionId, args);
+    // loadSARGraphData is intended to be called by the system and not by 
+    // users. It's purpose is to laod data from the provided SAR file in a
+    // distributed manner, only taking in data from vertices it owns.
+    protected int loadSARGraphData(int vertexOffset, String filePath) throws IOException, FileNotFoundException {
+        int myRank = MASS.getMyPid();
+
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line = "";
+        int vertexID = -1;
+        String[] edges;
+        int neighbor;
+
+        // Track the number of vertices added.
+        int vertexCount = 0;
+        int lineCount = 0;
+
+        // discard first line as we do not care about the number of vertices or their
+        // edges.
+        br.readLine();
+
+        while((line = br.readLine()) != null) {
+            vertexID = lineCount + vertexOffset;
+            lineCount++;
+
+            // If we don't own this vertex, skip it
+            if (getOwnerID(vertexID) != myRank) { continue; }
+
+            // Attempt to add the vertex
+            if (!addVertexOnNode(myRank, vertexID, null)) {
+                MASS.getLogger().error("unable to add vertex from SAR file");
+                br.close();
+
+                return vertexCount;
+            }
+
+            vertexCount++;
+
+            // Parse edge list and add them to the vertex.
+            edges = line.split("\t");
+            for (String edge : edges) {
+                if (edge.isEmpty()) { continue; }
+
+                neighbor = Integer.valueOf(edge);
+                if (!addEdgeOnNode(myRank, vertexID, neighbor, DEFAULT_EDGE_WEIGHT)) {
+                    MASS.getLogger().error("unable to add edge from SAR file to vertex");
+                    br.close();
+                    
+                    return vertexCount;
+                }
+            }
         }
+
+        return vertexCount;
+    }
+
+    @Override
+    public void callAll( int functionId ) {
+        this.callAll(functionId, (Object)null);
+    }
+
+    @Override
+    public void callAll(int functionId, Object argument) {
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.GRAPH_PLACES_CALL_ALL_VOID_OBJECT,
+            this.getHandle(),
+            functionId,
+            argument
+        )));
+
+        this.callVertexPlaceMethod(functionId, argument);
+
+        // Synchronize with all secondary processes
+        MASSBase.getLogger().debug("Attempting to barrierAllSlaves...");
+        MASS.barrierAllSlaves();
+        MASSBase.getLogger().debug("barrierAllSlaves completed!");
+    }
+
+    protected void callVertexPlaceMethod(int functionId, Object argument) {
+        // resume threads? Not sure why this is needed, it's copied from the Places
+        // implementation.
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+        
+        // callAll on all local places objects
+        for (int i = 0; i < places.size(); i++) {
+            if (places.get(i) == null) { continue; }
+
+            places.get(i).callMethod(functionId, argument);
+        }
+
+        // confirm all threads are done with callAll.
+        MThread.barrierThreads( 0 );
+    }
+
+    @Override
+    public Object[] callAll(int functionId, Object argument[]) {
+        // return ca_setup( functionId, ( Object )argument,
+		// 		 Message.ACTION_TYPE.PLACES_CALL_ALL_RETURN_OBJECT );
+
+        // Allocate space for return values;
+        Object[] returnValues = new Object[argument.length];
+
+        // split arguments across available system nodes.
+        int numNodes = MASS.getSystemSize();
+        ArrayList<ArrayList<Object>> args = new ArrayList<ArrayList<Object>>();
+        for (int i = 0; i < numNodes; i++) {
+            args.add(new ArrayList<Object>());
+        }
+
+        for (int i = 0; i < argument.length; i++) {
+            args.get(i % numNodes).add(argument[i]);
+        }
+
+        // Send arguments to respective nodes and have them call the appropriate
+        // method.
+        MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
+            Message.ACTION_TYPE.GRAPH_PLACES_CALL_ALL_RETURN_OBJECT,
+            this.getHandle(),
+            functionId,
+            args.get(node.getPid())
+        )));
+
+        // callAll locally
+        int myRank = MASS.getMyPid();
+        Object[] retVals = callVertexPlaceMethod(functionId, args.get(myRank));
+        // set appropriate return values
+        for (int i = 0; i < retVals.length; i++) {
+            returnValues[myRank + numNodes * i] = retVals[i];
+        }
+
+        // get the return values from remote nodes
+        for (MNode node : MASS.getRemoteNodes()) {
+            Message msg = node.receiveMessage();
+            if (msg.getAction() != Message.ACTION_TYPE.ACK) {
+                MASSBase.getLogger().error("an unknown error occured during callAll. invalid message type received");
+                return null;
+            }
+
+            int nodeRank = node.getPid();
+            retVals = (Object[]) msg.getArgument();
+            for (int i = 0; i < retVals.length; i++) {
+                returnValues[nodeRank + numNodes * i] = retVals[i];
+            }   
+        }
+
+        return returnValues;
+    }
+
+    protected Object[] callVertexPlaceMethod(int functionId, ArrayList<Object> args) {
+        if (args.size() != places.size()) {
+            MASS.getLogger().warning("number of callAll args does not match number of places");
+        }
+
+        // Allocate memory for return values
+        Object[] retVals = new Object[args.size()];
+        
+        // resume threads? Not sure why this is needed, it's copied from the Places
+        // implementation.
+        MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
+        
+        int numPlaces = places.size();
+        for (int i = 0; i < args.size() && i < numPlaces; i++) {
+            if (places.get(i) == null) { continue; }
+
+            retVals[i] = places.get(i).callMethod(functionId, args.get(i));
+        }
+
+        // confirm all threads are done with callAll.
+        MThread.barrierThreads( 0 );
+
+        return retVals;
+    }
+
+    @Override
+    public void callAll( int functionId, Object argument, int tid ) {
+        this.callAll(functionId, argument);
+    }
+
+    @Override
+    public Object callAll( int functionId, Object[] arguments, int length, int tid ) {
+        Object[] retVals = this.callAll(functionId, arguments);
+
+        return retVals;
+    }
+
+    @Override
+    @Deprecated
+    public void exchangeAll(int destinationHandle, int functionId, Vector<int[]> neighbors) {
+        MASS.getLogger().error("Parent function deprecated and not implemented by GraphPlaces");
+    }
+
+    @Override
+    public void exchangeAll( PlacesBase dstPlaces, int functionId, int tid ) { 
+        this.exchangeAll(dstPlaces.getHandle(), functionId);
+    }
+
+    @Override
+    public void exchangeAll( int destinationHandle, int functionId ) {
+        MASS.getLogger().debug("executing exchangeAll");
+		Message m = new Message( Message.ACTION_TYPE.PLACES_EXCHANGE_ALL, this.getHandle(), destinationHandle, functionId );
+		MASS.getRemoteNodes().forEach( node -> node.sendMessage( m ) );
+		
+		// retrieve the corresponding places
+		MASSBase.setCurrentPlacesBase(this);
+		MASSBase.setDestinationPlaces( MASSBase.getPlacesMap().get( destinationHandle ) );
+		MASSBase.setCurrentFunctionId(functionId);
+		
+		// reset requestCounter by the main thread
+		MASSBase.resetRequestCounter();
+		
+		// for debug
+		MASSBase.showHosts( );
+		
+		// resume threads
+		MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_EXCHANGEALL );
+		
+		this.exchangeAll(MASSBase.getCurrentFunctionId());
+
+		// confirm all threads are done with exchangeAll.
+		MThread.barrierThreads( 0 );
+		
+		// Synchronized with all slave processes
+		MASS.barrierAllSlaves( );
+
+		// transmit outgoing messages
+		MASS.getMessagingProvider().flushPlaceMessages();
+		  
+		// execute methods queued by incoming messages
+		MASS.getEventDispatcher().invokeQueuedAsync( OnMessage.class );
+        MASS.getLogger().debug("exchangeAll complete");
     }
 
     /**
@@ -1528,77 +1621,294 @@ public class GraphPlaces extends Places implements Graph {
      * @param currentFunctionId The function Id of the function to be called on the 
      * neighboring VertexPlace.
      */
-    public void exchangeAll(int currentFunctionId) {
-        // do serially but this should be multi-threaded. Maybe we can just use a thread pool
-        for (VertexPlace place : this.places) {
-            Object[] neighbors = place.getNeighbors();
-            place.prepareForExchangeAll();
+    protected void exchangeAll(int currentFunctionId) {
+        int systemSize = MASS.getSystemSize();
+        int myRank = MASS.getMyPid();
 
-            for (Object neighborKey : neighbors) {
-                int neighborIndex = (Integer)neighborKey;
-                int ownerId = getOwnerID(neighborIndex);
+        // 1. Call function on all local vertices, caching results for retrieval from
+        // remote nodes. Also, generate list of data we need from other nodes.
+        Object[] callAllResults = new Object[places.size()];
+        HashMap<Integer, HashSet<Integer>> resultsNeeded = new HashMap<Integer,HashSet<Integer>>();
+        for (int i = 0; i < systemSize; i++) {
+            if (i == myRank) { continue; }
+            
+            resultsNeeded.put(i, new HashSet<Integer>());
+        }
+        
+        int owner;
+        int neighbor;
+        for (int i = 0; i < places.size(); i++) {
+            VertexPlace p = places.get(i);
+            if (p == null) { continue; }
 
-                // If it's a remote node, send exchange all method to owning node, retrieve
-                // and store result, and continue...
-                if (ownerId != MASS.getMyPid()) {
-                    place.setNeighborResult(
-                        neighborKey,
-                        exchangeAllOnRemoteNode(ownerId, neighborKey, currentFunctionId)
-                    );
+            // 1a. Call method and record result.
+            callAllResults[i] = p.callMethod(currentFunctionId, null);
+
+            // 1b. group neighbors by owner
+            for (Object n : p.neighbors) {
+                neighbor = (Integer)n;
+                owner = getOwnerID(neighbor);
+                if (owner == myRank) { continue; }
+
+                resultsNeeded.get(owner).add(neighbor);
+            }
+        }
+
+        // 2. Exchange data with other nodes, requesting data from vertices
+        // they own and sending them data from vertices we own. Data is 
+        // returned in the format of <Owner, <VertexID, callAllResult>>.
+        HashMap<Integer, HashMap<Integer, Object>> data = exchangeData(callAllResults, resultsNeeded);
+        
+        int localIndex;
+        // 3. Go back through our places and set neighbor results
+        for (int i = 0; i < places.size(); i++) {
+            if (places.get(i) == null) { continue; }
+
+            places.get(i).prepareForExchangeAll();
+            for (Object n : places.get(i).neighbors) {
+                neighbor = (Integer)n;
+                owner = getOwnerID(neighbor);
+
+                // 3a. If we own the neighbor, get it from our local results
+                if (owner == myRank) {
+                    localIndex = neighbor / systemSize;
+                    places.get(i).setNeighborResult(n, callAllResults[localIndex]);
                     continue;
                 }
 
-                // else if it's a local node, call the method and store result.
-                VertexPlace neighborPlace = getVertex(neighborIndex);
-                Object result = neighborPlace.callMethod(currentFunctionId, null);
-
-                place.setNeighborResult(neighborKey, result);
+                // 3b. Otherwise it comes from a remote node
+                places.get(i).setNeighborResult(n, data.get(owner).get(neighbor));
             }
         }
     }
 
-    // exchangeAllOnRemoteNode sends a GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT
-    // message to the provided node along with the function ID of the function to
-    // execute. It then waits for and returns the result of the execution.
-    private Object exchangeAllOnRemoteNode(int nodeId, Object neighborKey, int functionId) {
-        Optional<MNode> hostOption = MASS.getAllNodes().
-            stream().filter(node -> node.getPid() == nodeId).findFirst();
-        
-        // If the host is not present, something went wrong, log error 
-        // and return null.
-        if (!hostOption.isPresent()) {
-            MASSBase.getLogger().error("host '" + nodeId + "' not found");
-            return null;
-        }
-        MNode remoteHost = hostOption.get();
+    /**
+     * exchangeData requests all the callAll result data this node needs from
+     * remote nodes and provide remote nodes with any callAll result data
+     * they need.
+     * @param myData is the callAll result data from the vertices we own.
+     * @param dataNeeded is the list of vertices for which we need call
+     * all result data, grouped by the owner.
+     * 
+     * @return A map<owner, map<vertexID, callAllResult>> of the remote
+     * callAll result data, this node needs.
+     */
+    private HashMap<Integer, HashMap<Integer, Object>> exchangeData(Object[] myData, HashMap<Integer, HashSet<Integer>> dataNeeded) {
+        int myRank = MASS.getMyPid();
+        int systemSize = MASS.getSystemSize();
+        HashMap<Integer, HashMap<Integer, Object>> requestedData = new HashMap<Integer, HashMap<Integer, Object>>();
 
-        remoteHost.sendMessage(new Message(
-            Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT,
-            getHandle(),
-            neighborKey
-        ));
-        Message m = remoteHost.receiveMessage();
-        return m.getArgument();
+        // Figure out who we need data from.
+        boolean[] needDataFrom = new boolean[systemSize];
+        for (int i = 0; i < systemSize; i++) {
+            if (i == myRank) { continue; }
+
+            needDataFrom[i] = !dataNeeded.get(i).isEmpty();
+        }
+
+        // ExchangeHandler creates threads for receiving messages from remote nodes and funnels them
+        // into a queue from which the main thread can process them.
+        ExchangeHandler eh = new ExchangeHandler(MASS.getMyPid(), MASS.getSystemSize(), needDataFrom);
+
+        // Send requests to all remote nodes for the data we need.
+        for (int i = 0; i < systemSize; i++) {
+            if (i == myRank) { continue; }
+
+            // If we don't need data from the node, send it a finish message
+            // so it knows we wont be requesting data from it.
+            if (!needDataFrom[i]) {
+                MASSBase.getExchange().sendMessage(i, new Message(Message.ACTION_TYPE.FINISH));
+                continue;
+            }
+
+            // Request the data we need from the remote node.
+            MASSBase.getExchange().sendMessage(i, new Message(
+                Message.ACTION_TYPE.GRAPH_PLACES_REQUEST_DATA,
+                getHandle(),
+                dataNeeded.get(i)
+            ));
+            
+            // Once we've sent the request, notify the node that we
+            // wont be making any additional requests.
+            MASSBase.getExchange().sendMessage(i, new Message(
+                Message.ACTION_TYPE.FINISH
+            ));
+        }
+
+        // Process incoming messages from the ExchangeHandler message queue.
+        // Note that we could easily spin up more threads for processing 
+        // messages should we want but message complexity should scale with
+        // the number of nodes so that may not be necessary. Unless, however, 
+        // the size of the messages justified it.
+        while (systemSize > 1) {
+            // Dequeue message
+            EHMessage ehMsg = eh.dequeMsg();
+
+            // If statements used to avoid needing cases for all enum types... Should maybe implement
+            // my own types...
+
+            // If a node is requesting data, send it to them.
+            if (ehMsg.msg.getAction() == Message.ACTION_TYPE.GRAPH_PLACES_REQUEST_DATA) {
+                HashMap<Integer, Object> reqData = getRequestedData(myData, (HashSet<Integer>)ehMsg.msg.getArgument());
+                MASSBase.getExchange().sendMessage(ehMsg.src, new Message(
+                    Message.ACTION_TYPE.GRAPH_PLACES_SEND_DATA,
+                    getHandle(),
+                    reqData
+                ));
+            }
+
+            // If a node has sent us data that we have requested, record it.
+            if (ehMsg.msg.getAction() == Message.ACTION_TYPE.GRAPH_PLACES_SEND_DATA) {
+                HashMap<Integer, Object> myReqData = (HashMap<Integer, Object>)ehMsg.msg.getArgument();
+                requestedData.put(ehMsg.src, myReqData);
+            }
+
+            // FINISH acts as our poison pill. We should only ever receive
+            // finish once all threads in our ExchangeHandler have returned 
+            // and no more messages will be sent into the queue. As such,
+            // we can break out of this while loop and return the received
+            // data.
+            if (ehMsg.msg.getAction() == Message.ACTION_TYPE.FINISH) {
+                break; // All threads have completed, we're done with exchange.
+            }
+        }
+
+        return requestedData;
     }
 
     /**
-     * exchangeNeighbor calls the function associated with the provided
-     * function ID on the neighbor vertex associated with the provided
-     * neighbor ID and returns the result.
-     * 
-     * @param functionId The ID of the function to be called.
-     * @param neighborId The ID of the neighbor to call the function on.
-     * 
-     * @return The result of having called the function.
+     * @param myData is the callAll result data for this node.
+     * @param dataRequested are the vertices with which the requesting node needs the callAll
+     * result data for.
+     *
+     * @return hashmap<vertexID, callAllResult> for all vertices contained in `dataRequested`.
      */
-    public Object exchangeNeighbor(int functionId, int neighborId) {
-        // Get local index and size of places array.
-        VertexPlace vertex = this.getVertex(neighborId);
-        if (vertex == null) {
-            MASS.getLogger().debug("the vertex ID does not exist");
-            return null;
+    public HashMap<Integer, Object> getRequestedData(Object[] myData, HashSet<Integer> dataRequested) {
+        HashMap<Integer, Object> data = new HashMap<Integer, Object>();
+        for (Integer vertexID : dataRequested) {
+            int localIndex = vertexID / MASS.getSystemSize();
+            data.put(vertexID, myData[localIndex]);
         }
 
-        return vertex.callMethod(functionId, null);
+        return data;
+    }
+
+    /**
+     * EHMessage is an ExchangeHandler message. It allows us to associate src
+     * of the message with the message itself.
+     */
+    private static class EHMessage {
+        public int src;
+        public Message msg;
+
+        public EHMessage(int src, Message msg) {
+            this.src = src;
+            this.msg = msg;
+        }
+    }
+
+    /**
+     * ExchangeHandler spins up threads for receiving messages from each 
+     * remote node. It funnels these messages into a concurrent blocking queue
+     * that the caller can use to receive them.
+     */
+    private class ExchangeHandler {
+        // the receive msg queue
+        private BlockingQueue<EHMessage> msgQueue;
+        private int systemSize;
+        private int myRank;
+
+        // indices with true values indicate a rank
+        // from which we need data.
+        private boolean[] needDataFrom;
+
+        // threadCount maintains the number of active threads. When this
+        // reaches 0, we send a poison pill into the queue to let the
+        // caller know that it will not receive any more messages.
+        private AtomicInteger threadCount = new AtomicInteger(0);
+
+        /**
+         * ExchangeHandler instantiates the queue and spins up a thread for each node.
+         * 
+         * @param myRank the callers system rank
+         * @param systemSize the size of the system
+         * @param needDataFrom a boolean array of ranks from which this system
+         * needs data.
+         */
+        public ExchangeHandler(int myRank, int systemSize, boolean[] needDataFrom) {
+            this.msgQueue = new LinkedBlockingQueue<EHMessage>();
+            this.myRank = myRank;
+            this.systemSize = systemSize;
+            this.needDataFrom = needDataFrom;
+
+            // Kick off threads for each node
+            for (int i = 0; i < this.systemSize; i++) {
+                // No need to spin up a thread just to talk to ourself.
+                if (i == this.myRank) { continue; }
+
+                // Increment thread count and capture rank
+                threadCount.incrementAndGet();
+                final int rank = i;
+                
+                // Instantiate a new thread.
+                new Thread(() -> {
+                    // Assume this rank will request data from us. Requiring them to 
+                    // explicitly tell us if they do not.
+                    boolean rankNeedsData = true;
+
+                    // Do we need data from this rank
+                    boolean iNeedData = this.needDataFrom[rank];
+
+                    // As long as this rank needs data from us, or we need data from it,
+                    // continue receiving messages.
+                    while(rankNeedsData || iNeedData) {
+                        Message msg = MASSBase.getExchange().receiveMessage(rank);
+
+                        // FINISH indicates that this rank will not be requesting
+                        // any more data from us.
+                        if (msg.getAction() == Message.ACTION_TYPE.FINISH) {
+                            rankNeedsData = false;
+                            continue;
+                        }
+
+                        // SEND_DATA indicates that this rank has responded to our request,
+                        // sending us the data that we need. We should no longer need data.
+                        if (msg.getAction() == Message.ACTION_TYPE.GRAPH_PLACES_SEND_DATA) {
+                            iNeedData = false;
+                        }
+
+                        // SEND_DATA and REQUEST_DATA messages both get enqueued.
+                        // FINISH does not, as it is reserved for use as our 
+                        // poison pill.
+                        this.msgQueue.add(new EHMessage(rank, msg));
+                    }
+
+                    // This thread is complete, decrement count and check if we're the last
+                    // thread. If we are, send poison pill to indicate to the caller that
+                    // they will receive no more messages.
+                    if (threadCount.decrementAndGet() == 0) {
+                        MASS.getLogger().debug("[ExchangeHandler] All threads complete");
+                        this.msgQueue.add(new EHMessage(
+                            this.myRank, 
+                            new Message(Message.ACTION_TYPE.FINISH)
+                        ));
+                    }
+                }).start();
+            }
+        }
+
+        /**
+         * @return a message from the receive queue.
+         */
+        public EHMessage dequeMsg() {
+            EHMessage msg = null;
+            while (msg == null) {
+                try {
+                    msg = this.msgQueue.take();
+                } catch (InterruptedException e) {}
+            }
+            
+            return msg;
+        }
     }
 }

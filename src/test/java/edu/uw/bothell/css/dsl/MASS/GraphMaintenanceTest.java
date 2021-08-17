@@ -65,7 +65,7 @@ public class GraphMaintenanceTest {
     public void initGraph() {
         MASS.init();
 
-        graph = new GraphPlaces(0, VertexPlace.class.getName(), 120);
+        graph = new GraphPlaces(0, VertexPlace.class.getName());
     }
 
     @Test

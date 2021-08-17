@@ -45,7 +45,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-
 //@Category(IntegrationTest.class)
 @Disabled // TODO: Pathing is not working. run as classes dir. Copying leaves dependencies still missing
 public class DistributedMapTest {
@@ -111,8 +110,6 @@ public class DistributedMapTest {
                 "graph_weights.xml",
         };
 
-        Places network = new GraphPlaces(0, Node.class.getName(),
-                graphArguments[0], GraphInputFormat.MATSIM,
-                GraphInitAlgorithm.FULL_LIST, 100, graphArguments);
+        Places network = new GraphPlaces(0, Node.class.getName());
     }
 }
