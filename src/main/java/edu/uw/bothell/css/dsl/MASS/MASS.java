@@ -54,6 +54,7 @@ import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -209,15 +210,6 @@ public class MASS extends MASSBase {
 		System.out.println("MASS Shutdown Finished");
     	
     }
-    
-//    /**
-//	 * Get the default password for connecting to remote nodes
-//	 * @return The default login password
-//	 */
-// 	@Deprecated
-//	protected static String getDefaultPassword() {
-//		return defaultPassword;
-//	}
     
     /**
 	 * Get the default username for connecting to remote nodes
@@ -388,6 +380,12 @@ public class MASS extends MASSBase {
         	initMASSBase( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
     	}
 
+    	// select an IP address and port number for cluster communications, if there are remote nodes configured
+    	String clusterCommunicationsAddress = null;
+//    	if ( getRemoteNodes().size() > 0 ) {
+    		clusterCommunicationsAddress = MASSMessaging.getRandomMulticastAddress() + ":" + MASSMessaging.getRandomPort();
+//    	}
+    	
     	// Launch remote processes
     	for (MNode node : getRemoteNodes()) {
     	
@@ -428,14 +426,19 @@ public class MASS extends MASSBase {
 
     		// MProcess and its arguments
     		commandBuilder.append(" " + MProcess.class.getCanonicalName() + " ");	// the program
-    		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
-    		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
-    		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
-    		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
-    		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
-			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
+    		commandBuilder.append( MProcess.CMD_ARG_HOSTNAME + "=\"" + node.getHostName() + "\" " );
+    		commandBuilder.append( MProcess.CMD_ARG_MYPID + "=" + node.getPid() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NPROC + "=" + getAllNodes().size() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NTHREADS + "=" + getNumThreads() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_SERVER_PORT + "=" + getCommunicationPort() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_WORKING_DIRECTORY + "=\"" + node.getMassHome() + "\" " );
+			commandBuilder.append( MProcess.CMD_ARG_MAX_AGENTS + "=" + AgentSerializer.getInstance().getMaxNumberOfAgents() );
 
+			// cluster communications address, if defined
+			if ( clusterCommunicationsAddress != null ) {
+				commandBuilder.append( " " + MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
+			}
+			
     		// debug
     		System.err.println( "MProcess on " + node.getHostName() +
     				" run with command: " + commandBuilder );
@@ -457,8 +460,8 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
-    	// initialize the messaging system
-    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	// initialize the messaging system (if no remote nodes, comms address is NULL - which is okay)
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( eventDispatcher );

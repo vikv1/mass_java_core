@@ -908,6 +908,9 @@ public class PlacesBase {
 				Place newPlace = objectFactory.getInstance(className, argument);
 				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
 
+    			// register the new Place with messaging provider
+    			MASS.getMessagingProvider().registerPlace( newPlace );
+
 				// Place has been created
     			eventDispatcher.queueAsync( OnCreation.class, newPlace );
 

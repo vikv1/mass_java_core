@@ -36,7 +36,7 @@ import java.io.Serializable;
  * MASSMessage encapsulates all information needed by a message provider implementation to actually send a
  * message to destination Nodes, Places, or Agents
  */
-public class MASSMessage< T extends Serializable > {
+public class MASSMessage< T extends Serializable > implements Serializable {
 
 	private int destinationAddress;
 	private T message;

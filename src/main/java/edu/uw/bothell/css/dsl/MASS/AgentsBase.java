@@ -192,10 +192,12 @@ public class AgentsBase {
 			}
 			// store this agent in the bag of agents
 			agents.add( newAgent );
-			//System.out.println("agent id : " + newAgent.getAgentId());
 
 			// register newAgent into curPlace
 			curPlace.getAgents().add( newAgent );   
+
+			// register the new Agent with messaging provider
+			MASS.getMessagingProvider().registerAgent( newAgent );
 
 			// Agent has been created
 			eventDispatcher.queueAsync( OnCreation.class, newAgent );
@@ -353,6 +355,9 @@ public class AgentsBase {
 
 				// register newAgent into curPlace
 				places.get(i).getAgents().add(newAgent);
+
+    			// register the new Agent with messaging provider
+    			MASS.getMessagingProvider().registerAgent( newAgent );
 
 				// Agent has been created
 				eventDispatcher.queueAsync(OnCreation.class, newAgent);
@@ -651,8 +656,13 @@ public class AgentsBase {
 
 					addAgent.setPlace(evaluationAgent.getPlace());
 
-					// Agent has been created
-					eventDispatcher.queueAsync( OnCreation.class, addAgent );
+    				// Agent has been created
+
+    				// register the new Agent with messaging provider
+        			MASS.getMessagingProvider().registerAgent( addAgent );
+
+        			// Call OnCreation event on the new Agent
+    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
 
 					/** Agent population control work begins, execution order is important! **/
 
@@ -767,6 +777,9 @@ public class AgentsBase {
 					// update the counter needed to keep track of our agents.
 					agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
 					this.agents.add( agentSpawnRequest );           // auto syn
+
+	    			// register the new Agent with messaging provider
+	    			MASS.getMessagingProvider().registerAgent( agentSpawnRequest );
 
 					// init the Agent immediately
 					try {
@@ -897,6 +910,9 @@ public class AgentsBase {
 
 					// relinquish the old place
 					evaluationAgent.setPlace(null);
+
+    				// Agent should no longer receieve messages from this node
+    				MASS.getMessagingProvider().unregisterAgent( evaluationAgent );
 
 					// create a request
 					AgentMigrationRequest request 

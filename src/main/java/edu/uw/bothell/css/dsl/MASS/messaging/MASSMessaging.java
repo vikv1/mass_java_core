@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -31,7 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Queue;
@@ -43,27 +43,27 @@ import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.AgentList;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
-import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-import edu.uw.bothell.css.dsl.MASS.messaging.hazelcast.HazelcastMessagingProvider;
+import edu.uw.bothell.css.dsl.MASS.messaging.aeron.AeronMessagingProvider;
 
 /**
- * MASSMessaging provides messaging between Nodes (MNodes), Places, and Agents in a MASS cluster
+ * MASSMessaging provides messaging between Nodes (MNode/MProcess), Places, and Agents in a MASS cluster
  * 
  * This class primarily serves to insulate the messaging provider implementation from the rest of MASS-Core,
  * and to also provide helper methods that make the job of creating new messaging implementations easier.
  * 
  */
-public class MASSMessenging {
+public class MASSMessaging {
 
-	// the actual messaging implementation
-	private MessagingProvider messagingProviderImpl = new HazelcastMessagingProvider();
+    // the actual messaging implementation
+	private MessagingProvider messagingProviderImpl = new AeronMessagingProvider();
 
 	// local message queues
 	private Queue< MASSMessage< Serializable > > placeMessageQueue = new ConcurrentLinkedQueue<>();
+
 	private Queue< MASSMessage< Serializable > > agentMessageQueue = new ConcurrentLinkedQueue<>();
-	
+
 	/**
      * Initializes singleton.
      *
@@ -71,25 +71,74 @@ public class MASSMessenging {
      * {@link SingletonHolder#INSTANCE}, not before.
      */
     private static class SingletonHolder {
-    	private static final MASSMessenging INSTANCE = new MASSMessenging();
+    	private static final MASSMessaging INSTANCE = new MASSMessaging();
     }
-
-    /**
+	
+	// Cryptographically-strong random number generation
+	private static SecureRandom sRand = new SecureRandom();
+	/**
      * Return this instance of the messaging provider, which is effectively a Singleton
      * @return The single instance of this messenger implementation
      */
-    public static MASSMessenging getInstance() {
+    public static MASSMessaging getInstance() {
     	return SingletonHolder.INSTANCE;
     }
+
+	/**
+	 * Get a random IPv4 address within the local multicast group range
+	 * @return A random IPv4 address ("dotted quad") within the multicast address space
+	 */
+	public static String getRandomMulticastAddress() {
+		return "239." + sRand.nextInt(256) + "." + sRand.nextInt(256) + ".1";
+	}
+	
+	/**
+	 * Get a random port number
+	 * @return A random port number, in the range 1024-65535
+	 */
+	public static int getRandomPort() {
+		return 1024 + sRand.nextInt( 64512 ); 
+	}
+
+	/**
+	 * Flush (transmit) all queued Agent messages
+	 */
+	public void flushAgentMessages() {
+		Stream.generate( agentMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendAgentMessage( message ) );
+	}
+
+	/**
+	 * Flush (transmit) all queued Place messages
+	 */
+	public void flushPlaceMessages() {
+		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
+	}
+
+	protected Set<Agent> getLocalAgents() {
+		
+		Set<Agent> localAgents = new HashSet<>();
+		
+		// obtain the custom collection of local agents
+		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
+		
+		// reset list to starting position and iterate through collection
+		agentList.setIterator();
+		while ( agentList.hasNext() ) {
+			localAgents.add( agentList.next() );
+		}
+
+		return localAgents;
+		
+	}
 
 	/**
 	 * Initialize the message provider
 	 * @param masterNode The main cluster node
 	 * @param remoteNodes The remote cluster members
 	 */
-	public void init(MNode masterNode, Collection<MNode> remoteNodes) {
+	public void init( String clusterCommunicationsAddress ) {
 		MASSBase.getLogger().debug("Messaging system initialization starting");
-		messagingProviderImpl.init(masterNode, remoteNodes);
+		messagingProviderImpl.init( clusterCommunicationsAddress );
 	}
 
 	/**
@@ -148,7 +197,7 @@ public class MASSMessenging {
 		addresses.forEach( destination -> sendAgentMessage( destination, message ) );
 		
 	}
-
+	
 	/**
 	 * Send a message to a single cluster Node
 	 * @param address The ID of the Node that will receive the message
@@ -175,7 +224,7 @@ public class MASSMessenging {
 		sendNodeMessage( destination.getValue(), message );
 		
 	}
-
+	
 	/**
 	 * Send a message to multiple cluster Nodes
 	 * @param addresses A Set of addresses representing which Nodes should receive this message
@@ -230,7 +279,7 @@ public class MASSMessenging {
 		sendPlaceMessage( destination.getValue(), message );
 
 	}
-
+	
 	/**
 	 * Send a message to multiple Places
 	 * @param addresses A Set of linear indices representing which Places should receive this message
@@ -246,19 +295,13 @@ public class MASSMessenging {
 	}
 	
 	/**
-	 * Flush (transmit) all queued Agent messages
+	 * Override the messaging provider - mainly for unit testing purposes
+	 * @param provider The messaging provider to use
 	 */
-	public void flushAgentMessages() {
-		Stream.generate( agentMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendAgentMessage( message ) );
+	protected void setMessagingProvider( MessagingProvider provider ) {
+		this.messagingProviderImpl = provider;
 	}
-
-	/**
-	 * Flush (transmit) all queued Place messages
-	 */
-	public void flushPlaceMessages() {
-		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
-	}
-
+	
 	/**
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown
 	 */
@@ -268,22 +311,21 @@ public class MASSMessenging {
 		messagingProviderImpl.shutdown();
 		
 	}
-	
-	protected Set<Agent> getLocalAgents() {
-		
-		Set<Agent> localAgents = new HashSet<>();
-		
-		// obtain the custom collection of local agents
-		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
-		
-		// reset list to starting position and iterate through collection
-		agentList.setIterator();
-		while ( agentList.hasNext() ) {
-			localAgents.add( agentList.next() );
-		}
 
-		return localAgents;
-		
+	/**
+	 * Unregister an Agent from the messaging provider
+	 * @param agent The Agent to unregister
+	 */
+	public void unregisterAgent(Agent agent) {
+		messagingProviderImpl.unregisterAgent(agent);
+	}
+	
+	/**
+	 * Unregister a Place from the messaging provider
+	 * @param place The Place to unregister
+	 */
+	public void unregisterPlace(Place place) {
+		messagingProviderImpl.unregisterPlace(place);
 	}
 	
 }

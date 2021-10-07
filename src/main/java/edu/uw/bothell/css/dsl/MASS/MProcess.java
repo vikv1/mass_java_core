@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -35,17 +35,21 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie.*;
-import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.VertexInitData;
-import edu.uw.bothell.css.dsl.MASS.graph.hippie.*;
-import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.*;
-import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
-import edu.uw.bothell.css.dsl.MASS.graph.matsim.*;
-import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.uw.bothell.css.dsl.MASS.GraphPlaces.InitArgs;
-import java.lang.reflect.*;
+import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie.HippieOp;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.VertexInitData;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.MatsimOp;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimEdge;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -59,6 +63,16 @@ public class MProcess {
 	private int myPid; // my pid or rank
 	private ObjectInputStream MAIN_IOS = null; 	// input from the master process
 	private ObjectOutputStream MAIN_OOS = null; // output to the master process
+	
+	// command-line arguments
+	public static final String CMD_ARG_CLUSTER_COMMS_ADDRESS = "CLUSTERCOMMS"; 
+	public static final String CMD_ARG_HOSTNAME = "HOSTNAME"; 
+	public static final String CMD_ARG_MYPID = "MYPID";
+	public static final String CMD_ARG_NPROC = "NPROC";
+	public static final String CMD_ARG_NTHREADS = "NTHREADS";
+	public static final String CMD_ARG_SERVER_PORT = "SERVERPORT";
+	public static final String CMD_ARG_WORKING_DIRECTORY = "WORKDIR";
+	public static final String CMD_ARG_MAX_AGENTS = "MAXAGENTS";
 
 	/**
 	 * MProcesses are the MASS threads executing on various machines. They are
@@ -89,7 +103,7 @@ public class MProcess {
 		}
 
 		// perform normal init
-		init( hostName, myPid, nProc, nThr, port, curDir );
+		init( hostName, myPid, nProc, nThr, port, curDir, null );
 		
 	}
 
@@ -102,11 +116,12 @@ public class MProcess {
 	 * @param myPid The PID assigned to this node
 	 * @param nProc The total number of nodes in the cluster
 	 * @param nThr The number of threads to start on this remote node
-	 * @param port The port number to use for communications with this node
+	 * @param port The port number to use for communications with this node (legacy)
 	 * @param curDir The working directory this remote node should use
+	 * @param clusterCommunicationsAddress The IP address and port that this cluster uses for communications
 	 */
-	public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
-		init( hostName, myPid, nProc, nThr, port, curDir );
+	public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
+		init( hostName, myPid, nProc, nThr, port, curDir,  clusterCommunicationsAddress );
 	}
 
 	/**
@@ -119,24 +134,105 @@ public class MProcess {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		String hostName = args[0];
-		int myPid = Integer.parseInt(args[1]);
-		int nProc = Integer.parseInt(args[2]);
-		int nThreads = Integer.parseInt(args[3]);
-		int serverPort = Integer.parseInt(args[4]);
-		String curDir = args[5];
-		int maxNumberOfAgents = Integer.parseInt(args[6]);
+		String clusterCommunicationsAddress = null;
+		String hostName = null;
+		int myPid = 0;
+		int nProc = 0;
+		int nThreads = 0;
+		int serverPort = 0;
+		String curDir = null;
+		int maxNumberOfAgents = 0;
 
-		MASSBase.getLogger().debug("MProcess - main");
+		MASSBase.getLogger().debug( "MProcess - main" );
 
+		MASSBase.getLogger().debug( "Parsing command-line arguments..." );
+		
+		// iterate through all arguments to pick out recognized variables
+		for ( String rawArgPair : args ) {
+			
+			// remove leading and trailing spaces
+			String argPair = StringUtils.stripToNull( rawArgPair ); 
+			
+			// split on equal sign
+			if ( !Objects.isNull( argPair ) ) {
+				
+				String[] splitArg = argPair.split( "=" );
+				
+				// sanity check
+				if ( splitArg.length == 2 ) {
+
+					String variable = StringUtils.stripToNull( splitArg[ 0 ] );
+					
+					// strip and remove quotes from value
+					String value = StringUtils.stripToNull( splitArg[ 1 ] );
+					if ( !Objects.isNull( value ) ) value = value.replaceAll( "\"", "" );
+					
+					// more sanity checking
+					if ( !Objects.isNull( variable ) && !Objects.isNull( value ) ) {
+
+						// based on argument name, populate variable
+						switch( variable ) {
+
+						case CMD_ARG_CLUSTER_COMMS_ADDRESS:
+							clusterCommunicationsAddress = value;
+							MASSBase.getLogger().debug( "Cluster will use {} for communications", clusterCommunicationsAddress );
+							break;
+
+						case CMD_ARG_HOSTNAME:
+							hostName = value;
+							MASSBase.getLogger().debug( "Hostname is set to {}", hostName );
+							break;
+
+						case CMD_ARG_MYPID:
+							myPid = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "My PID is set to {}", myPid );
+							break;
+
+						case CMD_ARG_NPROC:
+							nProc = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NPROC is set to {}", nProc );
+							break;
+
+						case CMD_ARG_NTHREADS:
+							nThreads = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NTHREADS is set to {}", nThreads );
+							break;
+
+						case CMD_ARG_SERVER_PORT:
+							serverPort = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Server port is set to {}", serverPort );
+							break;
+
+						case CMD_ARG_WORKING_DIRECTORY:
+							curDir = value;
+							MASSBase.getLogger().debug( "Working directory is set to {}", curDir );
+							break;
+
+						case CMD_ARG_MAX_AGENTS:
+							maxNumberOfAgents = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Max number of agents set to {}", maxNumberOfAgents );
+							break;
+
+						default:
+							MASSBase.getLogger().debug( "Argument {} not recognized!", splitArg[ 1 ] );
+
+						}
+
+					}
+
+				}
+				
+			}
+			
+		}
+		
+		MASSBase.getLogger().debug( "Command-line arguments parsed!" );
+		
 		AgentSerializer agentSerializer = AgentSerializer.getInstance();
-
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
-		// TODO: It is officially time to design a better way to configure the remote process
-
 		try {
-			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+			MProcess mprocess = new MProcess( hostName, myPid, nProc, nThreads, serverPort, curDir, clusterCommunicationsAddress );
 			mprocess.start();
 		} catch (Exception e) {
 			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
@@ -147,7 +243,7 @@ public class MProcess {
 	}
 
 	// Initialize this MProcess (this used to be handled by a single constructor)
-	private void init(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
+	private void init( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
 
 		this.myPid = myPid;
 
@@ -188,7 +284,7 @@ public class MProcess {
 		}
 
     	// initialize the messaging system
-    	MASS.getMessagingProvider().init( null, null );
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( MASS.getEventDispatcher() );
@@ -1033,14 +1129,5 @@ public class MProcess {
 
 		}
 	}
-
-//	private void sendMessage(Serializable object) {
-//		try {
-//			MAIN_OOS.writeObject(object);
-//			MAIN_OOS.flush();
-//		} catch (IOException e) {
-//			MASSBase.getLogger().error("Exception sending object to remote host", e);
-//		}
-//	}
 
 }
