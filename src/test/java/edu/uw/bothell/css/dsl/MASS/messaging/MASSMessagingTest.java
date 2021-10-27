@@ -353,4 +353,18 @@ public class MASSMessagingTest extends AbstractTest {
 		
 	}
 	
+	@Test
+	public void randomMessageID() {
+
+		replayAll();
+
+		// generate two test messages for inspection
+		MASSMessage msgA = new MASSMessage( 0, new String( "This is message A" ) );
+		MASSMessage msgB = new MASSMessage( 0, new String( "This is message B" ) );
+		
+		// make sure two consecutively-generated messages don't have the same ID numbers
+		assertThat( msgA.getMessageID() ).isNotEqualTo( msgB.getMessageID() ).as( "Messages should have different ID numbers!" );
+		
+	}
+	
 }

@@ -61,8 +61,10 @@ public class MASSMessaging {
 
 	// local message queues
 	private Queue< MASSMessage< Serializable > > placeMessageQueue = new ConcurrentLinkedQueue<>();
-
 	private Queue< MASSMessage< Serializable > > agentMessageQueue = new ConcurrentLinkedQueue<>();
+
+	// Cryptographically-strong random number generation
+	private static SecureRandom sRand = new SecureRandom();
 
 	/**
      * Initializes singleton.
@@ -74,8 +76,6 @@ public class MASSMessaging {
     	private static final MASSMessaging INSTANCE = new MASSMessaging();
     }
 	
-	// Cryptographically-strong random number generation
-	private static SecureRandom sRand = new SecureRandom();
 	/**
      * Return this instance of the messaging provider, which is effectively a Singleton
      * @return The single instance of this messenger implementation
@@ -112,6 +112,14 @@ public class MASSMessaging {
 	 */
 	public void flushPlaceMessages() {
 		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
+	}
+	
+	/**
+	 * Generate a random ID number to be used with messages that require an ID
+	 * @return A randomly-generated ID number
+	 */
+	public static int generateMessageID() {
+		return sRand.nextInt();
 	}
 
 	protected Set<Agent> getLocalAgents() {
