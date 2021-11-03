@@ -318,6 +318,79 @@ public class AgentsBase {
 
 	}
 
+	// constructor of AgentsBase for Binary Tree
+	public AgentsBase( int handle, String className, Object argument, int placesHandle, String dummy1, String dummy2 ) {
+		this.handle = handle;
+    	this.className = className;
+		this.placesHandle = placesHandle;
+		this.agents = new AgentList( );
+		this.agentSpawnRequestManager = new AgentSpawnRequestManager(MAX_AGENTS_PER_NODE);
+
+		// For debugging
+		MASS.getLogger().debug( "handle = " + handle + ",placesHandle = " + placesHandle + ", class = " + className);
+		
+		// For debugging
+		MASS.getLogger().debug("initBinaryAgents: argument = " + argument);
+
+    	// initialize currentAgentId and localPopulation
+		currentAgentId = MASSBase.getMyPid() * MAX_AGENTS_PER_NODE;
+
+    	// retrieve the corresponding places
+		BinaryTreePlacesBase curPlaces = (BinaryTreePlacesBase) MASSBase.getPlacesMap().get( placesHandle );
+		
+		// get root 
+		BinaryTreePlace curPlace = curPlaces.getRoot();
+
+		Agent newAgent = null;
+		try {
+			agentInitAgentsHandle = handle;
+    		agentInitPlacesHandle = placesHandle;
+			agentInitAgentId = currentAgentId++;
+			agentInitParentId = -1; // no parent
+
+    		newAgent = objectFactory.getInstance(className, argument);  // initialize agent's location, index, subindex
+			localPopulation++;
+			MASS.getLogger().debug("localPopulation: " + localPopulation);
+			
+			newAgent.setAgentId(agentInitAgentId);
+
+			newAgent.setPlace((Place)curPlace);
+
+			MASS.getLogger().debug("newAgent id = " + newAgent.getAgentId() + ", index = [" + Arrays.toString(newAgent.getIndex()) + 
+				"] created.");   
+		} catch ( Exception e ) {
+			// TODO - now what? What to do when there is an exception?
+			MASS.getLogger().error( "BinaryAgentsBase.constructor: {} not instaitated ", className, e );    			
+		}
+		
+		// store this agent in the bag of agents
+		agents.add(newAgent);
+				
+		// register newAgent into curPlace
+		curPlace.getAgents().add(newAgent);   
+
+		// Agent has been created
+		eventDispatcher.queueAsync( OnCreation.class, newAgent );
+			
+		// Place has an arriving Agent
+		eventDispatcher.queueAsync( OnArrival.class, curPlace );
+		
+		// Agent has arrived at a Place
+		eventDispatcher.queueAsync( OnArrival.class, newAgent );
+
+		// invoke queued Agents OnCreation methods
+		eventDispatcher.invokeQueuedAsync( OnCreation.class ); 
+		
+		// invoke queued Agents OnArrival methods
+		eventDispatcher.invokeQueuedAsync( OnArrival.class );
+
+		MASS.getLogger().debug("agents size: " + agents.size() + ", localPopulation = " + localPopulation);
+
+		//MASS.getLogger().debug(" -----------------------  display Agents info -----------------------" );
+		//displayBinaryAgentsMap();
+
+	}
+
 	private void initForGraph(GraphPlaces graphPlaces, Agent protoAgent, Object argument) {
 		// scan each place to see how many agents it can create
 		Vector<VertexPlace> places = graphPlaces.getGraphPlaces();
