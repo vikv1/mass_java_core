@@ -2470,4 +2470,117 @@ public class AgentsBase {
 
 	}
 
+	/**
+	 * Process Agent migration request for QuadTreeAgent - add by Yuna
+	 */
+	private class ProcessQuadTreeAgentMigrationRequest extends Thread {
+    	
+    	private int destRank;
+    	private int agentHandle;
+    	private int placeHandle;
+
+    	public ProcessQuadTreeAgentMigrationRequest( int destRank, int agentHandle, int placeHandle ) {
+    		this.destRank = destRank;
+    		this.agentHandle = agentHandle;
+    		this.placeHandle = placeHandle;
+    	}
+
+    	@SuppressWarnings("unused")
+    	public void run( ) {
+
+    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +
+    					"] rank[" + destRank + "]: starts processAgentMigrationRequest" );
+
+    		// pick up the next rank to process
+    		Vector<AgentMigrationRequest> orgRequest = MASSBase.getMigrationRequests().get( destRank );
+
+    		// now compose and send a message by a child
+    		Message messageToDest = new Message( Message.ACTION_TYPE.
+    						AGENTS_MIGRATION_REMOTE_REQUEST, agentHandle, placeHandle, orgRequest );
+
+    		MASS.getLogger().debug( "tid[" + destRank + "] made messageToDest to rank: " + destRank ); 
+
+    		
+    		new Thread( () -> {
+    			
+    			// send the message
+    			MASSBase.getExchange().sendMessage( destRank, messageToDest ); 
+    		
+    			// at this point, the message must be exchanged
+    			orgRequest.clear( );
+    			
+    		}).start();
+
+    		// receive a message by myself
+    		Message messageFromSrc = MASSBase.getExchange().receiveMessage( destRank );
+
+    		MASS.getLogger().debug( "Message exchange completed for rank [" + destRank + "]" );
+
+    		// process a message
+    		Vector<AgentMigrationRequest> receivedRequest = messageFromSrc.getMigrationReqList( );
+
+    		int agentsHandle = messageFromSrc.getHandle( );
+    		int placesHandle = messageFromSrc.getDestHandle( );
+    		QuadTreePlacesBase dstPlaces = (QuadTreePlacesBase) (MASSBase.getPlacesMap().get( placesHandle ));
+
+    		MASS.getLogger().debug( "request from rank[" + destRank + "] = " + 
+    					receivedRequest + " size( ) = " + receivedRequest.size( ) );
+
+    		// retrieve agents from receiveRequest
+    		while( receivedRequest.size( ) > 0 ) {
+    			// TODO investigate
+    			AgentMigrationRequest request = receivedRequest.remove( receivedRequest.size( ) - 1 );
+
+    			//int globalLinearIndex = request.destGlobalLinearIndex;
+				QuadTreeAgent agent = (QuadTreeAgent) request.agent;
+				double[] dstCoordinates = request.destCoordinates;
+
+				//search for local destination based on agent's coordinates
+				QuadTreePlace dstPlace = dstPlaces.getRoot().searchDestinationTreePlace(dstCoordinates);
+				MASS.getLogger().debug("dstPlaceLocal = " + dstPlace.getTreeIndex().toString());
+					
+				// get subindex of agent
+				int[] dstSubIndex = QuadTreeUtilities.calculateSubIndex(dstCoordinates, dstPlace.getBoundary(), 
+									dstPlace.getInterval());
+				
+
+				// push this agent into the place and the entire agent bag.
+    			if (dstPlace != null && dstSubIndex != null) {  
+					//set agent's place 
+					agent.setTreePlace(dstPlace, dstSubIndex, dstCoordinates);
+					//add agent to agent's bag
+					agents.add( agent );          
+					//add agent to dstPlace
+					((QuadTreePlace)(agent.getPlace())).addAgentToSubPlace(agent, dstSubIndex); 
+
+					MASS.getLogger().debug( "Migration Request: Agent " +	agent.getAgentId() + "(" + agent.getOriginalAgentId() + ")" +
+							" migrate to [" + ((QuadTreePlace) agent.getPlace()).getTreeIndex().toString() + "], current coordinates:[" +
+							agent.getCurrentCoordinates()[0] + "," + agent.getCurrentCoordinates()[1] + "], next coordinates:" +
+							agent.getNewCoordinates()[0] + "," + agent.getNewCoordinates()[1] + "],"
+							+ "sub-index = " + agent.getSubIndex()[0] + ", " + agent.getSubIndex()[1] + "]."); 
+
+				} else {
+					MASS.getLogger().debug("ProcessQuadTreeAgentMigrationRequest: dstPlace or dstSubIndex does not exist.");
+				}
+
+	
+    			// invoke OnArrival events immediately
+    			try {
+
+    				eventDispatcher.invokeImmediate( OnArrival.class,  dstPlace );
+	    			eventDispatcher.invokeImmediate( OnArrival.class,  agent );
+				
+    			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+    				MASS.getLogger().error("Exception thrown when invoking OnArrival events!", e);
+    			}
+    			
+    		}
+
+    		MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) +  
+    					"] retreive agents from rank[" + destRank + "] complated" );
+    	
+    	}
+    
+	}
+
 }
