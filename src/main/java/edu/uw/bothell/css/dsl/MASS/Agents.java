@@ -74,6 +74,14 @@ public class Agents extends AgentsBase {
     initMaster_space(input_argument, init_argument);
   }
 
+  //the default BinaryAgents constructor initialize one agent in the root
+  public Agents(int handle, String className, Object argument, BinaryTreePlaces places) {
+
+    super(handle, className, argument, places.getHandle(), "binary", "tree");
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster_binaryAgents(argument);
+  }
+
   private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {   
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
