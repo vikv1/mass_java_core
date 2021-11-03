@@ -1464,6 +1464,348 @@ public class AgentsBase {
     	}    
     }
 	
+	/**
+	 * manageAll method for Quad Tree class ------------------ modified by Yuna
+	 * @param tid
+	 */
+    public void manageAll_quadTree( int tid ) {
+		MASS.getLogger().debug("******************* MANAGE ALL QuadTreePlace ***********************");
+    	// Get the PlacesBase to access our agents fromvfor agent instantiation,
+		// and our bag for Agent objects after they have finished processing
+    	QuadTreePlacesBase evaluatedPlaces	= (QuadTreePlacesBase) (MASSBase.getPlacesMap().get(placesHandle));
+		MASS.getLogger().debug("MANAGE_ALL evaluatedPlace: " + evaluatedPlaces.getHandle());
+
+    	// Spawn, Kill, Migrate. Check in that order throughout the bag of agents  sequentially.
+    	while ( true ) {
+    		
+    		int myIndex; // each thread's agent index
+    		QuadTreeAgent evaluationAgent = null;
+    		QuadTreePlace evaluationPlace = null;
+    		synchronized( this ) {   			
+				if ((myIndex = MThread.getAgentBagSize()) == 0) break;
+				
+				// Grab the last agent and remove it for processing. 
+    			myIndex = MThread.getAgentBagSize();
+    			MThread.setAgentBagSize(myIndex - 1);
+				evaluationAgent = (QuadTreeAgent)agents.get(myIndex - 1);
+				
+    			MASS.getLogger().debug( "Agents_base.manageALL: Thread " + tid + " picked up " + evaluationAgent.getAgentId() );
+			}
+    		int argumentcounter = 0;
+
+    		// If the spawn's newChildren field is set to anything higher than 
+    		// zero, we need to create newChildren's worth of Agents in the current location.
+
+			/******* SPAWN() CHECK *******/
+			MASS.getLogger().debug("******* SPAWN() CHECK *******");
+    		int childrenCounter = evaluationAgent.getNewChildren();
+			MASS.getLogger().debug( "agent " + evaluationAgent.getAgentId() + "'s childrenCounter = " + childrenCounter );
+            while ( childrenCounter > 0 ) {
+    			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid + " will spawn a child of agent " + 
+					evaluationAgent.getAgentId() + "...arguments.size( ) = " + evaluationAgent.getArguments().length +
+					", argumentcounter = " + argumentcounter );
+
+				QuadTreeAgent addAgent = null;
+    			Object dummyArgument = new Object();
+
+    			try {
+    				agentInitAgentsHandle = this.handle;
+    				agentInitPlacesHandle = this.placesHandle;
+    				agentInitParentId = evaluationAgent.getAgentId();
+    				synchronized(this) {
+						// validate the correspondance of arguments and argumentcounter
+						addAgent = (QuadTreeAgent) ((evaluationAgent.getArguments().length > argumentcounter) ?
+							// yes: this child agent should recieve an argument.
+							objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
+							: objectFactory.getInstance(className, dummyArgument));
+                    }
+
+					addAgent.setPlace(evaluationAgent.getPlace());
+					addAgent.setOriginalAgentId(evaluationAgent.getOriginalAgentId());
+    				        
+                    // Agent has been created
+    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
+
+					/** Agent population control work begins, execution order is important! **/
+
+					// check if the agent is going to run in the system
+					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size())) {
+						// check if there is available agent id
+						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+						if (availableAgentId > -1) {
+							addAgent.setAgentId(availableAgentId); 
+						}  else {   
+							// assign a never used id
+							addAgent.setAgentId(this.currentAgentId++);
+						}
+                      
+                        // Push the created agent into our bag for returns and
+						// update the counter needed to keep track of our agents.
+                        QuadTreePlace curPlace = (QuadTreePlace) (addAgent.getPlace());
+						this.agents.add(addAgent);           // auto syn
+						curPlace.addAgentToSubPlace(addAgent, addAgent.getSubIndex());  
+						//MASS.getLogger().debug(addAgent.toString());    
+					}  
+
+					 
+                    // queue Place OnArrival method 
+					eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+						
+	    			// queue Agent OnArrival method
+					eventDispatcher.queueAsync( OnArrival.class, addAgent );
+                    
+                } catch ( Exception e ) {
+				    // TODO - now what? What to do when an exception is thrown?
+                    
+    				MASS.getLogger().error( "Agents_base.manageAll: {} not instantiated", this.className, e );
+    			}
+          
+    			// Decrement the newChildren counter once an Agent has been spawned
+    			evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
+    			childrenCounter--;
+                MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid + " spawned a child of agent " + 
+					evaluationAgent.getAgentId() + " and put the child " + addAgent.getAgentId() + " child into retBag." );
+							  
+				
+				/**
+				* every time we spawn a new agent, we should check if there is available index first!!!
+				**/
+    		}
+			/*****************************/
+			/******* KILL() CHECK *******/
+            //System.out.println( "Agent_base.manageALL: Thread " + tid + " check " + evaluationAgent.getAgentId() + "'s alive = " + evaluationAgent.isAlive() );
+			MASS.getLogger().debug("******* KILL() CHECK *******");  
+			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid + " check " + evaluationAgent.getAgentId() + "'s alive = " + evaluationAgent.isAlive() );
+
+    		if (evaluationAgent.isAlive() == false) {
+
+				// Get the place in which evaluationAgent is 'stored' in
+    			evaluationPlace = (QuadTreePlace) evaluationAgent.getPlace(); 
+
+    			// remove the agent from this place's Hashtable<Integer, Set<Agent>>                         
+                evaluationPlace.removeAgent(evaluationAgent,evaluationAgent.getSubIndex());
+            
+    			// remove from AgentList, too!
+    			agents.remove( myIndex - 1 );
+
+				int n = myIndex - 1; 
+				
+				/** Agent population control work begins, execution order is important! **/
+
+				// every time we kill an agent, we should add its id to the available ids queue
+				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
+
+				// then we check if there is any agent spawn request
+				QuadTreeAgent agentSpawnRequest = (QuadTreeAgent) (agentSpawnRequestManager.getNextAgentSpawnRequest());
+				if (agentSpawnRequest != null) {
+					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
+                    // check if there is available agent id
+					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+			        if (availableAgentId > -1) {
+
+	                    agentSpawnRequest.setAgentId(availableAgentId); 
+					} else {  
+						// assign a never used id
+					    agentSpawnRequest.setAgentId(this.currentAgentId++);
+					}
+					// retrieve the corresponding places
+					PlacesBase curPlaces = MASSBase.getPlacesMap().get(placesHandle);
+
+					// search for the local destination treePlace where the agent resides
+					QuadTreePlace curPlace = ((QuadTreePlacesBase) curPlaces).getRoot().searchDestinationTreePlace(agentSpawnRequest.getCurrentCoordinates());
+
+					if (curPlace == null) {
+						MASS.getLogger().debug("agent spawn request: Agent could not be found in current PlacesBase. ");
+					} else {
+						// push this agent into the place and the entire agent bag.
+						agentSpawnRequest.setPlace(curPlace);
+
+						// Push the created agent into our bag for returns and
+				  		// update the counter needed to keep track of our agents.
+				  		agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
+				  		this.agents.add( agentSpawnRequest );           // auto syn
+				  		curPlace.addAgentToSubPlace(agentSpawnRequest, agentSpawnRequest.getSubIndex()); 
+  
+				  		// init the Agent immediately
+				  		try {
+					  		eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
+				  		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {		
+					  		e.printStackTrace();
+					  		MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );	
+				  		}
+				  		// queue remaining events for the newly activated Agent
+				  		eventDispatcher.queueAsync( OnArrival.class, curPlace );
+				  		eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );	
+					}
+                }
+                // don't go down to migrate
+    			continue;
+		    }
+            /****************************/
+            /******* MIGRATE() CHECK *******/
+
+            // first, check to see if the Agent is actually wanting to migrate
+    		// if not, no point doing anything else
+			
+			MASS.getLogger().debug("******* MIGRATE() CHECK Agent " + evaluationAgent.getAgentId() + "*******");
+
+    		if ( !evaluationAgent.isMigrating() ) continue;
+			evaluationPlace = (QuadTreePlace)evaluationAgent.getPlace();
+			
+    		//Iterate over all dimensions of the agent to check its location
+    		//against that of its place. If they are the same, return back.
+    		Vector<Integer> currentIndex = evaluationAgent.getAgentIndex();
+			double[] currentCoordinates = evaluationAgent.getCurrentCoordinates();
+			double[] destCoordinates = evaluationAgent.getNewCoordinates();
+			//Vector<Integer> destIndex = SpaceUtilities.findCorrespondingIndex(destCoordinates, evaluatedPlaces);
+			
+			MASS.getLogger().debug("current coordinates: [" + currentCoordinates[0] + "," + currentCoordinates[1] + "], currentIndex: " 
+				+ currentIndex.toString() + ", next coordinates:[" + destCoordinates[0] + "," + destCoordinates[1] + "]");
+
+			
+			
+			if (QuadTreeUtilities.withinBoundary(destCoordinates, evaluatedPlaces.getBoundaryAll())) {
+
+				// destination valid (in the boundary of current computing node)
+	
+				if (QuadTreeUtilities.withinBoundary(destCoordinates, evaluationPlace.getBoundary())) { 
+
+					// if destCoordinates is in the same QuadTreePlace, only need to update subIndex
+					// get subindex of agent
+					int[] newSubIndex = QuadTreeUtilities.calculateSubIndex(destCoordinates, evaluationPlace.getBoundary(), evaluationPlace.getInterval());
+					
+					evaluationPlace.removeAgent(evaluationAgent, evaluationAgent.getSubIndex());
+
+					// update subIndex
+					evaluationAgent.setSubIndex(newSubIndex);
+					evaluationAgent.setCurrentCoordinates(destCoordinates);  	
+					evaluationPlace.addAgentToSubPlace(evaluationAgent, newSubIndex);
+					
+					
+					MASS.getLogger().debug( "Agent " +	evaluationAgent.getAgentId() + "(" + evaluationAgent.getOriginalAgentId() + ")" +
+						" migrate to " + ((QuadTreePlace) evaluationAgent.getPlace()).getTreeIndex().toString() + ", "
+						+ " with sub-index = " + evaluationAgent.getSubIndex()[0] + ", " + evaluationAgent.getSubIndex()[1] + "]."); 
+
+				} else if (QuadTreeUtilities.withinBoundary(destCoordinates, evaluatedPlaces.getBoundaryCurrNode())) {
+					
+					// if destCoordinates is in the same computing node, but different QuadTreePlace
+					// search for the lowest common ancestor of current QuadTreePlace and destination QuadTreePlace
+					MASS.getLogger().debug("evaluationPlace = " + evaluationPlace.getTreeIndex().toString());
+
+					QuadTreePlace lowestCommonAncestor = evaluationPlace.searchLowestCommonAncestor(destCoordinates);
+					MASS.getLogger().debug("lowestCommonAncestor = " + lowestCommonAncestor.getTreeIndex().toString());
+
+					QuadTreePlace destPlace = lowestCommonAncestor.searchDestinationTreePlace(destCoordinates);
+					MASS.getLogger().debug("destPlace = " + destPlace.getTreeIndex().toString());
+					
+					// get the subindex of the agent
+					int[] newSubIndex = QuadTreeUtilities.calculateSubIndex(destCoordinates, destPlace.getBoundary(), 
+						destPlace.getInterval());
+
+
+					evaluationPlace.removeAgent(evaluationAgent, evaluationAgent.getSubIndex());
+					MASS.getLogger().debug( "destination QuadTreePlace = {}", destPlace.getTreeIndex().toString());
+
+					// set new place
+					evaluationAgent.setTreePlace(destPlace, newSubIndex, destCoordinates);  
+					
+					// add new sub-index to new place
+					destPlace.addAgentToSubPlace(evaluationAgent, newSubIndex);   // add new sub-index to new place
+					
+					MASS.getLogger().debug( "Agent " +	evaluationAgent.getAgentId() + "(" + evaluationAgent.getOriginalAgentId() + ")" +
+						" migrate to [" + evaluationAgent.getAgentIndex() + ", "
+						+ " with sub-index = " + evaluationAgent.getSubIndex()[0] + ", " + evaluationAgent.getSubIndex()[1] + "].");
+
+				} else {
+
+					// if destCoordinates is in other computing nodes
+					// remote destination
+					// remove evaluationAgent from AgentList
+    				agents.remove( myIndex - 1 );
+					((QuadTreePlace)(evaluationAgent.getPlace())).removeAgent(evaluationAgent, evaluationAgent.getSubIndex()); 
+
+					// get boundary of each computing node
+					int size = MASSBase.getSystemSize();  
+					Boundary[] allNodesBoundaries = new Boundary[size];
+					for (int i = 0; i < size; i++) {
+						allNodesBoundaries[i] = QuadTreeUtilities.calculateBoundaryOfCurrNode(evaluatedPlaces.getBoundaryAll(), size, i);
+					}
+
+					// find the destination node
+					int destRank = evaluatedPlaces.getRankFromGlobalNodeMap(destCoordinates, allNodesBoundaries);
+
+					// relinquish the old place
+    				evaluationAgent.setTreePlace(null, null, null);
+
+    				// create a request
+    				AgentMigrationRequest request = new AgentMigrationRequest(destCoordinates, evaluationAgent );
+					
+    				MASS.getLogger().debug( "QuadTreeAgentMigrationRequest request = {}", request );
+
+    				// enqueue the request to this node.map
+    				Vector<AgentMigrationRequest> migrationReqList	= MASSBase.getMigrationRequests().get( destRank );
+
+    				synchronized( migrationReqList ) {
+    					migrationReqList.add( request );
+						MASS.getLogger().debug( "Agent " +	evaluationAgent.getAgentId() + "(" + evaluationAgent.getOriginalAgentId() + ")" + 
+							"remoteRequest[" + destRank +	"].add:" + " dst = [" + destCoordinates[0] + "," + destCoordinates[1] + "].");
+    				}
+
+				}
+				
+			} else {
+				MASS.getLogger().error( " to destination invalid" );	
+			}
+		} // end of while( true )
+			
+		// When while loop finishes, all threads must barrier and tid = 0
+		// must adjust AgentList.
+		MThread.barrierThreads( tid );
+		if ( tid == 0 ) agents.reduce( );
+		// all threads must barrier synchronize here.
+		MThread.barrierThreads( tid ); 
+		if ( tid == 0 ) {
+			MASS.getLogger().debug( "tid[{}] now enters processQuadTreeAgentMigrationRequest", tid );
+
+    		// the main thread spawns as many communication threads as the 
+    		// number of remote computing nodes and let each invoke 
+    		// processAgentMigrationReq. 
+
+    		// communication thread id
+    		ProcessQuadTreeAgentMigrationRequest[] thread_ref = new ProcessQuadTreeAgentMigrationRequest[MASSBase.getSystemSize()]; 
+    		for ( int rank = 0; rank < MASSBase.getSystemSize(); rank++ ) {
+                if ( rank == MASSBase.getMyPid()) {
+                    continue;    // don't communicate with myself
+                }
+    			// start a communication thread
+    			thread_ref[rank] = new ProcessQuadTreeAgentMigrationRequest( rank, handle, evaluatedPlaces.getHandle() );
+    			thread_ref[rank].start( );
+    			MASS.getLogger().debug( "Agents_base.manageAll will start " + "processQuadTreeAgentMigrationRequest thread[" + rank + "] = " + thread_ref[rank]);
+    		}
+         
+    		// wait for all the communication threads to be terminated
+    		for ( int rank = MASSBase.getSystemSize() - 1; rank >= 0; rank-- ) {
+                MASS.getLogger().debug( "Agents_base.manageAll will join " + "processQuadTreeAgentMigrationRequest A thread["
+					+ rank + "] = " + thread_ref[rank] + " myPid = " + MASSBase.getMyPid() );
+
+    			if ( rank == MASSBase.getMyPid() )  continue;      // don't communicate with myself
+    				        
+    			MASS.getLogger().debug( "Agents_base.manageAll will join " + "processQuadTreeAgentMigrationRequest B thread[" + rank + "] = " + thread_ref[rank] );
+    			try {
+ 				    thread_ref[rank].join( );
+    			}  catch ( Exception e ) {
+    				MASS.getLogger().error("Unable to join rank!", e);
+    			}
+    			MASS.getLogger().debug( "Agents_base.manageAll joined " + "processQuadTreeAgentMigrationRequest C thread[" + rank + "] = " + thread_ref[rank] );
+    		}
+            localPopulation = agents.size_unreduced( );
+            MASS.getLogger().debug( "Agents_base.manageAll completed: localPopulation = {}", localPopulation );
+    	}  else {
+   		    MASS.getLogger().debug( "pthread_self[" + Thread.currentThread( ) + "] tid[" + tid + "] skips processQuadTreeAgentMigrationRequest" );
+    	}   
+
+	}
+
 	// manageAll method for Space class ------------------ modified by Yuna
 	public void manageAll_space( int tid ) {
 
