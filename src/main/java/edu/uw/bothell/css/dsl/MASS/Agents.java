@@ -231,6 +231,35 @@ public class Agents extends AgentsBase {
 
   }
 
+  private void initMaster_binaryAgents(Object argument) {
+
+	    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+	    if (MASSBase.getHosts().isEmpty()) {
+	        System.err.println("Agents(" + getClassName() + ") can't be created without Places!!");
+	        System.exit(-1);
+	    }
+
+	    // create a new list for message
+	    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_BINARY,
+	        getHandle(), getPlacesHandle(), getClassName(), argument);
+
+	    // send a AGENT_INITIALIZE message to each slave
+	    for (MNode node : MASS.getRemoteNodes()) {
+
+	        node.sendMessage(m);
+	        MASS.getLogger().debug("AGENT_INITIALIZE_BINARY sent to {}", node.getPid());
+	    
+	    }
+
+	    // Synchronized with all slave processes
+	    MASS.barrierAllSlaves(localAgents);
+	    localAgents[0] = getLocalPopulation();
+
+	    // register this agents in the places hash map
+	    MASSBase.getAgentsMap().put( getHandle(), this);
+
+	  }
+
   /**
    * InitMaster() method for Quad Tree Agents. -- modified by Yuna
    */
