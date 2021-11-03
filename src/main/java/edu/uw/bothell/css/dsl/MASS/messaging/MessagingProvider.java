@@ -59,19 +59,20 @@ public interface MessagingProvider {
 	public void registerPlace( Place place );
 	
 	/**
-	 * Send a message to one or mode Places
+	 * Send a message to one or mode Places ASYNCHRONOUSLY. This is a NON-BLOCKING method.
 	 * @param message The message to send to the Place(s)
 	 */
 	public <T> void sendPlaceMessage( MASSMessage< Serializable > message );
 
 	/**
-	 * Send a message to one or mode Nodes
+	 * Send a message to one or mode Nodes SYNCHRONOUSLY. This is a BLOCKING method that will return once the remote
+	 * node has acknowledged receipt of the message or upon reaching timeout period.
 	 * @param message The message to send to the Node(s)
 	 */
 	public <T> void sendNodeMessage( MASSMessage< Serializable > message );
 
 	/**
-	 * Send a message to one or mode Agents
+	 * Send a message to one or mode Agents ASYNCHRONOUSLY. This is a NON-BLOCKING method.
 	 * @param message The message to send to the Agent(s)
 	 */
 	public <T> void sendAgentMessage( MASSMessage< Serializable > message );
@@ -92,5 +93,17 @@ public interface MessagingProvider {
 	 * @param place The Place to unregister
 	 */
 	public void unregisterPlace( Place place);
+
+	/**
+	 * Get the timeout period, in milliseconds, for initiating messaging connections to remote nodes
+	 * @return The connection timeout period
+	 */
+	public int getConnectionTimeout();
+
+	/**
+	 * Set the connection timeout period
+	 * @param timeout The number of milliseconds to wait before aborting a connection to a remote node
+	 */
+	public void setConnectionTimeout( int timeout );
 
 }

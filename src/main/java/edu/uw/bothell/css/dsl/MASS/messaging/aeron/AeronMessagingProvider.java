@@ -35,13 +35,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.agrona.BufferUtil;
 import org.agrona.CloseHelper;
+import org.agrona.concurrent.EpochClock;
 import org.agrona.concurrent.IdleStrategy;
 import org.agrona.concurrent.SleepingIdleStrategy;
+import org.agrona.concurrent.SystemEpochClock;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.apache.commons.lang3.SerializationUtils;
 
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.messaging.AbstractMessagingProviderImpl;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSAckMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import io.aeron.Aeron;
 import io.aeron.FragmentAssembler;
@@ -52,36 +55,47 @@ import io.aeron.logbuffer.FragmentHandler;
 
 public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 
+	private static final int RETURN_RECEIPT_TIMEOUT = 10000;
+	
     private static final int FRAGMENT_COUNT_LIMIT = 10;
 
 	private static final int NODE_COMMS_STREAM_ID = 1001;
 	private static final int PLACE_COMMS_STREAM_ID = 1002;
 	private static final int AGENT_COMMS_STREAM_ID = 1003;
+	private static final int ACK_COMMS_STREAM_ID = 1003;
 
 	private static final String AERON_URL_PREFIX = "aeron:udp?endpoint=";
 	private static final String AERON_URL_SUFFIX = "";
+	private static final String AERON_FLOW_CONTROL_STRATEGY = "|fc=min";
 	
 	private final IdleStrategy idle = new SleepingIdleStrategy();
 	
 	// individual subscriptions per channel
+	private Subscription ackSubscription = null;
 	private Subscription agentSubscription = null;
 	private Subscription placeSubscription = null;
 	private Subscription nodeSubscription = null;
 
 	// publications for transmitting messages, one per channel
+	private Publication ackPublication = null;
 	private Publication agentPublication = null;
 	private Publication placePublication = null;
 	private Publication nodePublication = null;
 	
 	// subscriber threads for receiving and assembling messages (Java objects)
+	private Subscriber ackSubscriber = null;
 	private Subscriber agentSubscriber = null;
 	private Subscriber placeSubscriber = null;
 	private Subscriber nodeSubscriber = null;
 	
 	// buffers for transmitting messages
+	private final UnsafeBuffer ackPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
 	private final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
 	private final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
 	private final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	
+	// operation timeout clock
+	EpochClock clock = new SystemEpochClock();
 	
 	private MediaDriver mediaDriver = null;
 	
@@ -103,22 +117,32 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         aeron = Aeron.connect( ctx ); 
 		
         // set up subscriptions to receive messages
+        ackSubscription = aeron.addSubscription( url, ACK_COMMS_STREAM_ID );
         agentSubscription = aeron.addSubscription( url, AGENT_COMMS_STREAM_ID );
         placeSubscription = aeron.addSubscription( url, PLACE_COMMS_STREAM_ID );
-//        nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
+        nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
         
         // associate handlers with subscriptions
+        ackSubscriber = new Subscriber( receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, ackSubscription );
         agentSubscriber = new Subscriber( receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
         placeSubscriber = new Subscriber( receivePlaceMessage(), FRAGMENT_COUNT_LIMIT, running, idle, placeSubscription );
-//        nodeSubscriber = new Subscriber( receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
+        nodeSubscriber = new Subscriber( receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, nodeSubscription );
+        ackSubscriber.start();
         agentSubscriber.start();
         placeSubscriber.start();
-//        nodeSubscriber.start();
+        nodeSubscriber.start();
         
         // set up publications to transmit messages
-        agentPublication = aeron.addPublication( url, AGENT_COMMS_STREAM_ID );
-        placePublication = aeron.addPublication( url, PLACE_COMMS_STREAM_ID );
-//        nodePublication = aeron.addPublication( url, NODE_COMMS_STREAM_ID );
+        ackPublication = aeron.addPublication( url + AERON_FLOW_CONTROL_STRATEGY, ACK_COMMS_STREAM_ID );
+        agentPublication = aeron.addPublication( url + AERON_FLOW_CONTROL_STRATEGY, AGENT_COMMS_STREAM_ID );
+        placePublication = aeron.addPublication( url + AERON_FLOW_CONTROL_STRATEGY, PLACE_COMMS_STREAM_ID );
+        nodePublication = aeron.addPublication( url + AERON_FLOW_CONTROL_STRATEGY, NODE_COMMS_STREAM_ID );
+        
+        // make sure all connections are made before proceeding
+        long timeout = clock.time() + getConnectionTimeout(); 		// determine exit time
+        while ( clock.time() <= timeout && ( !ackPublication.isConnected() || !agentPublication.isConnected() || !placePublication.isConnected() || !nodePublication.isConnected() ) ) {
+        	idle.idle();
+        }
         
 	}
 
@@ -129,7 +153,13 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 
 	@Override
 	public <T> void sendNodeMessage(MASSMessage<Serializable> message) {
+		
+		// node messaging is SYNCHRONOUS - set message to require a return receipt
+		message.setReceiptRequired( true );
+		
+		// send the message
 		transmitMessage( nodePublication, nodePublicationBuffer, message );
+		
 	}
 
 	@Override
@@ -143,11 +173,11 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		// stop subscriber loops
 		agentSubscriber.shutdown();
 		placeSubscriber.shutdown();
-//		nodeSubscriber.shutdown();
+		nodeSubscriber.shutdown();
 		
 		agentPublication.close();
 		placePublication.close();
-//		nodePublication.close();
+		nodePublication.close();
 		
 		CloseHelper.quietClose( aeron );
 		CloseHelper.quietClose( mediaDriver );
@@ -164,10 +194,39 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
     	buffer.putBytes( 0, payload );
 
     	// wait until the message is accepted by Aeron for transmit
+    	// TODO - implement a delivery timeout
     	while ( publication.offer( buffer, 0, payload.length ) < 0 ) {
     	    idle.idle();
     	}
-		
+    	
+    	// wait for return ACK?
+    	if ( message.isReceiptRequired() ) {
+
+    		// return receipt timeout
+    	    long timeout = clock.time() + RETURN_RECEIPT_TIMEOUT; 
+
+    	    // poll message ACK channel looking for a return receipt
+    	    while( clock.time() <= timeout ) {
+    	        
+    	    	// TODO - what about multiple destination addresses? TEST!
+    	    	if ( hasAck( message.getMessageID(), message.getDestinationAddress() ) ) {
+    	    		
+    	    		// got an ACK - exit this method
+    	    		return;
+    	    	
+    	    	}
+
+    	    	else {
+    	            
+    	    		// wait a tick before checking again
+    	    		idle.idle();
+    	        
+    	    	}
+    	    	
+    	    }
+    		
+    	}
+    	
 	}
 
 	// Subscriber accepts messages for a channel and builds up buffers for deserialization into Java objects
@@ -237,7 +296,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
     		}
     		
     		catch ( Exception e ) {
-    			MASSBase.getLogger().error( "Unable to deserialize MASSMessage!", e );
+    			MASSBase.getLogger().error( "Unable to deserialize message!", e );
     			return;
     		}
     		
@@ -268,12 +327,74 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
     		}
     		
     		catch ( Exception e ) {
-    			MASSBase.getLogger().error( "Unable to deserialize MASSMessage!", e );
+    			MASSBase.getLogger().error( "Unable to deserialize message!", e );
     			return;
     		}
     		
     		// deliver the message
     		deliverPlaceMessage( message );
+    		
+        };
+    
+    }
+
+    /* 
+     * This method is called upon receiving a message on the "Node" channel.
+     * It's job is to take a populated buffer, convert the bytes back to a 
+     * java object (deserialize), and pass the message off for delivery
+     */
+    private FragmentHandler receiveNodeMessage() {
+        
+    	return ( buffer, offset, length, header ) -> {
+
+    		@SuppressWarnings("rawtypes")
+			MASSMessage message = null;
+    		
+    		// deserialize buffer contents to a MASS Message
+    		try {
+    			byte[] objBytes = new byte[ length ];
+    			buffer.getBytes( offset, objBytes );
+    			message = SerializationUtils.deserialize( objBytes );
+    		}
+    		
+    		catch ( Exception e ) {
+    			MASSBase.getLogger().error( "Unable to deserialize Message!", e );
+    			return;
+    		}
+    		
+    		// deliver the message
+    		deliverNodeMessage( message );
+    		
+        };
+    
+    }
+
+    /* 
+     * This method is called upon receiving a message on the "ACK" channel.
+     * It's job is to take a populated buffer, convert the bytes back to a 
+     * java object (deserialize), and pass the message off for delivery
+     */
+    private FragmentHandler receiveAckMessage() {
+        
+    	return ( buffer, offset, length, header ) -> {
+
+    		@SuppressWarnings("rawtypes")
+			MASSAckMessage message = null;
+    		
+    		// deserialize buffer contents to an ACK Message
+    		try {
+    			byte[] objBytes = new byte[ length ];
+    			buffer.getBytes( offset, objBytes );
+    			message = SerializationUtils.deserialize( objBytes );
+    		}
+    		
+    		catch ( Exception e ) {
+    			MASSBase.getLogger().error( "Unable to deserialize message!", e );
+    			return;
+    		}
+    		
+    		// deliver the message
+    		deliverAckMessage( message );
     		
         };
     
