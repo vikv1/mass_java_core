@@ -259,45 +259,6 @@ public class Agents extends AgentsBase {
     MASSBase.getAgentsMap().put( getHandle(), this);
 
   }
-
-  /**
-   * manageAll() for Space class  ------------- modified by Yuna
-   */
-  public void manageAllSpace() {
-    
-    // send an AGENTS_MANAGE_ALL message to each slave
-    Message m = null;
-    for ( MNode node : MASS.getRemoteNodes() ) {
-
-      // create a message
-      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
-
-      // send it
-      node.sendMessage( m );
-      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
-    }
-
-    // MThread Update
-    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
-
-    // retrieve the corresponding agents
-    MASSBase.setCurrentAgentsBase(this);
-    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
-
-    // resume threads
-    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
-
-    // callall implementatioin
-    super.manageAll_space(0); // 0 = the main thread id
-
-    // confirm all threads are done with agents.callAll
-    MThread.barrierThreads(0);
-
-    // Synchronized with all slave processes
-    MASS.barrierAllSlaves(localAgents);
-    localAgents[0] = getLocalPopulation();
-
-  }
   
   /**
    * Updates each agent’s status, based on each of its latest migrate( ),
@@ -351,6 +312,88 @@ public class Agents extends AgentsBase {
     // make sure all remotes have performed AgentsBase exchange all
     MASS.barrierAllSlaves( null, 0, null );
     
+  }
+
+  /**
+   * ---- added by Yuna
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll.  
+   */
+  public void manageAll_binary() {
+
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_BINARY, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_binary(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+  
+  /**
+   * manageAll() for Space class  ------------- modified by Yuna
+   */
+  public void manageAllSpace() {
+    
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_space(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
   }
 
   /**
