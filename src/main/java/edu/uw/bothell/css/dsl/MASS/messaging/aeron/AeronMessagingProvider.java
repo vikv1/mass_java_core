@@ -55,6 +55,7 @@ import io.aeron.logbuffer.FragmentHandler;
 
 public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 
+	private static final int MAX_MESSAGE_SIZE_BYTES = 16777216;
 	private static final int RETURN_RECEIPT_TIMEOUT = 10000;
 	
     private static final int FRAGMENT_COUNT_LIMIT = 10;
@@ -90,9 +91,9 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	
 	// buffers for transmitting messages
 	private final UnsafeBuffer ackPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
-	private final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
-	private final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
-	private final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( 1024, 64 ) );
+	private final UnsafeBuffer agentPublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( MAX_MESSAGE_SIZE_BYTES, 64 ) );
+	private final UnsafeBuffer placePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( MAX_MESSAGE_SIZE_BYTES, 64 ) );
+	private final UnsafeBuffer nodePublicationBuffer = new UnsafeBuffer( BufferUtil.allocateDirectAligned( MAX_MESSAGE_SIZE_BYTES, 64 ) );
 	
 	// operation timeout clock
 	EpochClock clock = new SystemEpochClock();
