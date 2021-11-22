@@ -57,6 +57,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 
 	private static final int MAX_MESSAGE_SIZE_BYTES = 16777216;
 	private static final int RETURN_RECEIPT_TIMEOUT = 10000;
+	private static final boolean CLEANUP_SHM_DIRECTORIES = true;
 	
     private static final int FRAGMENT_COUNT_LIMIT = 10;
 
@@ -110,12 +111,15 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		String url = AERON_URL_PREFIX + clusterCommunicationsAddress + AERON_URL_SUFFIX;
 		
         // Create an embedded media driver within this application
-		mediaDriver = MediaDriver.launchEmbedded();
+		MediaDriver.Context mediaDriverCtx = new MediaDriver.Context();
+		mediaDriverCtx.dirDeleteOnStart( CLEANUP_SHM_DIRECTORIES );
+		mediaDriverCtx.dirDeleteOnShutdown( CLEANUP_SHM_DIRECTORIES );
+		mediaDriver = MediaDriver.launchEmbedded( mediaDriverCtx );
         
         // create context, using default temporary directory for memory-mapped IO
-		Aeron.Context ctx = new Aeron.Context();
-        ctx.aeronDirectoryName( mediaDriver.aeronDirectoryName() );
-        aeron = Aeron.connect( ctx ); 
+		Aeron.Context aeronCtx = new Aeron.Context();
+        aeronCtx.aeronDirectoryName( mediaDriver.aeronDirectoryName() );
+        aeron = Aeron.connect( aeronCtx ); 
 		
         // set up subscriptions to receive messages
         ackSubscription = aeron.addSubscription( url, ACK_COMMS_STREAM_ID );
