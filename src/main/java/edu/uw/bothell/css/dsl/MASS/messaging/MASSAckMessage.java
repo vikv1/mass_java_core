@@ -39,23 +39,23 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class MASSAckMessage implements Serializable {
 
-	private int sourceAddress;
+	private int address;
 	private int messageID;
 	
 	/**
 	 * Get the address of the node/place/agent that received the original message that is being acknowledged
 	 * @return The address that received the original message
 	 */
-	public int getSourceAddress() {
-		return sourceAddress;
+	public int getAddress() {
+		return address;
 	}
 	
 	/**
 	 * Set the address of the node/place/agent that received the orginal message
-	 * @param sourceAddress The address that received the original message
+	 * @param address The address that received the original message
 	 */
-	public void setSourceAddress(int sourceAddress) {
-		this.sourceAddress = sourceAddress;
+	public void setAddress( int address ) {
+		this.address = address;
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class MASSAckMessage implements Serializable {
 	 * Set the ID number of the message that is being acknowledged
 	 * @param messageID The original message ID
 	 */
-	public void setMessageID(int messageID) {
+	public void setMessageID( int messageID ) {
 		this.messageID = messageID;
 	}
 	

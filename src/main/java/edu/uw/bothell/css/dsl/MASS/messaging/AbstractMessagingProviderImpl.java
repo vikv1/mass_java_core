@@ -86,7 +86,7 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 	protected void deliverAgentMessage( MASSMessage message ) {
 		
 		// addressed to all Agents?
-		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() ) {
+		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() || message.getDestinationAddress() == MessageDestination.ALL_LOCAL_AGENTS.getValue() ) {
 			
 			for ( Agent agent : agents.values() ) {
 				MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessage() );
@@ -104,6 +104,9 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			
 		}
 		
+		// transmit an ACK if requested
+		if ( message.isReceiptRequired() ) transmitAck( message );
+
 	}
 	
 	/**
@@ -114,7 +117,7 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 	protected void deliverPlaceMessage( MASSMessage message ) {
 		
 		// addressed to all Places?
-		if ( message.getDestinationAddress() == MessageDestination.ALL_PLACES.getValue() ) {
+		if ( message.getDestinationAddress() == MessageDestination.ALL_PLACES.getValue() || message.getDestinationAddress() == MessageDestination.ALL_LOCAL_PLACES.getValue() ) {
 			
 			for ( Place place : places.values() ) {
 				MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessage() );
@@ -131,7 +134,10 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			if ( !Objects.isNull( place ) ) MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessage() );
 			
 		}
-		
+
+		// transmit an ACK if requested
+		if ( message.isReceiptRequired() ) transmitAck( message );
+
 	}
 
 	/**
@@ -153,12 +159,15 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		} catch (InvocationTargetException e) {
 			MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to MASSBase", e );
 		}
-
+		
+		// transmit an ACK if requested
+		if ( message.isReceiptRequired() ) transmitAck( message );
+		
 	}
 
 	/**
-	 * Deliver a MASS Message to a Node
-	 * @param message The MASS Message to deliver (must have destination address field set)
+	 * Deliver a MASS Message acknowledgment
+	 * @param message The Message acknowledgment to deliver
 	 */
 	protected void deliverAckMessage( MASSAckMessage message ) {
 
@@ -168,7 +177,7 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			
 			// no - this is the first ACK for the message
 			Set< Integer > addresses = new HashSet<>();
-			addresses.add( message.getSourceAddress() );
+			addresses.add( message.getAddress() );
 			receivedAcks.put( message.getMessageID(), addresses );
 			
 		}
@@ -176,7 +185,7 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		else {
 			
 			// yes - this message ID has other ACKs, add this new source address
-			receivedAddresses.add( message.getSourceAddress() );
+			receivedAddresses.add( message.getAddress() );
 			
 		}
 		
@@ -218,4 +227,20 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		receivedAcks.remove( messageID );
 	}
 
+	/**
+	 * Send an acknowledgment of message reception
+	 * @param message The message being acknowledged
+	 */
+	protected void transmitAck( MASSMessage< ? > message ) {
+
+		// TODO - how about send a formatting string containing message ID and destination address? A MASSAckMessage is around 100 bytes in length.
+
+		MASSAckMessage ackMessage = new MASSAckMessage();
+		ackMessage.setMessageID( message.getMessageID() );
+		ackMessage.setAddress( message.getDestinationAddress() );
+		
+		sendAck( ackMessage );
+		
+	}
+	
 }

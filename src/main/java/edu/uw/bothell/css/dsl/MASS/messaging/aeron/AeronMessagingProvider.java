@@ -124,7 +124,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
         
         // associate handlers with subscriptions
-        ackSubscriber = new Subscriber( receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, ackSubscription );
+        ackSubscriber = new Subscriber( receiveAckMessage(), FRAGMENT_COUNT_LIMIT, running, idle, ackSubscription );
         agentSubscriber = new Subscriber( receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
         placeSubscriber = new Subscriber( receivePlaceMessage(), FRAGMENT_COUNT_LIMIT, running, idle, placeSubscription );
         nodeSubscriber = new Subscriber( receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, nodeSubscription );
@@ -148,12 +148,12 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	}
 
 	@Override
-	public <T> void sendPlaceMessage(MASSMessage<Serializable> message) {
+	public <T> void sendPlaceMessage( MASSMessage< Serializable > message) {
 		transmitMessage( placePublication, placePublicationBuffer, message );
 	}
 
 	@Override
-	public <T> void sendNodeMessage(MASSMessage<Serializable> message) {
+	public <T> void sendNodeMessage( MASSMessage< Serializable > message ) {
 		
 		// node messaging is SYNCHRONOUS - set message to require a return receipt
 		message.setReceiptRequired( true );
@@ -164,7 +164,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	}
 
 	@Override
-	public <T> void sendAgentMessage(MASSMessage<Serializable> message) {
+	public <T> void sendAgentMessage( MASSMessage< Serializable > message ) {
 		transmitMessage( agentPublication, agentPublicationBuffer, message );	
 	}
 
@@ -186,7 +186,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	}
 
 	// transmit a message using a specified publication
-	private void transmitMessage( Publication publication, UnsafeBuffer buffer, MASSMessage<Serializable> message ) {
+	private void transmitMessage( Publication publication, UnsafeBuffer buffer, MASSMessage< Serializable > message ) {
 		
 		// serialize the message for transmit
 		byte[] payload = SerializationUtils.serialize( message );
@@ -286,8 +286,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         
     	return ( buffer, offset, length, header ) -> {
 
-    		@SuppressWarnings("rawtypes")
-			MASSMessage message = null;
+			MASSMessage< Serializable > message = null;
     		
     		// deserialize buffer contents to a MASS Message
     		try {
@@ -317,8 +316,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         
     	return ( buffer, offset, length, header ) -> {
 
-    		@SuppressWarnings("rawtypes")
-			MASSMessage message = null;
+			MASSMessage< Serializable > message = null;
     		
     		// deserialize buffer contents to a MASS Message
     		try {
@@ -348,8 +346,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         
     	return ( buffer, offset, length, header ) -> {
 
-    		@SuppressWarnings("rawtypes")
-			MASSMessage message = null;
+			MASSMessage< Serializable > message = null;
     		
     		// deserialize buffer contents to a MASS Message
     		try {
@@ -379,7 +376,6 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         
     	return ( buffer, offset, length, header ) -> {
 
-    		@SuppressWarnings("rawtypes")
 			MASSAckMessage message = null;
     		
     		// deserialize buffer contents to an ACK Message
@@ -400,5 +396,22 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         };
     
     }
+
+	@Override
+	public void sendAck( MASSAckMessage ackMessage ) {
+
+		// serialize the ACK for transmit
+		byte[] payload = SerializationUtils.serialize( ackMessage );
+
+    	// place the serialized object in the proper buffer
+		ackPublicationBuffer.putBytes( 0, payload );
+
+    	// wait until the message is accepted by Aeron for transmit
+    	// TODO - implement a delivery timeout
+    	while ( ackPublication.offer( ackPublicationBuffer, 0, payload.length ) < 0 ) {
+    	    idle.idle();
+    	}
+
+	}
 
 }

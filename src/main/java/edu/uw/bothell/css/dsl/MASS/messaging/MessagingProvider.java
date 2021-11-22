@@ -76,6 +76,12 @@ public interface MessagingProvider {
 	 * @param message The message to send to the Agent(s)
 	 */
 	public <T> void sendAgentMessage( MASSMessage< Serializable > message );
+	
+	/**
+	 * Return a message delivery acknowledgement
+	 * @param ackMessage The ACK message to send
+	 */
+	public void sendAck( MASSAckMessage ackMessage );
 
 	/**
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown

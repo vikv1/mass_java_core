@@ -50,6 +50,7 @@ import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import edu.uw.bothell.css.dsl.MASS.messaging.AbstractMessagingProviderImpl;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSAckMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
@@ -279,6 +280,12 @@ public class HazelcastMessagingProvider extends AbstractMessagingProviderImpl {
 
 	@Override
 	public void unregisterPlace(Place place) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void sendAck(MASSAckMessage ackMessage) {
 		// TODO Auto-generated method stub
 		
 	}
