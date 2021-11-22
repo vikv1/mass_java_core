@@ -444,6 +444,26 @@ public class AgentsBase {
 		}
 	}
 
+	/**
+	 * For debugging, print out all agents info in the log file
+	 */
+	public void displayBinaryAgentsMap() {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("agentList size = " + agents.size());
+		sb.append("\n");
+		
+		for (int i = 0; i < agents.size(); i++) {
+			Agent agent = agents.get(i);
+
+			sb.append("i = " + i + ", Agent id = " + agent.getAgentId() + ", place = " + Arrays.toString(agent.getPlace().getIndex()));
+			sb.append("\n");
+		}
+		
+		MASS.getLogger().debug(sb.toString());
+	
+	}	
+
 	public void callAll( int functionId, Object argument, int tid ) {
 
 		MASS.getLogger().debug("*************** AgentBase callAll ****************");
