@@ -57,7 +57,7 @@ public class Log4J2Logger {
     }
 	private static final String DEFAULT_LOG_FILENAME = "mass_log.log";
 	
-	private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.DEBUG;
+	private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.ERROR;
 
     /**
      * Return this instance of the logger, which is effectively a Singleton
