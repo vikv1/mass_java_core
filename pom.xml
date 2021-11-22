@@ -16,7 +16,7 @@
 	<properties>
 	
 		<!-- Dependency versions -->
-		<aeron.version>1.33.1</aeron.version>
+		<aeron.version>1.36.0</aeron.version>
 		<assertj.version>3.18.1</assertj.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
 		<commons-lang3.version>3.11</commons-lang3.version>
