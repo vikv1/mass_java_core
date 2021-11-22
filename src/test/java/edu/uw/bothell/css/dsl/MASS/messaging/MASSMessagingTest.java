@@ -33,6 +33,7 @@ package edu.uw.bothell.css.dsl.MASS.messaging;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.capture;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
@@ -366,5 +367,85 @@ public class MASSMessagingTest extends AbstractTest {
 		assertThat( msgA.getMessageID() ).isNotEqualTo( msgB.getMessageID() ).as( "Messages should have different ID numbers!" );
 		
 	}
-	
+
+	@Test
+	public void sendSingleNodeMessage() {
+		
+		String message = randomString();
+		int nodeId = randomInt();
+
+		// instruct messaging system to send the Node message and grab the object sent
+		Capture<MASSMessage> capturedMASSMessage = EasyMock.newCapture();
+		mockMessagingProvider.sendNodeMessage( capture( capturedMASSMessage ) );
+
+		replayAll();
+
+		// "transmit" the message
+		messenger.sendNodeMessage( nodeId, message );
+
+		// make sure the message sent was "transmitted" correctly
+		String txMessage = ( String ) capturedMASSMessage.getValue().getMessage();
+		assertThat( txMessage.contentEquals( message ) ).as( "Message should be delivered to the Node unmodified" ).isTrue();
+		assertThat( capturedMASSMessage.getValue().getDestinationAddress() ).as( "Message should be delivered to the correct Node" ).isEqualTo( nodeId );
+		
+		verifyAll();
+		
+	}
+
+	@Test
+	public void sendBroadcastNodeMessage() {
+		
+		String message = randomString();
+
+		// instruct messaging system to send the Node message and grab the object sent
+		Capture<MASSMessage> capturedMASSMessage = EasyMock.newCapture();
+		mockMessagingProvider.sendNodeMessage( capture( capturedMASSMessage ) );
+
+		replayAll();
+
+		// "transmit" the message
+		messenger.sendNodeMessage( MessageDestination.ALL_NODES, message );
+
+		// make sure the message sent was "transmitted" correctly
+		String txMessage = ( String ) capturedMASSMessage.getValue().getMessage();
+		assertThat( txMessage.contentEquals( message ) ).as( "Message should be delivered to the Node unmodified" ).isTrue();
+		assertThat( capturedMASSMessage.getValue().getDestinationAddress() ).as( "Message should be delivered to the correct Nodes" ).isEqualTo( MessageDestination.ALL_NODES.getValue() );
+		
+		verifyAll();
+		
+	}
+
+	@Test
+	public void sendMultipleNodeMessage() {
+		
+		String message = randomString();
+		
+		// sending messages to multiple nodes, by node ID
+		Set< Integer > addresses = new HashSet<>();
+		addresses.add( 70 );
+		addresses.add( 71 );
+		
+		// instruct messaging system to send the Node messages and grab the objects sent
+		Capture<MASSMessage<Serializable>> capturedMASSMessageNodeA = EasyMock.newCapture();
+		mockMessagingProvider.sendNodeMessage( capture( capturedMASSMessageNodeA ) );
+		Capture<MASSMessage> capturedMASSMessageNodeB = EasyMock.newCapture();
+		mockMessagingProvider.sendNodeMessage( capture( capturedMASSMessageNodeB ) );
+
+		replayAll();
+
+		// "transmit" messages
+		messenger.sendNodeMessage( addresses, message );
+
+		// make sure the messages sent were "transmitted" correctly
+		String txMessageA = ( String ) capturedMASSMessageNodeA.getValue().getMessage();
+		String txMessageB = ( String ) capturedMASSMessageNodeB.getValue().getMessage();
+		assertThat( txMessageA.contentEquals( message ) ).as( "Message should be delivered to Node unmodified" ).isTrue();
+		assertThat( txMessageB.contentEquals( message ) ).as( "Message should be delivered to Node unmodified" ).isTrue();
+		assertThat( capturedMASSMessageNodeA.getValue().getDestinationAddress() ).as( "Node #70 should receive transmitted message" ).isEqualTo( 70 );
+		assertThat( capturedMASSMessageNodeB.getValue().getDestinationAddress() ).as( "Node #71 should receive transmitted message" ).isEqualTo( 71 );
+		
+		verifyAll();
+		
+	}
+
 }
