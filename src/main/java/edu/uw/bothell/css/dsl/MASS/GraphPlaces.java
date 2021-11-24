@@ -30,38 +30,33 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.Queue;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Vector;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.MThread;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 
 public class GraphPlaces extends Places implements Graph {
     // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
@@ -240,12 +235,6 @@ public class GraphPlaces extends Places implements Graph {
                 // FIXME (#154): Missing weights
                 graph.addVertex(attribute, vPlace.neighbors);
             }
-        }
-
-        for (VertexPlace place : this.places) {
-            Object attribute = MASSBase.distributed_map.reverseLookup(place.getIndex()[0]);
-
-            graph.addVertex(attribute, place.neighbors);
         }
 
         if (all) {
@@ -1462,6 +1451,7 @@ public class GraphPlaces extends Places implements Graph {
     protected void callVertexPlaceMethod(int functionId, Object argument) {
         // resume threads? Not sure why this is needed, it's copied from the Places
         // implementation.
+        MASSBase.setCurrentPlacesBase(this);
         MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_CALLALL);
         
         // callAll on all local places objects
