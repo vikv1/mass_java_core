@@ -31,29 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
@@ -915,7 +894,6 @@ public class PlacesBase {
     			eventDispatcher.queueAsync( OnCreation.class, newPlace );
 
 				places[i] = newPlace;
-
     		}
     	} 
     	

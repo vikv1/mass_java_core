@@ -49,13 +49,15 @@ import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import edu.uw.bothell.css.dsl.MASS.messaging.AbstractMessagingProviderImpl;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSAckMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
 
 
 @SuppressWarnings("unused")    // TODO - remove once all methods implemented
-public class HazelcastMessagingProvider implements MessagingProvider {
+public class HazelcastMessagingProvider extends AbstractMessagingProviderImpl {
 
 	// Hazelcast constants
 	public static final boolean HAZELCAST_USE_MULTICAST_DISCOVERY = false;
@@ -278,6 +280,12 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 
 	@Override
 	public void unregisterPlace(Place place) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void sendAck(MASSAckMessage ackMessage) {
 		// TODO Auto-generated method stub
 		
 	}

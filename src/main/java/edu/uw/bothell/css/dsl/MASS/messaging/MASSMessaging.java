@@ -32,7 +32,6 @@ package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -40,7 +39,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
-import edu.uw.bothell.css.dsl.MASS.AgentList;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.Place;
@@ -58,11 +56,13 @@ public class MASSMessaging {
 
     // the actual messaging implementation
 	private MessagingProvider messagingProviderImpl = new AeronMessagingProvider();
-
+	
 	// local message queues
 	private Queue< MASSMessage< Serializable > > placeMessageQueue = new ConcurrentLinkedQueue<>();
-
 	private Queue< MASSMessage< Serializable > > agentMessageQueue = new ConcurrentLinkedQueue<>();
+
+	// Cryptographically-strong random number generation
+	private static SecureRandom sRand = new SecureRandom();
 
 	/**
      * Initializes singleton.
@@ -74,8 +74,6 @@ public class MASSMessaging {
     	private static final MASSMessaging INSTANCE = new MASSMessaging();
     }
 	
-	// Cryptographically-strong random number generation
-	private static SecureRandom sRand = new SecureRandom();
 	/**
      * Return this instance of the messaging provider, which is effectively a Singleton
      * @return The single instance of this messenger implementation
@@ -113,23 +111,31 @@ public class MASSMessaging {
 	public void flushPlaceMessages() {
 		Stream.generate( placeMessageQueue::poll ).takeWhile( Objects::nonNull ).forEach( message -> messagingProviderImpl.sendPlaceMessage( message ) );
 	}
-
-	protected Set<Agent> getLocalAgents() {
-		
-		Set<Agent> localAgents = new HashSet<>();
-		
-		// obtain the custom collection of local agents
-		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
-		
-		// reset list to starting position and iterate through collection
-		agentList.setIterator();
-		while ( agentList.hasNext() ) {
-			localAgents.add( agentList.next() );
-		}
-
-		return localAgents;
-		
+	
+	/**
+	 * Generate a random ID number to be used with messages that require an ID
+	 * @return A randomly-generated ID number
+	 */
+	public static int generateMessageID() {
+		return sRand.nextInt();
 	}
+
+//	protected Set<Agent> getLocalAgents() {
+//		
+//		Set<Agent> localAgents = new HashSet<>();
+//		
+//		// obtain the custom collection of local agents
+//		AgentList agentList = MASS.getCurrentAgentsBase().getAgents();
+//		
+//		// reset list to starting position and iterate through collection
+//		agentList.setIterator();
+//		while ( agentList.hasNext() ) {
+//			localAgents.add( agentList.next() );
+//		}
+//
+//		return localAgents;
+//		
+//	}
 
 	/**
 	 * Initialize the message provider
@@ -178,6 +184,8 @@ public class MASSMessaging {
 	 */
 	public < T extends Serializable > void sendAgentMessage( MessageDestination destination, T message ) {
 
+		// TODO - make sure ALL_LOCAL_AGENTS are handled
+		
 		Objects.requireNonNull( destination, "Must provide a destination!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
 		sendAgentMessage( destination.getValue(), message );
@@ -273,6 +281,8 @@ public class MASSMessaging {
 	 * @param messageClazz The serializable message class
 	 */
 	public < T extends Serializable > void sendPlaceMessage( MessageDestination destination, T message ) {
+
+		// TODO - make sure ALL_LOCAL_PLACES are handled
 
 		Objects.requireNonNull( destination, "Must provide a destination!" );
 		Objects.requireNonNull( message, "Must provide a message!" );
