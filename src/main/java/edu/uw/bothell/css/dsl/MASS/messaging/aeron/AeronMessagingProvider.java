@@ -47,6 +47,7 @@ import edu.uw.bothell.css.dsl.MASS.messaging.AbstractMessagingProviderImpl;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSAckMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import io.aeron.Aeron;
+import io.aeron.CommonContext;
 import io.aeron.FragmentAssembler;
 import io.aeron.Publication;
 import io.aeron.Subscription;
@@ -69,6 +70,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	private static final String AERON_URL_PREFIX = "aeron:udp?endpoint=";
 	private static final String AERON_URL_SUFFIX = "";
 	private static final String AERON_FLOW_CONTROL_STRATEGY = "|fc=min";
+	private static final String AERON_DIRECTORY_SUFFIX = "_mass";
 	
 	private final IdleStrategy idle = new SleepingIdleStrategy();
 	
@@ -114,6 +116,10 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		MediaDriver.Context mediaDriverCtx = new MediaDriver.Context();
 		mediaDriverCtx.dirDeleteOnStart( CLEANUP_SHM_DIRECTORIES );
 		mediaDriverCtx.dirDeleteOnShutdown( CLEANUP_SHM_DIRECTORIES );
+
+		// consistent directory name to reduce memory leakage if app crashes
+		mediaDriverCtx.aeronDirectoryName( CommonContext.getAeronDirectoryName() + AERON_DIRECTORY_SUFFIX );	
+		
 		mediaDriver = MediaDriver.launchEmbedded( mediaDriverCtx );
         
         // create context, using default temporary directory for memory-mapped IO
