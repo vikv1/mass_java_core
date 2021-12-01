@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS.infra;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -44,10 +45,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSReqResp;
 
-public class MASSSimpleDistributedMap<key_type, value_type> implements DistributedMap<key_type, value_type> {
+public class MASSSimpleDistributedMap<key_type, value_type> extends MASSReqResp implements DistributedMap<key_type, value_type> {
     // map is the hash map used to store key/value pairs on this node.
     protected Map<key_type, value_type> map = new ConcurrentHashMap<key_type, value_type>();
 
@@ -82,6 +85,15 @@ public class MASSSimpleDistributedMap<key_type, value_type> implements Distribut
 
         // Initialzie node keys for hash ring
         this.nodeKeys = initializeNodeKeys(MASS.getSystemSize(), KEYS_PER_NODE, this.md);
+    }
+
+    public < T extends Serializable, R extends Serializable > Function< T, R > getRequestHandler() {
+        return ((T msg) -> {
+            // call the appropriate function and return the value if necessary.
+            // get, put, etc...
+            
+            return null;
+        });
     }
 
     @Override
