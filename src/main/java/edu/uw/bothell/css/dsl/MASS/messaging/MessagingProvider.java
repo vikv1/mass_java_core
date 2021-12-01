@@ -59,6 +59,12 @@ public interface MessagingProvider {
 	public void registerPlace( Place place );
 	
 	/**
+	 * Register an object as one that can receive messages destined for a Node
+	 * @param object The listener that may receive Node messages
+	 */
+	public void registerNodeListener( Object object );
+	
+	/**
 	 * Send a message to one or mode Places ASYNCHRONOUSLY. This is a NON-BLOCKING method.
 	 * @param message The message to send to the Place(s)
 	 */
@@ -99,6 +105,12 @@ public interface MessagingProvider {
 	 * @param place The Place to unregister
 	 */
 	public void unregisterPlace( Place place);
+
+	/**
+	 * Unregister a listener from Node messaging
+	 * @param object The listener to unregister
+	 */
+	public void unregisterNodeListener( Object object );
 
 	/**
 	 * Get the timeout period, in milliseconds, for initiating messaging connections to remote nodes
