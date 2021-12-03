@@ -74,6 +74,14 @@ public class Agents extends AgentsBase {
     initMaster_space(input_argument, init_argument);
   }
 
+  //the default BinaryAgents constructor initialize one agent in the root
+  public Agents(int handle, String className, Object argument, BinaryTreePlaces places) {
+
+    super(handle, className, argument, places.getHandle(), "binary", "tree");
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster_binaryAgents(argument);
+  }
+
   private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {   
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
@@ -231,6 +239,63 @@ public class Agents extends AgentsBase {
 
   }
 
+  private void initMaster_binaryAgents(Object argument) {
+
+	    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+	    if (MASSBase.getHosts().isEmpty()) {
+	        System.err.println("Agents(" + getClassName() + ") can't be created without Places!!");
+	        System.exit(-1);
+	    }
+
+	    // create a new list for message
+	    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_BINARY,
+	        getHandle(), getPlacesHandle(), getClassName(), argument);
+
+	    // send a AGENT_INITIALIZE message to each slave
+	    for (MNode node : MASS.getRemoteNodes()) {
+
+	        node.sendMessage(m);
+	        MASS.getLogger().debug("AGENT_INITIALIZE_BINARY sent to {}", node.getPid());
+	    
+	    }
+
+	    // Synchronized with all slave processes
+	    MASS.barrierAllSlaves(localAgents);
+	    localAgents[0] = getLocalPopulation();
+
+	    // register this agents in the places hash map
+	    MASSBase.getAgentsMap().put( getHandle(), this);
+
+	  }
+
+  /**
+   * InitMaster() method for Quad Tree Agents. -- modified by Yuna
+   */
+  private void initMaster_quadTreeAgents(Object argument) {
+
+    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+    if (MASSBase.getHosts().isEmpty()) {
+    System.err.println("QuadTreeAgents(" + getClassName() + ") can't be created without Places!!");
+    System.exit(-1);
+    }
+
+    // create a new list for message
+    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_QUADTREE, getHandle(), getPlacesHandle(), getClassName(), argument);
+
+    // send a AGENT_INITIALIZE_QUADTREE message to each slave
+    for (MNode node : MASS.getRemoteNodes()) {
+      node.sendMessage(m);
+      MASS.getLogger().debug("TREE_AGENT_INITIALIZE_QUADTREE sent to {}", node.getPid());
+    }
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    // register this agents in the places hash map
+    MASSBase.getAgentsMap().put( getHandle(), this);
+  }
+  
   //---------------------------Yuna modified------------------------------
   private void initMaster_space(Object input_argument, Object init_argument) {
 
@@ -257,45 +322,6 @@ public class Agents extends AgentsBase {
 
     // register this agents in the places hash map
     MASSBase.getAgentsMap().put( getHandle(), this);
-
-  }
-
-  /**
-   * manageAll() for Space class  ------------- modified by Yuna
-   */
-  public void manageAllSpace() {
-    
-    // send an AGENTS_MANAGE_ALL message to each slave
-    Message m = null;
-    for ( MNode node : MASS.getRemoteNodes() ) {
-
-      // create a message
-      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
-
-      // send it
-      node.sendMessage( m );
-      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
-    }
-
-    // MThread Update
-    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
-
-    // retrieve the corresponding agents
-    MASSBase.setCurrentAgentsBase(this);
-    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
-
-    // resume threads
-    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
-
-    // callall implementatioin
-    super.manageAll_space(0); // 0 = the main thread id
-
-    // confirm all threads are done with agents.callAll
-    MThread.barrierThreads(0);
-
-    // Synchronized with all slave processes
-    MASS.barrierAllSlaves(localAgents);
-    localAgents[0] = getLocalPopulation();
 
   }
   
@@ -351,6 +377,127 @@ public class Agents extends AgentsBase {
     // make sure all remotes have performed AgentsBase exchange all
     MASS.barrierAllSlaves( null, 0, null );
     
+  }
+
+  /**
+   * ---- added by Yuna
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll.  
+   */
+  public void manageAll_binary() {
+
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_BINARY, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_binary(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+ 
+  /**
+   * manageAll() for Quad Tree ------------- added by Yuna
+   */
+  public void manageAllQuadTree() {
+    
+    // send an AGENTS_MANAGE_ALL_QUADTREE message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_QUADTREE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL_QUADTREE);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_quadTree(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+
+  /**
+   * manageAll() for Space class  ------------- modified by Yuna
+   */
+  public void manageAllSpace() {
+    
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_space(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
   }
 
   /**
