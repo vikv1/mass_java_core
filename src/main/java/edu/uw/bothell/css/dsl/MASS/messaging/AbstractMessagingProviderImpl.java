@@ -48,9 +48,10 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 
 	private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 10000;
 	
-	// references to all Agents and Places located on this node - for delivery of messages
+	// references to all Agents, Places, and Node listeners located on this node - for delivery of messages
 	private Map< Integer, Agent > agents = new ConcurrentHashMap<>();
 	private Map< Integer, Place > places = new ConcurrentHashMap<>();
+	private Set< Object > nodeListeners = new HashSet<>();
 	
 	// a collection of received ACKs (message ID and originating addresses)
 	private Map< Integer, Set< Integer > > receivedAcks = new ConcurrentHashMap<>();
@@ -68,6 +69,16 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		if ( !Objects.isNull( place ) ) places.put( MatrixUtilities.getLinearIndex( place.getSize(), place.getIndex() ), place );
 	}
 
+	@Override
+	public void registerNodeListener( Object object ) {
+		nodeListeners.add( object );
+	}
+
+	@Override
+	public void unregisterNodeListener( Object object ) {
+		nodeListeners.remove( object );
+	}
+	
 	@Override
 	public void unregisterAgent(Agent agent) {
 		if ( !Objects.isNull( agent ) ) agents.remove( agent.getAgentId() );
@@ -147,21 +158,45 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 	@SuppressWarnings("rawtypes")
 	protected void deliverNodeMessage( MASSMessage message ) {
 
-		// deliver the message to MASSBase
+		// must be addressed to all nodes or this node
+		if ( message.getDestinationAddress() == MessageDestination.ALL_NODES.getValue() || message.getDestinationAddress() == MASS.getMyPid() ) {
 		
-		// yes - exceptions are swallowed. What else could we do here?
-		try {
-			MASS.getEventDispatcher().invokeImmediate( OnMessage.class, MASSBase.class, message.getMessage() );
-		} catch (IllegalArgumentException e) {
-			MASSBase.getLogger().error( "IllegalArgumentException caught while delivering message to MASSBase", e );
-		} catch (IllegalAccessException e) {
-			MASSBase.getLogger().error( "IllegalAccessException caught while delivering message to MASSBase", e );
-		} catch (InvocationTargetException e) {
-			MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to MASSBase", e );
+			// deliver the message to MASSBase
+			// yes - exceptions are swallowed. What else could we do here?
+			try {
+				MASS.getEventDispatcher().invokeImmediate( OnMessage.class, MASSBase.class, message.getMessage() );
+			} catch (IllegalArgumentException e) {
+				MASSBase.getLogger().error( "IllegalArgumentException caught while delivering message to MASSBase", e );
+			} catch (IllegalAccessException e) {
+				MASSBase.getLogger().error( "IllegalAccessException caught while delivering message to MASSBase", e );
+			} catch (InvocationTargetException e) {
+				MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to MASSBase", e );
+			}
+	
+			// deliver the message to a Node listener
+			if ( nodeListeners.size() > 0 ) {
+				
+				for ( Object o : nodeListeners ) {
+					
+					// yes - exceptions are swallowed. Just like above.
+					try {
+						MASS.getEventDispatcher().invokeImmediate( OnMessage.class, o, message.getMessage() );
+					} catch (IllegalArgumentException e) {
+						MASSBase.getLogger().error( "IllegalArgumentException caught while delivering message to " + o.getClass().getCanonicalName(), e );
+					} catch (IllegalAccessException e) {
+						MASSBase.getLogger().error( "IllegalAccessException caught while delivering message to " + o.getClass().getCanonicalName(), e );
+					} catch (InvocationTargetException e) {
+						MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to " + o.getClass().getCanonicalName(), e );
+					}
+					
+				}
+				
+			}
+			
+			// transmit an ACK if requested
+			if ( message.isReceiptRequired() ) transmitAck( message );
+		
 		}
-		
-		// transmit an ACK if requested
-		if ( message.isReceiptRequired() ) transmitAck( message );
 		
 	}
 
