@@ -65,7 +65,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	private static final int NODE_COMMS_STREAM_ID = 1001;
 	private static final int PLACE_COMMS_STREAM_ID = 1002;
 	private static final int AGENT_COMMS_STREAM_ID = 1003;
-	private static final int ACK_COMMS_STREAM_ID = 1003;
+	private static final int ACK_COMMS_STREAM_ID = 1004;
 
 	private static final String AERON_URL_PREFIX = "aeron:udp?endpoint=";
 	private static final String AERON_URL_SUFFIX = "";
