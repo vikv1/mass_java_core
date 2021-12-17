@@ -46,7 +46,6 @@ import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
-import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
@@ -452,11 +451,7 @@ public class MASSBase {
 	};
 
 	protected static void initDistributedData() {
-		if (systemSize == 1) {
-			MASSBase.distributed_map = new MASSSimpleDistributedMap<>();
-		} else {
-			MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
-		}
+		MASSBase.distributed_map = new MASSSimpleDistributedMap<Object, Integer>();
 	}
 
     /**

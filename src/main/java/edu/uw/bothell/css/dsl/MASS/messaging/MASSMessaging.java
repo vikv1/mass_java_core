@@ -164,6 +164,22 @@ public class MASSMessaging {
 	}
 
 	/**
+	 * Register an object as a node listener in the messaging provider.
+	 * @param object The object to serve as a node listener.
+	 */
+	public void registerNodeListener( Object object ) {
+		messagingProviderImpl.registerNodeListener(object);
+	}
+
+	/**
+	 * Unregister an object as a node listener in the messaging provider.
+	 * @param object The object to unregister as a node listener.
+	 */
+	public void unregisterNodeListener( Object object ) {
+		messagingProviderImpl.unregisterNodeListener(object);
+	}
+
+	/**
 	 * Send a message to a single Agent by Agent ID, regardless of location in the cluster
 	 * @param address The ID of the Agent that will receive the message
 	 * @param message The message to send to the Agent
