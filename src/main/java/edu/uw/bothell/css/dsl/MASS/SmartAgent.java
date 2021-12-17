@@ -48,8 +48,6 @@ public class SmartAgent extends Agent {
     private int originalId;
     private boolean isParent = false; //flase when agent instantiated, once the agent spawns, it turns to true
 
-
-
     // private data members
     private int nextNode = -1;
     private int prevNode = -1;
@@ -57,8 +55,15 @@ public class SmartAgent extends Agent {
 
     public SmartAgent(Object args) {
 
-        // initialize SmartAgent
         super();
+        // initialize SmartAgent
+        SmartArgs2Agents arguments = ( SmartArgs2Agents )args;
+        nextNode = arguments.nextNode;
+        prevNode = arguments.prevNode;
+        MASS.getLogger( ).debug( "SmartAgent(" + getAgentId( ) + ") was born, going to " +
+                " nextNode = " + nextNode );
+
+        setNextIndex(nextNode); //Setting the Next Index on the Agent for Migration.
     }
 
     public SmartAgent( ) {
@@ -67,82 +72,73 @@ public class SmartAgent extends Agent {
         super();
     }
 
+    public int getNextNode( )
+    {
+        return nextNode;
+    }
+
     public Object migratePropagate( Object arg )
     {
-        // if I'm the very first agent just moving to the source, the source node's
-        // prevNode should be -2: no previous node.
-        prevNode = ( getAgentId( ) == 0 && getPlace( ).getIndex( )[0] == 0 && ( ( SmartPlace )getPlace( ) ).footprint == -1 ) ? -2 : getPlace( ).getIndex( )[0];
+        SmartPlace smartPlace = ( SmartPlace )getPlace( ); //Get the place where the agent is
 
-        if (prevNode == -2)
-        {
-            justMigrated = true;
-            migrate( nextNode );
-            MASS.getLogger( ).debug( ": agent(" + getAgentId( ) + ") will migrate from " +
-                    prevNode + " to " + nextNode );
-
-            return null;
-        }
-
-        SmartPlace smartPlace = ( SmartPlace )getPlace( );
-
-        if ( ( ( SmartPlace )getPlace( ) ).footprint == -1 ) {
-            // This is the 1st arrival of the crawler.
-            smartPlace.footprint = prevNode;
-
+        if ( smartPlace.footprint == -1 ) {
             // Check all the neighbors from the new node.
             int[] neighbors = smartPlace.neighbors;
             int[] distances = smartPlace.distances;
 
-            // footprint == -2 means that I'm at the source node
-            if ( smartPlace.footprint == -2 && neighbors.length == 0 ||
-                    smartPlace.footprint != -2 && neighbors.length == 1 ) {
+            MASS.getLogger( ).debug("Number of Neighbors are "+neighbors.length);
+
+            if (neighbors.length == 0 || (neighbors.length == 1 && prevNode == neighbors[0])) //If no Neighbors or if the only neighbor is previous node, Kill the Agent
+            {
                 MASS.getLogger( ).debug( "agent(" + getAgentId( ) +
                         ") terminated onArrival at a deadend "
                         + getPlace( ).getIndex( )[0] );
+
+                smartPlace.footprint = 1; //This place has been visited
                 kill( );
+                return null;
             }
-            else {
-                // Set my next node before spawning children.
-                nextNode = ( neighbors[0] != prevNode ) ?
-                        neighbors[0] : neighbors[1];
 
-                // Spawn children to disseminate all the neighbors
-                // except my previous and next nodes
-                SmartArgs2Agents[] args
-                        = new SmartArgs2Agents[( smartPlace.footprint == -2 ) ?
-                        neighbors.length - 1:
-                        neighbors.length - 2];
+            // Set my next node before spawning children.
+            nextNode = ( neighbors[0] != prevNode ) ? neighbors[0] : neighbors[1];
+            MASS.getLogger( ).debug( "Migration: Agent(" + getAgentId( ) + ") will migrate from " + smartPlace.getIndex( )[0] + " to " + nextNode );
+            migrate( nextNode ); //Migarte to the next Node
 
-                for ( int i = 0, j = 0; i < neighbors.length; i++ ) {
-                    if ( neighbors[i] == nextNode
-                            || neighbors[i] == prevNode )
-                        // skip the parent's next node or previous node
-                        continue;
-                    args[j++] = new SmartArgs2Agents( neighbors[i] );
-                }
-                spawn( args.length, args );
+            // Spawn children to disseminate all the neighbors
+            // except my previous and next nodes
+            SmartArgs2Agents[] args
+                    = new SmartArgs2Agents[( getAgentId( ) == 0 && getPlace( ).getIndex( )[0] == 0 && ( ( SmartPlace )getPlace( ) ).footprint == -1 ) ?
+                    neighbors.length - 1:
+                    neighbors.length - 2];
+
+            MASS.getLogger( ).debug( "Number of Neighbor Argument is : " +args.length);
+
+            if (args.length == 0) {
+                //Before the Agent moves set the prevNode
+                prevNode = getPlace( ).getIndex( )[0];
+                smartPlace.footprint = 1; //This place has been visited
+                return null; //if there are no neighbours to spawn, just return
             }
-        }
-        else if ( smartPlace.footprint != prevNode && justMigrated ) {
-            // Another crawler agent has already visited. No more crawler
-            // dissemination
-            MASS.getLogger( ).debug( "agent(" + getAgentId( ) +
-                    ") terminated onArrival at the revisited node "
-                    + getPlace( ).getIndex( )[0] );
 
+            for ( int i = 0, j = 0; i < neighbors.length; i++ ) {
+                if ( neighbors[i] == nextNode || neighbors[i] == prevNode ) // skip the parent's next node or previous node
+                    continue;
+                MASS.getLogger( ).debug( "Neighbor is "+neighbors[i]+" i is:"+i+" Next Node is: "+nextNode+" Prev Node is: "+prevNode);
+                args[j++] = new SmartArgs2Agents( neighbors[i],getPlace( ).getIndex( )[0]);
+            }
+
+            spawn( args.length, args );
+
+            //Before the Agent moves or Spawns set the prevNode
+            prevNode = getPlace( ).getIndex( )[0];
+            smartPlace.footprint = 1; //This place has been visited
+
+        }else {
+            MASS.getLogger( ).debug("Place"+smartPlace.getIndex( )[0]+"Has been Visited before"+"agent(" + getAgentId( ) + ") terminated onArrival");
             kill( );
-            return null;
-        }
-        else {
-            // if ( node.footprint == prevNode )
-            justMigrated = false;
         }
 
         return null;
     }
+
 }
-
-
-
-
-

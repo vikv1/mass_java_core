@@ -31,8 +31,16 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.*;
 
 public class SmartArgs2Agents implements Serializable {
-    public SmartArgs2Agents( int node ) {
-        nextNode = node;
+    public SmartArgs2Agents( int nextnode, int prevnode )
+    {
+        nextNode = nextnode;
+        prevNode = prevnode;
+    }
+
+    public SmartArgs2Agents( int nextnode )
+    {
+        nextNode = nextnode;
     }
     public int nextNode = -1;
+    public int prevNode = -1;
 }

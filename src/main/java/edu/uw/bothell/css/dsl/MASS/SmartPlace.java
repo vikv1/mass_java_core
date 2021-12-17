@@ -72,6 +72,8 @@ public class SmartPlace extends Place{
         int nNodes = getSize( )[0];
         int nodeId = getIndex( )[0];
 
+        MASS.getLogger( ).debug( "Initializing Network with number of nodes as : " + nNodes + " and Initial NodeId as : " +nodeId);
+
         // Generate my neighbors and their distances
         Map( nNodes, nodeId );
 
@@ -122,10 +124,14 @@ public class SmartPlace extends Place{
                 }
             }
         }
+
         neighbors = new int[neighborsList.size( )];
         distances = new int[distancesList.size( )];
+
+        MASS.getLogger( ).debug( "Number of neighbors created for the node : " + nodeId + " is : " +neighborsList.size( ));
+
         for ( int i = 0; i < neighborsList.size( ); i++ ) {
-            neighbors[i] = neighborsList.get( i );
+            neighbors[i] = neighborsList.get( i );a
             distances[i] = distancesList.get( i );
         }
 
