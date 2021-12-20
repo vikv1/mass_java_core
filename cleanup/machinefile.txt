@@ -1,0 +1,12 @@
+cssmpi1h.uwb.edu
+cssmpi2h.uwb.edu
+cssmpi3h.uwb.edu
+cssmpi4h.uwb.edu
+cssmpi5h.uwb.edu
+cssmpi6h.uwb.edu
+cssmpi7h.uwb.edu
+cssmpi8h.uwb.edu
+cssmpi9h.uwb.edu
+cssmpi10h.uwb.edu
+cssmpi11h.uwb.edu
+cssmpi12h.uwb.edu

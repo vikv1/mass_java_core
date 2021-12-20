@@ -221,6 +221,24 @@ public class Message implements Serializable {
 	}
 
 	/**
+     * Construct a Message used for AGENTS_INITIALIZE_SPACE, AGENTS_INITIALIZE_QUADTREE action ------------ yuna
+     * @param action The ACTION_TYPE of this Message
+     * @param handle The source handle ID
+     * @param placeHandle The handle ID for the referenced Place
+     * @param className The name of the class representing the Agent
+     * @param argument An argument to be passed to the Agent during initialization
+     */
+    public Message( ACTION_TYPE action, int handle, int placeHandle, String className, Object argument ) {
+
+    	this.action = action;
+    	this.handle = handle;
+    	this.destinationHandle = placeHandle;
+    	this.classname = className;
+    	this.argument = argument;
+
+    }
+
+	/**
 	 * Construct a Message primarily used for BINARY_TREE_PLACES_INITIALIZE
 	 * @param action The ACTION_TYPE of this Message
 	 * @param handle The source handle ID
