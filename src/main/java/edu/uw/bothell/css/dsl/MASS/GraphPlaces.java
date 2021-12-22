@@ -116,6 +116,8 @@ public class GraphPlaces extends Places implements Graph {
         // Only call init_master if we're actually the master node.
         int myPid = MASS.getMyPid();
 
+        MASS.getLogger().debug("Trying to Initialize Graph : "+myPid);
+
         if (myPid == 0) {
             init_graph_master();
         }
@@ -1265,6 +1267,8 @@ public class GraphPlaces extends Places implements Graph {
             new Object[]{Integer.valueOf(nextVertexID), filePath}
         )));
 
+        MASS.getLogger().debug("Loading DSL File");
+
         // Handle local operations
         int vertexCount = loadDSLGraphData(nextVertexID, filePath);
 
@@ -1286,6 +1290,8 @@ public class GraphPlaces extends Places implements Graph {
     // distributed manner, only taking in data for vertices it owns.
     protected int loadDSLGraphData(int vertexOffset, String filePath) throws IOException, FileNotFoundException {
         int myRank = MASS.getMyPid();
+
+        MASS.getLogger().debug("Trying to read DSL Graph file");
 
         Path path = Paths.get(filePath);
         BufferedReader br = new BufferedReader(new FileReader(path.toString()));

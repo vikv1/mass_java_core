@@ -78,6 +78,7 @@ public class Places extends PlacesBase {
 
 	protected Places(int handle, String className) {
 		super(handle, className);
+		MASS.getLogger().debug("Initializing Places");
 	}
 
 	// Empty constructor to allow for remote instantiation and serialization.

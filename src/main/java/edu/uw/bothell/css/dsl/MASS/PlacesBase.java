@@ -118,6 +118,7 @@ public class PlacesBase {
 	protected PlacesBase(int handle, String className) {
 		this.handle = handle;
 		this.className = className;
+		MASS.getLogger().debug("Initializing Places Base");
 	}
 
 	// Empty constructor to allow for remote instantiation and serialization.
