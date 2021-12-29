@@ -1195,7 +1195,7 @@ public class GraphPlaces extends Places implements Graph {
      * getOwnerID returns the ID of the node that owns the provided
      * global index.
      * 
-     * @param vertexID The vertex ID for which the owner is being requested.
+     * @param vertexID The vertex ID for which the owner is being requested.e vertex ID for which the owner is being requested.
      * @return the ID of the owning node.
      */
     public int getOwnerID(int vertexID) {

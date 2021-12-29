@@ -5,7 +5,21 @@ import java.io.Serializable;
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASS;
 
-public class GraphAgent extends Agent implements Serializable {
+public class GraphAgent extends SmartAgent implements Serializable {
+
+    public GraphAgent() {
+        super();
+    }
+
+    public GraphAgent(Object arg) {
+
+        //Commenting for Auto Agent Migration
+        //itinerary = (int[]) arg;
+
+        super(arg);
+
+        MASS.getLogger().debug("Graph agent(" + getAgentId() + ") was born.");
+    }
 
     @Override
     public int map(int initPopulation, int[] size, int[] index, int offset) {

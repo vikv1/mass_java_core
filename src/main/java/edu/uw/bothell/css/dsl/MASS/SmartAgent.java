@@ -35,46 +35,59 @@ import java.util.Vector;
 @SuppressWarnings("serial")
 public class SmartAgent extends Agent {
 
-    public static final int MIGRATE = 0;
-    public static final int SPAWN_AGENTS = 1;
-    public static final int KILL_PARENTS = 2;
-    public static final int PROPAGATE_AGENTS = 3;
-    public static final int KILL_DUPLICATES = 4;
-
-    private double[] currentCoordinates;
-    private double[] nextCoordinates;  //coordinates where agent is migrating to
-    private int[] subIndex; //subIndex of sub-place where SpaceAgent resides
-    private int generation;
-    private int originalId;
-    private boolean isParent = false; //flase when agent instantiated, once the agent spawns, it turns to true
-
     // private data members
-    private int nextNode = -1;
-    private int prevNode = -1;
+    private int nextNode = -1;   //Next Destination Node for the Smart Agent
+    private int prevNode = -1;   //Previous Node from which the Smart Agent migrated from
     private boolean justMigrated = false;
+    public int[] itinerary = null; //Array that holds the navigation
+    private int OriginalSourceNode = -1;
 
     public SmartAgent(Object args) {
-
         super();
-        // initialize SmartAgent
-        SmartArgs2Agents arguments = ( SmartArgs2Agents )args;
-        nextNode = arguments.nextNode;
-        prevNode = arguments.prevNode;
-        MASS.getLogger( ).debug( "SmartAgent(" + getAgentId( ) + ") was born, going to " +
-                " nextNode = " + nextNode );
 
-        setNextIndex(nextNode); //Setting the Next Index on the Agent for Migration.
+        // initialize SmartAgent
+        if (args != null)
+        {
+            SmartArgs2Agents arguments = (SmartArgs2Agents) args;
+
+            this.itinerary = (arguments.itinerary != null) ? arguments.itinerary.clone() : null;
+            this.nextNode = (arguments.nextNode != -1) ? arguments.nextNode : -1;
+            this.prevNode = (arguments.prevNode != -1) ? arguments.prevNode : -1;
+
+            MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") was born, going to " +
+                    " nextNode = " + nextNode);
+
+            if (nextNode != -1) { //Setting the Next Index on the Agent for Migration.
+                setNextIndex(nextNode);
+            }
+        }
     }
 
     public SmartAgent( ) {
-
         // initialize SmartAgent
         super();
+    }
+
+    //Method for initializing Smart Agent's source node and itinerary
+    public void init( int place )
+    {
+        this.OriginalSourceNode = place; //Setting the original source where the Agent is first instantiated
+        this.itinerary[0] = place;  //setting the starting place on the itinerary array
     }
 
     public int getNextNode( )
     {
         return nextNode;
+    }
+
+    public void setNextNode( int nextNode )
+    {
+        this.nextNode = nextNode;
+    }
+
+    public void setitinerary( int[] itinerary )
+    {
+        this.itinerary = itinerary.clone();
     }
 
     public Object migratePropagate( Object arg )
@@ -139,6 +152,110 @@ public class SmartAgent extends Agent {
         }
 
         return null;
+    }
+
+
+    public Object propagateDown( Object arg )
+    {
+        int currStep = ((Integer) arg).intValue();
+
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace)) {
+
+            MASSBase.getLogger().error("Requested PropagateDown but places is {"
+                    + getPlace() .getClass().getName() + "} and not VertexPlace.");
+
+            return null;
+        }
+
+        // Retrieve the current node's information
+        Object [] neighbors = ((VertexPlace) getPlace()).getNeighbors();
+
+        // Retrieve the current node's information
+        int currNodeGlobalIndex = getPlace().getIndex()[0];
+
+        // Count the number of edges available to visit
+        int availableEdges = 0;
+        for (int i = 0; i < neighbors.length; i++) {
+            int neighborGlobalIndex = (Integer)neighbors[i];
+
+            if (neighborGlobalIndex < currNodeGlobalIndex)
+                // Going to a neighbor with a lower id
+                availableEdges++;
+        }
+
+        if (availableEdges == 0) {
+            // No more edges to explore. I'm done
+            MASS.getLogger().debug("Step " + currStep + ": agent(" + getAgentId() +
+                    ") gets terminated at " + currNodeGlobalIndex);
+            kill();
+        } else {
+            // Some edges to explore
+
+            // Prepare arguments to be passed to children
+            SmartArgs2Agents[] args = new SmartArgs2Agents[availableEdges -1];
+            int argsCount = 0; // eventually reaches # children
+
+            // Scan all neighbors of the current place.
+            for (int i = 0; i < neighbors.length; i++) {
+                int neighborGlobalIndex = (Integer)neighbors[i];
+
+                if (neighborGlobalIndex < currNodeGlobalIndex) {
+                    // Going to a neighbor with a lower id
+                    if (--availableEdges == 0) {
+                        // Parent takes the last available edge and also immediately migrates
+                        itinerary[currStep + 1] = neighborGlobalIndex;
+                        migrate(itinerary[currStep + 1]);
+                    } else {
+                        // Children take the first availableEdges - 1.
+                        int[] childItinerary = itinerary.clone();
+                        childItinerary[currStep + 1] = neighborGlobalIndex;
+                        args[argsCount++] = new SmartArgs2Agents( childItinerary,neighborGlobalIndex);
+                    }
+                }
+            }
+
+            // Finally, spawn all my children
+            if (args != null)
+                spawn(args.length, args);
+        }
+
+        return null;
+    }
+
+    public Object migrateSource( Object arg )
+    {
+        int currStep = ((Integer) arg).intValue();
+
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace)) {
+
+            MASSBase.getLogger().error("Requested PropagateDown but places is {"
+                    + getPlace() .getClass().getName() + "} and not VertexPlace.");
+
+            return null;
+        }
+
+        // Retrieve the current node's information
+        Object [] neighbors = ((VertexPlace) getPlace()).getNeighbors();
+
+        // Check if the current node has my original node as a neighbor
+        for (int i = 0; i < neighbors.length; i++) {
+            int neighborGlobalIndex = (Integer)neighbors[i];
+
+            if (neighborGlobalIndex == itinerary[0]) { // YES
+                itinerary[currStep + 1] = neighborGlobalIndex;
+                break;
+            }
+        }
+        if (itinerary[currStep + 1] == -1) { // NO
+            MASS.getLogger().debug("Step " + currStep +
+                    ": agent(" + getAgentId() + ") can't go home at " +
+                    itinerary[0] + " and thus gets terminated at " +
+                    getPlace().getIndex()[0]);
+            kill();
+        }
+
+        return null;
+
     }
 
 }

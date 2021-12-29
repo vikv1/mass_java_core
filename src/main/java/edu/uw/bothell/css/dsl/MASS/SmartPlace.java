@@ -131,7 +131,7 @@ public class SmartPlace extends Place{
         MASS.getLogger( ).debug( "Number of neighbors created for the node : " + nodeId + " is : " +neighborsList.size( ));
 
         for ( int i = 0; i < neighborsList.size( ); i++ ) {
-            neighbors[i] = neighborsList.get( i );a
+            neighbors[i] = neighborsList.get( i );
             distances[i] = distancesList.get( i );
         }
 

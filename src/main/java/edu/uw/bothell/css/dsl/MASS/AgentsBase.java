@@ -286,7 +286,13 @@ public class AgentsBase {
 						newAgent = objectFactory.getInstance(className, argument);
 						newAgent.setAgentId( agentInitAgentId );
 						MASS.getLogger().debug("Agent Created : "+agentInitAgentId+" in place "+curPlace.getIndex());
-	
+
+						//TO DO: Take action if it is smart Agent
+						if (newAgent instanceof SmartAgent)
+						{
+							MASS.getLogger().debug("Agent Base Constructor - Agent Created : "+agentInitAgentId+" is a Smart Agent");
+						}
+
 					} catch ( Exception e ) {
 						// TODO - now what? What to do when there is an exception?
 						MASS.getLogger().error( "Agents_base.constructor: {} not instaitated ", className, e );    			
@@ -403,10 +409,14 @@ public class AgentsBase {
 		int graphSize = places.size();
 		int[] placesSize = { graphSize };
 
+		MASS.getLogger().debug(" The Graph Size is : " + graphSize);
+
 		for (int i = 0; i < graphSize; i++) {
 			// not sure what offset is supposed to be. The previous code was passing it the
 			// graph size so I continue to do that here.
 			int nColonists = protoAgent.map(initPopulation, placesSize, new int[]{i}, graphSize);
+
+			MASS.getLogger().debug(" The nColonists : " + nColonists);
 
 			// Create nColonists agents
 			for (int j = 0; j < nColonists; j++) {
@@ -418,6 +428,12 @@ public class AgentsBase {
 					agentInitParentId = -1; // no parent
 					newAgent = objectFactory.getInstance(className, argument);
 					newAgent.setAgentId(agentInitAgentId);
+
+					//TO DO: Take action if it is smart Agent
+					if (newAgent instanceof SmartAgent)
+					{
+						MASS.getLogger().debug("Agent Base - Init for Graph Agent Created : "+agentInitAgentId+" is a Smart Agent");
+					}
 
 				} catch (Exception e) {
 					MASS.getLogger().error("Agents_base.constructor::initForGraph: {} not instaitated ", className, e);
@@ -776,6 +792,12 @@ public class AgentsBase {
 						// update the counter needed to keep track of our agents.
 						addAgent.getPlace().getAgents().add(addAgent); // auto sync
 						this.agents.add(addAgent);           // auto syn
+
+						//TO DO: Take action if it is smart Agent
+						if (addAgent instanceof SmartAgent)
+						{
+							MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle Agent Created : "+agentInitAgentId+" is a Smart Agent");
+						}
 
 						//If the new Agent has a new Index created, Migrate to it
 						if (addAgent.getNextIndex() != -1)

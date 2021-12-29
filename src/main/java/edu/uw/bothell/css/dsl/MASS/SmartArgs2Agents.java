@@ -41,6 +41,14 @@ public class SmartArgs2Agents implements Serializable {
     {
         nextNode = nextnode;
     }
+
+    public SmartArgs2Agents( int[] itinerary, int nextnode )
+    {
+        this.itinerary = itinerary.clone();
+        this.nextNode = nextnode;
+    }
+
+    public int[] itinerary = null;
     public int nextNode = -1;
     public int prevNode = -1;
 }
