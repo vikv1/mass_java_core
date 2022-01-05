@@ -28,7 +28,7 @@
 		<junit.version>5.6.2</junit.version>
 		<junit-platform-runner.version>1.5.2</junit-platform-runner.version>
 		<kryo.version>4.0.2</kryo.version>
-		<log4j.version>2.17.0</log4j.version>
+		<log4j.version>2.17.1</log4j.version>
 		<netcdf-java.version>5.1.0</netcdf-java.version>
 		<objenesis.version>3.1</objenesis.version>
 		<ostermiller-utils.version>1.07.00</ostermiller-utils.version>
@@ -304,7 +304,12 @@
 					</execution>
 				</executions>
 				<configuration>
-					<descriptorRefs>
+					<archive>
+        				<manifestEntries>
+          					<Multi-Release>true</Multi-Release>
+        				</manifestEntries>
+      				</archive>
+      				<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 					<finalName>${project.artifactId}</finalName>
