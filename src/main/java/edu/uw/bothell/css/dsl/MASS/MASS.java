@@ -106,7 +106,7 @@ public class MASS extends MASSBase {
 
     		MASS.getLogger().debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
+    					"...message = " + m.getArgument( ) );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {

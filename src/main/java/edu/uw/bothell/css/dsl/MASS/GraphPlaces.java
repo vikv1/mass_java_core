@@ -82,6 +82,10 @@ public class GraphPlaces extends Places implements Graph {
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
+    //Attributes for adding Left and Right node when used as a tree
+    private static int LEFTNODE_ = 1;
+    private static int RIGHTNODE_ = 2;
+
     // InitArgs are initialization args to be passed to instances of 
     // GraphPlaces that are being instantiated on remote nodes.
     public static class InitArgs implements Serializable {
@@ -933,6 +937,116 @@ public class GraphPlaces extends Places implements Graph {
             neighborID,
             weight
         );
+    }
+
+    /**
+     * addTreeNode adds an LEFT and RIGHT Nodes for the provided vertex
+     *
+     * @param vertexID The ID of the source vertex.
+     * @param neighborID The ID of the destination vertex.
+     * @param TreeNode that denotes if it is Left or Right.
+     *
+     * @return true if the edge was successfully added, false otherwise.
+     */
+    public boolean addTreeNode(int vertexID, int neighborID, int TreeNode) {
+        // Check vertexId exists
+        if (MASS.getMyPid() == 0 &&
+                vertexID >= nextVertexID || idQueue.contains(vertexID)) {
+
+            return false;
+        }
+
+        // Check neighborId exists
+        if (MASS.getMyPid() == 0 &&
+                vertexID >= nextVertexID || idQueue.contains(vertexID)) {
+
+            return false;
+        }
+
+        return addTreeBranchOnNode(
+                getOwnerID(vertexID),
+                vertexID,
+                neighborID,
+                TreeNode
+        );
+    }
+
+
+    /**
+     * addTreeBranchOnNode attempts to add an TreeNode for the provided vertex
+     * If the node associated with the provided node ID does not own the
+     * source vertex, a message is created and sent to the remote node
+     * that does own the source vertex to add the edge.
+     *
+     * @param nodeID The ID of the node that owns the source vertex.
+     * @param vertexID The source vertex ID.
+     * @param neighborID The destination vertex ID (its neighbor).
+     * @param TreeNode that denotes if it is Left or Right.
+     *
+     * @return true if the Node was successfully created, false otherwise.
+     */
+    public boolean addTreeBranchOnNode(int nodeID, int vertexID, int neighborID, int TreeNode) {
+        if (nodeID < 0 || nodeID > MASS.getSystemSize()) { return false; }
+
+        // If another node owns this vertex, send it a message to add the edge.
+        if (nodeID != MASS.getMyPid()) {
+            return addRemoteTreeBranch(nodeID, vertexID, neighborID, TreeNode);
+        }
+
+        // Get local index and size of places array
+        int localIndex = vertexID / MASS.getSystemSize();
+        int localSize = places.size();
+
+        // If the ID is associated with an index that doesn't exist
+        // return false.
+        if (localIndex >= localSize) { return false; }
+
+        VertexPlace vertex = places.get(localIndex);
+        if (TreeNode == LEFTNODE_)
+            vertex.left = neighborID;
+
+        if (TreeNode == RIGHTNODE_)
+            vertex.right = neighborID;
+
+        places.set(localIndex, vertex);
+        return true;
+    }
+
+    /**
+     * addRemoteTreeBranch sends a MASS message to the node associated with the provided node ID
+     * to add an Tree Branch to the vertexID.
+     */
+    private boolean addRemoteTreeBranch(int nodeID, int vertexID, int neighborID, int TreeNode) {
+        // Get the remote node.
+        Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
+            return node.getPid() == nodeID;
+        }).findFirst();
+
+        // If the remote node could not be located, return false.
+        if (!optionalNode.isPresent()) {
+            MASS.getLogger().debug("remote node with pid {} could not be found", nodeID);
+            return false;
+        }
+        MNode remoteNode = optionalNode.get();
+
+        // Create message to ask remote node to remove the vertex.
+        Message msg = new Message(
+                Message.ACTION_TYPE.MAINTENANCE_ADD_TREE_NODE,
+                getHandle(),
+                new Object[]{vertexID, neighborID, TreeNode }
+        );
+
+        // Send message and wait for reply
+        remoteNode.sendMessage(msg);
+        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message systems currently only returns ACK if successful
+        // so if we do not receive one, assume failure.
+        if (replyMsg.getAction() != Message.ACTION_TYPE.ACK) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

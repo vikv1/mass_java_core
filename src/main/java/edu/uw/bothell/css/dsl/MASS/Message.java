@@ -115,6 +115,7 @@ public class Message implements Serializable {
 		MAINTENANCE_GET_VERTEX_RESPONSE("Maintenance.getVertexResponse"),
 		MAINTENANCE_REMOVE_EDGE_V2("Maintenance.removeEdgeV2"),
 		MAINTENANCE_ADD_EDGE_V2("Maintenance.addEdgeV2"),
+		MAINTENANCE_ADD_TREE_NODE("Maintenance.addTreeNode"),
 		MAINTENANCE_LOAD_DSL_FILE("Maintenance.loadDSLFile"),
 		MAINTENANCE_LOAD_SAR_FILE("Maintenance.loadSARFile"),
 

@@ -50,6 +50,7 @@ import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim;
 import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.MatsimOp;
 import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimEdge;
 import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
+import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -142,6 +143,11 @@ public class MProcess {
 		int serverPort = 0;
 		String curDir = null;
 		int maxNumberOfAgents = 0;
+
+		MASS.setLoggingLevel(LogLevel.DEBUG);
+
+		//Added by Vishnu
+		MASSBase.getLogger().setLogLevel(LogLevel.DEBUG);
 
 		MASSBase.getLogger().debug( "MProcess - main" );
 
@@ -807,6 +813,26 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 completed");
 				break;
+
+			case MAINTENANCE_ADD_TREE_NODE:
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE received");
+
+					places = MASS.getPlaces(m.getHandle());
+
+					graphPlaces = ((GraphPlaces) places);
+					Object[] addTreeNodeArgs = (Object[])argument;
+
+					graphPlaces.addTreeBranchOnNode(
+							MASS.getMyPid(),
+							(Integer)addTreeNodeArgs[0],
+							(Integer)addTreeNodeArgs[1],
+							(Integer)addTreeNodeArgs[2]
+					);
+
+					sendAck();
+
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE completed");
+					break;
 
 			case MAINTENANCE_REMOVE_PLACE:
 				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_PLACE has been deprecated. " +

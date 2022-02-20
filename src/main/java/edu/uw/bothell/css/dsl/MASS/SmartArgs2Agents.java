@@ -31,6 +31,12 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.*;
 
 public class SmartArgs2Agents implements Serializable {
+
+    public static final int BreadthFirstSearch_ = 0;
+    public static final int TriangleCounting_ = 1;
+    public static final int rangeSearch_ = 2;
+
+
     public SmartArgs2Agents( int nextnode, int prevnode )
     {
         nextNode = nextnode;
@@ -48,7 +54,32 @@ public class SmartArgs2Agents implements Serializable {
         this.nextNode = nextnode;
     }
 
+    public SmartArgs2Agents(int applicationId, Object argument, int nextNode, int prevNode) {
+
+        switch (applicationId) {
+            case rangeSearch_:
+                this.searchRange = (int[]) argument;
+                if (nextNode != -1) {this.nextNode = nextNode;}
+                break;
+            case TriangleCounting_:  //TO DO: Should update the application program to use this constructor
+                this.itinerary = (int[]) argument;
+                this.nextNode = nextNode;
+                break;
+            case BreadthFirstSearch_: //TO DO: Should update the application program to use this constructor
+                this.nextNode = nextNode;
+                this.prevNode = prevNode;
+                break;
+            default:
+        }
+    }
+
     public int[] itinerary = null;
     public int nextNode = -1;
     public int prevNode = -1;
+
+    //Attributes useful for Range Search
+    public int[] searchRange;
+
+
+
 }

@@ -100,6 +100,8 @@ public class Place implements Serializable {
 
 	protected Vector<int[]> neighbors = null;
 
+
+
 	private transient Log4J2Logger logger = Log4J2Logger.getInstance();
 
 	//
