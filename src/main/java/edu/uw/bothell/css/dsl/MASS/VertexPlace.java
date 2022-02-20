@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-public class VertexPlace extends Place implements Serializable, Cloneable {
+public class VertexPlace extends SmartPlace implements Serializable, Cloneable {
 
     // serialVersionUID set to resemble semantic versioning for
     // VertexPlace (v1.0.0 == 01 00 00)
@@ -47,6 +47,12 @@ public class VertexPlace extends Place implements Serializable, Cloneable {
     private Object [] graphArguments;
     public Vector<Object> neighbors = new Vector<>();
     public Vector<Object> weights = new Vector<>();
+
+    /**
+     * Left and right are the node ids for this place's children when used as tree.
+     */
+    public int left = -1;
+    public int right = -1;
 
     // clone returns a deep copy of the VertexPlace with the exception that it's
     // possible for the objects within the neighbors, weights, graphArguments, 

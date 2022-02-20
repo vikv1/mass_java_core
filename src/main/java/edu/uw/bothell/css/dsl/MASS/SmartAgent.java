@@ -41,6 +41,9 @@ public class SmartAgent extends Agent {
     private boolean justMigrated = false;
     public int[] itinerary = null; //Array that holds the navigation
     private int OriginalSourceNode = -1;
+    public static final int BothBranch_ = 1;
+    public static final int LeftBranch_ = 2;
+    public static final int RightBranch_ = 3;
 
     public SmartAgent(Object args) {
         super();
@@ -218,6 +221,90 @@ public class SmartAgent extends Agent {
             if (args != null)
                 spawn(args.length, args);
         }
+
+        return null;
+    }
+
+
+
+    public Object propagateTree( int path, Object arg )
+    {
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace)) {
+
+            MASSBase.getLogger().error("Requested PropagateDown but places is {"
+                    + getPlace() .getClass().getName() + "} and not VertexPlace.");
+
+            return null;
+        }
+
+        // Retrieve the current node's information
+        int currNodeGlobalIndex = getPlace().getIndex()[0];
+        int left = ((VertexPlace)getPlace()).left;
+        int right = ((VertexPlace)getPlace()).right;
+
+        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place "+getPlace().getIndex()[0] + " Left Node is " +left + "" +
+                " and Right Node is " + right);
+
+        //if there are no Left or Right Branches kill the Agent
+        if (left == -1 && right  == -1) {
+            // No more nodes to explore.
+            MASS.getLogger().debug(" agent(" + getAgentId() +
+                    ") has reached the leaf node and is terminated at " + currNodeGlobalIndex);
+            kill();
+        } else if(((VertexPlace)getPlace()).footprint == 1){
+            MASS.getLogger().debug(" agent(" + getAgentId() +
+                    ") has already visited " + currNodeGlobalIndex);
+            kill();
+        }
+        else {
+            switch (path){
+                case BothBranch_:
+                    if (left != -1 && right  != -1){
+                        migrateAndSpawn(arg, left, right);
+                    }
+                    else if (left != -1){
+                        migrate(left);
+                        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place " + getPlace().getIndex()[0]  +
+                                "and is migrating to the Left Branch" + left);
+                    }
+                    else if (right != -1){
+                        migrate(right);
+                        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place "+getPlace().getIndex()[0]+
+                                "and is migrating to the Right Branch" + right);
+                    }
+
+                    break;
+                case LeftBranch_:
+                    if (left != -1){
+                        migrate(left);   //Migrate the Agent to Left Branch
+                        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place " + getPlace().getIndex()[0]  +
+                                "and is migrating to the Left Branch" + left);
+                    }
+                    break;
+                case RightBranch_:
+                    if (right != -1){
+                        migrate(right);   //Migrate the Agent to Left Branch
+                        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place "+getPlace().getIndex()[0]+
+                                "and is migrating to the Right Branch" + right);
+                    }
+            }
+
+            ((VertexPlace)getPlace()).footprint = 1; //Setting the footprint since place is visited
+        }
+        return null;
+    }
+
+    private Object migrateAndSpawn( Object arg, int left, int right)
+    {
+        migrate(left); //Migrate Parent Agent to left
+
+        // Spawn Child Agent to the right
+        SmartArgs2Agents[] args = new SmartArgs2Agents[1];
+        args[0] = new SmartArgs2Agents(SmartArgs2Agents.rangeSearch_, arg, right, -1 );
+        spawn(args.length, args);
+
+        MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place "+getPlace().getIndex()[0]+
+                "and is migrating to the Left Branch " + left + " spawning to " + right);
 
         return null;
     }
