@@ -36,8 +36,11 @@ package edu.uw.bothell.css.dsl.MASS;
  */
 public class AgentList {
 
-	private final int CAPACITY_X = 1000; // max agent population = 1 million
-	private final int CAPACITY_Y = 1000;
+	//private final int CAPACITY_X = 1000; // max agent population = 1 million
+	//private final int CAPACITY_Y = 1000;
+
+	private final int CAPACITY_X = 10000; // max agent population = 1 million
+	private final int CAPACITY_Y = 10000;
 	
 	private int capacityY = 0;
 	private Agent[][] array = null;

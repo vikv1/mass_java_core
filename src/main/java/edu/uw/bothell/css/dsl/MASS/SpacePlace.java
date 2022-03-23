@@ -49,6 +49,8 @@ public class SpacePlace extends Place{
     private double[] subInterval;  // interval of sub-place
     private int granularity;
 
+    // footPrintMap is to record visited agent's original source id in sub-place
+    private Hashtable<Integer, Set<Point>> footPrintMap = new Hashtable<>();
 
     // hashtable to keep all agents in the place, key is agent's linearSubIndex, value is a list of agents in that subPlace
     private Hashtable<Integer, Set<Agent>> agentsMap = new Hashtable<>();
@@ -169,5 +171,31 @@ public class SpacePlace extends Place{
             ", " + subInterval[1] + "]";
     }
 
+    public Hashtable<Integer, Set<Point>> getfootPrintMap() {
+        return footPrintMap;
+    }
+
+
+    public void addFootPrint(int[] subIndex, Point p) {
+
+        int dim = subIndex.length;
+        int[] subSize = new int[dim];
+        Arrays.fill(subSize, getGranularity());
+        //MASSBase.getLogger().debug("subSize length = " + subSize.length + "[" + subSize[0] + "," + subSize[1] + "]");
+        //MASSBase.getLogger().debug("subIndex length = " + subIndex.length + "[" + subIndex[0] + "," + subIndex[1] + "]");
+
+
+        int subIndexLinear = MatrixUtilities.getLinearIndex(subSize, subIndex);  // initialize linear subIndex
+        //MASSBase.getLogger().debug("subIndexLinear = " + subIndexLinear);
+        Set<Point> footPrint_set = footPrintMap.getOrDefault(subIndexLinear, new HashSet<Point>());
+        //MASSBase.getLogger().debug("footPrint_set.size() = " + footPrint_set.size());
+        footPrint_set.add(p);
+        //MASSBase.getLogger().debug("after adding point, footPrint_set.size() = " + footPrint_set.size());
+        footPrintMap.put(subIndexLinear, footPrint_set);
+        //MASSBase.getLogger().debug(footPrintMapToString());
+        MASSBase.getLogger().debug("ClosestPairPlace addFootPrint(): Point " + p.toString() + " is added to Place" +
+                getIndex()[0] + "," + getIndex()[1] + "], subIndex = [ " + subIndex[0] + "," + subIndex[1] + "]");
+
+    }
 
 }

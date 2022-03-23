@@ -96,6 +96,13 @@ public class PlacesBase {
 //		return simpleClassName;
 //	}
 
+	//constructor for SpacePlacesBase
+	public PlacesBase( int handle, String className, int[] size ) {
+		this.handle = handle;
+		this.className = className;
+		this.size = size;
+	}
+
 	/**
 	 * Instantiate a generic PlacesBase for this node
 	 * @param handle The Handle ID identifying this PlacesBase

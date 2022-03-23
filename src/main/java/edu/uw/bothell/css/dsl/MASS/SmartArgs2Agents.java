@@ -35,6 +35,8 @@ public class SmartArgs2Agents implements Serializable {
     public static final int BreadthFirstSearch_ = 0;
     public static final int TriangleCounting_ = 1;
     public static final int rangeSearch_ = 2;
+    public static final int SpaceAgent_ = 3;
+    public int application_id = -1;
 
 
     public SmartArgs2Agents( int nextnode, int prevnode )
@@ -54,23 +56,39 @@ public class SmartArgs2Agents implements Serializable {
         this.nextNode = nextnode;
     }
 
-    public SmartArgs2Agents(int applicationId, Object argument, int nextNode, int prevNode) {
+    public SmartArgs2Agents(int applicationId, Object [] argument, int nextNode, int prevNode) {
+
+        this.application_id = applicationId; //SettingApplication Id
 
         switch (applicationId) {
             case rangeSearch_:
-                this.searchRange = (int[]) argument;
+                this.searchRange = (int[]) argument[0];
+                this.level = (int)argument[1];
                 if (nextNode != -1) {this.nextNode = nextNode;}
                 break;
             case TriangleCounting_:  //TO DO: Should update the application program to use this constructor
-                this.itinerary = (int[]) argument;
+                this.itinerary = (int[]) argument[0];
                 this.nextNode = nextNode;
                 break;
             case BreadthFirstSearch_: //TO DO: Should update the application program to use this constructor
                 this.nextNode = nextNode;
                 this.prevNode = prevNode;
                 break;
+
             default:
         }
+    }
+
+    //Constructor for SmartAgent when used for Space operations
+    public SmartArgs2Agents(int applicationId, double[] currentCoordinates, double[] nextCoordinates, double[] originalCoordinates, int[] index, int[] subIndex, int generation, int originalId) {
+        this.application_id = applicationId; //SettingApplication Id
+        this.currentCoordinates = currentCoordinates.clone();
+        this.nextCoordinates = nextCoordinates.clone();
+        this.originalCoordinates = originalCoordinates.clone();
+        this.index = index.clone();
+        this.subIndex = subIndex.clone();
+        this.generation = generation;
+        this.originalId = originalId;
     }
 
     public int[] itinerary = null;
@@ -79,7 +97,15 @@ public class SmartArgs2Agents implements Serializable {
 
     //Attributes useful for Range Search
     public int[] searchRange;
+    public int level;
 
-
-
+    //Attributes to be used to instantiate SmartAgent when for SpaceAgent
+    public double[] currentCoordinates;
+    public double[] nextCoordinates;  //coordinates where agent is migrating to
+    public double[] originalCoordinates;  //the original coordinates of the agent
+    public int[] index;
+    public int[] subIndex; //subIndex of sub-place where SpaceAgent resides
+    public int generation;
+    public int originalId;
+    public boolean isParent = false; //flase when agent instantiated, once the agent spawns, it turns to true
 }

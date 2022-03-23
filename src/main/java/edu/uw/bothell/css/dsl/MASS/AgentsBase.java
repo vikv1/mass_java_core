@@ -161,7 +161,7 @@ public class AgentsBase {
 				MASS.getLogger().debug("find dest subIndex: " + subIndex[0] + ", " + subIndex[1] + "]");
 
 
-				SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(location, location, index, subIndex, 0, i);
+				SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(location, location, location, index, subIndex, 0, i);
 				MASS.getLogger().debug("spaceAgentArgs created.");
 
 
@@ -796,7 +796,7 @@ public class AgentsBase {
 						//TO DO: Take action if it is smart Agent
 						if (addAgent instanceof SmartAgent)
 						{
-							MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle Agent Created : "+agentInitAgentId+" is a Smart Agent");
+							MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle Agent Created : "+addAgent.getAgentId()+" is a Smart Agent");
 						}
 
 						//If the new Agent has a new Index created, Migrate to it
@@ -881,14 +881,25 @@ public class AgentsBase {
 					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
 
 					MASS.getLogger().debug("Agent Spawn Request current place Index is : "+ agentSpawnRequest.getIndex()[0]);
-					MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : "+destinationLocalLinearIndex+" and Global Linear Index is : "+globalLinearIndex);
+					MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : "+destinationLocalLinearIndex+" " +
+							"Global Linear Index is : "+globalLinearIndex+" Places Lower Boundary is " + curPlaces.getLowerBoundary());
 
 					// changes from Jonathan
 					Place curPlace = null;
-					if (curPlaces.getPlaces() == null) // added line jonathan Empty graph does not initialize places[]
-						curPlace = ((GraphPlaces) curPlaces).getVertexPlace(destinationLocalLinearIndex);    // vertexPlace used instead of getPlaces[n]
-					else
+					if (curPlaces instanceof GraphPlaces) // added line jonathan Empty graph does not initialize places[]
+					{
+
+						curPlace = ((GraphPlaces) curPlaces).getVertexPlace(agentSpawnRequest.getIndex()[0]);    // vertexPlace used instead of getPlaces[n]
+
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : " + destinationLocalLinearIndex + " " +
+								"Picked up place from Graphplaces");
+					}
+					else {
 						curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : " + destinationLocalLinearIndex + " " +
+								"Picked up place from Places");
+					}
 					// changes done
 
 					// push this agent into the place and the entire agent bag.
@@ -937,7 +948,7 @@ public class AgentsBase {
 		{
 			this.agents.reduce( ); //Reduce the AgentList after Agent Removal and Addition
 			MThread.setAgentBagSize(MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
-			MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - Agent bag size is "+MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
+			MASS.getLogger().debug("Agents_base size manageAll- after ManageLifeCycle - Agent bag size is "+ MThread.getAgentBagSize());
 		}
 
 		// all threads must barrier synchronize here.
@@ -947,6 +958,7 @@ public class AgentsBase {
 
 	public void manageAll( int tid ) {
 
+		MASS.getLogger().debug("Agents_base size manageAll- Before ManageLifeCycle - Agent bag size is "+ MThread.getAgentBagSize());
 		ManageLifeCycleEvents (tid); //Spawn, Kill agents and update the bag of Agents
 
 		// Get the PlacesBase to access our agents fromvfor agent instantiation,
@@ -970,7 +982,7 @@ public class AgentsBase {
 				myIndex = MThread.getAgentBagSize();
 
 				MASS.getLogger().debug( "Agents_base.manageALL: Thread : Migrate " + tid +
-								" Index " + myIndex+"from Agent Bag");
+								" Index " + myIndex+" from Agent Bag");
 
 
 				MThread.setAgentBagSize(myIndex - 1);
@@ -2179,10 +2191,195 @@ public class AgentsBase {
 
 	}
 
+	private void ManageLifeCycleEventsforSpaceAgent (int tid)
+	{
+		while (true) {
+
+			int myIndex; // each thread's agent index
+
+			SpaceAgent evaluationAgent = null;
+			SpacePlace evaluationPlace = null;
+
+			synchronized (this) {
+
+				if ((myIndex = MThread.getAgentBagSize()) == 0)
+					break;
+
+				// Grab the last agent and remove it for processing.
+				myIndex = MThread.getAgentBagSize();
+
+				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Number of Agents in the Bag : "+myIndex);
+
+				MThread.setAgentBagSize(myIndex - 1);
+				evaluationAgent = (SpaceAgent)agents.get(myIndex - 1);
+
+				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Thread : " + tid +
+						" picked up "
+						+ evaluationAgent.getAgentId());
+
+			}
+
+
+			int argumentcounter = 0;
+
+			//If the spawn's newChildren field is set to anything higher than
+			//zero, we need to create newChildren's worth of Agents in the current location.
+
+			//******* SPAWN() CHECK *******
+			MASS.getLogger().debug("******* SPAWN() CHECK *******");
+			int childrenCounter = evaluationAgent.getNewChildren();
+			MASS.getLogger().debug("agent " + evaluationAgent.getAgentId() + "'s childrenCounter = " + childrenCounter);
+			while (childrenCounter > 0) {
+				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " will spawn a child of agent " +
+						evaluationAgent.getAgentId() + "...arguments.size( ) = " + evaluationAgent.getArguments().length +
+						", argumentcounter = " + argumentcounter);
+
+				SpaceAgent addAgent = null;
+				Object dummyArgument = new Object();
+				try {
+					agentInitAgentsHandle = this.handle;
+					agentInitPlacesHandle = this.placesHandle;
+					agentInitParentId = evaluationAgent.getAgentId();
+					synchronized (this) {
+
+						// validate the correspondance of arguments and argumentcounter
+						addAgent = (SpaceAgent) ((evaluationAgent.getArguments().length > argumentcounter) ?
+								// yes: this child agent should recieve an argument.
+								objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
+								: objectFactory.getInstance(className, dummyArgument));
+					}
+
+					addAgent.setPlace(evaluationAgent.getPlace());
+
+					// Agent has been created
+					eventDispatcher.queueAsync(OnCreation.class, addAgent);
+
+					// Agent population control work begins, execution order is important!
+					// check if the agent is going to run in the system
+					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size())) {
+						// check if there is available agent id
+						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+
+						if (availableAgentId > -1) {
+							addAgent.setAgentId(availableAgentId);
+						} else {   // assign a never used id
+							addAgent.setAgentId(this.currentAgentId++);
+						}
+
+						// Push the created agent into our bag for returns and
+						// update the counter needed to keep track of our agents.
+						SpacePlace curPlace = (SpacePlace) addAgent.getPlace();
+						curPlace.addAgent(addAgent, addAgent.getSubIndex());
+						this.agents.add(addAgent);           // auto syn
+					}
+
+					// queue Place OnArrival method
+					eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
+
+					// queue Agent OnArrival method
+					eventDispatcher.queueAsync(OnArrival.class, addAgent);
+
+				} catch (Exception e) {
+					// TODO - now what? What to do when an exception is thrown?
+					MASS.getLogger().error("Agents_base.manageAll: {} not instantiated", this.className, e);
+				}
+
+				//Decrement the newChildren counter once an Agent has been spawned
+				evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
+				childrenCounter--;
+				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " spawned a child of agent " +
+						evaluationAgent.getAgentId() + " and put the child " + addAgent.getAgentId() + " child into retBag.");
+				MASS.getLogger().debug("newAgent id = " + addAgent.getAgentId() + ", isMigrating = " + addAgent.isMigrate_toString() + ".");
+
+				//every time we spawn a new agent, we should check if there is available index first!!!
+
+			}
+
+			//******* KILL() CHECK *******
+			MASS.getLogger().debug("******* KILL() CHECK *******");
+			MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " check " + evaluationAgent.getAgentId() + "'s alive = " + evaluationAgent.isAlive());
+
+			if (evaluationAgent.isAlive() == false) {
+
+				// Get the place in which evaluationAgent is 'stored' in
+				evaluationPlace = (SpacePlace) evaluationAgent.getPlace();
+
+				//remove the agent from this place
+				evaluationPlace.removeAgent(evaluationAgent, evaluationAgent.getSubIndex());
+
+				// remove from AgentList, too!
+				agents.remove(myIndex - 1);
+				int n = myIndex - 1;
+
+				//** Agent population control work begins, execution order is important! **
+				// every time we kill an agent, we should add its id to the available ids queue
+				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
+
+				// then we check if there is any agent spawn request
+				Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
+				if (agentSpawnRequest != null) {
+					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
+					// check if there is available agent id
+					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+
+					if (availableAgentId > -1) {
+						agentSpawnRequest.setAgentId(availableAgentId);
+					} else {  // assign a never used id
+						agentSpawnRequest.setAgentId(this.currentAgentId++);
+					}
+
+					// retrieve the corresponding places
+					SpacePlacesBase curPlaces = (SpacePlacesBase) MASSBase.getPlacesMap().get(placesHandle);
+					int globalLinearIndex = MatrixUtilities.getLinearIndex(curPlaces.getSize(), agentSpawnRequest.getIndex());
+
+					// local destination
+					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
+					SpacePlace curPlace = (SpacePlace) (curPlaces.getPlaces()[destinationLocalLinearIndex]);
+
+					// push this agent into the place and the entire agent bag.
+					agentSpawnRequest.setPlace(curPlace);
+
+					// Push the created agent into our bag for returns and
+					// update the counter needed to keep track of our agents.
+					agentSpawnRequest.getPlace().getAgents().add(agentSpawnRequest); // auto sync
+					this.agents.add(agentSpawnRequest);           // auto syn
+
+					// init the Agent immediately
+					try {
+						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest);
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						e.printStackTrace();
+						MASS.getLogger().error("Exception caught during initialization of serialized Agent", e);
+					}
+					// queue remaining events for the newly activated Agent
+					eventDispatcher.queueAsync(OnArrival.class, curPlace);
+					eventDispatcher.queueAsync(OnArrival.class, agentSpawnRequest);
+				}
+				// don't go down to migrate
+				continue;
+			}
+		}
+
+		MThread.barrierThreads(tid);
+
+		if (tid == 0)
+		{
+			this.agents.reduce( ); //Reduce the AgentList after Agent Removal and Addition
+			MThread.setAgentBagSize(MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
+			MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - Agent bag size is "+MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
+		}
+
+		// all threads must barrier synchronize here.
+		MThread.barrierThreads(tid);
+
+	}
+
 	// manageAll method for Space class ------------------ modified by Yuna
 	public void manageAll_space( int tid ) {
 
 		MASS.getLogger().debug("******************* MANAGE ALL SPACE ***********************");
+
+		ManageLifeCycleEventsforSpaceAgent (tid); //Spawn, Kill agents and update the bag of Agents
 
 		//Get the PlacesBase to access our agents fromvfor agent instantiation,
 		//and our bag for Agent objects after they have finished processing
@@ -2204,7 +2401,7 @@ public class AgentsBase {
 				MASS.getLogger().debug( "Agents_base.manageALL: Thread " + tid + " picked up " + evaluationAgent.getAgentId() );
 			}
 
-			int argumentcounter = 0;
+			/*int argumentcounter = 0;
 
 			//If the spawn's newChildren field is set to anything higher than 
 			//zero, we need to create newChildren's worth of Agents in the current location.
@@ -2341,7 +2538,7 @@ public class AgentsBase {
 				}
 				// don't go down to migrate
 				continue;
-			}
+			}*/
 
 			//****************************
 			//******* MIGRATE() CHECK *******
