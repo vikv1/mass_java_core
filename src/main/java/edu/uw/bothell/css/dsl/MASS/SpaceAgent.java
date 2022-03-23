@@ -34,7 +34,7 @@ import java.util.Objects;
 import java.util.Vector;
 
 @SuppressWarnings("serial")
-public class SpaceAgent extends Agent {
+public class SpaceAgent extends SmartAgent {
     
     public static final int MIGRATE = 0; 
     public static final int SPAWN_AGENTS = 1;
@@ -44,6 +44,7 @@ public class SpaceAgent extends Agent {
     
     private double[] currentCoordinates;
     private double[] nextCoordinates;  //coordinates where agent is migrating to
+    private double[] originalCoordinates;  //the original coordinates of the agent
     private int[] subIndex; //subIndex of sub-place where SpaceAgent resides
     private int generation;
     private int originalId;
@@ -52,9 +53,11 @@ public class SpaceAgent extends Agent {
     public SpaceAgent(Object args) {
         
         // initialize SpaceAgent
+        super();
         SpaceAgentArgs spaceAgentArgs = (SpaceAgentArgs) args;
         this.currentCoordinates = spaceAgentArgs.getCurrentCoordinates().clone();
         this.nextCoordinates = spaceAgentArgs.getNextCoordinates().clone();
+        this.originalCoordinates = spaceAgentArgs.getOriginalCoordinates().clone();
         this.subIndex = spaceAgentArgs.getSubIndex().clone();
         this.generation = spaceAgentArgs.getGeneration();
         this.originalId = spaceAgentArgs.getOriginalId();
@@ -71,8 +74,6 @@ public class SpaceAgent extends Agent {
         return nextCoordinates;
     }
 
-
-
     public int[] getSubIndex() {
         return this.subIndex;
     }
@@ -84,6 +85,16 @@ public class SpaceAgent extends Agent {
 
 	public void setCurrentCoordinates(double[] coordinates) {
 		currentCoordinates = coordinates;
+    }
+
+    //this method is only applicable right after agent instantiation (no migration called)
+    public Object setOriginalCoordinates(double[] originalCoordinates) {
+        this.originalCoordinates = originalCoordinates.clone();
+        return null;
+    }
+
+    public double[] getOriginalCoordinates() {
+        return originalCoordinates;
     }
 
     public int getGeneration() {
@@ -141,8 +152,6 @@ public class SpaceAgent extends Agent {
             case "vonNeumann": 
                 numOfAgents = 4;
                 break;
-            
-                
         }
         
         Object[] arguments = new Object[numOfAgents];
@@ -163,7 +172,11 @@ public class SpaceAgent extends Agent {
             SpacePlace sp = (SpacePlace)getPlace();
             
             Object[] finalArgs = new Object[2];
-            SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i), 
+
+            //Commented By Vishnu as a part of Auto-Agent Migration
+            //SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i),
+            //                        getIndex(), getSubIndex(), generation, getOriginalId());
+            SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i), getOriginalCoordinates(),
                                     getIndex(), getSubIndex(), generation, getOriginalId());
 
             finalArgs[0] = (Object) spaceAgentArgs;  //argument for SpaceAgent
@@ -195,6 +208,81 @@ public class SpaceAgent extends Agent {
             kill();
             MASS.getLogger().debug("agent id = " + getAgentId() + " isParent = " + isParent + " is killed.");
         }
+        return null;
+    }
+
+
+
+    //Spawns Child Agents in Moore and Von-Neumann Neighborhood and then kill the parent agent
+    //Propagate Ripple Auto-Agent Migration
+    public Object propagateRipple(Object argument) {
+
+        if (getPlace() != null && !(getPlace() instanceof SpacePlace)) {
+
+            MASSBase.getLogger().error("Requested PropagateRipple but places is {"
+                    + getPlace() .getClass().getName() + "} and not SpacePlace.");
+
+            return null;
+        }
+
+        if (generation % 2 == 0) {
+            // if generation is even, spawn to N, W, E, S
+            spawnAgentinNeighborhood("vonNeumann", argument, currentCoordinates);
+
+        } else {
+            // if generation is odd, spawn to N, W, E, S, NW, SW, NE, SE
+            spawnAgentinNeighborhood("moore", argument, currentCoordinates);
+        }
+
+        isParent = true;
+        kill(); //Kill Parent Agent;
+        MASS.getLogger().debug("agent id = " + getAgentId() + " isParent = " + isParent + " will be killed.");
+
+        return null;
+    }
+
+    //agent spawns in 'moore' manner or "vonNewmann" manner
+    private Object spawnAgentinNeighborhood(String neighborhoodPattern, Object args, double[] currentCoordinates) {
+        int numOfAgents = 0;
+
+        switch(neighborhoodPattern){
+            case "moore":
+                numOfAgents = 8;
+                break;
+
+            case "vonNeumann":
+                numOfAgents = 4;
+                break;
+        }
+
+        Object[] arguments = new Object[numOfAgents];
+        int[] curIndex = getIndex();
+
+        // new coordiantes where agent is migrating
+        double[] subInterval = ((SpacePlace) getPlace()).getSubInterval().clone();
+        Vector<double[]> neighbors = SpaceUtilities.getNeighborPatterns(neighborhoodPattern, subInterval);
+
+        for (int i = 0; i < neighbors.size(); i++ ) {
+            for (int j = 0; j < subInterval.length; j++) {
+                neighbors.get(i)[j] += currentCoordinates[j];
+            }
+        }
+
+        generation++;
+        for(int i = 0; i < numOfAgents; i++){
+            SpacePlace sp = (SpacePlace)getPlace();
+
+            Object[] finalArgs = new Object[2];
+            SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(currentCoordinates, neighbors.get(i),originalCoordinates,
+                    getIndex(), subIndex, generation, originalId);
+
+            finalArgs[0] = (Object) spaceAgentArgs;  //argument for SpaceAgent
+            finalArgs[1] = args;  //argument for customer agent class
+            arguments[i] = (Object) finalArgs;
+
+        }
+        spawn(numOfAgents, arguments);
+
         return null;
     }
     

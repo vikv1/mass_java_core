@@ -30,7 +30,20 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.io.*;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.io.IOException;
+import java.util.PriorityQueue;
+import java.util.List;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import edu.uw.bothell.css.dsl.MASS.*;
+
 
 @SuppressWarnings("serial")
 public class SmartAgent extends Agent {
@@ -41,9 +54,12 @@ public class SmartAgent extends Agent {
     private boolean justMigrated = false;
     public int[] itinerary = null; //Array that holds the navigation
     private int OriginalSourceNode = -1;
+
+    //Propagate Tree Related attributes
     public static final int BothBranch_ = 1;
     public static final int LeftBranch_ = 2;
     public static final int RightBranch_ = 3;
+    public int level = 0;     //Current depth of the agent
 
     public SmartAgent(Object args) {
         super();
@@ -52,6 +68,11 @@ public class SmartAgent extends Agent {
         if (args != null)
         {
             SmartArgs2Agents arguments = (SmartArgs2Agents) args;
+
+            if (arguments.application_id == arguments.rangeSearch_)
+            {
+                this.level = (arguments.level != 0) ? arguments.level : 0;
+            }
 
             this.itinerary = (arguments.itinerary != null) ? arguments.itinerary.clone() : null;
             this.nextNode = (arguments.nextNode != -1) ? arguments.nextNode : -1;
@@ -173,7 +194,7 @@ public class SmartAgent extends Agent {
         // Retrieve the current node's information
         Object [] neighbors = ((VertexPlace) getPlace()).getNeighbors();
 
-        // Retrieve the current node's information
+        // Retrieve the current node's information                                                                                             :q
         int currNodeGlobalIndex = getPlace().getIndex()[0];
 
         // Count the number of edges available to visit
@@ -186,9 +207,12 @@ public class SmartAgent extends Agent {
                 availableEdges++;
         }
 
+        MASSBase.getLogger().debug("Step " + currStep + ": agent( " + getAgentId() +" )" +
+                " Current Node :" + currNodeGlobalIndex + " Number of available edges : "  + availableEdges );
+           
         if (availableEdges == 0) {
             // No more edges to explore. I'm done
-            MASS.getLogger().debug("Step " + currStep + ": agent(" + getAgentId() +
+            MASS.getLogger().debug("Step " + currStep + ": agent( " + getAgentId() +
                     ") gets terminated at " + currNodeGlobalIndex);
             kill();
         } else {
@@ -208,6 +232,8 @@ public class SmartAgent extends Agent {
                         // Parent takes the last available edge and also immediately migrates
                         itinerary[currStep + 1] = neighborGlobalIndex;
                         migrate(itinerary[currStep + 1]);
+                        MASS.getLogger().debug("Step " + currStep + ": agent( " + getAgentId() +
+                                  " ) Current Node :" + currNodeGlobalIndex + " migrate to  " + neighborGlobalIndex);
                     } else {
                         // Children take the first availableEdges - 1.
                         int[] childItinerary = itinerary.clone();
@@ -218,8 +244,11 @@ public class SmartAgent extends Agent {
             }
 
             // Finally, spawn all my children
-            if (args != null)
+            if (args != null) {
                 spawn(args.length, args);
+                MASS.getLogger().debug("Step " + currStep + ": agent( " + getAgentId() +
+                        " ) Current Node :" + currNodeGlobalIndex + " Children to be Spawned : " + args.length);
+            }
         }
 
         return null;
@@ -297,10 +326,13 @@ public class SmartAgent extends Agent {
     private Object migrateAndSpawn( Object arg, int left, int right)
     {
         migrate(left); //Migrate Parent Agent to left
+        Object [] arguments = new Object[2];
+        arguments[0] = arg;
+        arguments[1] = level;
 
         // Spawn Child Agent to the right
         SmartArgs2Agents[] args = new SmartArgs2Agents[1];
-        args[0] = new SmartArgs2Agents(SmartArgs2Agents.rangeSearch_, arg, right, -1 );
+        args[0] = new SmartArgs2Agents(SmartArgs2Agents.rangeSearch_, arguments, right, -1);
         spawn(args.length, args);
 
         MASS.getLogger().debug("SmartAgent(" + getAgentId() + ") is at place "+getPlace().getIndex()[0]+
@@ -337,7 +369,7 @@ public class SmartAgent extends Agent {
             MASS.getLogger().debug("Step " + currStep +
                     ": agent(" + getAgentId() + ") can't go home at " +
                     itinerary[0] + " and thus gets terminated at " +
-                    getPlace().getIndex()[0]);
+                    getPlace().getIndex()[0])   ;
             kill();
         }
 
