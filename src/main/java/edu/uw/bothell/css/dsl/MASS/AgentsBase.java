@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
@@ -160,6 +161,8 @@ public class AgentsBase {
 				int[] subIndex = SpaceUtilities.findSubIndex(location, index, interval, subInterval, min);
 				MASS.getLogger().debug("find dest subIndex: " + subIndex[0] + ", " + subIndex[1] + "]");
 
+				//Commented by Vishnu for Auto-Agent Migration. SpaceAgent will now also set Original Coordinates
+				//SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(location, location, index, subIndex, 0, i);
 
 				SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(location, location, location, index, subIndex, 0, i);
 				MASS.getLogger().debug("spaceAgentArgs created.");
@@ -711,6 +714,7 @@ public class AgentsBase {
 				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Number of Agents in the Bag : "+myIndex);
 
 				MThread.setAgentBagSize(myIndex - 1);
+
 				evaluationAgent = agents.get(myIndex - 1);
 
 				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Thread : " + tid +
@@ -740,8 +744,8 @@ public class AgentsBase {
 						evaluationAgent.getArguments().length +
 						", argumentcounter = " + argumentcounter);
 
-				Agent addAgent = null;
 				Object dummyArgument = new Object();
+				Agent addAgent = null;
 
 				try {
 
@@ -751,23 +755,20 @@ public class AgentsBase {
 
 					synchronized (this) {
 
-						addAgent =
-								(Agent) (// validate the correspondance of arguments and
-										// argumentcounter
-										(evaluationAgent.getArguments().length >
-												argumentcounter) ?
-												// yes: this child agent should recieve an argument.
-												objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
-												:
-												objectFactory.getInstance(className, dummyArgument)
-								);
+							addAgent =
+									(Agent) (// validate the correspondance of arguments and
+											// argumentcounter
+											(evaluationAgent.getArguments().length >
+													argumentcounter) ?
+													// yes: this child agent should recieve an argument.
+													objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
+													:
+													objectFactory.getInstance(className, dummyArgument)
+									);
 
 					}
-
-					addAgent.setPlace(evaluationAgent.getPlace());
-
 					// Agent has been created
-
+					addAgent.setPlace(evaluationAgent.getPlace());
 					// register the new Agent with messaging provider
 					MASS.getMessagingProvider().registerAgent(addAgent);
 
@@ -782,31 +783,38 @@ public class AgentsBase {
 						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
 						if (availableAgentId != null && availableAgentId > -1) {
 							addAgent.setAgentId(availableAgentId);
-						}
-						// assign a never used id
+						} // assign a never used id
 						else {
 							addAgent.setAgentId(this.currentAgentId++);
 						}
 
 						// Push the created agent into our bag for returns and
 						// update the counter needed to keep track of our agents.
-						addAgent.getPlace().getAgents().add(addAgent); // auto sync
-						this.agents.add(addAgent);           // auto syn
-
-						//TO DO: Take action if it is smart Agent
-						if (addAgent instanceof SmartAgent)
+						if (addAgent instanceof SpaceAgent)
 						{
-							MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle Agent Created : "+addAgent.getAgentId()+" is a Smart Agent");
+							SpaceAgent spaceAgent = (SpaceAgent)addAgent;
+							SpacePlace curPlace = (SpacePlace) spaceAgent.getPlace();
+							curPlace.addAgent(spaceAgent, spaceAgent.getSubIndex());
+
+							MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Agent : "+ spaceAgent.getAgentId() + "Added to " +
+									"place : ("+spaceAgent.getIndex()[0] + " , " +spaceAgent.getIndex()[1]+")"+
+									"and Sub Index : ("+spaceAgent.getSubIndex()[0]+" , "+spaceAgent.getSubIndex()[1]+")");
+
+							spaceAgent.migrate(spaceAgent.getNextCoordinates());
+
+							MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Agent will Migrate to : "+spaceAgent.getNextCoordinates()[0] + " , " +
+									""+ spaceAgent.getNextCoordinates()[1]);
 						}
-
-						//If the new Agent has a new Index created, Migrate to it
-						if (addAgent.getNextIndex() != -1)
-						{
+						else if (addAgent instanceof SmartAgent && addAgent.getNextIndex() != -1) {
+							addAgent.getPlace().getAgents().add(addAgent);
 							addAgent.migrate(addAgent.getNextIndex());
 							MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - New Agent will Migrate to : "+addAgent.getNextIndex());
 						}
+						else {
+							addAgent.getPlace().getAgents().add(addAgent); // auto sync
+						}
 
-						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - New Agent "+addAgent.getAgentId()+"Has been Added to Agent list");
+						this.agents.add(addAgent);           // auto syn
 
 						// queue Place OnArrival method
 						eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
@@ -842,11 +850,19 @@ public class AgentsBase {
 
 			if (evaluationAgent.isAlive() == false) {
 
-				// Get the place in which evaluationAgent is 'stored' in
-				Place evaluationPlace = evaluationAgent.getPlace();
-
-				// remove the agent from this place
-				evaluationPlace.getAgents().remove(evaluationAgent);
+				if (evaluationAgent instanceof SpaceAgent)
+				{
+					// Get the place in which evaluationAgent is 'stored' in
+					SpacePlace evaluationPlace = (SpacePlace) evaluationAgent.getPlace();
+					//remove the agent from this place
+					evaluationPlace.removeAgent(evaluationAgent, ((SpaceAgent)evaluationAgent).getSubIndex());
+				}
+				else {
+					// Get the place in which evaluationAgent is 'stored' in
+					Place evaluationPlace = evaluationAgent.getPlace();
+					// remove the agent from this place
+					evaluationPlace.getAgents().remove(evaluationAgent);
+				}
 
 				// remove from AgentList, too!
 				agents.remove(myIndex - 1);
@@ -910,8 +926,23 @@ public class AgentsBase {
 					agentSpawnRequest.getPlace().getAgents().add(agentSpawnRequest); // auto sync
 					this.agents.add(agentSpawnRequest);           // auto syn
 
-					//If the new Agent has a new Index created, Migrate to it
-					if (agentSpawnRequest.getNextIndex() != -1)
+
+					//Migrate to next coordinate if it is Space Agent
+					if (agentSpawnRequest instanceof SpaceAgent)
+					{
+						SpaceAgent spaceAgentSpawnRequest = (SpaceAgent)agentSpawnRequest;
+						SpacePlace spacePlace = (SpacePlace) spaceAgentSpawnRequest.getPlace();
+						spacePlace.addAgent(spaceAgentSpawnRequest, spaceAgentSpawnRequest.getSubIndex());
+
+						MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Frozen Agent revived : "+ spaceAgentSpawnRequest.getAgentId() + "Added to " +
+								"place : ("+spaceAgentSpawnRequest.getIndex()[0] + " , " +spaceAgentSpawnRequest.getIndex()[1]+")"+
+								"and Sub Index : ("+spaceAgentSpawnRequest.getSubIndex()[0]+" , "+spaceAgentSpawnRequest.getSubIndex()[1]+")");
+
+						spaceAgentSpawnRequest.migrate(spaceAgentSpawnRequest.getNextCoordinates());
+						MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Agent will Migrate to : "+spaceAgentSpawnRequest.getNextCoordinates()[0] + " , " +
+								""+ spaceAgentSpawnRequest.getNextCoordinates()[1]);
+					}
+					else if (agentSpawnRequest instanceof SmartAgent && agentSpawnRequest.getNextIndex() != -1)
 					{
 						agentSpawnRequest.migrate(agentSpawnRequest.getNextIndex());
 						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - SpawnMgr - New Agent will Migrate to : "+agentSpawnRequest.getNextIndex());
@@ -2191,8 +2222,11 @@ public class AgentsBase {
 
 	}
 
+	// THIS FUNCTION IS NOT REQUIRED ANYMORE
 	private void ManageLifeCycleEventsforSpaceAgent (int tid)
 	{
+		long startTime = new Date().getTime();
+
 		while (true) {
 
 			int myIndex; // each thread's agent index
@@ -2208,14 +2242,8 @@ public class AgentsBase {
 				// Grab the last agent and remove it for processing.
 				myIndex = MThread.getAgentBagSize();
 
-				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Number of Agents in the Bag : "+myIndex);
-
 				MThread.setAgentBagSize(myIndex - 1);
 				evaluationAgent = (SpaceAgent)agents.get(myIndex - 1);
-
-				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycle - Thread : " + tid +
-						" picked up "
-						+ evaluationAgent.getAgentId());
 
 			}
 
@@ -2229,8 +2257,9 @@ public class AgentsBase {
 			MASS.getLogger().debug("******* SPAWN() CHECK *******");
 			int childrenCounter = evaluationAgent.getNewChildren();
 			MASS.getLogger().debug("agent " + evaluationAgent.getAgentId() + "'s childrenCounter = " + childrenCounter);
+
 			while (childrenCounter > 0) {
-				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " will spawn a child of agent " +
+				MASS.getLogger().debug("Agent_base.manageALLspace: Thread " + tid + " will spawn a child of agent " +
 						evaluationAgent.getAgentId() + "...arguments.size( ) = " + evaluationAgent.getArguments().length +
 						", argumentcounter = " + argumentcounter);
 
@@ -2270,6 +2299,10 @@ public class AgentsBase {
 						// update the counter needed to keep track of our agents.
 						SpacePlace curPlace = (SpacePlace) addAgent.getPlace();
 						curPlace.addAgent(addAgent, addAgent.getSubIndex());
+
+						//Migrate to next coordinate if it is Space Agent
+						addAgent.migrate(addAgent.getNextCoordinates());
+
 						this.agents.add(addAgent);           // auto syn
 					}
 
@@ -2281,23 +2314,26 @@ public class AgentsBase {
 
 				} catch (Exception e) {
 					// TODO - now what? What to do when an exception is thrown?
-					MASS.getLogger().error("Agents_base.manageAll: {} not instantiated", this.className, e);
+					MASS.getLogger().error("Agents_base.manageAllspace: {} not instantiated", this.className, e);
 				}
 
 				//Decrement the newChildren counter once an Agent has been spawned
 				evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
 				childrenCounter--;
-				MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " spawned a child of agent " +
-						evaluationAgent.getAgentId() + " and put the child " + addAgent.getAgentId() + " child into retBag.");
-				MASS.getLogger().debug("newAgent id = " + addAgent.getAgentId() + ", isMigrating = " + addAgent.isMigrate_toString() + ".");
+				//MASS.getLogger().debug("Agent_base.manageALLspace: Thread " + tid + " spawned a child of agent " +
+				//		evaluationAgent.getAgentId() + " and put the child " + addAgent.getAgentId() + " child into retBag.");
+				//MASS.getLogger().debug("newAgent id = " + addAgent.getAgentId() + ", isMigrating = " + addAgent.isMigrate_toString() + ".");
 
 				//every time we spawn a new agent, we should check if there is available index first!!!
 
 			}
 
+
 			//******* KILL() CHECK *******
 			MASS.getLogger().debug("******* KILL() CHECK *******");
-			MASS.getLogger().debug("Agent_base.manageALL: Thread " + tid + " check " + evaluationAgent.getAgentId() + "'s alive = " + evaluationAgent.isAlive());
+			MASS.getLogger().debug("Agent_base.manageALLapce: Thread " + tid + " check " + evaluationAgent.getAgentId() + "'s alive = " + evaluationAgent.isAlive());
+
+
 
 			if (evaluationAgent.isAlive() == false) {
 
@@ -2316,7 +2352,8 @@ public class AgentsBase {
 				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
 
 				// then we check if there is any agent spawn request
-				Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
+				SpaceAgent agentSpawnRequest = (SpaceAgent)agentSpawnRequestManager.getNextAgentSpawnRequest();
+
 				if (agentSpawnRequest != null) {
 					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
 					// check if there is available agent id
@@ -2344,6 +2381,15 @@ public class AgentsBase {
 					agentSpawnRequest.getPlace().getAgents().add(agentSpawnRequest); // auto sync
 					this.agents.add(agentSpawnRequest);           // auto syn
 
+					//Migrate to next coordinate if it is Space Agent
+					agentSpawnRequest.migrate(agentSpawnRequest.getNextCoordinates());
+					//MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Agent will Migrate to : "+agentSpawnRequest.getNextCoordinates()[0] + " , " +
+					//			""+ agentSpawnRequest.getNextCoordinates()[1]);
+
+
+					// register the new Agent with messaging provider
+					//MASS.getMessagingProvider().registerAgent(agentSpawnRequest);
+
 					// init the Agent immediately
 					try {
 						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest);
@@ -2356,30 +2402,49 @@ public class AgentsBase {
 					eventDispatcher.queueAsync(OnArrival.class, agentSpawnRequest);
 				}
 				// don't go down to migrate
+
 				continue;
 			}
+
+
+
 		}
 
+		long endTime = new Date().getTime();
+		MASS.getLogger().debug("Time Taken within ManageLifeCycle spawn and kill: "+ Long.toString(endTime - startTime) + " milli seconds");
+
 		MThread.barrierThreads(tid);
+
+		endTime = new Date().getTime();
+		MASS.getLogger().debug("Time Taken within ManageLifeCycle after 1st Barrier Thread: "+ Long.toString(endTime - startTime) + " milli seconds");
 
 		if (tid == 0)
 		{
 			this.agents.reduce( ); //Reduce the AgentList after Agent Removal and Addition
 			MThread.setAgentBagSize(MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
-			MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - Agent bag size is "+MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
+			MASS.getLogger().debug("Agents_base.manageAllspace- ManageLifeCycle - Agent bag size is "+MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
 		}
 
 		// all threads must barrier synchronize here.
 		MThread.barrierThreads(tid);
 
+		endTime = new Date().getTime();
+		MASS.getLogger().debug("Time Taken within ManageLifeCycle after 2nd Barrier Thread: "+ Long.toString(endTime - startTime) + " milli seconds");
+
 	}
+	//
 
 	// manageAll method for Space class ------------------ modified by Yuna
 	public void manageAll_space( int tid ) {
 
 		MASS.getLogger().debug("******************* MANAGE ALL SPACE ***********************");
+		long startTime = new Date().getTime();
+		//ManageLifeCycleEvents(tid); //Spawn, Kill agents and update the bag of Agents
+		ManageLifeCycleEventsforSpaceAgent(tid);
 
-		ManageLifeCycleEventsforSpaceAgent (tid); //Spawn, Kill agents and update the bag of Agents
+		long endTime = new Date().getTime();
+
+		MASS.getLogger().debug("Time Taken for ManageLifeCycle: "+ Long.toString(endTime - startTime) + " milli seconds");
 
 		//Get the PlacesBase to access our agents fromvfor agent instantiation,
 		//and our bag for Agent objects after they have finished processing
@@ -2398,7 +2463,6 @@ public class AgentsBase {
 				myIndex = MThread.getAgentBagSize();
 				MThread.setAgentBagSize(myIndex - 1);
 				evaluationAgent = (SpaceAgent) agents.get( myIndex - 1 );
-				MASS.getLogger().debug( "Agents_base.manageALL: Thread " + tid + " picked up " + evaluationAgent.getAgentId() );
 			}
 
 			/*int argumentcounter = 0;
@@ -2558,7 +2622,8 @@ public class AgentsBase {
 
 			double[] currentCoordinates = evaluationAgent.getCurrentCoordinates();
 			double[] destCoordinates = evaluationAgent.getNextCoordinates();
-			int[] destIndex = SpaceUtilities.findDestIndex(destCoordinates, evaluatedPlaces);
+			//int[] destIndex = SpaceUtilities.findDestIndex(destCoordinates, evaluatedPlaces);
+			int[] destIndex = evaluationAgent.getdestIndex();
 			int[] currentIndex = SpaceUtilities.findDestIndex(currentCoordinates, evaluatedPlaces);
 
 			// calculate the old sub-index and new sub-index in place        		
@@ -2567,7 +2632,8 @@ public class AgentsBase {
 			double[] subInterval = evaluationPlace.getSubInterval();
 			double[] min = evaluatedPlaces.getMin();  //min value of SpacePlaces
 
-			int[] oldSubIndex = SpaceUtilities.findSubIndex(currentCoordinates, currentIndex, interval, subInterval, min);
+			//int[] oldSubIndex = SpaceUtilities.findSubIndex(currentCoordinates, currentIndex, interval, subInterval, min);
+			int[] oldSubIndex = evaluationAgent.getSubIndex();
 			int[] newSubIndex = SpaceUtilities.findSubIndex(destCoordinates, destIndex, interval, subInterval, min);
 
 
@@ -2575,13 +2641,13 @@ public class AgentsBase {
 					"[" + evaluationAgent.getIndex()[0] + "," + evaluationAgent.getIndex()[1] + "]," + 
 					" (destCoordinates = [" + destCoordinates[0] + "," + destCoordinates[1] + "])" );
 
-			/*
+
 			MASS.getLogger().debug("CURRENT: coordinates[" + currentCoordinates[0] + "," + currentCoordinates[1] + "], index[" + 
 				currentIndex[0] + "," + currentIndex[1] + "], subIndex[" + oldSubIndex[0] + "," + oldSubIndex[1] + "]");
 
 			MASS.getLogger().debug("DESTINATION: coordinates[" + destCoordinates[0] + "," + destCoordinates[1] + "], index[" + 
 				destIndex[0] + "," + destIndex[1] + "], subIndex[" + newSubIndex[0] + "," + newSubIndex[1] + "]");
-			 */			
+
 
 			if (destIndex[0] != -1) {
 
@@ -2598,7 +2664,7 @@ public class AgentsBase {
 				if (destIndexLinear >= evaluatedPlaces.getLowerBoundary() && destIndexLinear <= evaluatedPlaces.getUpperBoundary()) {
 
 					if (SpaceUtilities.sameIndex(destIndex, currentIndex)) {
-						//MASS.getLogger().debug("same place: ========= agents map ===========");
+						MASS.getLogger().debug("same place: ========= agents map ===========");
 						//MASS.getLogger().debug(oldPlace.agentMap_toString());
 						// if destination index is the same as current index, agent only move within the place, do not need to update index
 						// only update sub-index
@@ -2617,7 +2683,7 @@ public class AgentsBase {
 
 
 					} else {
-						//MASS.getLogger().debug("different places: ========= agents map ===========");
+						MASS.getLogger().debug("different places: ========= agents map ===========");
 						//MASS.getLogger().debug(oldPlace.agentMap_toString());
 
 						//else remove agent from old place and add it to new place 
@@ -2676,6 +2742,10 @@ public class AgentsBase {
 			}
 
 		} // end of while( true )
+
+		//endTime = new Date().getTime();
+
+		//MASS.getLogger().debug("Time Taken for Migrate to complete: "+ Long.toString(endTime - startTime) + " milli seconds");
 
 		// When while loop finishes, all threads must barrier and tid = 0
 		// must adjust AgentList.

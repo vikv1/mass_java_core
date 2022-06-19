@@ -483,10 +483,12 @@ public class Agents extends AgentsBase {
 
     // retrieve the corresponding agents
     MASSBase.setCurrentAgentsBase(this);
-    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE);
 
     // resume threads
-    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL_SPACE);
+
+
 
     // callall implementatioin
     super.manageAll_space(0); // 0 = the main thread id

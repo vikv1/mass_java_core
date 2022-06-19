@@ -38,9 +38,11 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.*;
 import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.List;
+import java.lang.*;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 import edu.uw.bothell.css.dsl.MASS.*;
 
@@ -177,6 +179,174 @@ public class SmartAgent extends Agent {
 
         return null;
     }
+
+    public Object migrateMin ( Object arg )
+    {
+
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace) && !(getPlace() instanceof SmartPlace)) {
+
+            MASSBase.getLogger().error("Requested migrateMin but places is {"
+                    + getPlace() .getClass().getName() + "} and neither a VertexPlace nor a SmartPlace");
+
+            return null;
+        }
+
+        Integer [] neighbors; //Holds the indexes of neighbors
+        Integer [] weights; //Holds weights of the the neigbors
+
+        if (getPlace() instanceof VertexPlace)
+        {
+            neighbors = Arrays.asList(((VertexPlace) getPlace()).getNeighbors())
+                        .toArray(new Integer[0]);
+
+            weights = Arrays.asList(((VertexPlace) getPlace()).getWeights())
+                    .toArray(new Integer[0]);
+
+        }else {
+            return null;
+        }
+
+        //If neigbors or weights are null return null
+        if (neighbors == null || weights == null)
+            return null;
+
+        int minimumWeightIndex = getMinimumWeightIndex(weights);
+
+        MASS.getLogger( ).debug( "Migration: Agent(" + getAgentId( ) + ") will migrate to Place : " + neighbors[minimumWeightIndex] + " " +
+                " that has minimum weight of : " + weights[minimumWeightIndex]);
+
+        migrate( neighbors[minimumWeightIndex] ); //Migrate to Node with minimum weight
+
+        return null;
+
+    }
+
+    private int getMinimumWeightIndex(Integer [] weights)
+    {
+        int min = Integer.MAX_VALUE;
+        int MinimumWeightIndex = 0;
+
+        for (int i = 0; i < weights.length; i++)
+        {
+            if (min > weights[i].intValue())
+            {
+                min = weights[i].intValue();
+                MinimumWeightIndex = i;
+            }
+        }
+
+        return MinimumWeightIndex;
+    }
+
+    private int getMaximumWeightIndex(Integer [] weights)
+    {
+        int max = Integer.MIN_VALUE;
+        int MaximumWeightIndex = 0;
+
+        for (int i = 0; i < weights.length; i++)
+        {
+            if (max < weights[i].intValue())
+            {
+                max = weights[i].intValue();
+                MaximumWeightIndex = i;
+            }
+        }
+
+        return MaximumWeightIndex;
+    }
+
+    private int getRandomIndex(Integer [] weights)
+    {
+        Random rand = new Random();
+
+        //Generate an Index randomly between 0 and number of neighbors
+        int randomIndex = rand.nextInt(weights.length);
+
+        return randomIndex;
+    }
+
+
+
+    public Object migrateMax ( Object arg )
+    {
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace) && !(getPlace() instanceof SmartPlace)) {
+
+             MASSBase.getLogger().error("Requested migrateMin but places is {"
+                + getPlace() .getClass().getName() + "} and neither a VertexPlace nor a SmartPlace");
+
+             return null;
+        }
+
+        Integer [] neighbors; //Holds the indexes of neighbors
+        Integer [] weights; //Holds weights of the the neigbors
+
+        if (getPlace() instanceof VertexPlace)
+        {
+            neighbors = Arrays.asList(((VertexPlace) getPlace()).getNeighbors())
+                    .toArray(new Integer[0]);
+
+            weights = Arrays.asList(((VertexPlace) getPlace()).getWeights())
+                    .toArray(new Integer[0]);
+
+        }else {
+            return null;
+        }
+
+        //If neigbors or weights are null return null
+        if (neighbors == null || weights == null)
+            return null;
+
+        int maximumWeightIndex = getMaximumWeightIndex(weights);
+
+        MASS.getLogger( ).debug( "Migration: Agent(" + getAgentId( ) + ") will migrate to Place : " + neighbors[maximumWeightIndex] + " " +
+                " that has minimum weight of : " + weights[maximumWeightIndex]);
+
+        migrate( neighbors[maximumWeightIndex] ); //Migrate to Node with maximum weight
+
+        return null;
+    }
+
+
+
+    public Object migrateRandom ( Object arg )
+    {
+        if (getPlace() != null && !(getPlace() instanceof VertexPlace) && !(getPlace() instanceof SmartPlace)) {
+
+            MASSBase.getLogger().error("Requested migrateMin but places is {"
+                + getPlace() .getClass().getName() + "} and neither a VertexPlace nor a SmartPlace");
+
+            return null;
+        }
+
+        Integer [] neighbors; //Holds the indexes of neighbors
+        Integer [] weights; //Holds weights of the the neigbors
+
+        if (getPlace() instanceof VertexPlace)
+        {
+            neighbors = Arrays.asList(((VertexPlace) getPlace()).getNeighbors())
+                    .toArray(new Integer[0]);
+
+            weights = Arrays.asList(((VertexPlace) getPlace()).getWeights())
+                    .toArray(new Integer[0]);
+
+        }else {
+            return null;
+        }
+
+        //If neigbors or weights are null return null
+        if (neighbors == null || weights == null)
+            return null;
+
+        int randomIndex = getRandomIndex(weights);
+
+        MASS.getLogger( ).debug( "Migration: Agent(" + getAgentId( ) + ") will migrate to Place : " + neighbors[randomIndex] + " " +
+                " that was randomly chosen with weight of : " + weights[randomIndex]);
+
+        migrate( neighbors[randomIndex] ); //Migrate to Node with maximum weight
+
+        return null;
+    }
+
 
 
     public Object propagateDown( Object arg )

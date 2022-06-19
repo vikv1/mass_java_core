@@ -32,6 +32,9 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Objects;
 import java.util.Vector;
+import java.util.Arrays;
+import java.util.*;
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 @SuppressWarnings("serial")
 public class SpaceAgent extends SmartAgent {
@@ -46,6 +49,7 @@ public class SpaceAgent extends SmartAgent {
     private double[] nextCoordinates;  //coordinates where agent is migrating to
     private double[] originalCoordinates;  //the original coordinates of the agent
     private int[] subIndex; //subIndex of sub-place where SpaceAgent resides
+    private int[] destIndex; //Destination Index of agent to migrate
     private int generation;
     private int originalId;
     private boolean isParent = false; //flase when agent instantiated, once the agent spawns, it turns to true
@@ -57,7 +61,8 @@ public class SpaceAgent extends SmartAgent {
         SpaceAgentArgs spaceAgentArgs = (SpaceAgentArgs) args;
         this.currentCoordinates = spaceAgentArgs.getCurrentCoordinates().clone();
         this.nextCoordinates = spaceAgentArgs.getNextCoordinates().clone();
-        this.originalCoordinates = spaceAgentArgs.getOriginalCoordinates().clone();
+        //Added for Auto-Agent Migration
+        this.originalCoordinates = (spaceAgentArgs.getOriginalCoordinates() != null) ? spaceAgentArgs.getOriginalCoordinates().clone() : null;
         this.subIndex = spaceAgentArgs.getSubIndex().clone();
         this.generation = spaceAgentArgs.getGeneration();
         this.originalId = spaceAgentArgs.getOriginalId();
@@ -76,6 +81,10 @@ public class SpaceAgent extends SmartAgent {
 
     public int[] getSubIndex() {
         return this.subIndex;
+    }
+
+    public int[] getdestIndex() {
+        return this.destIndex;
     }
 
     public void setSubIndex(int[] subIndex) {
@@ -119,7 +128,8 @@ public class SpaceAgent extends SmartAgent {
         SpacePlacesBase curPlaces = (SpacePlacesBase) (MASSBase.getPlacesMap().get(placesHandle));
         //MASS.getLogger().debug("SpaceAgent.java migrate(), min = [" + curPlaces.getMin()[0] + "," + curPlaces.getMin()[1] + 
         //    "].");
-        int[] destIndex = SpaceUtilities.findDestIndex(newCoordinates, curPlaces);
+        //int[] destIndex = SpaceUtilities.findDestIndex(newCoordinates, curPlaces);
+        destIndex = SpaceUtilities.findDestIndex(newCoordinates, curPlaces);
         if (destIndex[0] == -1) {
             //out of Boundary
             kill();
@@ -173,10 +183,7 @@ public class SpaceAgent extends SmartAgent {
             
             Object[] finalArgs = new Object[2];
 
-            //Commented By Vishnu as a part of Auto-Agent Migration
-            //SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i),
-            //                        getIndex(), getSubIndex(), generation, getOriginalId());
-            SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i), getOriginalCoordinates(),
+            SpaceAgentArgs spaceAgentArgs = new SpaceAgentArgs(getCurrentCoordinates(), neighbors.get(i),
                                     getIndex(), getSubIndex(), generation, getOriginalId());
 
             finalArgs[0] = (Object) spaceAgentArgs;  //argument for SpaceAgent
@@ -213,8 +220,41 @@ public class SpaceAgent extends SmartAgent {
 
 
 
-    //Spawns Child Agents in Moore and Von-Neumann Neighborhood and then kill the parent agent
+    // Check If there has been an agent from the same source as current agent that has visited this subplace.
+    private boolean checkandUpdateFootPrint( ){
+        SpacePlace curPlace = (SpacePlace) getPlace();
+
+        Point p = new Point(getOriginalCoordinates(), getOriginalId());
+        // get the linear subindex
+        int granularity = ((SpacePlace)getPlace()).getGranularity();
+
+        int dim = originalCoordinates.length;
+        int[] subSize = new int[dim];
+        Arrays.fill(subSize, granularity);
+        int linearSubIndex = MatrixUtilities.getLinearIndex(subSize, getSubIndex());
+        //Set<Point> footPrintInSubPlace = curPlace.getfootPrintMap().get(linearSubIndex);
+        Set<Integer> OriginalIdfootPrintInSubPlace = curPlace.getOriginalIdfootPrintMap().get(linearSubIndex);
+
+        //if(footPrintInSubPlace != null && footPrintInSubPlace.contains(getOriginalId())) {
+        if(OriginalIdfootPrintInSubPlace != null && OriginalIdfootPrintInSubPlace.contains(getOriginalId())) {
+            MASS.getLogger().debug("duplicate check: Agent " + getAgentId() + "(" + getOriginalId() + ")" + " was deleted.");
+            return true;
+        } else {
+
+            //if the sub-place has not been visited, add the agent to the footPrintMap
+            curPlace.addFootPrint(getSubIndex(), p);
+            curPlace.addOriginalIdFootPrint(getSubIndex(), getOriginalId());
+
+            MASS.getLogger().debug("duplicate check: Agent" + getAgentId() + "(" + getOriginalId() + ")" +
+                    "was added to footprint of place [" + curPlace.getIndex()[0] + "," + curPlace.getIndex()[1] +
+                    "] ");
+        }
+        return false;
+    }
+
+
     //Propagate Ripple Auto-Agent Migration
+    //Spawns Child Agents in Moore and Von-Neumann Neighborhood and then kill the parent agent
     public Object propagateRipple(Object argument) {
 
         if (getPlace() != null && !(getPlace() instanceof SpacePlace)) {
@@ -222,6 +262,17 @@ public class SpaceAgent extends SmartAgent {
             MASSBase.getLogger().error("Requested PropagateRipple but places is {"
                     + getPlace() .getClass().getName() + "} and not SpacePlace.");
 
+            return null;
+        }
+
+        boolean hasThePlaceBeenAlreadyVisited = checkandUpdateFootPrint();
+
+
+        //if the sub-place has been visited by agent from the same source point, kill the current agent
+        //and stop propagating
+        if (hasThePlaceBeenAlreadyVisited)
+        {
+            kill();
             return null;
         }
 

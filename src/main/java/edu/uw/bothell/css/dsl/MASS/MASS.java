@@ -70,7 +70,8 @@ public class MASS extends MASSBase {
 	private static Utilities util = new Utilities( );  // used for channel creation
 
 	// the number of threads to spawn on each node (default to 1)
-    private static int numThreads = 1;
+    //private static int numThreads = 1;
+	private static int numThreads = 4;
 
 	// default user credentials (can be overridden via XML)
     private static String defaultUsername;

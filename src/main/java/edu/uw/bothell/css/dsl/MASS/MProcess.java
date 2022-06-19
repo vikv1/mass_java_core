@@ -1132,7 +1132,8 @@ public class MProcess {
 				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(m.getHandle()));
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
-				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				//MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL_SPACE);
 
 				MASSBase.getCurrentAgentsBase().manageAll_space(0); // 0 = the main
 																// tid

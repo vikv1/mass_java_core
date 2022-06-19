@@ -49,15 +49,13 @@ public class SpaceAgentArgs implements Serializable {
 
     public SpaceAgentArgs(double[] currentCoordinates, double[] nextCoordinates, int[] index, int[] subIndex, int generation, int originalId) {
 
-        //super(SpaceAgent_,currentCoordinates,nextCoordinates,originalCoordinates,index,subIndex,generation,originalId);
         this.currentCoordinates = currentCoordinates.clone();
-        //this.originalCoordinates = originalCoordinates.clone();
         this.nextCoordinates = nextCoordinates.clone();
         this.index = index.clone();
         this.subIndex = subIndex.clone();
         this.generation = generation;
         this.originalId = originalId;
-        
+
     }
 
     public SpaceAgentArgs(double[] currentCoordinates, double[] nextCoordinates, double[] originalCoordinates, int[] index, int[] subIndex, int generation, int originalId) {
