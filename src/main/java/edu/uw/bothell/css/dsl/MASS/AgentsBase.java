@@ -1004,7 +1004,7 @@ public class AgentsBase {
 					// relinquish the old place
 					evaluationAgent.setPlace(null);
 
-    				// Agent should no longer receieve messages from this node
+    				// Agent should no longer receive messages from this node
     				MASS.getMessagingProvider().unregisterAgent( evaluationAgent );
 
 					// create a request
@@ -1468,6 +1468,9 @@ public class AgentsBase {
 				// relinquish the old place
 				evaluationAgent.setPlace(null);
 
+				// Agent should no longer receive messages from this node
+				MASS.getMessagingProvider().unregisterAgent( evaluationAgent );
+
 				// create a request
 				AgentMigrationRequest request = new AgentMigrationRequest( evaluationAgentIndex, evaluationAgent );
 
@@ -1830,6 +1833,9 @@ public class AgentsBase {
 					// relinquish the old place
     				evaluationAgent.setTreePlace(null, null, null);
 
+    				// Agent should no longer receive messages from this node
+    				MASS.getMessagingProvider().unregisterAgent( evaluationAgent );
+
     				// create a request
     				AgentMigrationRequest request = new AgentMigrationRequest(destCoordinates, evaluationAgent );
 					
@@ -2180,6 +2186,9 @@ public class AgentsBase {
 
 					// relinquish the old place
 					evaluationAgent.setPlace(null);
+
+    				// Agent should no longer receive messages from this node
+    				MASS.getMessagingProvider().unregisterAgent( evaluationAgent );
 
 					// create a request
 					AgentMigrationRequest request = new AgentMigrationRequest(destIndexLinear, evaluationAgent );
