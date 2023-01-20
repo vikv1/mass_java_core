@@ -35,7 +35,7 @@ import java.util.Arrays;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
-public class SpacePlacesBase extends PlacesBase {
+public class SpacePlacesBase extends Places {
     
 	private String inputFile;
     private int dimensions;
