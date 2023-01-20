@@ -63,6 +63,11 @@ public class Agent implements Serializable {
 	 * Set to TRUE when this Agent has requested to migrate to a new Place (index)
 	 */
 	private transient boolean isMigrating = false;
+
+	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	private int nextIndex = -1;
 	
 	/**
 	 * Is the number of new children created by this agent upon a next call to
@@ -83,7 +88,25 @@ public class Agent implements Serializable {
 
   	private double[] currentCoordinates;
 
+
 	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	public void setNextIndex(int nextIndex)
+	{
+		this.nextIndex = nextIndex;
+	}
+
+	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	public int getNextIndex( )
+	{
+		return this.nextIndex;
+	}
+
+
+  	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
 	 * functionId as passing arguments to this function. A user-derived Agent
 	 * class must implement this method.

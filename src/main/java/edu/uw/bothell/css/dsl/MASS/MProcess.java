@@ -808,6 +808,26 @@ public class MProcess {
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 completed");
 				break;
 
+			case MAINTENANCE_ADD_TREE_NODE:
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE received");
+
+					places = MASS.getPlaces(m.getHandle());
+
+					graphPlaces = ((GraphPlaces) places);
+					Object[] addTreeNodeArgs = (Object[])argument;
+
+					graphPlaces.addTreeBranchOnNode(
+							MASS.getMyPid(),
+							(Integer)addTreeNodeArgs[0],
+							(Integer)addTreeNodeArgs[1],
+							(Integer)addTreeNodeArgs[2]
+					);
+
+					sendAck();
+
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE completed");
+					break;
+
 			case MAINTENANCE_REMOVE_PLACE:
 				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_PLACE has been deprecated. " +
 					"Please migrate to using MAINTENANCE_REMOVE_VERTEX.");
@@ -1106,7 +1126,8 @@ public class MProcess {
 				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(m.getHandle()));
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
-				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				//MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL_SPACE);
 
 				MASSBase.getCurrentAgentsBase().manageAll_space(0); // 0 = the main
 																// tid

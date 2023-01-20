@@ -36,6 +36,7 @@ public class SpaceAgentArgs implements Serializable {
 
     private double[] currentCoordinates;
     private double[] nextCoordinates;
+    private double[] originalCoordinates;  //the original coordinates of the agent
     private int[] index;
     private int[] subIndex;
     private int generation;
@@ -54,12 +55,28 @@ public class SpaceAgentArgs implements Serializable {
         this.subIndex = subIndex.clone();
         this.generation = generation;
         this.originalId = originalId;
-        
+
+    }
+
+    public SpaceAgentArgs(double[] currentCoordinates, double[] nextCoordinates, double[] originalCoordinates, int[] index, int[] subIndex, int generation, int originalId) {
+
+        this.currentCoordinates = currentCoordinates.clone();
+        this.originalCoordinates = originalCoordinates.clone();
+        this.nextCoordinates = nextCoordinates.clone();
+        this.index = index.clone();
+        this.subIndex = subIndex.clone();
+        this.generation = generation;
+        this.originalId = originalId;
+
     }
 
     
     public double[] getCurrentCoordinates() {
         return this.currentCoordinates;
+    }
+
+    public double[] getOriginalCoordinates() {
+        return this.originalCoordinates;
     }
     
     public double[] getNextCoordinates() {

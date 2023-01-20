@@ -106,7 +106,7 @@ public class MASS extends MASSBase {
 
     		MASS.getLogger().debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
+    					"...message = " + m.getArgument( ) );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
@@ -346,12 +346,9 @@ public class MASS extends MASSBase {
 			System.exit( -1 );
 		}
 
-    	// For debugging
-    	if ( MASSBase.getLogger().isDebugEnabled() ) {
-    		for ( MNode node : getRemoteNodes() )
+    	for ( MNode node : getRemoteNodes() )
     			MASSBase.getLogger().debug( "rank " + node.getPid() + ": " + 
     					node.getHostName() );
-    	}
 
     	// if not already defined, create master node representation
     	if (getMasterNode() == null) {
