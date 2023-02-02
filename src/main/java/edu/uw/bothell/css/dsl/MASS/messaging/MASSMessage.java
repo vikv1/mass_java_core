@@ -41,7 +41,7 @@ public class MASSMessage< T extends Serializable > implements Serializable {
 
 	private int destinationAddress;
 	private T message;
-	private boolean receiptRequired = false;
+	private boolean receiptRequired = true;
 	private int messageID;
 	
 	public MASSMessage( int destinationAddress, T message ) {

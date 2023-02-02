@@ -100,7 +100,12 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		if ( message.getDestinationAddress() == MessageDestination.ALL_AGENTS.getValue() || message.getDestinationAddress() == MessageDestination.ALL_LOCAL_AGENTS.getValue() ) {
 			
 			for ( Agent agent : agents.values() ) {
-				MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessage() );
+//				MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessage() );
+				try {
+					MASS.getEventDispatcher().invokeImmediate( OnMessage.class, agent, message.getMessage() );
+				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					MASSBase.getLogger().error( "Exception caught while invoking OnMessage on Agent ID" + agent.getAgentId(), e );
+				}
 			}
 			
 		}
@@ -111,7 +116,14 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			Agent agent = agents.get( message.getDestinationAddress() );
 			
 			// deliver the message
-			if ( !Objects.isNull( agent ) ) MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessage() );
+			if ( !Objects.isNull( agent ) ) {
+//				MASS.getEventDispatcher().queueAsync( OnMessage.class, agent, message.getMessage() );
+				try {
+					MASS.getEventDispatcher().invokeImmediate( OnMessage.class, agent, message.getMessage() );
+				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					MASSBase.getLogger().error( "Exception caught while invoking OnMessage on Agent ID" + agent.getAgentId(), e );
+				}
+			}
 			
 		}
 		
@@ -131,7 +143,11 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 		if ( message.getDestinationAddress() == MessageDestination.ALL_PLACES.getValue() || message.getDestinationAddress() == MessageDestination.ALL_LOCAL_PLACES.getValue() ) {
 			
 			for ( Place place : places.values() ) {
-				MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessage() );
+				try {
+					MASS.getEventDispatcher().invokeImmediate( OnMessage.class, place, message.getMessage() );
+				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					MASSBase.getLogger().error( "Exception caught while invoking OnMessage on Place", e );
+				}
 			}
 			
 		}
@@ -142,7 +158,13 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			Place place = places.get( message.getDestinationAddress() );
 			
 			// deliver the message
-			if ( !Objects.isNull( place ) ) MASS.getEventDispatcher().queueAsync( OnMessage.class, place, message.getMessage() );
+			if ( !Objects.isNull( place ) ) {
+				try {
+					MASS.getEventDispatcher().invokeImmediate( OnMessage.class, place, message.getMessage() );
+				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+					MASSBase.getLogger().error( "Exception caught while invoking OnMessage on Place", e );
+				}
+			}
 			
 		}
 
@@ -165,12 +187,8 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 			// yes - exceptions are swallowed. What else could we do here?
 			try {
 				MASS.getEventDispatcher().invokeImmediate( OnMessage.class, MASSBase.class, message.getMessage() );
-			} catch (IllegalArgumentException e) {
-				MASSBase.getLogger().error( "IllegalArgumentException caught while delivering message to MASSBase", e );
-			} catch (IllegalAccessException e) {
-				MASSBase.getLogger().error( "IllegalAccessException caught while delivering message to MASSBase", e );
-			} catch (InvocationTargetException e) {
-				MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to MASSBase", e );
+			} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				MASSBase.getLogger().error( "Exception caught while delivering message to MASSBase", e );
 			}
 	
 			// deliver the message to a Node listener
@@ -181,12 +199,8 @@ public abstract class AbstractMessagingProviderImpl implements MessagingProvider
 					// yes - exceptions are swallowed. Just like above.
 					try {
 						MASS.getEventDispatcher().invokeImmediate( OnMessage.class, o, message.getMessage() );
-					} catch (IllegalArgumentException e) {
-						MASSBase.getLogger().error( "IllegalArgumentException caught while delivering message to " + o.getClass().getCanonicalName(), e );
-					} catch (IllegalAccessException e) {
-						MASSBase.getLogger().error( "IllegalAccessException caught while delivering message to " + o.getClass().getCanonicalName(), e );
-					} catch (InvocationTargetException e) {
-						MASSBase.getLogger().error( "InvocationTargetException caught while delivering message to " + o.getClass().getCanonicalName(), e );
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						MASSBase.getLogger().error( "Exception caught while delivering message to MASSBase", e );
 					}
 					
 				}
