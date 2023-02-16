@@ -769,8 +769,6 @@ public class AgentsBase {
 					}
 					// Agent has been created
 					addAgent.setPlace(evaluationAgent.getPlace());
-					// register the new Agent with messaging provider
-					MASS.getMessagingProvider().registerAgent(addAgent);
 
 					// Call OnCreation event on the new Agent
 					eventDispatcher.queueAsync(OnCreation.class, addAgent);
@@ -815,6 +813,9 @@ public class AgentsBase {
 						}
 
 						this.agents.add(addAgent);           // auto syn
+
+						// register the new Agent with messaging provider now that its ID has been set
+						MASS.getMessagingProvider().registerAgent(addAgent);
 
 						// queue Place OnArrival method
 						eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
