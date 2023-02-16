@@ -134,10 +134,10 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
         nodeSubscription = aeron.addSubscription( url, NODE_COMMS_STREAM_ID );
         
         // associate handlers with subscriptions
-        ackSubscriber = new Subscriber( receiveAckMessage(), FRAGMENT_COUNT_LIMIT, running, idle, ackSubscription );
-        agentSubscriber = new Subscriber( receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
-        placeSubscriber = new Subscriber( receivePlaceMessage(), FRAGMENT_COUNT_LIMIT, running, idle, placeSubscription );
-        nodeSubscriber = new Subscriber( receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, nodeSubscription );
+        ackSubscriber = new Subscriber( "ACK", receiveAckMessage(), FRAGMENT_COUNT_LIMIT, running, idle, ackSubscription );
+        agentSubscriber = new Subscriber( "AGENT", receiveAgentMessage(), FRAGMENT_COUNT_LIMIT, running, idle, agentSubscription );
+        placeSubscriber = new Subscriber( "PLACE", receivePlaceMessage(), FRAGMENT_COUNT_LIMIT, running, idle, placeSubscription );
+        nodeSubscriber = new Subscriber( "NODE", receiveNodeMessage(), FRAGMENT_COUNT_LIMIT, running, idle, nodeSubscription );
         ackSubscriber.start();
         agentSubscriber.start();
         placeSubscriber.start();
@@ -243,14 +243,16 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 	// Subscriber accepts messages for a channel and builds up buffers for deserialization into Java objects
 	private class Subscriber extends Thread {
 
+		String channelName;
 		FragmentHandler fragmentHandler;
 		int limit;
 		AtomicBoolean running;
 		IdleStrategy idleStrategy;
 		Subscription subscription;
 		
-		Subscriber( final FragmentHandler fragmentHandler, final int limit, final AtomicBoolean running, final IdleStrategy idleStrategy, final Subscription subscription ) {
+		Subscriber( final String channelName, final FragmentHandler fragmentHandler, final int limit, final AtomicBoolean running, final IdleStrategy idleStrategy, final Subscription subscription ) {
 			
+			this.channelName = channelName;
 			this.fragmentHandler = fragmentHandler;
 			this.limit = limit;
 			this.running = running;
@@ -262,7 +264,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		@Override
 		public void run() {
 
-			MASSBase.getLogger().debug( "Aeron messaging subscriber starting up..." );
+			MASSBase.getLogger().debug( "Aeron messaging subscriber [" + channelName + "] starting up..." );
 			
 			// assembler's job is to take fragmented messages (ones too large for a single packet)
 			// and build a single message from it
@@ -276,7 +278,7 @@ public class AeronMessagingProvider extends AbstractMessagingProviderImpl {
 		
 			}
 
-			MASSBase.getLogger().debug( "Aeron messaging subscriber shutting down..." );
+			MASSBase.getLogger().debug( "Aeron messaging subscriber [" + channelName + "] shutting down..." );
 			
 		}
 		
