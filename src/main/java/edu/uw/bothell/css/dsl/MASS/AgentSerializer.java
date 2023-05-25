@@ -154,7 +154,7 @@ public class AgentSerializer
         }
         catch (java.io.IOException ex)
         {
-            System.out.println("IOException at serializeAgent" + " : " + ex.toString());
+        	MASS.getLogger().error( "IOException at serializeAgent", ex );
             return null;
         }
 
