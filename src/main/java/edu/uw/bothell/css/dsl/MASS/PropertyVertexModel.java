@@ -1,0 +1,56 @@
+/*
+
+    MASS Java Software License
+	© 2012-2020 University of Washington
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
+
+	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	Washington Bothell.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+
+*/
+
+package edu.uw.bothell.css.dsl.MASS;
+
+import java.util.Map;
+
+import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
+
+import java.util.List;
+
+public class PropertyVertexModel extends VertexModel {
+    public Map<Object, Object> nodeProperties;  // to store node properties
+    public Map<Object,Map<Object,Object>> relationProperties; // to store relationship properties
+
+    public PropertyVertexModel(Object id, List<Object> neighbors, Map<Object, Object> nodeProperties, Map<Object,Map<Object,Object>> neighborRelationProperties) {
+        super(id,neighbors);
+		
+        this.relationProperties = neighborRelationProperties;
+		this.nodeProperties = nodeProperties;
+		
+		// System.out.println(this.relationProperties);
+		// for (Map.Entry<Object,Map<Object,Object>> entry : neighborRelationProperties.entrySet()){
+        //     System.out.println("VertexModel: neighborRelationProperty: " + entry.getKey() + ", value: " + entry.getValue());
+        // }
+
+    }
+
+}
