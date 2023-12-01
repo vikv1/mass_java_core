@@ -153,27 +153,53 @@ public class PropertyGraphPlaces extends GraphPlaces {
     }
 
     // get properties for PropertyVertexPlace with id
-    public void getProperties(Object id){
+    public Map<Object,Object> getProperties(Object id){
         PropertyVertexPlace place = (PropertyVertexPlace) this.getVertex(id);
-        place.getProperties();
+        if(place == null) {
+            System.out.println("place is null");
+            return null;
+        }
+        return place.getProperties();
     }
 
     // set relation properties for edge between FromID to ToID
-    public void setRelationEdge(Object FromID, Object ToID,  Map<Object,Object> relationProperties) {
+    public boolean setRelationEdge(Object FromID, Object ToID,  Map<Object,Object> relationProperties) {
         PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
+        if(placeFrom == null) {
+            System.out.println("FromID is invalid");
+            return false;
+        }
+        if(this.getVertex(ToID) == null) {
+            System.out.println("ToID is invalid");
+            return false;
+        }
         placeFrom.setNeighborProperties(ToID, relationProperties);
+        return true;
+
     }
 
     // get relation properties for edge between FromID to ToID
-    public void getRelationEdge(Object FromID, Object ToID) {
+    public Map<Object,Object> getRelationEdge(Object FromID, Object ToID) {
         PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
-        placeFrom.getNeighborProperties(ToID);
+        if(placeFrom == null) {
+            System.out.println("FromID is invalid");
+            return null;
+        }
+        if(this.getVertex(ToID) == null) {
+            System.out.println("ToID is invalid");
+            return null;
+        }
+        return placeFrom.getNeighborProperties(ToID);
     }
 
     // get all neighbor and relation properties for all edges link to FromID
-    public void getAllRelationEdges(Object FromID) {
+    public Map<Object,Map<Object,Object>> getAllRelationEdges(Object FromID) {
         PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
-        placeFrom.getAllNeighborProperties();
+        if(placeFrom == null) {
+            System.out.println("FromID is invalid");
+            return null;
+        }
+        return placeFrom.getAllNeighborProperties();
     }
 
     // get PropertyGraphModel, for printGraph purpose.
