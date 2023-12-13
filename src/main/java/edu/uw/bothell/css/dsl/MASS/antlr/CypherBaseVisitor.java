@@ -200,21 +200,21 @@ public class CypherBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

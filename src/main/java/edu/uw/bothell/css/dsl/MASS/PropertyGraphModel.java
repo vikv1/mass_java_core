@@ -33,14 +33,15 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 
 public class PropertyGraphModel extends GraphModel{
 	private List<PropertyVertexModel> propertyVertices = new ArrayList<PropertyVertexModel>();
 
-    public void addPropertyVertex(Object id, List<Object> neighbors, Map<Object, Object> nodeProperties, Map<Object,Map<Object,Object>> neighborRelationProperties) {
-		PropertyVertexModel vertex = new PropertyVertexModel(id, neighbors, nodeProperties, neighborRelationProperties);
+    public void addPropertyVertex(Object id, List<Object> neighbors, Set<String> labels, Map<String,String> nodeProperties, Map<Object,Map<String,String>> neighborRelationProperties) {
+		PropertyVertexModel vertex = new PropertyVertexModel(id, neighbors, labels, nodeProperties, neighborRelationProperties);
 
 		propertyVertices.add(vertex);
 	}

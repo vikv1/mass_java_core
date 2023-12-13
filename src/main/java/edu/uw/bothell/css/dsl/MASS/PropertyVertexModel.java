@@ -31,18 +31,23 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 
-import java.util.List;
+
+
 
 public class PropertyVertexModel extends VertexModel {
-    public Map<Object, Object> nodeProperties;  // to store node properties
-    public Map<Object,Map<Object,Object>> relationProperties; // to store relationship properties
+	public Set<String> labels; // to store node labels
+    public Map<String,String> nodeProperties;  // to store node properties
+    public Map<Object,Map<String,String>> relationProperties; // to store relationship properties
 
-    public PropertyVertexModel(Object id, List<Object> neighbors, Map<Object, Object> nodeProperties, Map<Object,Map<Object,Object>> neighborRelationProperties) {
+    public PropertyVertexModel(Object id, List<Object> neighbors, Set<String> labels, Map<String,String> nodeProperties, Map<Object,Map<String,String>> neighborRelationProperties) {
         super(id,neighbors);
 		
+		this.labels = labels;
         this.relationProperties = neighborRelationProperties;
 		this.nodeProperties = nodeProperties;
 		

@@ -268,35 +268,35 @@ public interface CypherListener extends ParseTreeListener {
 	 */
 	void exitOC_Return(CypherParser.OC_ReturnContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CypherParser#oC_ProjectionBody}.
+	 * Enter a parse tree produced by {@link CypherParser#oC_ReturnBody}.
 	 * @param ctx the parse tree
 	 */
-	void enterOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx);
+	void enterOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CypherParser#oC_ProjectionBody}.
+	 * Exit a parse tree produced by {@link CypherParser#oC_ReturnBody}.
 	 * @param ctx the parse tree
 	 */
-	void exitOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx);
+	void exitOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CypherParser#oC_ProjectionItems}.
+	 * Enter a parse tree produced by {@link CypherParser#oC_ReturnItems}.
 	 * @param ctx the parse tree
 	 */
-	void enterOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx);
+	void enterOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CypherParser#oC_ProjectionItems}.
+	 * Exit a parse tree produced by {@link CypherParser#oC_ReturnItems}.
 	 * @param ctx the parse tree
 	 */
-	void exitOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx);
+	void exitOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CypherParser#oC_ProjectionItem}.
+	 * Enter a parse tree produced by {@link CypherParser#oC_ReturnItem}.
 	 * @param ctx the parse tree
 	 */
-	void enterOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx);
+	void enterOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CypherParser#oC_ProjectionItem}.
+	 * Exit a parse tree produced by {@link CypherParser#oC_ReturnItem}.
 	 * @param ctx the parse tree
 	 */
-	void exitOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx);
+	void exitOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CypherParser#oC_Order}.
 	 * @param ctx the parse tree

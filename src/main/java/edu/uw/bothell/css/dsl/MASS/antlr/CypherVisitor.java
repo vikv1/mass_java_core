@@ -167,23 +167,23 @@ public interface CypherVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOC_Return(CypherParser.OC_ReturnContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CypherParser#oC_ProjectionBody}.
+	 * Visit a parse tree produced by {@link CypherParser#oC_ReturnBody}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx);
+	T visitOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CypherParser#oC_ProjectionItems}.
+	 * Visit a parse tree produced by {@link CypherParser#oC_ReturnItems}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx);
+	T visitOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CypherParser#oC_ProjectionItem}.
+	 * Visit a parse tree produced by {@link CypherParser#oC_ReturnItem}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx);
+	T visitOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CypherParser#oC_Order}.
 	 * @param ctx the parse tree

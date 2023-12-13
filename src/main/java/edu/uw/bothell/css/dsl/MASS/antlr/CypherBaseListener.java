@@ -329,37 +329,37 @@ public class CypherBaseListener implements CypherListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx) { }
+	@Override public void enterOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitOC_ProjectionBody(CypherParser.OC_ProjectionBodyContext ctx) { }
+	@Override public void exitOC_ReturnBody(CypherParser.OC_ReturnBodyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx) { }
+	@Override public void enterOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitOC_ProjectionItems(CypherParser.OC_ProjectionItemsContext ctx) { }
+	@Override public void exitOC_ReturnItems(CypherParser.OC_ReturnItemsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx) { }
+	@Override public void enterOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitOC_ProjectionItem(CypherParser.OC_ProjectionItemContext ctx) { }
+	@Override public void exitOC_ReturnItem(CypherParser.OC_ReturnItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

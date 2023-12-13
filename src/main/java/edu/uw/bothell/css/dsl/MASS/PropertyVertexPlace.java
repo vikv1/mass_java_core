@@ -30,12 +30,17 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PropertyVertexPlace extends VertexPlace {
-    private Map<Object, Object> nodeProperties = new HashMap<>();  // to store node properties
-    private Map<Object,Map<Object,Object>> relationProperties = new HashMap<>(); // to store relationship properties
+    private Map<String,String> nodeProperties = new HashMap<>();  // to store node properties
+    private Map<Object,Map<String,String>> relationProperties = new HashMap<>(); // to store relationship properties
+    private Set<String> labels = new HashSet<>();
 
     public PropertyVertexPlace() {
         super();
@@ -43,31 +48,39 @@ public class PropertyVertexPlace extends VertexPlace {
         MASSBase.getLogger().debug("PropertyVertexPlace constructed.");
     }
 
-    public void setProperties(Map<Object, Object> properties) {
+    public void setProperties(Map<String,String> properties) {
         this.nodeProperties = properties;
     }
 
-    public Map<Object, Object> getProperties() {
+    public Map<String,String> getProperties() {
         return this.nodeProperties;
     }
 
-    public Map<Object,Map<Object,Object>> getAllNeighborProperties() {
+    public void setLabels( List<String> labels) {
+        this.labels = new HashSet<String>(labels);
+    }
+
+    public Set<String> getLabels() {
+        return this.labels;
+    }
+
+    public Map<Object,Map<String,String>> getAllNeighborProperties() {
         return this.relationProperties;
     }
 
-    public Map<Object,Object> getNeighborProperties(Object neighborId) {
+    public Map<String,String> getNeighborProperties(Object neighborId) {
         return this.relationProperties.get(neighborId);
     }
 
-    public void setNeighborProperties(Object neighborVertexId, Map<Object,Object> newRelationProperty) throws IllegalArgumentException {
+    public void setNeighborProperties(Object neighborVertexId, Map<String,String> newRelationProperty) throws IllegalArgumentException {
         if (!relationProperties.containsKey(neighborVertexId)) {
-            Map<Object, Object> property = new HashMap<>();
+            Map<String,String> property = new HashMap<>();
             relationProperties.put(neighborVertexId, property);
         }
 
-        Map<Object,Object> currentProperty = relationProperties.get(neighborVertexId);
+        Map<String,String> currentProperty = relationProperties.get(neighborVertexId);
         
-        for (Map.Entry<Object,Object> entry : newRelationProperty.entrySet()){
+        for (Map.Entry<String,String> entry : newRelationProperty.entrySet()){
             currentProperty.put(entry.getKey(), entry.getValue());
         }
         // System.out.println("Adding relationship to: " + neighborId + ", property of " + relationProperties.get(neighborId));
