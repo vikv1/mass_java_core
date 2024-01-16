@@ -18,7 +18,7 @@ public class CypherSetClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "SET %s",
+            "===>>>CypherSetClause: \\n SET query content: %s",
             getSetItems().stream().map(Object::toString).collect(Collectors.joining(", "))
         );
     }

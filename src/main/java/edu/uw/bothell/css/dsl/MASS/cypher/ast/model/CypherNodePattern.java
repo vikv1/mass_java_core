@@ -21,17 +21,22 @@ public class CypherNodePattern extends CypherElementPattern {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("(");
+        result.append("      Node Pattern: \n ");
         if (getName() != null) {
+            result.append("Node GetName: ");
             result.append(getName());
+            result.append(";");
         }
         if (getLabelNames() != null && getLabelNames().size() > 0) {
+            result.append("Node GetLabelNames: ");
             result.append(getLabelNames());
+            result.append(";");
         }
         if (getPropertiesMap() != null && getPropertiesMap().size() > 0) {
+            result.append("Node GetPropertyMap: ");
             result.append(" ").append(getPropertiesMap());
         }
-        result.append(")");
+        result.append("\n");
         return result.toString();
     }
 

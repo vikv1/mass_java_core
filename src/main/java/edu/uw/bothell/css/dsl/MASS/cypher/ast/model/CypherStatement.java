@@ -20,6 +20,9 @@ public class CypherStatement extends CypherAstBase {
 
     @Override
     public String toString() {
-        return getQuery().toString();
+        StringBuffer sb = new StringBuffer();
+        sb.append("=>CypherStatement: \n");
+        sb.append(this.getQuery().toString());
+        return sb.toString();
     }
 }

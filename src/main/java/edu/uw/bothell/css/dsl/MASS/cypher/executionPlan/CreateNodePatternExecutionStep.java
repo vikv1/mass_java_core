@@ -77,7 +77,7 @@ public class CreateNodePatternExecutionStep extends CreateElementPatternExecutio
 
     @Override
     public String toString() {
-        return String.format("%s {labelNames=%s}", super.toString(), String.join(", ", labelNames));
+        return String.format("In %s: {labelNames=%s}", super.toString(), String.join(", ", labelNames));
     }
 
 }

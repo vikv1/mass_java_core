@@ -33,10 +33,10 @@ public class CypherMatchClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "%sMATCH %s%s",
-            isOptional() ? "OPTIONAL " : "",
+            "===>>>CypherMatchClause: \n %s MATCH query content: %s %s",
+            isOptional() ? "OPTIONAL field true" : "",
             getPatternParts().stream().map(CypherPatternPart::toString).collect(Collectors.joining(", ")),
-            getWhereExpression() == null ? "" : " WHERE " + getWhereExpression()
+            getWhereExpression() == null ? "" : " WHERE field content:" + getWhereExpression()
         );
     }
 

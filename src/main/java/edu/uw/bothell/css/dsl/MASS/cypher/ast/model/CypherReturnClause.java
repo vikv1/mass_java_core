@@ -22,8 +22,8 @@ public class CypherReturnClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "RETURN %s%s",
-            isDistinct() ? "DISTINCT " : "",
+            "===>>>CypherReturnClause: \n RETURN part content: %s%s",
+            isDistinct() ? "DISTINCT field true" : "",
             getReturnBody().toString()
         );
     }

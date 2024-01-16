@@ -40,8 +40,8 @@ import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
 public class PropertyGraphModel extends GraphModel{
 	private List<PropertyVertexModel> propertyVertices = new ArrayList<PropertyVertexModel>();
 
-    public void addPropertyVertex(Object id, List<Object> neighbors, Set<String> labels, Map<String,String> nodeProperties, Map<Object,Map<String,String>> neighborRelationProperties) {
-		PropertyVertexModel vertex = new PropertyVertexModel(id, neighbors, labels, nodeProperties, neighborRelationProperties);
+    public void addPropertyModel(Object id, String nodeName, Set<String> labels, Map<String,String> nodeProperties, List<Object> neighbors, Map<Object, Set<String>> relationTypes,  Map<Object,Map<String,String>> relationProperties) {
+		PropertyVertexModel vertex = new PropertyVertexModel(id,nodeName,labels, nodeProperties,neighbors,relationTypes,relationProperties);
 
 		propertyVertices.add(vertex);
 	}
@@ -49,4 +49,10 @@ public class PropertyGraphModel extends GraphModel{
 	public List<PropertyVertexModel> getPropertyVertices() {
         return propertyVertices;
     }
+
+	public void print() {
+		for(PropertyVertexModel vertex: propertyVertices){
+			vertex.print();
+		}
+	}
 }

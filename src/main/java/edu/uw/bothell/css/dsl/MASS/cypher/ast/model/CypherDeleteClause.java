@@ -21,7 +21,8 @@ public class CypherDeleteClause extends CypherClause {
 
     @Override
     public String toString() {
-        return (isDetach() ? "DETACH " : "") + "DELETE " + CypherExpression.toString(getExpressions()) + ";";
+        return "===>>>CypherDeleteClause: \\n" + //
+                "" + (isDetach() ? "DETACH field true" : "") + "DELETE query content:" + CypherExpression.toString(getExpressions()) + ";";
     }
 
     @Override

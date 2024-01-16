@@ -60,8 +60,6 @@ public class CreateRelationshipPatternExecutionStep extends CreateElementPattern
                 return;
             }
 
-          
-
             // use Map to store relationship type and value
 			Map<String, String> relationProperties = new HashMap<String, String>();
             for (String propertyResultName : propertyResultNames) {
@@ -78,7 +76,7 @@ public class CreateRelationshipPatternExecutionStep extends CreateElementPattern
             Object inVertex = direction.hasOut() ? rightNodeName : leftNodeName;
 
 			System.out.println("Adding Edge from " + outVertex + " to " + inVertex);
-			boolean success = ctx.getGraph().setRelationEdge(outVertex, inVertex, relationProperties);
+			boolean success = ctx.getGraph().setRelationEdge(outVertex, inVertex, this.relTypeNames, relationProperties);
 
             if(!success) {
                 System.err.println("Failed at adding Edge to Graph, from " + outVertex + " to " + inVertex + ".");
@@ -99,7 +97,7 @@ public class CreateRelationshipPatternExecutionStep extends CreateElementPattern
     @Override
     public String toString() {
         return String.format(
-            "%s {relTypeNames=%s, direction=%s, leftNodeName='%s', rightNodeName='%s'}",
+            "In %s: {relTypeNames=%s, direction=%s, leftNodeName='%s', rightNodeName='%s'}",
             super.toString(),
             String.join(", ", relTypeNames),
             direction,

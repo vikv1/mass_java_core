@@ -27,7 +27,8 @@ public class CypherUnwindClause extends CypherClause {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("UNWIND ").append(getExpression());
+        result.append("===>>>CypherUnwindClause: \n");
+        result.append("UNWIND query content: ").append(getExpression());
         if (getName() != null) {
             result.append(" AS ").append(getName());
         }

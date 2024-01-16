@@ -39,7 +39,7 @@ public class CypherReturnBody extends CypherAstBase {
     @Override
     public String toString() {
         return String.format(
-            "%s%s%s%s",
+            "ReturnItem: %s, Order: %s, Limit: %s, Skip: %s",
             getReturnItems(),
             getOrder() == null ? "" : " " + getOrder(),
             getLimit() == null ? "" : " " + getLimit(),

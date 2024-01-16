@@ -22,9 +22,9 @@ public class CypherPatternPart extends CypherAstBase {
     @Override
     public String toString() {
         if (getName() != null) {
-            return String.format("%s = %s", getName(), getElementPatterns().toString(""));
+            return String.format("   CypherPatternPart: \n (name:) %s = (element pattern) %s", getName(), getElementPatterns().toString(""));
         } else {
-            return getElementPatterns().toString("");
+            return String.format("   CypherPatternPart: \n %s", getElementPatterns().toString(""));
         }
     }
 

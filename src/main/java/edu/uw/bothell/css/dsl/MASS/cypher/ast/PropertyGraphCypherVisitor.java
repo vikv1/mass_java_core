@@ -36,23 +36,28 @@ public class PropertyGraphCypherVisitor extends CypherBaseVisitor<CypherAstBase>
     }
 
     @Override
+    public CypherStatement visitOC_Cypher(CypherParser.OC_CypherContext ctx) {
+        return visitOC_Statement(ctx.oC_Statement());
+    }
+
+    @Override
     public CypherStatement visitOC_Statement(CypherParser.OC_StatementContext ctx) {
-        return new CypherStatement(visitQuery(ctx.oC_Query()));
+        return new CypherStatement(visitOC_Query(ctx.oC_Query()));
     }
 
-    public CypherAstBase visitQuery(CypherParser.OC_QueryContext ctx) {
-        return visitRegularQuery(ctx.oC_RegularQuery());
+    public CypherAstBase visitOC_Query(CypherParser.OC_QueryContext ctx) {
+        return visitOC_RegularQuery(ctx.oC_RegularQuery());
     }
 
-    public CypherAstBase visitRegularQuery(CypherParser.OC_RegularQueryContext ctx) {
-        CypherQuery left = visitSingleQuery(ctx.oC_SingleQuery());
+    public CypherAstBase visitOC_RegularQuery(CypherParser.OC_RegularQueryContext ctx) {
+        CypherQuery left = visitOC_SingleQuery(ctx.oC_SingleQuery());
         if (ctx.oC_Union().size() > 0) {
-            return visitUnions(left, ctx.oC_Union());
+            return visitOC_Union(left, ctx.oC_Union());
         }
         return left;
     }
 
-    public CypherQuery visitSingleQuery(CypherParser.OC_SingleQueryContext ctx) {
+    public CypherQuery visitOC_SingleQuery(CypherParser.OC_SingleQueryContext ctx) {
         if (ctx.oC_MultiPartQuery() != null) {
             return visitOC_MultiPartQuery(ctx.oC_MultiPartQuery());
         } else if (ctx.oC_SinglePartQuery() != null) {
@@ -898,11 +903,6 @@ public class PropertyGraphCypherVisitor extends CypherBaseVisitor<CypherAstBase>
     }
 
     @Override
-    public CypherStatement visitOC_Cypher(CypherParser.OC_CypherContext ctx) {
-        return visitOC_Statement(ctx.oC_Statement());
-    }
-
-    @Override
     public CypherAstBase visitOC_Parameter(CypherParser.OC_ParameterContext ctx) {
         if (ctx.oC_SymbolicName() != null) {
             String parameterName = visitOC_SymbolicName(ctx.oC_SymbolicName()).getValue();
@@ -1017,14 +1017,14 @@ public class PropertyGraphCypherVisitor extends CypherBaseVisitor<CypherAstBase>
         return new CypherRelationshipsPattern(nodePattern, patternElementChains);
     }
 
-    private CypherAstBase visitUnions(CypherQuery left, List<CypherParser.OC_UnionContext> unions) {
+    private CypherAstBase visitOC_Union(CypherQuery left, List<CypherParser.OC_UnionContext> unions) {
         if (unions.size() == 0) {
             return left;
         }
         CypherParser.OC_UnionContext firstUnion = unions.get(0);
         boolean all = firstUnion.ALL() != null;
-        CypherQuery right = visitSingleQuery(firstUnion.oC_SingleQuery());
-        return new CypherUnion(left, visitUnions(right, unions.subList(1, unions.size())), all);
+        CypherQuery right = visitOC_SingleQuery(firstUnion.oC_SingleQuery());
+        return new CypherUnion(left, visitOC_Union(right, unions.subList(1, unions.size())), all);
     }
 
     @Override

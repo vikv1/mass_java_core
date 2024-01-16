@@ -55,7 +55,7 @@ public abstract class FunctionInvocationExecutionStepBase extends ExecutionStepW
     @Override
     public String toString() {
         return String.format(
-            "%s {resultName='%s', argumentResultNames=%s}",
+            "In %s: {resultName='%s', argumentResultNames=%s}",
             functionName,
             resultName,
             Arrays.toString(argumentResultNames)

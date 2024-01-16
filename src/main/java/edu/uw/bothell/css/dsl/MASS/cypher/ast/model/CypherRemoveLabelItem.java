@@ -21,7 +21,7 @@ public class CypherRemoveLabelItem extends CypherRemoveItem {
 
     @Override
     public String toString() {
-        return String.format("%s%s", getVariable(), getLabelNames());
+        return String.format("Variable: %s, Label: %s", getVariable(), getLabelNames());
     }
 
     @Override

@@ -18,7 +18,7 @@ public class CypherRemoveClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "REMOVE %s",
+            "===>>>CypherRemoveClause: \n REMOVE query content: %s",
             getRemoveItems().stream().map(Object::toString).collect(Collectors.joining(", "))
         );
     }

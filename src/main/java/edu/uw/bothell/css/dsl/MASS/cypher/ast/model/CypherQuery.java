@@ -23,7 +23,11 @@ public class CypherQuery extends CypherAstBase {
     @Override
     public String toString() {
         StringBuilder results = new StringBuilder();
+        results.append("==>>CypherQueries: \n");
+        long i = 1;
         for (CypherClause clause : getClauses()) {
+            results.append("CypherClause " + i + ": ");
+            i++;
             results.append(clause.toString());
             results.append("\n");
         }

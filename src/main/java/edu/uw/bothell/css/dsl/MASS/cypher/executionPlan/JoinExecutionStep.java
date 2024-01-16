@@ -1,6 +1,7 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
 import edu.uw.bothell.css.dsl.MASS.cypher.*;
+import edu.uw.bothell.css.dsl.MASS.cypher.utils.StringUtils;
 
 import java.util.LinkedHashSet;
 import java.util.stream.Stream;
@@ -32,6 +33,12 @@ public class JoinExecutionStep extends ExecutionStepWithChildren {
 
     @Override
     public String toString() {
-        return String.format("%s {executeOnceOnEmptySource=%s}", super.toString(), executeOnceOnEmptySource);
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("In %s:", super.toString()));
+        getChildSteps().forEach(child -> {
+            String childString = StringUtils.indent(2, child.toString());
+            result.append('\n').append(childString);
+        });
+        return result.toString();
     }
 }

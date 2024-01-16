@@ -1,13 +1,21 @@
 package edu.uw.bothell.css.dsl.MASS.cypher;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
+import edu.uw.bothell.css.dsl.MASS.antlr.CypherLexer;
+import edu.uw.bothell.css.dsl.MASS.antlr.CypherParser;
 import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherException;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.CypherAstParser;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.CypherCompilerContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherStatement;
 import edu.uw.bothell.css.dsl.MASS.cypher.executionPlan.ExecutionPlan;
+import org.antlr.v4.runtime.*;
+import edu.uw.bothell.css.dsl.MASS.antlr.CypherLexer;
+import edu.uw.bothell.css.dsl.MASS.antlr.CypherParser;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.antlr.v4.runtime.CodePointCharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 public class PropertyGraphCypherQuery {
     private final CypherStatement statement;
@@ -26,9 +34,16 @@ public class PropertyGraphCypherQuery {
     }
 
     public PropertyGraphCypherResult execute(PropertyGraphCypherQueryContext ctx) {
-        MASS.getLogger().debug("Executing:\n%s", statement);
+        // MASS.getLogger().debug("Executing:\n%s", statement.toString());
+        System.out.println("Executing CypherStatement (AST):\n" + //
+                "" + this.statement.toString());
+
         ExecutionPlan plan = ctx.getExecutionPlanBuilder().build(ctx, statement);
-        MASS.getLogger().debug("Execution plan:\n%s", plan.toStringFull());
+        // MASS.getLogger().debug("Execution plan:\n%s", plan.toStringFull());
+        
+        System.out.println("Execution plan:\n" + //
+                "" + plan.toStringFull());
         return plan.execute(ctx);
     }
+
 }

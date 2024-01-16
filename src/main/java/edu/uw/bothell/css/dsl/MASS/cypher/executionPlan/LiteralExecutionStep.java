@@ -28,7 +28,7 @@ public class LiteralExecutionStep extends DefaultExecutionStep implements Execut
 
     @Override
     public String toString() {
-        return String.format("%s {resultName='%s', value=%s}", super.toString(), resultName, value);
+        return String.format("In %s: {resultName='%s', value=%s}", super.toString(), resultName, value);
     }
 
     @Override

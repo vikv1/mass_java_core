@@ -37,6 +37,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+
 public class PropertyGraphPlaces extends GraphPlaces {
 
     public PropertyGraphPlaces() {
@@ -52,9 +54,9 @@ public class PropertyGraphPlaces extends GraphPlaces {
      * this addVertexOnNode creates a new PropertyVertexPlace at the node with
      * the provided nodeID and setIndex for the PropertyVertexPlace.
      * 
-     * @param nodeID The node ID of the node with which to add the vertex.
+     * @param nodeID The node ID of the node with which to add the vertex, with reference to local disk nodes.
      * @param vertexInitParams The init paramters for the VertexPlace.
-     * @param vertexID The ID of the vertex.
+     * @param vertexID The ID of the verte, is the internal reference in MASS library.
      * @return true if successful, false otherwise.
      */
     @Override
@@ -148,20 +150,21 @@ public class PropertyGraphPlaces extends GraphPlaces {
             System.out.println("place is null");
             return false;
         }
-        place.setProperties(properties);
+        place.setNodeProperties(properties);
         place.setLabels(labels);
+        place.setNodeName((String) id);
         return true;
         
     }
 
     // get properties for PropertyVertexPlace with id
-    public Map<String,String> getProperties(Object id){
+    public Map<String,String> getNodeProperties(Object id){
         PropertyVertexPlace place = (PropertyVertexPlace) this.getVertex(id);
         if(place == null) {
             System.out.println("place is null");
             return null;
         }
-        return place.getProperties();
+        return place.getNodeProperties();
     }
 
     // get label for PropertyVertexPlace with id
@@ -174,41 +177,43 @@ public class PropertyGraphPlaces extends GraphPlaces {
         return place.getLabels();
     }
 
-    // set relation properties for edge between FromID to ToID
-    public boolean setRelationEdge(Object FromID, Object ToID,  Map<String,String> relationProperties) {
-        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
+    // set relation properties for edge between fromName to toName
+    public boolean setRelationEdge(Object fromName, Object toName, List<String> relationTypes, Map<String, String> relationProperties) {
+        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(fromName);
         if(placeFrom == null) {
-            System.out.println("FromID is invalid");
+            System.out.println("fromName is invalid");
             return false;
         }
-        if(this.getVertex(ToID) == null) {
-            System.out.println("ToID is invalid");
+        if(this.getVertex(toName) == null) {
+            System.out.println("toName is invalid");
             return false;
         }
-        placeFrom.setNeighborProperties(ToID, relationProperties);
+        placeFrom.addNeighbor(toName);
+        placeFrom.setNeighborRelationTypes(toName, relationTypes);
+        placeFrom.setNeighborProperties(toName, relationProperties);
         return true;
 
     }
 
-    // get relation properties for edge between FromID to ToID
-    public Map<String,String> getRelationEdge(Object FromID, Object ToID) {
-        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
+    // get relation properties for edge between fromName to toName
+    public Map<String,String> getRelationEdge(Object fromName, Object toName) {
+        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(fromName);
         if(placeFrom == null) {
-            System.out.println("FromID is invalid");
+            System.out.println("fromName is invalid");
             return null;
         }
-        if(this.getVertex(ToID) == null) {
-            System.out.println("ToID is invalid");
+        if(this.getVertex(toName) == null) {
+            System.out.println("toName is invalid");
             return null;
         }
-        return placeFrom.getNeighborProperties(ToID);
+        return placeFrom.getNeighborProperties(toName);
     }
 
-    // get all neighbor and relation properties for all edges link to FromID
-    public Map<Object,Map<String,String>> getAllRelationEdges(Object FromID) {
-        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(FromID);
+    // get all neighbor and relation properties for all edges link to fromName
+    public Map<Object,Map<String,String>> getAllRelationEdges(Object fromName) {
+        PropertyVertexPlace placeFrom = (PropertyVertexPlace) this.getVertex(fromName);
         if(placeFrom == null) {
-            System.out.println("FromID is invalid");
+            System.out.println("fromName is invalid");
             return null;
         }
         return placeFrom.getAllNeighborProperties();
@@ -237,7 +242,7 @@ public class PropertyGraphPlaces extends GraphPlaces {
                     attribute = place.getIndex()[0];
                 }
                 
-                graph.addPropertyVertex(attribute, vPlace.neighbors, vPlace.getLabels(), vPlace.getProperties(), vPlace.getAllNeighborProperties());
+                graph.addPropertyModel(attribute, vPlace.getNodeName(), vPlace.getLabels(),vPlace.getNodeProperties(),vPlace.getAllNeighbors(), vPlace.getRelationTypes(), vPlace.getAllNeighborProperties());
             }
         }
 
@@ -273,14 +278,20 @@ public class PropertyGraphPlaces extends GraphPlaces {
     }
 
     public void printGraph() {        
-        List<PropertyVertexModel> vertices = this.getPropertyGraph().getPropertyVertices();
-
         System.out.println("Printing the graph with node properties and relationship information: ============");
+        this.getPropertyGraph().print();
+    }
 
-		for (PropertyVertexModel vertex: vertices) {
-			System.out.println("Vertex " +  vertex.id + " Labels: " + vertex.labels);
-            System.out.println("        " + " Properties: " + vertex.nodeProperties);
-			System.out.println("        " + " Neighbor relationships: " + vertex.relationProperties);
-		}
+    public Object[] getArguments(String arg) {
+        // calculate the total argument size for return-objects
+		int total = MatrixUtilities.getMatrixSize( getSize() ); // the total number of place elements
+        Object[] args = new Object[total];
+        Arrays.fill(args, arg);
+        return args;
+    }
+
+    public Set<String> getVertexLabels(Object vertexID) {
+        PropertyVertexPlace place = (PropertyVertexPlace) this.getVertex(vertexID);
+        return place.getLabels();
     }
 }

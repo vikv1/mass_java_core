@@ -4,6 +4,7 @@ import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
 import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
+import edu.uw.bothell.css.dsl.MASS.cypher.utils.StringUtils;
 
 import java.util.List;
 
@@ -51,6 +52,12 @@ public class CreatePatternExecutionStep extends ExecutionStepWithChildren {
 
     @Override
     public String toString() {
-        return String.format("%s {name=%s}", super.toString(), name);
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("In %s:", super.toString()));
+        getChildSteps().forEach(child -> {
+            String childString = StringUtils.indent(2, child.toString());
+            result.append('\n').append(childString);
+        });
+        return result.toString();
     }
 }

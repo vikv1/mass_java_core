@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.PropertyGraphPlaces;
@@ -159,6 +161,10 @@ public class PropertyGraphCypherQueryContext {
         return graph;
     }
 
+    public Set<String> getVertexLabels(Object vertexID) {
+        return this.graph.getVertexLabels(vertexID);
+    }
+
     public Map<String, CypherFunction> getFunctions() {
         return functions;
     }
@@ -190,5 +196,31 @@ public class PropertyGraphCypherQueryContext {
 
     public ExecutionPlan getCurrentlyExecutingPlan() {
         return currentlyExecutingPlan;
+    }
+
+    public List<Object> getVertexByLabelandProperties(Set<String> labels, Map<String,String> nodeProperties) {
+        
+        List<Object> result = new ArrayList<Object>();
+        Object[] labelVertex = this.graph.callAll(1,this.graph.getArguments(labels.toString()));
+        Object[] nodePropertiesVertex = this.graph.callAll(2,this.graph.getArguments(nodeProperties.toString()));
+        if(labelVertex.length != nodePropertiesVertex.length) {
+            System.err.println("CTX getVertexByLabelandProperties function: Results from label vs nodeProperties are of different length.");
+            return result;
+        }
+
+        int length = labelVertex.length;
+        
+        for(int i = 0; i < length; i++){
+            if(labelVertex[i] != null && nodePropertiesVertex[i] != null){
+                if(labelVertex[i] != nodePropertiesVertex[i]){
+                    System.err.println("CTX getVertexByLabelandProperties function: vertexID in labelVertex and nodePropertiesVertex are different.");
+                    continue;
+                }else{
+                    result.add(labelVertex[i]);
+                }
+            }
+        }
+
+        return result;
     }
 }

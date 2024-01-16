@@ -31,7 +31,8 @@ public class CypherMergeClause extends CypherClause {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("MERGE ");
+        result.append("===>>>CypherMergeClause: \n");
+        result.append("MERGE query content:");
         result.append(getPatternPart());
         for (CypherMergeAction mergeAction : getMergeActions()) {
             result.append(" ");

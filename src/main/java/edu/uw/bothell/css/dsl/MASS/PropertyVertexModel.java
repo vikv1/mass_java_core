@@ -31,31 +31,36 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 
-
-
-
 public class PropertyVertexModel extends VertexModel {
-	public Set<String> labels; // to store node labels
-    public Map<String,String> nodeProperties;  // to store node properties
-    public Map<Object,Map<String,String>> relationProperties; // to store relationship properties
+	public String nodeName = null;
+    public Set<String> labels = new HashSet<String>();
+    public Map<String,String> nodeProperties = new HashMap<>();  // to store node properties
+    // public List<Object> neighbors = new Vector<>(); // declared in VerterModel.java
+    public Map<Object, Set<String>> relationTypes = new HashMap<Object, Set<String>>();
+    public Map<Object, Map<String,String>> relationProperties = new HashMap<Object, Map<String,String>>(); // to store relationship properties
 
-    public PropertyVertexModel(Object id, List<Object> neighbors, Set<String> labels, Map<String,String> nodeProperties, Map<Object,Map<String,String>> neighborRelationProperties) {
+    public PropertyVertexModel(Object id, String nodeName, Set<String> labels, Map<String,String> nodeProperties, List<Object> neighbors, Map<Object, Set<String>> relationTypes,  Map<Object,Map<String,String>> relationProperties) {
         super(id,neighbors);
 		
+		this.nodeName = nodeName;
 		this.labels = labels;
-        this.relationProperties = neighborRelationProperties;
 		this.nodeProperties = nodeProperties;
-		
-		// System.out.println(this.relationProperties);
-		// for (Map.Entry<Object,Map<Object,Object>> entry : neighborRelationProperties.entrySet()){
-        //     System.out.println("VertexModel: neighborRelationProperty: " + entry.getKey() + ", value: " + entry.getValue());
-        // }
-
+		this.relationTypes = relationTypes;
+        this.relationProperties = relationProperties;
     }
+
+	public void print() {
+		System.out.println("Vertex ID: " +  this.id + ", labels:" + labels);
+        System.out.println("              node properties: " + nodeProperties);
+		System.out.println("              list of neighbors: " + neighbors);
+		System.out.println("              relation types: " + relationTypes);
+		System.out.println("              relation properties: " + relationProperties);
+	}
 
 }

@@ -33,7 +33,7 @@ public class CypherCreateClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "CREATE %s",
+            "CypherCreateClause: \n %s",
             getPatternParts().stream().map(CypherPatternPart::toString).collect(Collectors.joining(", "))
         );
     }

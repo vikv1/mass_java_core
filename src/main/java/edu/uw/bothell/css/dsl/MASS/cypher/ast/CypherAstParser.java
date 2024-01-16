@@ -14,22 +14,31 @@ public class CypherAstParser {
         return instance;
     }
 
-    public CypherStatement parse(CypherCompilerContext ctx, String code) {
+    public CypherStatement parse(CypherCompilerContext ctx, String queryString) {
         // create a CharStream that reads from standard input
-        CodePointCharStream input = CharStreams.fromString(code);
+        CodePointCharStream input = CharStreams.fromString(queryString);
         // create lexer
         CypherLexer lexer = new CypherLexer(input);
         // create a buffer of tokens pulled from the lexer and create a parser that feeds off the tokens buffer
         CypherParser parser = new CypherParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new ParserErrorHandler(code));
+        parser.setErrorHandler(new ParserErrorHandler(queryString));
         CypherParser.OC_CypherContext tree = parser.oC_Cypher();// begin parsing at oC_Cypher
+        
         String treeText = tree.getText();
+
+        // print query tree information
+        // System.out.println("Printing tree text:====");
+        // System.out.println(treeText);
+        // System.out.println();
+
+        // System.out.println("Printing LISP-style tree:=======");
+        // System.out.println(tree.toStringTree(parser));
 
         if (treeText.endsWith("<EOF>")) {
             treeText = treeText.substring(0, treeText.length() - "<EOF>".length());
         }
-        if (!treeText.equals(code)) {
-            throw new PropertyGraphCypherSyntaxErrorException("Parsing error, \"" + code.substring(treeText.length()) + "\"");
+        if (!treeText.equals(queryString)) {
+            throw new PropertyGraphCypherSyntaxErrorException("Parsing error, \"" + queryString.substring(treeText.length()) + "\"");
         }
         return new PropertyGraphCypherVisitor(ctx).visitOC_Cypher(tree);
     }

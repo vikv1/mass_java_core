@@ -39,34 +39,39 @@ public class CypherRelationshipPattern extends CypherElementPattern {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
+        result.append("      RelationshipPattern: \n");
         if (getDirection().hasIn()) {
-            result.append("<");
+            result.append("Direction: right to left <-[r]-; ");
         }
-        result.append("-");
+        if (getDirection().hasOut()) {
+            result.append("Direction: left to right -[r]->; ");
+        }
+
         if (getName() != null
             || (getPropertiesMap() != null && getPropertiesMap().size() > 0)
             || (getRelTypeNames() != null && getRelTypeNames().size() > 0)
             || getRange() != null) {
-            result.append("[");
             if (getName() != null) {
+                result.append("Relationship GetName: ");
                 result.append(getName());
+                result.append(";");
             }
             if (getRelTypeNames() != null && getRelTypeNames().size() > 0) {
+                result.append("Relationship Types: ");
                 result.append(getRelTypeNames());
+                result.append(";");
             }
             if (getPropertiesMap() != null && getPropertiesMap().size() > 0) {
+                result.append("Relationship Properties: ");
                 result.append(" ").append(getPropertiesMap());
+                result.append(";");
             }
             if (getRange() != null) {
                 result.append("*");
                 result.append(getRange());
             }
-            result.append("]");
         }
-        result.append("-");
-        if (getDirection().hasOut()) {
-            result.append(">");
-        }
+        
         return result.toString();
     }
 

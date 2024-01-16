@@ -148,4 +148,15 @@ public class SetItemExecutionStep extends ExecutionStepWithChildren {
     //     }
     //     ctx.saveElement(m);
     // }
+
+    @Override
+    public String toString() {
+        return String.format(
+            "In %s: {LeftResultName='%s', RightResultName='%s'}",
+            super.toString(),
+            leftResultName,
+            rightResultName
+        );
+    }
+
 }

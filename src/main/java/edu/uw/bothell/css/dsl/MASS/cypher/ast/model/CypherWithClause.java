@@ -28,10 +28,10 @@ public class CypherWithClause extends CypherClause {
     @Override
     public String toString() {
         return String.format(
-            "WITH %s%s%s",
-            isDistinct() ? "DISTINCT " : "",
+            "===>>>CypherWithClause: \n WITH query content: %s%s%s",
+            isDistinct() ? "DISTINCT field true" : "",
             getReturnBody().toString(),
-            getWhere() == null ? "" : " WHERE " + getWhere().toString()
+            getWhere() == null ? "" : " WHERE field" + getWhere().toString()
         );
     }
 
