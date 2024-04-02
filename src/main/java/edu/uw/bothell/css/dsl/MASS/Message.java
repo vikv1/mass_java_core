@@ -131,8 +131,18 @@ public class Message implements Serializable {
 		MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
 
 		// Global Logical Clock commands
-		CLOCK_SET_VALUE
+		CLOCK_SET_VALUE,
 
+		// Below part added by Lilian =====================================================
+		// for Property Graph Databases: PropertyGraphPlaces and PropertyVertexPlace
+		MAINTENANCE_ADD_PROPERTY_VERTEX("Maintenance.addPropertyVertex"),
+		MAINTENANCE_ADD_PROPERTY_TO_EDGE("Maintenance.addPropertyTOEdge"),
+		MAINTENANCE_ADD_PROPERTY_FROM_EDGE("Maintenance.addPropertyFROMEdge"),
+		PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH("Property Graph Places Initialize Graph"),
+		MAINTENANCE_GET_PROPERTY_PLACES("Maintenance.getPropertyPlaces"),
+		MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE("Maintenance.getPropertyPlacesResponse"),
+		PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("PropertyGraphPlaces.callAllReturnObject")
+		// End of part added by Lilian =====================================================
 		;
 
 		private final String value;
@@ -698,4 +708,8 @@ public class Message implements Serializable {
 		return ( argument != null );
 	}
 
+	public String toString() {
+		return "msg Action: " + this.action + ", Arguments: " + this.argument;
+
+	}
 }

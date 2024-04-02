@@ -33,53 +33,167 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Queue;
 
 public class PropertyVertexPlace extends VertexPlace {
-    private String nodeName = null;
-    private Set<String> labels = new HashSet<String>();
-    private Map<String,String> nodeProperties = new HashMap<>();  // to store node properties
-    // public Vector<Object> neighbors = new Vector<>(); // declared in VerterPlace.java
-    private Map<Object, String> relationNames = new HashMap<Object, String>();
-    private Map<Object, Set<String>> relationTypes = new HashMap<Object, Set<String>>();
-    private Map<Object, Map<String,String>> relationProperties = new HashMap<Object, Map<String,String>>(); // to store relationship properties
+    private String ItemID = null;
+    private Set<String> labels;
+    private Map<String,String> nodeProperties;  // to store node properties
+    private Map<Object, Object[]> toRelationship; // to store TO direction relationship types & properties
+    private Map<Object, Object[]> fromRelationship; // <ItemID, Object[Set<String> types, Map<String, String> properties]>
+    private List<Integer> nextVertex;
 
-    public PropertyVertexPlace() {
+    
+    public PropertyVertexPlace(Object itemID, List<String> labels, Map<String, String> properties) {
         super();
-
+        this.setItemID((String)itemID);
+        this.labels = new HashSet<String>();
+        this.setLabels(labels);
+        this.nodeProperties = new HashMap<>();
+        this.nodeProperties.put("vertexuniqueid", (new String((String) itemID)).trim().toLowerCase());
+        this.setNodeProperties(properties);
+        this.toRelationship = new HashMap<>(); // <Object ID, Object[Set<String>, Map<String, String>]>
+        this.fromRelationship = new HashMap<>(); 
+        this.nextVertex = new ArrayList<Integer>(); // for migration, store vertID to be migrated to.
         MASSBase.getLogger().debug("PropertyVertexPlace constructed.");
     }
 
-    public void setNodeName(String name) {
-        this.nodeName = name;
+    public void setItemID(String name) {
+        this.ItemID = name.trim();
     }
 
-    public String getNodeName(){
-        return this.nodeName;
+
+    public String getItemID(){
+        return this.ItemID;
     }
+
+    public void clearNextVertex() {
+        this.nextVertex.clear();
+    }
+
+    public int getNeighborByIndex(int index) {
+        if(index > this.getNextVertexSize()) return -1;
+        return this.nextVertex.get(index);
+    }
+
+    public int getNextVertexSize(){
+        return this.nextVertex.size();
+    }
+
+    public void setNextVertex(String direction, Set<String> relTypes, Map<String, String> relProperties) {
+        if(nextVertex.size() != 0) return; // only one agent need to update nextVertex
+        if(direction.equals("both") || direction.equals("unspecified")){ // ==
+            setTONeighborVertex(relTypes, relProperties);
+            setFROMNeighborVertex(relTypes, relProperties);
+        } else if(direction.equals("out")) { // ==>
+            setTONeighborVertex(relTypes, relProperties);
+        } else if(direction.equals("in")) { // <==
+            setFROMNeighborVertex(relTypes, relProperties);
+        } else {
+            this.nextVertex.clear();
+        } 
+        MASS.getLogger().debug("At PropertyVertexPlace, setNextVertex, nextVertex size: " + this.nextVertex.size());
+    }
+
+    protected void setTONeighborVertex(Set<String> relTypes, Map<String, String> relProperties) {
+        for(Map.Entry<Object, Object[]> entry : this.toRelationship.entrySet()) {
+            String neighborID = (String) entry.getKey();
+            Object[] edgeLabelProperties = entry.getValue();
+            if(edgeSatisfy(edgeLabelProperties, relTypes, relProperties)) {
+                int vertID = MASSBase.distributed_map.getOrDefault(neighborID, -1);
+                if (vertID == -1) {
+                    MASS.getLogger().debug("neighbor vertex ID doesn't exist in MASS library");
+                    return;
+                }
+                this.nextVertex.add(vertID);
+            }
+        }
+    }
+
+    public void setFROMNeighborVertex(Set<String> relTypes, Map<String, String> relProperties) {
+        for(Map.Entry<Object, Object[]> entry : this.fromRelationship.entrySet()) {
+            String neighborID = (String) entry.getKey();
+            Object[] edgeLabelProperties = entry.getValue();
+            if(edgeSatisfy(edgeLabelProperties, relTypes, relProperties)) {
+                int vertID = MASSBase.distributed_map.getOrDefault(neighborID, -1);
+                if (vertID == -1) {
+                    MASS.getLogger().debug("neighbor vertex ID doesn't exist in MASS library");
+                    return;
+                }
+                this.nextVertex.add(vertID);
+            }
+        }
+    }
+
+    protected boolean edgeSatisfy(Object[] edgeProperties, Set<String> relTypes, Map<String, String> relProperties) {
+        Set<String> oriTypes = edgeProperties[0] == null ? null : ((Set<String>) edgeProperties[0]) ;
+        Map<String, String> oriProperties = edgeProperties[1] == null ? null : ((Map<String, String>) edgeProperties[1]);
+
+        return hasTypes(oriTypes, relTypes) && hasProperties(oriProperties, relProperties); 
+    }
+    
+    public boolean hasTypes(Set<String> oriTypes, Set<String> relTypes){
+        
+        if(relTypes == null || relTypes.size() == 0) {
+            return true;
+        }
+        if(oriTypes == null || oriTypes.size() == 0) {
+            return false;
+        }
+        for(String type: relTypes) {
+            if(!oriTypes.contains(type)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Boolean hasProperties(Map<String,String> oriProperties, Map<String,String> targetProperties) {
+        if(targetProperties == null || targetProperties.size() == 0) {
+            return true;
+        }
+        if(oriProperties == null || oriProperties.size() == 0) {
+            return false;
+        }
+        for(Map.Entry<String,String> entry : targetProperties.entrySet()){
+           if(!oriProperties.containsKey(entry.getKey()) || !oriProperties.get(entry.getKey()).equals(entry.getValue())){
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     public void addLabel(String label){
-        labels.add(label);
+        labels.add(label.trim().toLowerCase());
     }
     
     public void setLabels( List<String> labels) {
         for(String s: labels) {
-            this.addLabel(s);
+            this.addLabel(s.trim().toLowerCase());
         }
     }
 
-    public boolean hasLabels(String labelString){
-        if(labelString == null || labelString == "") {
+    public boolean hasLabels(Set<String> targetLabels){
+        
+        if(targetLabels == null || targetLabels.size() == 0) {
             return true;
         }
 
-        String[] targetLabels = labelString.split(",");
+        // MASS.getLogger().debug("Labels set: " + targetLabels);
+        // MASS.getLogger().debug("Labels size: " + targetLabels.size());
 
         for(String label: targetLabels) {
+            // MASS.getLogger().debug("Label: " + label);
             if(!this.labels.contains(label)){
+                // MASS.getLogger().debug("No label: " + label);
                 return false;
             }
         }
@@ -91,7 +205,9 @@ public class PropertyVertexPlace extends VertexPlace {
     }
 
     public void setNodeProperties(Map<String,String> properties) {
-        this.nodeProperties = properties;
+        for(Map.Entry<String, String> entry : properties.entrySet()) {
+            this.nodeProperties.put(entry.getKey(), entry.getValue());
+        }
     }
 
     public Map<String,String> getNodeProperties() {
@@ -99,128 +215,145 @@ public class PropertyVertexPlace extends VertexPlace {
     }
 
     // nodeProperties string format {key=value, key=value}
-    public Boolean hasNodeProperties(String argument) {
-        if(argument == null || argument == "") {
+    public Boolean hasNodeProperties(Map<String,String> mapProperties) {
+        if(mapProperties == null || mapProperties.size() == 0) {
             return true;
         }
-        String[] args = argument.split(",");
 
-        for(String arg: args){
-            if(arg == "") {
-                continue;
-            }
-            String[] s = arg.split("=");
-            if(s.length != 2) {
-                System.err.println("Cannot match node properties, as property argument format is invalid");
-                return false;
-            }
-            String key = s[0];
-            String value = s[1];
-            if(!this.nodeProperties.containsKey(key) || this.nodeProperties.get(key) != value){
+        for(Map.Entry<String,String> entry : mapProperties.entrySet()){
+           if(!this.nodeProperties.containsKey(entry.getKey()) || !this.nodeProperties.get(entry.getKey()).equals(entry.getValue())){
                 return false;
             }
         }
         return true;
     }
 
-    public String getRelationName(Object neighborID){
-        return this.relationNames.get(neighborID);
+    public boolean hasLabelsProperties(List<Object> argument) {
+        Set<String> labels = (Set<String>) argument.get(0);
+        Map<String, String> nodeProperties = (Map<String, String>) argument.get(1);
+
+        return this.hasLabelsProperties(labels, nodeProperties);
     }
 
-    public Map<Object,String> getRelationNames(){
-        return this.relationNames;
+    public boolean hasLabelsProperties(Set<String> labels, Map<String, String> properties) {
+        return this.hasLabels(labels) && this.hasNodeProperties(properties);
     }
 
-    public Vector<Object> getAllNeighbors(){
-        return this.neighbors;
-    }
+    public void setTONeighborRelation(Object neighborID, List<String> relationTypes,  Map<String, String> relationProperties) {
+        if (!this.toRelationship.containsKey(neighborID)) {
+            Set<String> types = new HashSet<String>();
+            for(String rs: relationTypes) {
+                types.add(rs.trim().toLowerCase());
+            }
+            Map<String, String> mapProperties = new HashMap<>();
+            for(Map.Entry<String, String> entry: relationProperties.entrySet()) {
+                mapProperties.put(entry.getKey().trim().toLowerCase(), entry.getValue().trim().toLowerCase());
+            }
 
-    public boolean hasRelationType(Object neighborID, String type){
-        return this.relationTypes.get(neighborID).contains(type);
-    }
+            Object[] relation = new Object[2];
+            relation[0] = (Object) types;
+            relation[1] = (Object) mapProperties;
 
-    public Map<Object, Set<String>> getRelationTypes(){
-        return this.relationTypes;
-    }
-
-    public boolean hasRelationProperty(Object neighborID, String propertyKey) {
-        return this.relationProperties.get(neighborID).containsKey(propertyKey);
-    }
-
-    public String getRelationProperty(Object neighborID, String propertyKey) {
-        if(this.hasRelationProperty(neighborID, propertyKey)){
-            return this.relationProperties.get(neighborID).get(propertyKey);
+            toRelationship.put(neighborID, relation);
         } else {
-            return null;
-        }
-    }
-
-    public boolean addNeighbor(Object neighborItemName) {
-        if (neighbors.contains(neighborItemName)) {
-            return false;
-        } else{
-            neighbors.add(neighborItemName);
-            return true;
-        }
-    }
-
-    public void setNeighborRelationTypes(Object neighborItemName, List<String> relationTypes) {
-        if (!this.relationTypes.containsKey(neighborItemName)) {
-            Set<String> types = new HashSet<String>(relationTypes);
-            this.relationTypes.put(neighborItemName, types);
-        } else {
-            Set<String> types = this.relationTypes.get(neighborItemName);
+            Object[] relation = this.toRelationship.get(neighborID);
+            Set<String> types = (Set<String>) relation[0];
+            Map<String, String> mapProperties = (Map<String, String>) relation[1];
             for(String s: relationTypes) {
-                types.add(s);
+                types.add(s.trim().toLowerCase());
             }
+            for(Map.Entry<String, String> entry: relationProperties.entrySet()) {
+                mapProperties.put(entry.getKey().trim().toLowerCase(), entry.getValue().trim().toLowerCase());
+            }
+            relation[0] = (Object) types;
+            relation[1] = (Object) mapProperties;
+            toRelationship.put(neighborID, relation);
         }
+        MASS.getLogger().error("At PropertyVertexPlace, after addFROMEdge, fromRelationship size:" + toRelationship.size());
     }
 
-    public void setNeighborProperties(Object neighborItemName, Map<String, String> relationProperties){
-        if (!this.relationProperties.containsKey(neighborItemName)) {
-            this.relationProperties.put(neighborItemName, relationProperties);
-        } else {
-            Map<String,String> currentProperty = this.relationProperties.get(neighborItemName);
-            for(Map.Entry<String,String> entry : relationProperties.entrySet()){
-                currentProperty.put(entry.getKey(), entry.getValue());
-            }
-        }
+    public Map<Object, Object[]> getTONeighbors() {
+        return this.toRelationship;
     }
     
-    public Map<String,String> getNeighborProperties(Object neighborId) {
-        return this.relationProperties.get(neighborId);
+    public Set<String> getTONeighborTypes(Object neighborId) {
+        return (Set<String>) this.toRelationship.get(neighborId)[0];
     }
 
-    public Map<Object, Map<String,String>> getAllNeighborProperties() {
-        return this.relationProperties;
+    public Map<String,String> getTONeighborProperties(Object neighborId) {
+        return (Map<String,String>) this.toRelationship.get(neighborId)[1];
+    }
+
+    public void setFROMNeighborRelation(Object neighborID, List<String> relationTypes,  Map<String, String> relationProperties) {
+        if (!this.fromRelationship.containsKey(neighborID)) {
+            Set<String> types = new HashSet<String>();
+            for(String rs: relationTypes) {
+                types.add(rs.trim().toLowerCase());
+            }
+            Map<String, String> mapProperties = new HashMap<>();
+            for(Map.Entry<String, String> entry: relationProperties.entrySet()) {
+                mapProperties.put(entry.getKey().trim().toLowerCase(), entry.getValue().trim().toLowerCase());
+            }
+
+            Object[] relation = new Object[2];
+            relation[0] = (Object) types;
+            relation[1] = (Object) mapProperties;
+
+            fromRelationship.put(neighborID, relation);
+        } else {
+            Object[] relation = this.fromRelationship.get(neighborID);
+            Set<String> types = (Set<String>) relation[0];
+            Map<String, String> mapProperties = (Map<String, String>) relation[1];
+            for(String s: relationTypes) {
+                types.add(s.trim().toLowerCase());
+            }
+            for(Map.Entry<String, String> entry: relationProperties.entrySet()) {
+                mapProperties.put(entry.getKey().trim().toLowerCase(), entry.getValue().trim().toLowerCase());
+            }
+            relation[0] = (Object) types;
+            relation[1] = (Object) mapProperties;
+            fromRelationship.put(neighborID, relation);
+        }
+        MASS.getLogger().error("At PropertyVertexPlace, after addFROMEdge, fromRelationship size:" + fromRelationship.size());
+    }
+    
+    public Map<Object, Object[]> getFROMNeighbors() {
+        return this.fromRelationship;
+    }
+
+    public Set<String> getFROMNeighborTypes(Object neighborId) {
+        return (Set<String>) this.fromRelationship.get(neighborId)[0];
+    }
+
+    public Map<String,String> getfromNeighborProperties(Object neighborId) {
+        return (Map<String,String>) this.toRelationship.get(neighborId)[1];
     }
 
     /**
-	 * Is called from Places.callAll( ), callSome( ), exchangeAll( ), and
-	 * exchangeSome( ), and invoke the function specified with functionId as
-	 * passing arguments to this function. A user-derived Place class must
-	 * implement this method.
+	 * Is called from PropertyGraphPlaces.callAll( ) and 
+     * invoke the function specified with functionId as
+	 * passing arguments to this function. 
 	 * @param functionId The ID number of the function to invoke
 	 * @param argument An argument that will be passed to the invoked function
-	 * @return Always returns NULL
+	 * @return if this is right Vertex, return ItemID; otherwise, return empty string
 	 */
     @Override
 	public Object callMethod( int functionId, Object argument ) {
-		Object result = this.nodeName;
-        if(argument == null) return result;
-
+		Object result = new String();
+        
+        MASS.getLogger().debug("functionID: " + functionId + ", argument: " + argument);
+        MASS.getLogger().debug("At vertex with ItemID: " + this.ItemID + ", labels:" + this.labels + ", properties: " + this.nodeProperties);
         switch (functionId) {
-            case 1: // Match Node Label
-                result = this.hasLabels((String) argument) ? result : null;
-                break;
-            case 2: // Match Node Properties, proprety argument format(key,value;key;value)
-                result = this.hasNodeProperties((String) argument) ? result : null;
+            case 1: // Match Node Labels & properties
+                if(argument == null) return result;
+                result = this.hasLabelsProperties((List<Object>) argument) ? ((Object) new String(this.ItemID)) : result;
+                // MASS.getLogger().debug("At PropertyVertexPlace callMethod, function 01 result: " + result);
                 break;
             default:
                 break;
         }
 
-        return (Object) result;
+        return result;
 	}
     
 }

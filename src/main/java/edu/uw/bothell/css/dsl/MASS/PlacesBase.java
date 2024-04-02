@@ -46,17 +46,17 @@ public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
     protected int[] nextIndex;
-    private final int handle;
-    private final String className;
+    protected final int handle;
+    protected final String className;
     protected int lowerBoundary;
     protected int upperBoundary;
     protected int placesSize;
-    private int[] size;
-	private int shadowSize;
-    private int boundaryWidth;
+    protected int[] size;
+	protected int shadowSize;
+    protected int boundaryWidth;
     protected Place[] places;
-    private Place[] leftShadow;
-    private Place[] rightShadow;
+    protected Place[] leftShadow;
+    protected Place[] rightShadow;
     protected ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
     protected EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
 
@@ -85,7 +85,7 @@ public class PlacesBase {
 	
 	}
 
-//	private static String getSimplifiedClassname(String className) {
+//	protected static String getSimplifiedClassname(String className) {
 //		// set simple name used for logging and monitoring
 //		String simpleClassName = className.contains(".")
 //				? className.substring(className.lastIndexOf('.') + 1)
@@ -136,7 +136,7 @@ public class PlacesBase {
 		this.className = "";
 	}
 
-	private class ExchangeBoundary_helper extends Thread {
+	protected class ExchangeBoundary_helper extends Thread {
 
     	int direction;
     	int places_size;
@@ -235,13 +235,13 @@ public class PlacesBase {
     
     }
 
-    private class ProcessRemoteExchangeRequest extends Thread {
+    protected class ProcessRemoteExchangeRequest extends Thread {
 
-    	private int destRank;
-    	private int srcHandle;
-    	private int destHandle_at_src;
-    	private int functionId;
-    	private int my_lower_boundary;
+    	protected int destRank;
+    	protected int srcHandle;
+    	protected int destHandle_at_src;
+    	protected int functionId;
+    	protected int my_lower_boundary;
 
     	public ProcessRemoteExchangeRequest( int[] param ) {
     		

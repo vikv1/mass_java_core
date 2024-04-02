@@ -24,11 +24,15 @@ public class GetVariableExecutionStep extends DefaultExecutionStep implements Ex
 
     @Override
     public String toString() {
-        return String.format("In %s: {name=%s, resultName=%s}", super.toString(), name, resultName);
+        return String.format("%s: {%s, %s}", super.toString(), name, resultName);
     }
 
     @Override
     public String getResultName() {
         return resultName;
+    }
+
+    public String getPropertyValue(){
+        return name;
     }
 }

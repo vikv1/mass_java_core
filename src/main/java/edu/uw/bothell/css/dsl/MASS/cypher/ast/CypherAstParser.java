@@ -3,6 +3,7 @@ package edu.uw.bothell.css.dsl.MASS.cypher.ast;
 import org.antlr.v4.runtime.*;
 import edu.uw.bothell.css.dsl.MASS.antlr.CypherLexer;
 import edu.uw.bothell.css.dsl.MASS.antlr.CypherParser;
+import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherAstBase;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherStatement;
 import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherSyntaxErrorException;
@@ -14,7 +15,7 @@ public class CypherAstParser {
         return instance;
     }
 
-    public CypherStatement parse(CypherCompilerContext ctx, String queryString) {
+    public CypherStatement parse(String queryString) {
         // create a CharStream that reads from standard input
         CodePointCharStream input = CharStreams.fromString(queryString);
         // create lexer
@@ -23,16 +24,7 @@ public class CypherAstParser {
         CypherParser parser = new CypherParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new ParserErrorHandler(queryString));
         CypherParser.OC_CypherContext tree = parser.oC_Cypher();// begin parsing at oC_Cypher
-        
         String treeText = tree.getText();
-
-        // print query tree information
-        // System.out.println("Printing tree text:====");
-        // System.out.println(treeText);
-        // System.out.println();
-
-        // System.out.println("Printing LISP-style tree:=======");
-        // System.out.println(tree.toStringTree(parser));
 
         if (treeText.endsWith("<EOF>")) {
             treeText = treeText.substring(0, treeText.length() - "<EOF>".length());
@@ -40,7 +32,7 @@ public class CypherAstParser {
         if (!treeText.equals(queryString)) {
             throw new PropertyGraphCypherSyntaxErrorException("Parsing error, \"" + queryString.substring(treeText.length()) + "\"");
         }
-        return new PropertyGraphCypherVisitor(ctx).visitOC_Cypher(tree);
+        return new PropertyGraphCypherVisitor().visitOC_Cypher(tree);
     }
 
     public CypherAstBase parseExpression(String expressionString) {

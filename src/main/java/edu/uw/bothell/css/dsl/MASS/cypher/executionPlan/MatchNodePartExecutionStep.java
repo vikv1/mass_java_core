@@ -20,8 +20,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
 
-public class MatchNodePartExecutionStep extends MatchPartExecutionStep<MatchRelationshipPartExecutionStep> {
-    private final Set<String> labelNames;
+public class MatchNodePartExecutionStep extends MatchPartExecutionStep {
+    public final Set<String> labelNames = new HashSet<>();
+    public final Map<String, String> nodeProperties = new HashMap<String,String>();
 
     public MatchNodePartExecutionStep(
         String originalName,
@@ -31,103 +32,21 @@ public class MatchNodePartExecutionStep extends MatchPartExecutionStep<MatchRela
         List<ExecutionStepWithResultName> properties
     ) {
         super(originalName, resultName, optional, properties);
-        this.labelNames = labelNames;
-    }
-
-    protected Stream<CypherResultRow> executeInitialQuery(PropertyGraphCypherQueryContext ctx, CypherResultRow row) {
-        Map<String,String> nodeProperties = new HashMap<String,String>();
-
-        for (String propertyName : propertyResultNames) {
-            Object value = row.get(propertyName);
-            nodeProperties.put(propertyName, (String) value);
+        
+        for(String s : labelNames){
+            this.labelNames.add(s.trim().toLowerCase());
         }
 
-        List<Object> elements = ctx.getVertexByLabelandProperties(labelNames, nodeProperties);
-
-        // Optional Match
-        if (isOptional()) {
-            CypherResultRow newRow = row.clone()
-                .set(getResultName(), null);
-            return new SingleRowPropertyGraphCypherResult(newRow);
+        for (ExecutionStepWithResultName step : properties) {
+            String key = step.getResultName();
+            LiteralExecutionStep gStep = (LiteralExecutionStep) step;
+            String value = (String) gStep.getValue();
+            nodeProperties.put(key.trim().toLowerCase(), value.trim().toLowerCase());
         }
-
-        return stream(elements)
-            .map(element -> {
-                CypherResultRow newRow = row.clone();
-                newRow.set(getResultName(), element);
-                return newRow;
-            });
-    }
-
-    @Override
-    protected Stream<? extends CypherResultRow> executeConnectedGetElements(PropertyGraphCypherQueryContext ctx, CypherResultRow row) {
-        if (row.get(getResultName()) != null) {
-            // TODO later
-            return Stream.of(row);
-        }
-
-        if (getConnectedSteps().size() == 0) {
-            throw new PropertyGraphCypherException("Should be using executeInitialQuery not connected elements");
-        }
-
-        if (isOptional() && isAllConnectedStepsCompletedAndNull(row)) {
-            row.set(getResultName(), null);
-            return Stream.of(row);
-        }
-
-        Set<String> vertexIds = getConnectedSteps().stream()
-            .map(step -> step.getOtherVertexId(row, this))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-        if (vertexIds.size() == 0) {
-            if (isConnectedToZeroLengthEdge(row)) {
-                return executeInitialQuery(ctx, row);
-            }
-            throw new PropertyGraphCypherException("Failed to find other vertex ids");
-        }
-        if (vertexIds.size() != 1) {
-            throw new PropertyGraphCypherException("expecting only a single vertex but found: " + vertexIds.size());
-        }
-        String vertexId = vertexIds.iterator().next();
-        PropertyVertexPlace vertex = (PropertyVertexPlace) ctx.getGraph().getVertex(vertexId); 
-        if (vertex == null) {
-            throw new PropertyGraphCypherException("could not find vertex " + vertexId);
-        }
-
-        if (labelNames.size() > 0) {
-            Set<String> vertexLabels = ctx.getVertexLabels(vertex);
-            for (String labelName : labelNames) {
-                if (!vertexLabels.contains(labelName)) {
-                    return Stream.empty();
-                }
-            }
-        }
-
-        row.set(getResultName(), vertex);
-        return Stream.of(row);
-    }
-
-    private boolean isConnectedToZeroLengthEdge(CypherResultRow row) {
-        return getConnectedSteps().stream()
-            .anyMatch(step -> {
-                Object stepValue = row.get(step.getResultName());
-                // if (stepValue instanceof RelationshipRangePathResult) {
-                //     RelationshipRangePathResult stepPathResult = (RelationshipRangePathResult) stepValue;
-                //     if (stepPathResult.getLength() == 0) {
-                //         return true;
-                //     }
-                // }
-                return false;
-            });
-    }
-
-    private boolean isAllConnectedStepsCompletedAndNull(CypherResultRow row) {
-        return getConnectedSteps().stream()
-            .allMatch(step -> row.get(step.getResultName()) == null);
     }
 
     @Override
     public String toString() {
-        return String.format("In %s: {labelNames=%s}", super.toString(), labelNames);
+        return String.format("%s: {%s}", super.toString(), labelNames);
     }
 }

@@ -624,7 +624,7 @@ public class MASSBase {
 	public static void setCurrentArgument(Object currentArgument) {
 		MASSBase.currentArgument = currentArgument;
 	}
-	
+
 	/**
 	 * Set the current function ID that Agents will execute
 	 * @param currentFunctionId The current Agents function ID to execute

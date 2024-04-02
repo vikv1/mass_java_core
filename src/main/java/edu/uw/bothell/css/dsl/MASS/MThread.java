@@ -173,6 +173,9 @@ public class MThread extends Thread {
 
     			if ( msgType == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT ) {
     				places.callAll( functionId, argument, tid );
+    			} else if ( msgType == Message.ACTION_TYPE.PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT ) {
+					PropertyGraphPlaces propertyGraphPlaces = (PropertyGraphPlaces) places;
+    				propertyGraphPlaces.propertyGraphCallAll( functionId, (Object[]) argument);
     			}
     			else {
     				places.callAll( functionId, (Object[])argument, 

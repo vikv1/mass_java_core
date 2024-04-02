@@ -83,8 +83,8 @@ public class GraphPlaces extends Places implements Graph {
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
 
     //Attributes for adding Left and Right node when used as a tree
-    private static int LEFTNODE_ = 1;
-    private static int RIGHTNODE_ = 2;
+    protected static int LEFTNODE_ = 1;
+    protected static int RIGHTNODE_ = 2;
 
     // InitArgs are initialization args to be passed to instances of 
     // GraphPlaces that are being instantiated on remote nodes.
@@ -139,7 +139,7 @@ public class GraphPlaces extends Places implements Graph {
 
     // reinitializeGraph calls reinitialize locally and sends MAINTENANCE_REINITIALIZE
     // messages to each of the worker nodes to reinitialize them as well.
-    private void reinitializeGraph() {
+    protected void reinitializeGraph() {
         // TODO: This feels like something that could be handled by an internal callAll or something similarly
         // utilizing the infrastructure the code already has
         reinitialize();
@@ -156,7 +156,7 @@ public class GraphPlaces extends Places implements Graph {
         MASS.barrierAllSlaves();
     }
 
-    private void init_graph_master() {
+    protected void init_graph_master() {
         MASSBase.getLogger().debug("GraphPlaces - init_graph_master");
 
         Vector<String> hosts = getHosts();
@@ -252,13 +252,18 @@ public class GraphPlaces extends Places implements Graph {
 
     // getRemoteGraphs sends messages to all worker nodes requesting the graph
     // models containing their respective vertices.
-    private GraphModel getRemoteGraphs() {
+    protected GraphModel getRemoteGraphs() {
         GraphModel graph = new GraphModel();
 
         for (MNode node : MASSBase.getRemoteNodes()) {
+            
+            Message k = new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES, getHandle(), null);
+            MASS.getLogger().debug(getClassName() + "getRemoteGraph send message: " + k.toString());
+            
             node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES, getHandle(), null));
 
             Message m = node.receiveMessage();
+            MASS.getLogger().debug(getClassName() + " getRemoteGraph receive message: " + m.toString());
 
             if (m.getAction() != Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE) {
                 throw new RuntimeException("Received incorrect response from node");
@@ -400,6 +405,7 @@ public class GraphPlaces extends Places implements Graph {
 
         // If another node owns this vertex, send it a message to add it.
         if (nodeID != MASS.getMyPid()) {
+            MASS.getLogger().debug(getClassName() + "adding remote vertex, node ID: " + nodeID);
             return addRemoteVertex(nodeID, vertexID, vertexInitParams);
         }
         // Get local index and size of places array.
@@ -436,7 +442,7 @@ public class GraphPlaces extends Places implements Graph {
      * addRemoteVertex sends a message to the node with the provided nodeID to
      * add a vertex with the provided vertexID and init parameters.
      */
-    private boolean addRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
+    protected boolean addRemoteVertex(int nodeID, int vertexID, Object vertexInitParams) {
         // Get the remote node
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -459,7 +465,12 @@ public class GraphPlaces extends Places implements Graph {
 
         // Send message and wait for reply
         remoteNode.sendMessage(msg);
+
+        MASS.getLogger().debug(getClassName() + " addRemoteNode send message: " + msg.toString());
+
         Message replyMsg = remoteNode.receiveMessage();
+
+        MASS.getLogger().debug(getClassName() + " addRemoteNode receive message: " + replyMsg.toString());
 
         // getAgentPopulation is currently overloaded to return the success/failure
         // of adding the vertex to the remote node.
@@ -615,7 +626,7 @@ public class GraphPlaces extends Places implements Graph {
 
     // removeRemoteVertex sends a message to the node with the provided
     // nodeID to remove a vertex with the provided vertexID.
-    private boolean removeRemoteVertex(int nodeID, int vertexID) {
+    protected boolean removeRemoteVertex(int nodeID, int vertexID) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -667,7 +678,7 @@ public class GraphPlaces extends Places implements Graph {
     // removeNeighborFromRemoteVertices sends a message to all remote
     // nodes to remove the provide neighbor vertex from all vertex 
     // neighbors.
-    private void removeNeighborFromRemoteVertices(int neighborID) {
+    protected void removeNeighborFromRemoteVertices(int neighborID) {
         // Send each message
         MASS.getRemoteNodes().forEach(node -> node.sendMessage(new Message(
             Message.ACTION_TYPE.MAINTENANCE_REMOVE_NEIGHBOR,
@@ -790,7 +801,7 @@ public class GraphPlaces extends Places implements Graph {
         return places.get(localIndex);
     }
 
-    private VertexPlace getRemoteVertex(int nodeID, int vertexID) {
+    protected VertexPlace getRemoteVertex(int nodeID, int vertexID) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -1016,7 +1027,7 @@ public class GraphPlaces extends Places implements Graph {
      * addRemoteTreeBranch sends a MASS message to the node associated with the provided node ID
      * to add an Tree Branch to the vertexID.
      */
-    private boolean addRemoteTreeBranch(int nodeID, int vertexID, int neighborID, int TreeNode) {
+    protected boolean addRemoteTreeBranch(int nodeID, int vertexID, int neighborID, int TreeNode) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -1091,7 +1102,7 @@ public class GraphPlaces extends Places implements Graph {
      * to add an edge between the vertexID and neighborID with the provided edge
      * weight.
      */
-    private boolean addRemoteEdge(int nodeID, int vertexID, int neighborID, double weight) {
+    protected boolean addRemoteEdge(int nodeID, int vertexID, int neighborID, double weight) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -1250,7 +1261,7 @@ public class GraphPlaces extends Places implements Graph {
      * removeRemoteEdge sends a MASS message to the node associated with the provided
      * node ID to remove the edge between the provided vertex and neighbor IDs.
      */
-    private boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
+    protected boolean removeRemoteEdge(int nodeID, int vertexID, int neighborID) {
         // Get the remote node.
         Optional<MNode> optionalNode = MASS.getRemoteNodes().stream().filter(node -> {
             return node.getPid() == nodeID;
@@ -1361,7 +1372,7 @@ public class GraphPlaces extends Places implements Graph {
      * 
      * @param vertexID The ID of the vertex to be recycled.
      */
-    private void recycleID(int vertexID) {
+    protected void recycleID(int vertexID) {
         // If we're the master node, add the vertex ID to our
         // idQueue to be recycled.
         if (MASS.getMyPid() == 0) {
@@ -1803,7 +1814,7 @@ public class GraphPlaces extends Places implements Graph {
      * @return A map<owner, map<vertexID, callAllResult>> of the remote
      * callAll result data, this node needs.
      */
-    private HashMap<Integer, HashMap<Integer, Object>> exchangeData(Object[] myData, HashMap<Integer, HashSet<Integer>> dataNeeded) {
+    protected HashMap<Integer, HashMap<Integer, Object>> exchangeData(Object[] myData, HashMap<Integer, HashSet<Integer>> dataNeeded) {
         int myRank = MASS.getMyPid();
         int systemSize = MASS.getSystemSize();
         HashMap<Integer, HashMap<Integer, Object>> requestedData = new HashMap<Integer, HashMap<Integer, Object>>();
@@ -1907,7 +1918,7 @@ public class GraphPlaces extends Places implements Graph {
      * EHMessage is an ExchangeHandler message. It allows us to associate src
      * of the message with the message itself.
      */
-    private static class EHMessage {
+    protected static class EHMessage {
         public int src;
         public Message msg;
 
@@ -1922,20 +1933,20 @@ public class GraphPlaces extends Places implements Graph {
      * remote node. It funnels these messages into a concurrent blocking queue
      * that the caller can use to receive them.
      */
-    private class ExchangeHandler {
+    protected class ExchangeHandler {
         // the receive msg queue
-        private BlockingQueue<EHMessage> msgQueue;
-        private int systemSize;
-        private int myRank;
+        protected BlockingQueue<EHMessage> msgQueue;
+        protected int systemSize;
+        protected int myRank;
 
         // indices with true values indicate a rank
         // from which we need data.
-        private boolean[] needDataFrom;
+        protected boolean[] needDataFrom;
 
         // threadCount maintains the number of active threads. When this
         // reaches 0, we send a poison pill into the queue to let the
         // caller know that it will not receive any more messages.
-        private AtomicInteger threadCount = new AtomicInteger(0);
+        protected AtomicInteger threadCount = new AtomicInteger(0);
 
         /**
          * ExchangeHandler instantiates the queue and spins up a thread for each node.
@@ -2021,4 +2032,5 @@ public class GraphPlaces extends Places implements Graph {
             return msg;
         }
     }
+
 }

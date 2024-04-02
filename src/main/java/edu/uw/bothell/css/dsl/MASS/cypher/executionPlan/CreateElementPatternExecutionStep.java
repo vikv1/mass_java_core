@@ -25,7 +25,7 @@ public abstract class CreateElementPatternExecutionStep extends ExecutionStepWit
     ) {
         super(properties.toArray(new ExecutionStepWithResultName[0]));
         this.elementType = elementType;
-        this.name = name;
+        this.name = name.trim();
         this.propertyResultNames = properties.stream().map(ExecutionStepWithResultName::getResultName).collect(Collectors.toList());
         this.mergeActions = mergeActions;
     }

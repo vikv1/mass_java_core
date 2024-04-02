@@ -31,9 +31,15 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.PropertyGraphModel;
+import edu.uw.bothell.css.dsl.MASS.PropertyGraphPlaces;
 
 public class GraphMaintenance {
     public static GraphModel getPlaces(Graph graph) {
         return graph.getGraph(false);
+    }
+
+	public static PropertyGraphModel getPropertyGraphPlaces(PropertyGraphPlaces graph) {
+        return graph.getPropertyGraph();
     }
 }

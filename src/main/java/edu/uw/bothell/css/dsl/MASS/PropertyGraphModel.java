@@ -30,27 +30,40 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
-
-public class PropertyGraphModel extends GraphModel{
+@SuppressWarnings("serial")
+public class PropertyGraphModel implements Serializable {
 	private List<PropertyVertexModel> propertyVertices = new ArrayList<PropertyVertexModel>();
+	private String name;
 
-    public void addPropertyModel(Object id, String nodeName, Set<String> labels, Map<String,String> nodeProperties, List<Object> neighbors, Map<Object, Set<String>> relationTypes,  Map<Object,Map<String,String>> relationProperties) {
-		PropertyVertexModel vertex = new PropertyVertexModel(id,nodeName,labels, nodeProperties,neighbors,relationTypes,relationProperties);
+	public PropertyGraphModel() {}
+
+	public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void addPropertyModel(String nodeName, Set<String> labels, Map<String,String> nodeProperties, Map<Object, Object[]> toRelationship, Map<Object, Object[]> fromRelationship) {
+		MASS.getLogger().debug("At PropertyGraphModel, addPropertyModel, ID: " + nodeName + ", toRelationship: " + toRelationship.size() + ", fromRelationship: " + fromRelationship.size() );
+		PropertyVertexModel vertex = new PropertyVertexModel(nodeName,labels, nodeProperties,toRelationship, fromRelationship);
 
 		propertyVertices.add(vertex);
 	}
-	
+
 	public List<PropertyVertexModel> getPropertyVertices() {
         return propertyVertices;
     }
 
 	public void print() {
+		System.out.println("Total number of vertexes in current graph: " + propertyVertices.size());
 		for(PropertyVertexModel vertex: propertyVertices){
 			vertex.print();
 		}

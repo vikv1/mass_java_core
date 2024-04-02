@@ -34,7 +34,7 @@ public class JoinExecutionStep extends ExecutionStepWithChildren {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append(String.format("In %s:", super.toString()));
+        result.append(String.format("%s:", super.toString()));
         getChildSteps().forEach(child -> {
             String childString = StringUtils.indent(2, child.toString());
             result.append('\n').append(childString);

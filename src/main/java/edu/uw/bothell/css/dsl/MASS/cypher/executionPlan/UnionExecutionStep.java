@@ -33,6 +33,6 @@ public class UnionExecutionStep extends ExecutionStepWithChildren {
 
     @Override
     public String toString() {
-        return String.format("In %s: {all=%s}", super.toString(), all);
+        return String.format("%s: {%s}", super.toString(), all);
     }
 }

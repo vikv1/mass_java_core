@@ -37,9 +37,12 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.core.config.Property;
 
 import edu.uw.bothell.css.dsl.MASS.GraphPlaces.InitArgs;
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
@@ -321,7 +324,7 @@ public class MProcess {
 	}
 
 	private void sendMessage(Message msg) {
-
+		MASSBase.getLogger().debug("Debug sending message" + msg.toString());
 		try {
 
 			MAIN_OOS.writeObject(msg);
@@ -362,13 +365,24 @@ public class MProcess {
 			// receive a new message from the master
 			Message m = receiveMessage();
 
-			MASSBase.getLogger().debug("A new message received: action = {}", m.getAction());
+			MASSBase.getLogger().error("MProcess start: A new message received");
 
 			// get prepared for the following arguments for PLACES_INITIALIZE
 			PlacesBase places = null; // new Places
 			AgentsBase agents = null; // new Agents
 
 			GraphPlaces graphPlaces;
+
+			// Added by Lilian to handle propertyGraphPlaces
+			PropertyGraphPlaces propertyGraphPlaces;
+			Object[] propertyVertexArgs;
+			int propertyVertexID;
+			Object itemID;
+			Object neighborID;
+			List<String> labels;
+			Map<String, String> nodeProperties;
+			List<String> relationTypes;
+			Map<String, String> relationProperties;
 
 			// retrieve an argument
 			Object argument = m.getArgument();
@@ -1142,6 +1156,119 @@ public class MProcess {
 
 				break;
 			
+			// Added by Lilian===================================================================================================== 
+			// For Property Graph Places:
+			case MAINTENANCE_ADD_PROPERTY_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX [handle=" + m.getHandle() + "; propertyGraphPlaces=" + propertyGraphPlaces + "; argument=" + m.getArgument() + "]");
+
+				propertyVertexArgs = (Object[])argument;
+				propertyVertexID = (Integer)propertyVertexArgs[0];
+				itemID = (Object)propertyVertexArgs[1];
+				labels = (List<String>)propertyVertexArgs[2];
+				nodeProperties = (Map<String, String>)propertyVertexArgs[3];
+
+				success = propertyGraphPlaces.addVertexOnNode(MASS.getMyPid(), propertyVertexID, itemID, labels, nodeProperties);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX completed result: " + success);
+				sendAck(success ? 1 : 0);
+				break;
+
+			case MAINTENANCE_ADD_PROPERTY_TO_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_TO_EDGE received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				propertyVertexArgs = (Object[])argument;
+
+				success = propertyGraphPlaces.addTOEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)propertyVertexArgs[0], 
+					(Integer)propertyVertexArgs[1], 
+					(Object)propertyVertexArgs[2],
+					(Object)propertyVertexArgs[3],
+					(List<String>)propertyVertexArgs[4],
+					(Map<String, String>)propertyVertexArgs[5]
+				);
+
+				sendAck(success ? 1 : 0);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_TO_EDGE completed");
+				break;
+			
+			case MAINTENANCE_ADD_PROPERTY_FROM_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_FROM_EDGE received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				propertyVertexArgs = (Object[])argument;
+
+				success = propertyGraphPlaces.addFROMEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)propertyVertexArgs[0], 
+					(Integer)propertyVertexArgs[1], 
+					(Object)propertyVertexArgs[2],
+					(Object)propertyVertexArgs[3],
+					(List<String>)propertyVertexArgs[4],
+					(Map<String, String>)propertyVertexArgs[5]
+				);
+
+				sendAck(success ? 1 : 0);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_FROM_EDGE completed");
+				break;
+
+			case PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH:
+
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH received");
+				InitArgs initArguments = (InitArgs)argument;
+
+				Object newPropertyGraphPlaces = null;
+				try {
+					Class<?> cls = Class.forName(initArguments.className);
+					Constructor<?> contructor = cls.getConstructor(int.class, String.class);
+					newPropertyGraphPlaces = contructor.newInstance(initArguments.handle, initArguments.vertexClassName);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH exception thrown: " + e);
+				}
+
+				propertyGraphPlaces = (PropertyGraphPlaces) newPropertyGraphPlaces;
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+
+				MASSBase.getPlacesMap().put( m.getHandle(), (PlacesBase) propertyGraphPlaces );
+
+				sendAck();
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH completed");
+
+				break;
+			
+			case MAINTENANCE_GET_PROPERTY_PLACES:
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PROPERTY_PLACES received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE, GraphMaintenance.getPropertyGraphPlaces(propertyGraphPlaces)));
+
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE sent");
+				break;
+
+			case PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT:
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				propertyGraphPlaces = (PropertyGraphPlaces)places;
+				ArrayList<Object> callArguments = (ArrayList<Object>) argument;
+
+				Object[] returnVals = propertyGraphPlaces.callVertexPlaceMethod(m.getFunctionId(), callArguments);
+
+				sendMessage( new Message( Message.ACTION_TYPE.ACK, returnVals ) );
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT complete");
+				break;
+
+			// End part added by Lilian for Property Graph Places =================================================================
+
 			default:
 				MASSBase.getLogger().debug( "Unrecognized Message Type!" );
 				break;

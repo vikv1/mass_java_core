@@ -25,8 +25,8 @@ public class PropertyGraphCypherQuery {
         this.statement = statement;
     }
 
-    public static PropertyGraphCypherQuery parse(CypherCompilerContext ctx, String queryString) {
-        CypherStatement statement = CypherAstParser.getInstance().parse(ctx, queryString);
+    public static PropertyGraphCypherQuery parse(String queryString) {
+        CypherStatement statement = CypherAstParser.getInstance().parse(queryString);
         if (statement == null) {
             throw new PropertyGraphCypherException("Failed to parse query: " + queryString);
         }
@@ -34,15 +34,11 @@ public class PropertyGraphCypherQuery {
     }
 
     public PropertyGraphCypherResult execute(PropertyGraphCypherQueryContext ctx) {
-        // MASS.getLogger().debug("Executing:\n%s", statement.toString());
-        System.out.println("Executing CypherStatement (AST):\n" + //
-                "" + this.statement.toString());
+        MASS.getLogger().debug("Executing CypherStatement (AST):\n {}", statement.toString());
 
         ExecutionPlan plan = ctx.getExecutionPlanBuilder().build(ctx, statement);
-        // MASS.getLogger().debug("Execution plan:\n%s", plan.toStringFull());
+        MASS.getLogger().debug("Execution plan:\n {}", plan.toStringFull());
         
-        System.out.println("Execution plan:\n" + //
-                "" + plan.toStringFull());
         return plan.execute(ctx);
     }
 

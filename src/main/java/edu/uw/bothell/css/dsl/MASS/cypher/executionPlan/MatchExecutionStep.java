@@ -4,18 +4,14 @@ import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
 
 public class MatchExecutionStep extends ExecutionStepWithChildren {
-    public MatchExecutionStep(PatternPartExecutionStep[] childSteps, WhereExecutionStep whereStep) {
-        super(toChildSteps(childSteps, whereStep));
+    public MatchExecutionStep(MatchPatternPartExecutionStep[] childSteps) {
+        super(toChildSteps(childSteps));
     }
 
-    private static ExecutionStep[] toChildSteps(PatternPartExecutionStep[] childSteps, WhereExecutionStep whereStep) {
-        int length = childSteps.length + (whereStep == null ? 0 : 1);
+    private static ExecutionStep[] toChildSteps(MatchPatternPartExecutionStep[] childSteps) {
+        int length = childSteps.length;
         ExecutionStep[] results = new ExecutionStep[length];
         System.arraycopy(childSteps, 0, results, 0, childSteps.length);
-        if (whereStep != null) {
-            results[results.length - 1] = whereStep;
-        }
-        System.out.println("Total number of match execution steps:" + results.length);
         return results; 
     }
 
@@ -26,6 +22,6 @@ public class MatchExecutionStep extends ExecutionStepWithChildren {
 
     @Override
     public String toString() {
-        return String.format("In %s: ", super.toString());
+        return String.format("%s: ", super.toString());
     }
 }

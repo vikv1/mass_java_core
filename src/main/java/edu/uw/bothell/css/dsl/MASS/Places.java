@@ -88,7 +88,7 @@ public class Places extends PlacesBase {
 		super();
 	}
 	
-	private Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
+	protected Object[] ca_setup( int functionId, Object argument, Message.ACTION_TYPE type ) {
     	
 		// calculate the total argument size for return-objects
 		int total = MatrixUtilities.getMatrixSize( getSize() ); // the total number of place elements

@@ -17,7 +17,6 @@ public class SeriesExecutionStep extends ExecutionStepWithChildren {
     @Override
     public String toStringFull() {
         StringBuilder result = new StringBuilder();
-        result.append("In SeriesExecutionStep:");
         getChildSteps().forEach(child -> {
             String childString = StringUtils.indent(2, child.toString());
             result.append('\n').append(childString);

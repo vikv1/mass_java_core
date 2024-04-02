@@ -31,36 +31,49 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 import java.util.Map;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import edu.uw.bothell.css.dsl.MASS.graph.transport.VertexModel;
 
-public class PropertyVertexModel extends VertexModel {
+@SuppressWarnings("serial")
+public class PropertyVertexModel implements Serializable {
 	public String nodeName = null;
-    public Set<String> labels = new HashSet<String>();
-    public Map<String,String> nodeProperties = new HashMap<>();  // to store node properties
-    // public List<Object> neighbors = new Vector<>(); // declared in VerterModel.java
-    public Map<Object, Set<String>> relationTypes = new HashMap<Object, Set<String>>();
-    public Map<Object, Map<String,String>> relationProperties = new HashMap<Object, Map<String,String>>(); // to store relationship properties
+    public Set<String> labels; // to store node labels
+    public Map<String,String> nodeProperties;  // to store node properties
+    public Map<Object, Object[]> toRelation; // to store TO relationship 
+    public Map<Object, Object[]> fromRelation; // to store FROM relationship 
 
-    public PropertyVertexModel(Object id, String nodeName, Set<String> labels, Map<String,String> nodeProperties, List<Object> neighbors, Map<Object, Set<String>> relationTypes,  Map<Object,Map<String,String>> relationProperties) {
-        super(id,neighbors);
-		
+    public PropertyVertexModel( String nodeName, Set<String> labels, Map<String,String> nodeProperties, Map<Object, Object[]> toRelationship, Map<Object, Object[]> fromRelationship) {
 		this.nodeName = nodeName;
 		this.labels = labels;
 		this.nodeProperties = nodeProperties;
-		this.relationTypes = relationTypes;
-        this.relationProperties = relationProperties;
+		this.toRelation = toRelationship;
+        this.fromRelation = fromRelationship;
     }
 
+	protected String getString(Map<Object, Object[]> relationship) {
+		if(relationship == null) return "";
+
+		StringBuilder sb = new StringBuilder();
+		
+		for(Map.Entry<Object, Object[]> entry: relationship.entrySet()) {
+			sb.append("                           ");
+			sb.append("ID: " + entry.getKey());
+			sb.append(", types: " + entry.getValue()[0].toString());
+			sb.append(", pros: " + entry.getValue()[1].toString());
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+
 	public void print() {
-		System.out.println("Vertex ID: " +  this.id + ", labels:" + labels);
+		System.out.println("Vertex ItemID: " +  this.nodeName + ", labels:" + labels);
         System.out.println("              node properties: " + nodeProperties);
-		System.out.println("              list of neighbors: " + neighbors);
-		System.out.println("              relation types: " + relationTypes);
-		System.out.println("              relation properties: " + relationProperties);
+		System.out.println("              TO neighbors: \n" + getString(toRelation));
+		System.out.println("              FROM neighbors: \n" + getString(fromRelation));
+		System.out.println();
 	}
 
 }
