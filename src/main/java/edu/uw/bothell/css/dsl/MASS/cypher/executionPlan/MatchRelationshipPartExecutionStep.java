@@ -1,20 +1,9 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
-import edu.uw.bothell.css.dsl.MASS.cypher.PathResultBase;
-import edu.uw.bothell.css.dsl.MASS.cypher.RelationshipRangePathResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherDirection;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherRangeLiteral;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherException;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import static edu.uw.bothell.css.dsl.MASS.cypher.utils.StreamUtils.stream;
 
 public class MatchRelationshipPartExecutionStep extends MatchPartExecutionStep {
     public final String direction;

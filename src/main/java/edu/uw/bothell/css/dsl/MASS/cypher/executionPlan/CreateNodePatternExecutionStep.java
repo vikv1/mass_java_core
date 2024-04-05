@@ -1,10 +1,8 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherAstBase;
 import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
 
@@ -12,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import edu.uw.bothell.css.dsl.MASS.cypher.ElementType;
 
 public class CreateNodePatternExecutionStep extends CreateElementPatternExecutionStep {
@@ -35,6 +32,7 @@ public class CreateNodePatternExecutionStep extends CreateElementPatternExecutio
         source = super.execute(ctx, source);
 
         return source.peek(row -> {
+            // Get Node properties
             Map<String, String> properties = new HashMap<String, String>();
             for (String propertyResultName : propertyResultNames) {
                 Object value = row.get(propertyResultName);
@@ -47,6 +45,7 @@ public class CreateNodePatternExecutionStep extends CreateElementPatternExecutio
                 }
             }
 
+            // Get Node labels
             List<String> labels = new ArrayList<>();
             for(int i = 0; i < labelNames.size(); i++) {
                 labels.add(labelNames.get(i).trim().toLowerCase());

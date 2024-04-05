@@ -22,7 +22,6 @@ public class CypherAstParser {
         CypherLexer lexer = new CypherLexer(input);
         // create a buffer of tokens pulled from the lexer and create a parser that feeds off the tokens buffer
         CypherParser parser = new CypherParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new ParserErrorHandler(queryString));
         CypherParser.OC_CypherContext tree = parser.oC_Cypher();// begin parsing at oC_Cypher
         String treeText = tree.getText();
 

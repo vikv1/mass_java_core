@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,7 +14,6 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 public class MatchPatternPartExecutionStep extends ExecutionStepWithChildren implements ExecutionStepWithResultName {
@@ -57,19 +54,23 @@ public class MatchPatternPartExecutionStep extends ExecutionStepWithChildren imp
         return resultName;
     }
 
+    // this is the key function to fetch MATCH query clause results
     @Override
     public PropertyGraphCypherResult execute(PropertyGraphCypherQueryContext ctx, PropertyGraphCypherResult originalSource) {
         
         int thisInitPopulation = ctx.getGraph().getThisGraphPlacesSize();
         
+        // Initialize Agents in each computer node, and each Agents contains list of PropertyGraphAgent
         Agents agents = new Agents(0, PropertyGraphAgent.class.getName(), null, ctx.getGraph(), thisInitPopulation);
     
+        // Call Agents PropertyGraphDoAll() to fetch MATCH query results
+        // PropertyGraphDoAll() will iterate Agents callAll() and manageAll() for nodeNumber iterations
         Object[] results = (Object[]) agents.PropertyGraphDoAll(0, this.arguments, nodeNumber);
         
         MASS.getLogger().debug("At MacthPatternPartExecutionStep: Agents size " + agents.nAgents() );
 
+        // store results and return it to GraphManager
         LinkedHashSet<String> columnNames = new LinkedHashSet<String>(pathResultNames);
-        
         Stream<CypherResultRow> rows = Arrays.stream(results)
                                                 .filter(result -> ((ArrayList<String>) result).size() == nodesResultNames.size())
                                                 .map(result -> {

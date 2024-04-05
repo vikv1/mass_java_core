@@ -68,7 +68,8 @@ public class PropertyGraphPlaces extends GraphPlaces {
         init_master_base(message);
     }
 
-    public int addPropertyVertex(Object itemID, List<String> labels, Map<String, String> properties) {
+    public int addPropertyVertex(Object itemID_Original, List<String> labels, Map<String, String> properties) {
+        Object itemID = (Object) ((String) itemID_Original).trim().toLowerCase();
         if (itemID == null || MASS.distributed_map.containsKey(itemID)) {
             MASS.getLogger().debug("the provided vertexId already exists");
             return -1;
@@ -206,7 +207,10 @@ public class PropertyGraphPlaces extends GraphPlaces {
     }
 
     // set relation properties for edge between fromName to toName
-    public boolean setRelationEdge(Object fromItemID, Object toItemID, List<String> relationTypes, Map<String, String> relationProperties) {
+    public boolean setRelationEdge(Object fromItemID_Ori, Object toItemID_Ori, List<String> relationTypes, Map<String, String> relationProperties) {
+        Object fromItemID = (Object) ((String) fromItemID_Ori).trim().toLowerCase();
+        Object toItemID = (Object) ((String) toItemID_Ori).trim().toLowerCase();
+                
         int sourceId = MASSBase.distributed_map.getOrDefault(fromItemID, -1);
         int destinationId = MASSBase.distributed_map.getOrDefault(toItemID, -1);
 
@@ -515,4 +519,13 @@ public class PropertyGraphPlaces extends GraphPlaces {
         return this.places.size();
     }
 
+    public void printVertex(Object uniqueID) {
+        PropertyVertexPlace place = (PropertyVertexPlace) this.getVertex(uniqueID);
+        if(place == null) {
+            System.out.println("No such vertex found.");
+            return;
+        }
+        PropertyVertexModel model = new PropertyVertexModel(place.getItemID(), place.getLabels(),place.getNodeProperties(),place.getTONeighbors(), place.getFROMNeighbors());
+        model.print();
+    }
 }

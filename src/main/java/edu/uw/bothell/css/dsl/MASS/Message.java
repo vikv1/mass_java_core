@@ -141,7 +141,7 @@ public class Message implements Serializable {
 		PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH("Property Graph Places Initialize Graph"),
 		MAINTENANCE_GET_PROPERTY_PLACES("Maintenance.getPropertyPlaces"),
 		MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE("Maintenance.getPropertyPlacesResponse"),
-		PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("PropertyGraphPlaces.callAllReturnObject")
+		PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT("PropertyGraphPlaces.callAllReturnObject"),
 		// End of part added by Lilian =====================================================
 		;
 

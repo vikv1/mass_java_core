@@ -62,7 +62,7 @@ public class PropertyVertexModel implements Serializable {
 			sb.append("                           ");
 			sb.append("ID: " + entry.getKey());
 			sb.append(", types: " + entry.getValue()[0].toString());
-			sb.append(", pros: " + entry.getValue()[1].toString());
+			sb.append(", propertiess: " + entry.getValue()[1].toString());
 			sb.append("\n");
 		}
 		return sb.toString();

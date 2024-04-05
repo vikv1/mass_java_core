@@ -1,12 +1,6 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
 import edu.uw.bothell.css.dsl.MASS.cypher.ElementType;
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
-import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
-import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherAstBase;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
 
 import java.util.List;
 import java.util.stream.Collectors;

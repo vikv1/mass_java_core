@@ -585,8 +585,10 @@ public class Agents extends AgentsBase {
    *  back to user application in each iteration.
    *
    * @param functionId the function id that is executed.
-   * @param arguments the list of arguments for each node-relationship pattern, 
-   *        each argument is an Object[] that containes 5 items:
+   * @param arguments contains the list of arguments for each iteration.
+   *        The argument for each iteration stores in thisArgs, 
+   *        it contains the node-relationship pattern information, 
+   *        each argument (thisArgs) is an Object[] that containes 5 items:
    *        Obj[0] = nodeStep.labelNames;
             Obj[1] = nodeStep.nodeProperties;
             Obj[2] = relStep == null? (Object) "NULL" : (Object) relStep.direction;

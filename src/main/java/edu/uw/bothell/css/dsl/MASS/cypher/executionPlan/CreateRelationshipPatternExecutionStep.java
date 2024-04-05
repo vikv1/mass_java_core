@@ -2,10 +2,8 @@ package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherAstBase;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherDirection;
 import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
@@ -66,15 +64,18 @@ public class CreateRelationshipPatternExecutionStep extends CreateElementPattern
                     relationProperties.put(propertyResultName.trim().toLowerCase(), sValue.trim().toLowerCase());
                 }
             }
-			// From ID and To ID for edge
+			
+            // From ID and To ID for edge
             Object outVertex = direction.hasOut() ? leftNodeName.trim() : rightNodeName.trim();
             Object inVertex = direction.hasOut() ? rightNodeName.trim() : leftNodeName.trim();
 
+            // get relationship types
             List<String> types = new ArrayList<>();
             for(int i = 0; i < this.relTypeNames.size(); i++) {
                 types.add(this.relTypeNames.get(i).trim().toLowerCase());
             }
 
+            // call PropertyGraphPlaces to set relationship edge.
 			boolean success = ctx.getGraph().setRelationEdge(outVertex, inVertex, types, relationProperties);
 
             if(!success) {

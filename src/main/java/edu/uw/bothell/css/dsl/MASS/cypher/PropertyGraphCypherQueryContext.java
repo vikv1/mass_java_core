@@ -30,42 +30,18 @@ import java.util.stream.Collectors;
 
 import edu.uw.bothell.css.dsl.MASS.PropertyGraphPlaces;
 
-// import static edu.uw.bothell.css.dsl.MASS.cypher.ast.model.StreamUtils.stream;
-
 public class PropertyGraphCypherQueryContext {
     private final PropertyGraphPlaces graph;
-    // private final Map<String, CypherFunction> functions = new HashMap<>();
     private ExecutionPlanBuilder executionPlanBuilder = new ExecutionPlanBuilder();
     private ExecutionPlan currentlyExecutingPlan;
 
     public PropertyGraphCypherQueryContext(PropertyGraphPlaces graph) {
         this.graph = graph;
-
-        // // math
-        // addFunction("abs", new AbsFunction());
-        // addFunction("e", new EFunction());
-        // addFunction("exp", new ExpFunction());
-        // addFunction("log", new LogFunction());
-        // addFunction("log10", new Log10Function());
-        // addFunction("sqrt", new SquareRootFunction());
-
     }
 
     public PropertyGraphPlaces getGraph() {
         return graph;
     }
-
-    // public Set<String> getVertexLabels(Object vertexID) {
-    //     return this.graph.getVertexLabels(vertexID);
-    // }
-
-    // public Map<String, CypherFunction> getFunctions() {
-    //     return functions;
-    // }
-
-    // public void addFunction(String name, CypherFunction fn) {
-    //     this.functions.put(name.toLowerCase(), fn);
-    // }
     
     public ExecutionPlanBuilder getExecutionPlanBuilder() {
         return executionPlanBuilder;
@@ -78,28 +54,4 @@ public class PropertyGraphCypherQueryContext {
     public ExecutionPlan getCurrentlyExecutingPlan() {
         return currentlyExecutingPlan;
     }
-
-    // public List<Object> getVertexByLabelandProperties(Set<String> labels, Map<String,String> nodeProperties) {
-        
-    //     List<Object> result = new ArrayList<Object>();
-    //     List<Object> arguments = new ArrayList<>();
-    //     arguments.add(labels);
-    //     arguments.add(nodeProperties);
-
-    //     Object[] labelVertex = this.graph.callAll(1,this.graph.getArguments(arguments));
-
-    //     int length = labelVertex.length;
-        
-    //     for(int i = 0; i < length; i++){
-    //         if(labelVertex[i] != null && !labelVertex[i].equals("")){
-    //            result.add(labelVertex[i]);
-    //         }
-    //     }
-        
-    //     // System.out.println("At CTX, printing results: ");
-    //     // for(int i = 0; i < result.size(); i++) {
-    //     //     System.out.println("result at " + i + " is " + result.get(i));
-    //     // }
-    //     return result;
-    // }
 }

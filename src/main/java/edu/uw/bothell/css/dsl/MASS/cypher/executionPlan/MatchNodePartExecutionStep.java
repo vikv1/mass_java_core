@@ -1,14 +1,5 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
-import edu.uw.bothell.css.dsl.MASS.cypher.RelationshipRangePathResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.SingleRowPropertyGraphCypherResult;
-import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherException;
-import edu.uw.bothell.css.dsl.MASS.PropertyGraphPlaces;
-import edu.uw.bothell.css.dsl.MASS.PropertyVertexPlace;
-import static edu.uw.bothell.css.dsl.MASS.cypher.utils.StreamUtils.stream;
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;

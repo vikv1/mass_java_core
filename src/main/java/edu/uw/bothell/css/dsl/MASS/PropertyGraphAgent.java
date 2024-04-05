@@ -44,7 +44,8 @@ import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 public class PropertyGraphAgent extends Agent {
 	protected ArrayList<String> pathResult;
 
-	// args is the pathResult
+	// ProprotyGraphAgent need to carry information about MATCH query pathResult
+	// The parameter args is the pathResult of its parent Agent (if any)
 	public PropertyGraphAgent(Object args) {
         super();
 		if(args == null ) {
@@ -58,6 +59,15 @@ public class PropertyGraphAgent extends Agent {
 		return (Object) this.pathResult;
 	}
 
+	// PropertyGraphAgent to verify if current PropertyVertexPlace is the correct one to be found/
+	// If yes, then with relationship information, find the next PropertyVertexPlace Agent needs to 
+	// spawn then migrate to.
+	// matchArgs is an Object[] that containes 5 items:
+	//    Obj[0] = node labels;
+	//    Obj[1] = node properties;
+	//    Obj[2] = relationship direction;
+	//    Obj[3] = relationship types;
+	//    Obj[4] = relationship properties.
 	public Object executeMatch(Object matchArgs) {
 		MASS.getLogger().debug("At propertyGraphAgent's executeMatch, path result before executing: " + (pathResult == null ? "null" : pathResult.toString()));
 		PropertyVertexPlace place = (PropertyVertexPlace) this.getPlace();
@@ -67,11 +77,19 @@ public class PropertyGraphAgent extends Agent {
 		int m = (int) pathResult.size();
 		MASS.getLogger().debug("                                      current pathResult size: " + m);
 
+		// handle the current node-relationship pattern information for MATCH clause
 		Object[] thisArg = (Object[]) matchArgs;
 		Set<String> nodeLabels = thisArg[0] == null ? null : (Set<String>) thisArg[0];
 		Map<String, String> nodeProperties = thisArg[1] == null ? null : (Map<String, String>) thisArg[1];
 		MASS.getLogger().debug("                                      thisArg: " + nodeLabels + ", " + nodeProperties);
 		
+		// to verify if current PropertyVertexPlace contains the labels and node properties
+		// if this is the correct Place, then add current Place's uniqueID to pathResult,
+		// and base on relationship information to find the Next Place to migrate to
+		// it this Place is not the correct one, then it will be no Next Place.
+		// Current Agent will be killed upon calling Agents' manageAll().
+		// If there is newChildren and NextVertex is not empty, then new Agent will be
+		// Spawn and Migrated upon calling Agents' manageAll().
 		if(place.hasLabelsProperties(nodeLabels, nodeProperties)) {
 			pathResult.add(place.getItemID());
 			String direction = (String) thisArg[2];

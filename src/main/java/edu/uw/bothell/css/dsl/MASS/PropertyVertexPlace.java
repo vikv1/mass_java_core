@@ -43,22 +43,22 @@ import java.util.ArrayList;
 import java.util.Queue;
 
 public class PropertyVertexPlace extends VertexPlace {
-    private String ItemID = null;
-    private Set<String> labels;
-    private Map<String,String> nodeProperties;  // to store node properties
+    private String ItemID = null; // to store Unique ItemID of each Node/Vertex.
+    private Set<String> labels; // to store Node/Vertex labels
+    private Map<String,String> nodeProperties;  // to store Node/Vertex properties
     private Map<Object, Object[]> toRelationship; // to store TO direction relationship types & properties
     private Map<Object, Object[]> fromRelationship; // <ItemID, Object[Set<String> types, Map<String, String> properties]>
-    private List<Integer> nextVertex;
+    private List<Integer> nextVertex;  // Store the vertID of the vertexes that Agent will Spawn and Migrate to.
 
     
     public PropertyVertexPlace(Object itemID, List<String> labels, Map<String, String> properties) {
         super();
-        this.setItemID((String)itemID);
+        this.setItemID(((String)itemID).trim().toLowerCase());
         this.labels = new HashSet<String>();
         this.setLabels(labels);
         this.nodeProperties = new HashMap<>();
-        this.nodeProperties.put("vertexuniqueid", (new String((String) itemID)).trim().toLowerCase());
         this.setNodeProperties(properties);
+        this.nodeProperties.put("vertexid", ((String) itemID).trim().toLowerCase());
         this.toRelationship = new HashMap<>(); // <Object ID, Object[Set<String>, Map<String, String>]>
         this.fromRelationship = new HashMap<>(); 
         this.nextVertex = new ArrayList<Integer>(); // for migration, store vertID to be migrated to.

@@ -25,12 +25,6 @@ public class ReturnPartExecutionStep extends ExecutionStepWithChildren {
     public PropertyGraphCypherResult execute(PropertyGraphCypherQueryContext ctx, PropertyGraphCypherResult source) {
         source = super.execute(ctx, source);
 
-        // if (expressionResultName != null) {
-        //     source = source.peek(row -> {
-        //         row.set(columnName, row.get(expressionResultName));
-        //         row.popScope();
-        //     });
-        // }
         LinkedHashSet<String> columnNames = source.getColumnNames();
         if (columnName.equals("*")) {
             List<String> allColumnNames = getAllColumnNames(ctx.getCurrentlyExecutingPlan()).stream()
@@ -62,9 +56,6 @@ public class ReturnPartExecutionStep extends ExecutionStepWithChildren {
             }
         } else {
             step.getChildSteps().forEach(childStep -> {
-                // if (childStep instanceof WithClauseExecutionStep) {
-                //     results.clear();
-                // }
                 results.addAll(getAllColumnNames(childStep));
             });
         }

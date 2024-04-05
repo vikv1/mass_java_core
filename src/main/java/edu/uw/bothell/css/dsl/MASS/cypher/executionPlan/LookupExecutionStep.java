@@ -1,22 +1,10 @@
 package edu.uw.bothell.css.dsl.MASS.cypher.executionPlan;
 
-import com.google.common.collect.Sets;
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherDuration;
-import edu.uw.bothell.css.dsl.MASS.cypher.CypherResultRow;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherQueryContext;
 import edu.uw.bothell.css.dsl.MASS.cypher.PropertyGraphCypherResult;
 import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherLabelName;
-import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherLiteral;
-import edu.uw.bothell.css.dsl.MASS.cypher.ast.model.CypherVariable;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherNotImplemented;
-import edu.uw.bothell.css.dsl.MASS.cypher.exceptions.PropertyGraphCypherTypeErrorException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.*;
 
 public class LookupExecutionStep extends ExecutionStepWithChildren implements ExecutionStepWithResultName {
     public static final String SCOPE_PROPERTY_SUFFIX = "_property";
