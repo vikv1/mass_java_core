@@ -57,6 +57,9 @@ import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.graph.Graph;
 import edu.uw.bothell.css.dsl.MASS.graph.VertexMetaValues;
 import edu.uw.bothell.css.dsl.MASS.graph.transport.GraphModel;
+import edu.uw.bothell.css.dsl.MASS.graph.SharedGraph;
+import edu.uw.bothell.css.dsl.MASS.graph.LocalMessagingProvider;
+import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 
 public class GraphPlaces extends Places implements Graph {
     // DEFAULT_EDGE_WEIGHT is the default edge weight applied when an
@@ -72,7 +75,7 @@ public class GraphPlaces extends Places implements Graph {
     // so that they may be reused for newly added nodes.
     // Note: If this isn't accessed concurrently we can replace this with 
     // a linked list. Similarly with the VertexPlace vectors.
-    protected Queue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
+    protected ConcurrentLinkedQueue<Integer> idQueue = new ConcurrentLinkedQueue<Integer>();
 
     // objectFactory is used to generate objects of the places class provided
     // when instantiating GraphPlaces.
@@ -81,6 +84,15 @@ public class GraphPlaces extends Places implements Graph {
     // places is used to stored VertexPlaces added after instantiating
     // a GraphPlaces.
     protected Vector<VertexPlace> places = new Vector<VertexPlace>();
+
+    // sharedGraph is used to do shared-memory operations
+    protected SharedGraph sharedGraph = null;
+
+    // sharedPlaceName is the identifier for a shared place
+    protected String sharedPlaceName = null;
+
+    // localMessaging is the Aeron messaging provider for sharing messages to all other users working on this same sharedPlace
+    protected LocalMessagingProvider localMessaging = null;
 
     //Attributes for adding Left and Right node when used as a tree
     private static int LEFTNODE_ = 1;
@@ -92,12 +104,14 @@ public class GraphPlaces extends Places implements Graph {
         public int handle;
         public String className;
         public String vertexClassName;
+        public String sharedPlaceName;
         public Object[] initArgs;
 
-        public InitArgs(int handle, String vertexClassName, String className, Object... initArgs) {
+        public InitArgs(int handle, String vertexClassName, String className, String sharedPlaceName, Object... initArgs) {
             this.handle = handle;
             this.vertexClassName = vertexClassName;
             this.className = className;
+            this.sharedPlaceName = sharedPlaceName;
             this.initArgs = initArgs;
         }
     }
@@ -110,13 +124,72 @@ public class GraphPlaces extends Places implements Graph {
     }
 
     /**
-     * Constructs a basic GraphPlaces object with no pre-allocated space.
+     * Constructs a basic GraphPlaces object with no pre-allocated space, non-shared by default
      * @param handle
      * @param className
      */
     public GraphPlaces(int handle, String className) {
         super(handle, className);
 
+        // Only call init_master if we're actually the master node.
+        int myPid = MASS.getMyPid();
+
+        MASS.getLogger().debug("Trying to Initialize Graph : "+myPid);
+
+        if (myPid == 0) {
+            init_graph_master();
+        }
+    }
+
+    /**
+     * Constructs a basic GraphPlaces object with no pre-allocated space, can be shared or non-shared
+     * @param handle
+     * @param className
+     * @param sharedPlaceName if null then non-shared
+     */
+    public GraphPlaces(int handle, String className, String sharedPlaceName) {
+        super(handle, className);
+        this.sharedPlaceName = sharedPlaceName;
+        if (sharedPlaceName != null) {
+            MASSBase.getLogger().debug("This is a shared graph places, trying to retrieve data from shared memory");
+            // shared
+            sharedGraph = new SharedGraph(sharedPlaceName);
+            // read related files from shm
+            if (sharedGraph.placesFileExists()) {
+                Vector<VertexPlace> newPlaces = sharedGraph.readPlacesFromShm();
+                if (newPlaces != null) {
+                    places = newPlaces;
+                }
+                for (VertexPlace vp : this.places) {
+                    vp.reinitialize();
+                }
+            }
+            if (sharedGraph.distributedMapFileExists()) {
+                MASSSimpleDistributedMap<Object, Integer> newdisMap = sharedGraph.readDistributedMapFromShm();
+                if (newdisMap != null) {
+                    MASSBase.setDistributedMap(newdisMap);
+                }
+            }
+            if (sharedGraph.idQueueFileExists()) {
+                ConcurrentLinkedQueue<Integer> newIdQueue = sharedGraph.readIdQueueFromShm();
+                if (newIdQueue != null) {
+                    idQueue = newIdQueue;
+                }
+            }
+            if (sharedGraph.nextVertexIDFileExists()) {
+                int newNextVertexID = sharedGraph.readNextVertexIDFromShm();
+                if (newNextVertexID != -1) {
+                    nextVertexID = newNextVertexID;
+                }
+            }
+            MASSBase.getLogger().debug("Initializing the Aeron local message provider on node " + MASS.getMyPid());
+            // init the local messageing provider
+            localMessaging = new LocalMessagingProvider(this);
+            // init again based on messages from other user's running processes, since now the shared memory does not store the most up to date data
+            Message m = new Message(Message.ACTION_TYPE.DSG_INIT_REQUEST, MASSBase.getUserName(), getSharedPlaceName());
+            localMessaging.sendMessage(m);
+        }
+        
         // Only call init_master if we're actually the master node.
         int myPid = MASS.getMyPid();
 
@@ -134,6 +207,29 @@ public class GraphPlaces extends Places implements Graph {
         super.reinitialize();
 
         nextVertexID = 0;
+
+        MASSBase.reinitializeMap();
+
+        idQueue = new ConcurrentLinkedQueue<Integer>();
+
+        places = new Vector<VertexPlace>();
+        
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_REINITIALIZE, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
+    }
+
+    public void reinitializeLocal() {
+        super.reinitialize();
+
+        nextVertexID = 0;
+
+        MASSBase.reinitializeMap();
+
+        idQueue = new ConcurrentLinkedQueue<Integer>();
+
         places = new Vector<VertexPlace>();
     }
 
@@ -150,7 +246,7 @@ public class GraphPlaces extends Places implements Graph {
         // This needs to remove neighbors anyways so just send to everyone else
         MASS.getRemoteNodes().forEach(node -> node.sendMessage(message));
 
-        MASSBase.reinitializeMap();
+        
 
         // Early clear is inconsequential. We just need to make sure we don't move forward before all nodes are done
         MASS.barrierAllSlaves();
@@ -161,7 +257,7 @@ public class GraphPlaces extends Places implements Graph {
 
         Vector<String> hosts = getHosts();
 
-        InitArgs initArgs = new InitArgs(this.getHandle(), this.getClassName(), this.getClass().getName());
+        InitArgs initArgs = new InitArgs(this.getHandle(), this.getClassName(), this.getClass().getName(), this.sharedPlaceName);
 
         Message message = new Message(Message.ACTION_TYPE.PLACES_INITIALIZE_GRAPH, getSize(),
                 getHandle(), getClassName(),
@@ -258,7 +354,9 @@ public class GraphPlaces extends Places implements Graph {
         for (MNode node : MASSBase.getRemoteNodes()) {
             node.sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES, getHandle(), null));
 
-            Message m = node.receiveMessage();
+            // Message m = node.receiveMessage();
+            // change to use exchangeHelper for better performance
+            Message m = MASSBase.getExchange().receiveMessage(node.getPid());
 
             if (m.getAction() != Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE) {
                 throw new RuntimeException("Received incorrect response from node");
@@ -289,7 +387,11 @@ public class GraphPlaces extends Places implements Graph {
 
         int vertId = this.addVertex();
         MASS.distributed_map.put(vertexId, vertId);
-        
+        if (sharedPlaceName != null) {
+            // broadcast to local users
+            Message m = new Message(Message.ACTION_TYPE.DSG_DISTRIBUTED_MAP_PUT, MASSBase.getUserName(), vertexId, vertId, sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
         return vertId;
     }
 
@@ -311,7 +413,11 @@ public class GraphPlaces extends Places implements Graph {
 
         int vertId = this.addVertexWithParams(vertexInitParam);
         MASS.distributed_map.put(vertexId, vertId);
-        
+        if (sharedPlaceName != null) {
+            // broadcast to local users
+            Message m = new Message(Message.ACTION_TYPE.DSG_DISTRIBUTED_MAP_PUT, MASSBase.getUserName(), vertexId, vertId, sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
         return vertId;
     }
 
@@ -358,7 +464,11 @@ public class GraphPlaces extends Places implements Graph {
         try {
             vertexID = idQueue.remove();
             fromIDQueue = true;
-
+            if (sharedPlaceName != null) {
+                // broadcast update locally
+                Message m = new Message(Message.ACTION_TYPE.DSG_IDQUEUE_REMOVE, MASSBase.getUserName(), sharedPlaceName);
+                localMessaging.sendMessage(m);
+            }
         } catch (NoSuchElementException e) {
             vertexID = nextVertexID;
         }
@@ -374,6 +484,11 @@ public class GraphPlaces extends Places implements Graph {
             // If we got the ID from our queue, re-enqueue it.
             if (fromIDQueue) {
                 idQueue.add(vertexID);
+                if (sharedPlaceName != null) {
+                    // broadcast update locally
+                    Message m = new Message(Message.ACTION_TYPE.DSG_IDQUEUE_ADD, MASSBase.getUserName(), vertexID, sharedPlaceName);
+                    localMessaging.sendMessage(m);
+                }
             }
             
             // return -1 to indicate as such.
@@ -381,7 +496,14 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         // Otherwise, increment if needed and return the vertexID.
-        if (!fromIDQueue) { nextVertexID++; }
+        if (!fromIDQueue) { 
+            nextVertexID++;
+            if (sharedPlaceName != null) {
+                // broadcast update locally
+                Message m = new Message(Message.ACTION_TYPE.DSG_NEXT_VERTEXID_UPDATE, MASSBase.getUserName(), nextVertexID, sharedPlaceName);
+                localMessaging.sendMessage(m);
+            }
+        }
 
         return vertexID;
     }
@@ -424,11 +546,22 @@ public class GraphPlaces extends Places implements Graph {
         // vertex.
         if (localIndex < localSize) {
             places.set(localIndex, vertexPlace);
+            if (sharedPlaceName != null) {
+                // broadcast update locally
+                Message m = new Message(Message.ACTION_TYPE.DSG_SET_VERTEX_LOCAL, localIndex, vertexPlace, MASSBase.getUserName(), sharedPlaceName);
+                localMessaging.sendMessage(m);
+            }
             return true;
         }
 
         // Otherwise, add it to the back.
         places.add(vertexPlace);
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_ADD_VERTEX_LOCAL, vertexPlace, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
+
         return true;
     }
 
@@ -494,7 +627,12 @@ public class GraphPlaces extends Places implements Graph {
 
         // remove the key from the distributed map.
         MASS.distributed_map.remove(vertexId);
-
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_DISTRIBUTED_MAP_REMOVE, MASSBase.getUserName(), vertexId, sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
+        
         return true;
     }
 
@@ -608,6 +746,11 @@ public class GraphPlaces extends Places implements Graph {
         // Set vertex as null to indicate it's unused and add it to the 
         // idQueue.
         places.set(localIndex, null);
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_REMOVE_VERTEX_LOCAL, localIndex, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
         recycleID(vertexID);
 
         return true;
@@ -661,6 +804,12 @@ public class GraphPlaces extends Places implements Graph {
             if (place == null) { continue; }
 
             place.removeNeighborSafely(neighborID);
+        }
+
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_REMOVE_NEIGHBOR_LOCAL, neighborID, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
         }
     }
 
@@ -812,7 +961,10 @@ public class GraphPlaces extends Places implements Graph {
 
         // Send message and wait for reply.
         remoteNode.sendMessage(msg);
-        Message replyMsg = remoteNode.receiveMessage();
+
+        // Message replyMsg = remoteNode.receiveMessage();
+        // change to use exchange helper for performance
+        Message replyMsg = MASSBase.getExchange().receiveMessage(remoteNode.getPid());
 
         return (VertexPlace)replyMsg.getArgument();
     }
@@ -1009,6 +1161,11 @@ public class GraphPlaces extends Places implements Graph {
             vertex.right = neighborID;
 
         places.set(localIndex, vertex);
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_SET_VERTEX_LOCAL, localIndex, vertex, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
         return true;
     }
 
@@ -1082,6 +1239,11 @@ public class GraphPlaces extends Places implements Graph {
         VertexPlace vertex = places.get(localIndex);
         vertex.addNeighbor(neighborID, weight);
         places.set(localIndex, vertex);
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_SET_VERTEX_LOCAL, localIndex, vertex, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
 
         return true;
     }
@@ -1242,6 +1404,11 @@ public class GraphPlaces extends Places implements Graph {
         VertexPlace vertex = places.get(localIndex);
         vertex.removeNeighbor(neighborID);
         places.set(localIndex, vertex);
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_SET_VERTEX_LOCAL, localIndex, vertex, MASSBase.getUserName(), sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
         
         return true;
     }
@@ -1366,6 +1533,11 @@ public class GraphPlaces extends Places implements Graph {
         // idQueue to be recycled.
         if (MASS.getMyPid() == 0) {
             idQueue.add(vertexID);
+            if (sharedPlaceName != null) {
+                // broadcast update locally
+                Message m = new Message(Message.ACTION_TYPE.DSG_IDQUEUE_ADD, MASSBase.getUserName(), vertexID, sharedPlaceName);
+                localMessaging.sendMessage(m);
+            }
         }
     }
 
@@ -1397,6 +1569,11 @@ public class GraphPlaces extends Places implements Graph {
 
         // update index counter
         nextVertexID += vertexCount;
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_NEXT_VERTEXID_UPDATE, MASSBase.getUserName(), nextVertexID, sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
     }
 
     // loadDSLGraphData is intended to be called by the system and not by 
@@ -1488,6 +1665,11 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         nextVertexID += vertexCount;
+        if (sharedPlaceName != null) {
+            // broadcast update locally
+            Message m = new Message(Message.ACTION_TYPE.DSG_NEXT_VERTEXID_UPDATE, MASSBase.getUserName(), nextVertexID, sharedPlaceName);
+            localMessaging.sendMessage(m);
+        }
     }
 
     // loadSARGraphData is intended to be called by the system and not by 
@@ -1901,6 +2083,62 @@ public class GraphPlaces extends Places implements Graph {
         }
 
         return data;
+    }
+
+    /**
+     * get the shared place name for this GraphPlaces
+     * @return if null then means this GraphPlaces is not shared
+     */
+    public String getSharedPlaceName() {
+        return sharedPlaceName;
+    }
+
+    /**
+     * Called by LocalMessageReaderThread, Received DSG_INIT_REQUEST type message from other users, help them init by providing my data
+     */
+    public void helpOtherUsersInit(String receiver) {
+        Message m = new Message(Message.ACTION_TYPE.DSG_INIT_RESPONSE, MASSBase.getUserName(), receiver, places, MASSBase.distributed_map, idQueue, nextVertexID, getSharedPlaceName());
+        localMessaging.sendMessage(m);
+    }
+
+    /**
+     * When this GraphPlaces is shared, we need to retreive previous data, use this function to set places
+     */
+    public void setPlaces(Vector<VertexPlace> places) {
+        this.places = places;
+    }
+
+    /**
+     * When this GraphPlaces is shared, we need to retreive previous data, use this function to set idQueue
+     */
+    public void setIdQueue(ConcurrentLinkedQueue<Integer> idQueue) {
+        this.idQueue = idQueue;
+    }
+
+    /**
+     * When this GraphPlaces is shared, we need to retreive previous data, use this function to set nextVertexID
+     */
+    public void setNextVertexID(int nextVertexID) {
+        this.nextVertexID = nextVertexID;
+    }
+
+    /**
+     * get the idQueue for this GraphPlaces
+     */
+    public ConcurrentLinkedQueue<Integer> getIdQueue() {
+        return this.idQueue;
+    }
+
+    /**
+     * will be called at termination of MASS program
+     * only when the GraphPlaces is shared, we terminate the localMessaging and write current data to /dev/shm for backup
+     */
+    public void finish() {
+        if (sharedPlaceName != null) {
+            MASSBase.getLogger().debug("Shared graph places, shut down local messaging and write data to /dev/shm");
+            localMessaging.shutdown();
+            sharedGraph.writeDataToShm(this.places, MASSBase.distributed_map, this.idQueue, this.nextVertexID);
+        }
     }
 
     /**
