@@ -33,7 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.function.BooleanSupplier;
 
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-
+import java.util.*;
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
@@ -115,7 +115,7 @@ public class Agents extends AgentsBase {
           partitionedArgument = null;
         }
 
-        m = new Message(type, this.getHandle(), functionId,partitionedArgument);
+        m = new Message(type, this.getHandle(), functionId, partitionedArgument);
 
         MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)+ "] arg_pos = " + argumentPosition);
 
@@ -575,6 +575,41 @@ public class Agents extends AgentsBase {
       {
           returnObject = callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
           manageAll();
+      }
+      return returnObject;
+  }
+
+  // added by Lilian
+  /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed.
+   * @param arguments contains the list of arguments for each iteration.
+   *        The argument for each iteration stores in thisArgs, 
+   *        it contains the node-relationship pattern information, 
+   *        each argument (thisArgs) is an Object[] that containes 5 items:
+   *        Obj[0] = nodeStep.labelNames;
+            Obj[1] = nodeStep.nodeProperties;
+            Obj[2] = relStep == null? (Object) "NULL" : (Object) relStep.direction;
+            Obj[3] = relStep == null? (Object) "NULL" : (Object) relStep.relTypes;
+            Obj[4] = relStep == null? (Object) "NULL" : (Object) relStep.relProperties.
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   *        each node will need one iteration of callAll() and manageAll().
+   */
+  public Object PropertyGraphDoAll(int functionId, List<Object[]> arguments, int numberOfIterations)
+  {
+      Object returnObject = null; // store return results from Agents callAll()
+
+      Object[] thisArgs; // store the arguments for different Agents
+      
+      for (int i=0; i<numberOfIterations; i++)
+      {
+        thisArgs = new Object[this.nAgents()];  // thisArgs initiated with one for each Agents
+        Arrays.fill(thisArgs, (Object) arguments.get(i)); // each Agents will have the same Object[] argument for each Agent locally
+        
+        returnObject = callAllSetup(functionId, thisArgs, Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
+        manageAll();
       }
       return returnObject;
   }

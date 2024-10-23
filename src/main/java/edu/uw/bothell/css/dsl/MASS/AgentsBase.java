@@ -35,6 +35,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import edu.uw.bothell.css.dsl.MASS.*;
+import org.apache.logging.log4j.core.config.Property;
+
 import java.util.Date;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnArrival;
@@ -236,6 +239,8 @@ public class AgentsBase {
 				+ ", argument = " + argument
 				+ ", initPopulation = " + initPopulation );
 
+		MASS.getLogger().error("Initialize Agents at remote node");
+
 		// initialize currentAgentId and localPopulation
 		currentAgentId = MASSBase.getMyPid() * MAX_AGENTS_PER_NODE;
 
@@ -255,7 +260,10 @@ public class AgentsBase {
 		// retrieve the corresponding places
 		PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
 
-		if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
+		// Lilian: added propertyGraphPlaces instance
+		if (PropertyGraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
+			initForPropertyGraph((PropertyGraphPlaces) curPlaces, (PropertyGraphAgent) protoAgent, argument);
+		} else if (GraphPlaces.class.isAssignableFrom(curPlaces.getClass())) {
 			initForGraph((GraphPlaces) curPlaces, protoAgent, argument);
 		} else {
 
@@ -468,6 +476,70 @@ public class AgentsBase {
 		}
 	}
 
+	private void initForPropertyGraph(PropertyGraphPlaces propertyGraphPlaces, PropertyGraphAgent protoAgent, Object argument) {
+		// scan each place to see how many agents it can create
+		Vector<VertexPlace> places = propertyGraphPlaces.getGraphPlaces();
+
+		int graphSize = places.size();
+		int[] placesSize = { graphSize };
+
+		MASS.getLogger().debug("At AgentsBase, initForPropertyGraph,the Graph Size is : " + graphSize);
+
+		for (int i = 0; i < graphSize; i++) {
+			// not sure what offset is supposed to be. The previous code was passing it the
+			// graph size so I continue to do that here.
+			int nColonists = 1;
+
+			MASS.getLogger().debug(" The nColonists : " + nColonists);
+
+			// Create nColonists agents
+			for (int j = 0; j < nColonists; j++) {
+				Agent newAgent = null;
+				try {
+					agentInitAgentsHandle = handle;
+					agentInitPlacesHandle = placesHandle;
+					agentInitAgentId = currentAgentId++;
+					agentInitParentId = -1; // no parent
+				
+					newAgent = (PropertyGraphAgent) objectFactory.getInstance(className, argument);
+					newAgent.setAgentId(agentInitAgentId);
+
+					if (!(newAgent instanceof PropertyGraphAgent))
+					{
+						MASS.getLogger().error("Agent Base - Init for PropertyGraphAgent Failed : ");
+						break;
+					}
+
+				} catch (Exception e) {
+					MASS.getLogger().error("Agents_base.constructor::initForGraph: {} not instaitated ", className, e);
+				}
+
+				newAgent.setPlace((PropertyVertexPlace) places.get(i));
+
+				// store this agent in the bag of agents
+				agents.add(newAgent);
+
+				// increment local population
+				localPopulation++;
+
+				// register newAgent into curPlace
+				((PropertyVertexPlace) places.get(i)).getAgents().add(newAgent);
+
+    			// register the new Agent with messaging provider
+    			MASS.getMessagingProvider().registerAgent( newAgent );
+
+				// Agent has been created
+				eventDispatcher.queueAsync(OnCreation.class, newAgent);
+
+				// Place has an arriving Agent
+				eventDispatcher.queueAsync(OnArrival.class, places.get(i));
+
+				// Agent has arrived at a Place
+				eventDispatcher.queueAsync(OnArrival.class, newAgent);
+			}
+		}
+	}
+
 	/**
 	 * For debugging, print out all agents info in the log file
 	 */
@@ -556,7 +628,7 @@ public class AgentsBase {
 	}
 
 	public void callAll( int functionId, Object[] argument, int tid ) {
-
+		MASS.getLogger().debug("At AgentsBase callAll, argument[] size: " + (argument == null ? "null" : argument.length) + ", argument: " + (argument == null ? "" : argument.toString()));
 		int numOfOriginalVectors = MThread.getAgentBagSize();
 
 		while ( true ) {
@@ -586,17 +658,35 @@ public class AgentsBase {
 				// compute where to store this agent's return value
 				// note that myIndex = agentId + 1
 				Agent tmpAgent = agents.get( myIndex - 1 );
-
+				MASS.getLogger().debug("At AgentsBase callAll, agent ID: " + tmpAgent.getAgentId());
+		
 				int argIndex = myIndex;
 
-				//Use the Agents' callMethod to have it begin running
-				if (argument != null) {
-					( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
-							tmpAgent.callMethod( functionId, argument[ myIndex - 1 ] );
+				if(PropertyGraphAgent.class.isAssignableFrom(tmpAgent.getClass())) {
+					PropertyGraphAgent currAgent = (PropertyGraphAgent) tmpAgent;
+					//Use the Agents' callMethod to have it begin running
+					if (argument != null) {
+						( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
+						currAgent.callMethod( functionId, argument[ myIndex - 1 ] );
+						MASS.getLogger().debug("                      MASSBase PropertyGraph notNull setReturns at index: " + (myIndex-1) + ", with results: " + ((Object[])MASSBase.getCurrentReturns())[myIndex-1]);
+					} else {
+						( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
+						currAgent.callMethod( functionId, null );
+						MASS.getLogger().debug("                      MASSBase PropertyGraph null setReturns at index: " + (myIndex-1) + ", with results: " + ((Object[])MASSBase.getCurrentReturns())[myIndex-1]);
+					}
 				} else {
-					// ----------- modified by Yuna
-					( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
-							tmpAgent.callMethod( functionId, null );
+					//Use the Agents' callMethod to have it begin running
+					if (argument != null) {
+						( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
+								tmpAgent.callMethod( functionId, argument[ myIndex - 1 ] );
+						MASS.getLogger().debug("                      MASSBase notNull setReturns at index: " + (myIndex-1) + ", with results: " + ((Object[])MASSBase.getCurrentReturns())[myIndex-1]);
+					} else {
+						// ----------- modified by Yuna
+						( (Object[])MASSBase.getCurrentReturns() )[myIndex - 1] =
+								tmpAgent.callMethod( functionId, null );
+						MASS.getLogger().debug("                      MASSBase null setReturns at index: " + (myIndex-1) + ", with results: " + ((Object[])MASSBase.getCurrentReturns())[myIndex-1]);
+					
+					}
 				}
 
 				MASS.getLogger().debug( "Thread [" + tid + "]: (" + argIndex +
@@ -754,18 +844,17 @@ public class AgentsBase {
 					agentInitParentId = evaluationAgent.getAgentId();
 
 					synchronized (this) {
-
-							addAgent =
-									(Agent) (// validate the correspondance of arguments and
-											// argumentcounter
-											(evaluationAgent.getArguments().length >
-													argumentcounter) ?
-													// yes: this child agent should recieve an argument.
-													objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
-													:
-													objectFactory.getInstance(className, dummyArgument)
-									);
-
+						addAgent =
+								(Agent) (// validate the correspondance of arguments and
+										// argumentcounter
+										(evaluationAgent.getArguments().length >
+												argumentcounter) ?
+												// yes: this child agent should recieve an argument.
+												objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
+												:
+												objectFactory.getInstance(className, dummyArgument)
+								);
+							
 					}
 					// Agent has been created
 					addAgent.setPlace(evaluationAgent.getPlace());
@@ -807,8 +896,7 @@ public class AgentsBase {
 							addAgent.getPlace().getAgents().add(addAgent);
 							addAgent.migrate(addAgent.getNextIndex());
 							MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - New Agent will Migrate to : "+addAgent.getNextIndex());
-						}
-						else {
+						} else {
 							addAgent.getPlace().getAgents().add(addAgent); // auto sync
 						}
 
@@ -988,14 +1076,279 @@ public class AgentsBase {
 
 	}
 
+
+	private void ManageLifeCycleEventsForPropertyGraph( int tid ) {
+		while (true) {
+			int myIndex; // each thread's agent index
+
+			Agent evaluationAgent = null;
+
+			synchronized (this) {
+
+				if ((myIndex = MThread.getAgentBagSize()) == 0)
+					break;
+
+				// Grab the last agent and remove it for processing.
+				myIndex = MThread.getAgentBagSize();
+
+				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycleForPropertyGraph - Number of Agents in the Bag : "+myIndex);
+
+				MThread.setAgentBagSize(myIndex - 1);
+
+				evaluationAgent = (PropertyGraphAgent) agents.get(myIndex - 1);
+
+				MASS.getLogger().debug("Agents_base.manageALL - ManageLifeCycleForPropertyGraph - Thread : " + tid +
+						" picked up "
+						+ evaluationAgent.getAgentId());
+
+			}
+
+			// If the spawn's newChildren field is set to anything higher than
+			// zero, we need to create newChildren's worth of Agents for every agent 
+			// in the current place location.
+
+			/******* SPAWN() CHECK *******/
+			int childrenCounter = evaluationAgent.getNewChildren();
+			
+			MASS.getLogger().debug("agent " + evaluationAgent.getAgentId() +
+					"'s childrenCounter = " + childrenCounter);
+
+			while (childrenCounter > 0) {
+
+				Agent addAgent = null;
+
+				try {
+
+					agentInitAgentsHandle = this.handle;
+					agentInitPlacesHandle = this.placesHandle;
+					agentInitParentId = evaluationAgent.getAgentId();
+
+					synchronized (this) {
+							// added by Lilian
+							// if PropertyGraphAgent, then need to pass the pathResult as argement
+							if(PropertyGraphAgent.class.isAssignableFrom(evaluationAgent.getClass())) {
+								PropertyGraphAgent currAgent = (PropertyGraphAgent) evaluationAgent;
+								addAgent = (PropertyGraphAgent) objectFactory.getInstance(className, currAgent.getPathResult());
+							} else {
+								addAgent = (Agent) (objectFactory.getInstance(className, null));
+							}
+					}
+
+					// Agent has been created
+					addAgent.setPlace((PropertyVertexPlace) evaluationAgent.getPlace());
+
+					// Call OnCreation event on the new Agent
+					eventDispatcher.queueAsync(OnCreation.class, addAgent);
+
+					/** Agent population control work begins, execution order is important! **/
+
+					// check if the agent is going to run in the system
+					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size())) {
+						// check if there is available agent id
+						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+						if (availableAgentId != null && availableAgentId > -1) {
+							addAgent.setAgentId(availableAgentId);
+						} // assign a never used id
+						else {
+							addAgent.setAgentId(this.currentAgentId++);
+						}
+
+						if (addAgent instanceof PropertyGraphAgent) // added by Lilian
+						{
+							addAgent.getPlace().getAgents().add(addAgent);
+							addAgent.setNextIndex(((PropertyVertexPlace) addAgent.getPlace()).getNeighborByIndex(childrenCounter-1));
+							addAgent.setIndex(new int[]{addAgent.getNextIndex()});
+							addAgent.setMigrating(true);
+						}
+						else {
+							addAgent.getPlace().getAgents().add(addAgent); // auto sync
+						}
+
+						this.agents.add(addAgent);           // auto syn
+
+						// register the new Agent with messaging provider now that its ID has been set
+						MASS.getMessagingProvider().registerAgent(addAgent);
+
+						// queue Place OnArrival method
+						eventDispatcher.queueAsync(OnArrival.class, addAgent.getPlace());
+
+						// queue Agent OnArrival method
+						eventDispatcher.queueAsync(OnArrival.class, addAgent);
+
+					}
+
+				} catch (Exception e) {
+					// TODO - now what? What to do when an exception is thrown?
+					MASS.getLogger().error("Agents_base.manageAll- ManageLifeCycle: {} not instantiated", this.className, e);
+				}
+
+				// Decrement the newChildren counter once an Agent has been
+				// spawned
+				childrenCounter--;
+
+
+				MASS.getLogger().debug("Agent_base.manageALL- ManageLifeCycleForPropertyGraph: Thread " + tid +
+						" spawned a child of agent " +
+						evaluationAgent.getAgentId() +
+						" and put the child " + addAgent.getAgentId() +
+						" child into the AgentBag.");
+
+			}
+
+			/******* KILL() CHECK *******/
+			MASS.getLogger().debug("Agent_base.manageALL- ManageLifeCycle: Thread " + tid +
+					" check " + evaluationAgent.getAgentId() +
+					"'s alive flag = " + evaluationAgent.isAlive());
+
+			if (evaluationAgent.isAlive() == false) {
+				// Get the place in which evaluationAgent is 'stored' in
+				PropertyVertexPlace evaluationPlace = (PropertyVertexPlace) evaluationAgent.getPlace();
+				// remove the agent from this place
+				evaluationPlace.getAgents().remove(evaluationAgent);
+
+				// remove from AgentList, too!
+				agents.remove(myIndex - 1);
+
+				MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycleForPropertyGraph - Agent "+evaluationAgent.getAgentId()+"Has been removed from Agent list");
+
+				/** Agent population control work begins, execution order is important! **/
+
+				// every time we kill an agent, we should add its id to the available ids queue
+				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
+
+				// then we check if there is any agent spawn request
+				Agent agentSpawnRequest = (PropertyGraphAgent) agentSpawnRequestManager.getNextAgentSpawnRequest();
+				if (agentSpawnRequest != null) {
+					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
+
+					// check if there is available agent id
+					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+					if (availableAgentId > -1) {
+						agentSpawnRequest.setAgentId(availableAgentId);
+					}
+					// assign a never used id
+					else {
+						agentSpawnRequest.setAgentId(this.currentAgentId++);
+					}
+
+					// retrieve the corresponding places
+					PlacesBase curPlaces = (PropertyGraphPlaces) MASSBase.getPlacesMap().get(placesHandle);
+					int globalLinearIndex = MatrixUtilities.getLinearIndex(curPlaces.getSize(), agentSpawnRequest.getIndex());
+
+					// local destination
+					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
+
+					MASS.getLogger().debug("Agent Spawn Request current place Index is : "+ agentSpawnRequest.getIndex()[0]);
+					MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : "+destinationLocalLinearIndex+" " +
+							"Global Linear Index is : "+globalLinearIndex+" Places Lower Boundary is " + curPlaces.getLowerBoundary());
+
+					// changes from Jonathan
+					Place curPlace = null;
+					if (curPlaces instanceof GraphPlaces) // added line jonathan Empty graph does not initialize places[]
+					{
+
+						curPlace = ((GraphPlaces) curPlaces).getVertexPlace(agentSpawnRequest.getIndex()[0]);    // vertexPlace used instead of getPlaces[n]
+
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : " + destinationLocalLinearIndex + " " +
+								"Picked up place from Graphplaces");
+					} else if (curPlaces instanceof PropertyGraphPlaces) // added line jonathan Empty graph does not initialize places[]
+					{
+
+						curPlace = ((PropertyGraphPlaces) curPlaces).getVertex(agentSpawnRequest.getIndex()[0]);    // vertexPlace used instead of getPlaces[n]
+
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : " + destinationLocalLinearIndex + " " +
+								"Picked up place from Graphplaces");
+					}
+					else {
+						curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - destinationLocalLinearIndex is : " + destinationLocalLinearIndex + " " +
+								"Picked up place from Places");
+					}
+					// changes done
+
+					// push this agent into the place and the entire agent bag.
+					agentSpawnRequest.setPlace(curPlace);
+
+					// Push the created agent into our bag for returns and
+					// update the counter needed to keep track of our agents.
+					agentSpawnRequest.getPlace().getAgents().add(agentSpawnRequest); // auto sync
+					this.agents.add(agentSpawnRequest);           // auto syn
+
+
+					//Migrate to next coordinate if it is Space Agent
+					if (agentSpawnRequest instanceof SpaceAgent)
+					{
+						SpaceAgent spaceAgentSpawnRequest = (SpaceAgent)agentSpawnRequest;
+						SpacePlace spacePlace = (SpacePlace) spaceAgentSpawnRequest.getPlace();
+						spacePlace.addAgent(spaceAgentSpawnRequest, spaceAgentSpawnRequest.getSubIndex());
+
+						MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Frozen Agent revived : "+ spaceAgentSpawnRequest.getAgentId() + "Added to " +
+								"place : ("+spaceAgentSpawnRequest.getIndex()[0] + " , " +spaceAgentSpawnRequest.getIndex()[1]+")"+
+								"and Sub Index : ("+spaceAgentSpawnRequest.getSubIndex()[0]+" , "+spaceAgentSpawnRequest.getSubIndex()[1]+")");
+
+						spaceAgentSpawnRequest.migrate(spaceAgentSpawnRequest.getNextCoordinates());
+						MASS.getLogger().debug("Agents_base.manageAllspace - ManageLifeCycle - New Agent will Migrate to : "+spaceAgentSpawnRequest.getNextCoordinates()[0] + " , " +
+								""+ spaceAgentSpawnRequest.getNextCoordinates()[1]);
+					}
+					else if (agentSpawnRequest instanceof SmartAgent && agentSpawnRequest.getNextIndex() != -1)
+					{
+						agentSpawnRequest.migrate(agentSpawnRequest.getNextIndex());
+						MASS.getLogger().debug("Agents_base.manageAll- ManageLifeCycle - SpawnMgr - New Agent will Migrate to : "+agentSpawnRequest.getNextIndex());
+					}
+
+					// register the new Agent with messaging provider
+					MASS.getMessagingProvider().registerAgent(agentSpawnRequest);
+
+					// init the Agent immediately
+					try {
+						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest);
+					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+
+						e.printStackTrace();
+						MASS.getLogger().error("Exception caught during initialization of serialized Agent", e);
+
+					}
+
+					// queue remaining events for the newly activated Agent
+					eventDispatcher.queueAsync(OnArrival.class, curPlace);
+					eventDispatcher.queueAsync(OnArrival.class, agentSpawnRequest);
+
+				}
+
+				// don't go down to migrate
+				continue;
+
+			}
+		}  // end of while(true)
+
+		MThread.barrierThreads(tid);
+
+		if (tid == 0)
+		{
+			this.agents.reduce( ); //Reduce the AgentList after Agent Removal and Addition
+			MThread.setAgentBagSize(MASSBase.getAgentsMap().get(getHandle()).getAgents().size_unreduced());
+			MASS.getLogger().debug("Agents_base size manageAll- after ManageLifeCycle - Agent bag size is "+ MThread.getAgentBagSize());
+		}
+
+		// all threads must barrier synchronize here.
+		MThread.barrierThreads(tid);
+
+	}
+
 	public void manageAll( int tid ) {
 
 		MASS.getLogger().debug("Agents_base size manageAll- Before ManageLifeCycle - Agent bag size is "+ MThread.getAgentBagSize());
-		ManageLifeCycleEvents (tid); //Spawn, Kill agents and update the bag of Agents
+		PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
+		if(PropertyGraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) { // added by Lilian
+			ManageLifeCycleEventsForPropertyGraph(tid);  //Spawn, Kill agents and update the bag of Agents
+		} else {
+		 	ManageLifeCycleEvents(tid); //Spawn, Kill agents and update the bag of Agents
+		}
 
 		// Get the PlacesBase to access our agents fromvfor agent instantiation,
 		// and our bag for Agent objects after they have finished processing
-		PlacesBase evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
+		evaluatedPlaces	= MASSBase.getPlacesMap().get( placesHandle );
 
 		// Spawn, Kill, Migrate. Check in that order throughout the bag of
 		// agents  sequentially.
@@ -1025,200 +1378,200 @@ public class AgentsBase {
 						+ evaluationAgent.getAgentId() );
 
 			}
-//
-//			/***************START COMMENTING THIS AS A PART OF MANAGEALL EFFICIENCY*************************
-//			int argumentcounter = 0;
-//
-//			// If the spawn's newChildren field is set to anything higher than
-//			// zero, we need to create newChildren's worth of Agents in the
-//			// current location.
-//
-//			/******* SPAWN() CHECK *******/
-//			int childrenCounter = evaluationAgent.getNewChildren();
-//
-//			MASS.getLogger().debug( "agent " + evaluationAgent.getAgentId() +
-//					"'s childrenCounter = " + childrenCounter );
-//
-//			while ( childrenCounter > 0 ) {
-//
-//				MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-//						" will spawn a child of agent " +
-//						evaluationAgent.getAgentId() +
-//						"...arguments.size( ) = " +
-//						evaluationAgent.getArguments().length +
-//						", argumentcounter = " + argumentcounter );
-//
-//				Agent addAgent = null;
-//				Object dummyArgument = new Object( );
-//
-//				try {
-//
-//					agentInitAgentsHandle = this.handle;
-//					agentInitPlacesHandle = this.placesHandle;
-//					agentInitParentId = evaluationAgent.getAgentId();
-//
-//					synchronized( this ) {
-//
-//						addAgent =
-//								(Agent) (// validate the correspondance of arguments and
-//										// argumentcounter
-//										(evaluationAgent.getArguments().length >
-//										argumentcounter) ?
-//												// yes: this child agent should recieve an argument.
-//												objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
-//												:
-//													objectFactory.getInstance(className, dummyArgument)
-//										);
-//
-//					}
-//
-//					addAgent.setPlace(evaluationAgent.getPlace());
-//
-//    				// Agent has been created
-//
-//    				// register the new Agent with messaging provider
-//        			MASS.getMessagingProvider().registerAgent( addAgent );
-//
-//        			// Call OnCreation event on the new Agent
-//    				eventDispatcher.queueAsync( OnCreation.class, addAgent );
-//
-//					/** Agent population control work begins, execution order is important! **/
-//
-//					// check if the agent is going to run in the system
-//					if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size()))
-//					{
-//						// check if there is available agent id
-//						Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-//						if (availableAgentId != null && availableAgentId > -1)
-//						{
-//							addAgent.setAgentId(availableAgentId);
-//						}
-//						// assign a never used id
-//						else
-//						{
-//							addAgent.setAgentId(this.currentAgentId++);
-//						}
-//
-//						// Push the created agent into our bag for returns and
-//						// update the counter needed to keep track of our agents.
-//						addAgent.getPlace().getAgents().add( addAgent ); // auto sync
-//						this.agents.add( addAgent );           // auto syn
-//
-//						// queue Place OnArrival method
-//						eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
-//
-//						// queue Agent OnArrival method
-//						eventDispatcher.queueAsync( OnArrival.class, addAgent );
-//
-//					}
-//
-//				} catch ( Exception e ) {
-//					// TODO - now what? What to do when an exception is thrown?
-//					MASS.getLogger().error( "Agents_base.manageAll: {} not instantiated", this.className, e );
-//				}
-//
-//				// Decrement the newChildren counter once an Agent has been
-//				// spawned
-//				evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
-//				childrenCounter--;
-//
-//				MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-//						" spawned a child of agent " +
-//						evaluationAgent.getAgentId() +
-//						" and put the child " + addAgent.getAgentId() +
-//						" child into retBag." );
-//
-//				/**
-//				 * every time we spawn a new agent, we should check if there is available index first!!!
-//				 * */
-//
-//			}
-//			/*****************************/
-//
-//			/******* KILL() CHECK *******/
-//			MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
-//					" check " + evaluationAgent.getAgentId() +
-//					"'s alive = " + evaluationAgent.isAlive() );
-//
-//			if ( evaluationAgent.isAlive() == false ) {
-//
-//				// Get the place in which evaluationAgent is 'stored' in
-//				Place evaluationPlace = evaluationAgent.getPlace();
-//
-//				// remove the agent from this place
-//				evaluationPlace.getAgents().remove( evaluationAgent );
-//
-//				// remove from AgentList, too!
-//				agents.remove( myIndex - 1 );
-//
-//				/** Agent population control work begins, execution order is important! **/
-//
-//				// every time we kill an agent, we should add its id to the available ids queue
-//				agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
-//
-//				// then we check if there is any agent spawn request
-//				Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
-//				if (agentSpawnRequest != null)
-//				{
-//					// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
-//
-//					// check if there is available agent id
-//					Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
-//					if (availableAgentId > -1)
-//					{
-//						agentSpawnRequest.setAgentId(availableAgentId);
-//					}
-//					// assign a never used id
-//					else
-//					{
-//						agentSpawnRequest.setAgentId(this.currentAgentId++);
-//					}
-//
-//					// retrieve the corresponding places
-//					PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
-//					int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
-//
-//					// local destination
-//					int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
-//					// changes from Jonathan
-//					Place curPlace = null;
-//					if (curPlaces.getPlaces() == null) // added line jonathan Empty graph does not initialize places[]
-//						curPlace = ((GraphPlaces)curPlaces).getVertexPlace(destinationLocalLinearIndex);	// vertexPlace used instead of getPlaces[n]
-//					else
-//						curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
-//					// changes done
-//
-//					// push this agent into the place and the entire agent bag.
-//					agentSpawnRequest.setPlace(curPlace);
-//
-//					// Push the created agent into our bag for returns and
-//					// update the counter needed to keep track of our agents.
-//					agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
-//					this.agents.add( agentSpawnRequest );           // auto syn
-//
-//	    			// register the new Agent with messaging provider
-//	    			MASS.getMessagingProvider().registerAgent( agentSpawnRequest );
-//
-//					// init the Agent immediately
-//					try {
-//						eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
-//					} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-//
-//						e.printStackTrace();
-//						MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );
-//
-//					}
-//
-//					// queue remaining events for the newly activated Agent
-//					eventDispatcher.queueAsync( OnArrival.class, curPlace );
-//					eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );
-//
-//				}
-//
-//				// don't go down to migrate
-//				continue;
-//
-//			}
+
+			// /***************START COMMENTING THIS AS A PART OF MANAGEALL EFFICIENCY*************************/
+			// int argumentcounter = 0;
+
+			// // If the spawn's newChildren field is set to anything higher than
+			// // zero, we need to create newChildren's worth of Agents in the
+			// // current location.
+
+			// /******* SPAWN() CHECK *******/
+			// int childrenCounter = evaluationAgent.getNewChildren();
+
+			// MASS.getLogger().debug( "agent " + evaluationAgent.getAgentId() +
+			// 		"'s childrenCounter = " + childrenCounter );
+
+			// while ( childrenCounter > 0 ) {
+
+			// 	MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
+			// 			" will spawn a child of agent " +
+			// 			evaluationAgent.getAgentId() +
+			// 			"...arguments.size( ) = " +
+			// 			evaluationAgent.getArguments().length +
+			// 			", argumentcounter = " + argumentcounter );
+
+			// 	Agent addAgent = null;
+			// 	Object dummyArgument = new Object( );
+
+			// 	try {
+
+			// 		agentInitAgentsHandle = this.handle;
+			// 		agentInitPlacesHandle = this.placesHandle;
+			// 		agentInitParentId = evaluationAgent.getAgentId();
+
+			// 		synchronized( this ) {
+
+			// 			addAgent =
+			// 					(Agent) (// validate the correspondance of arguments and
+			// 							// argumentcounter
+			// 							(evaluationAgent.getArguments().length >
+			// 							argumentcounter) ?
+			// 									// yes: this child agent should recieve an argument.
+			// 									objectFactory.getInstance(className, evaluationAgent.getArguments()[argumentcounter++])
+			// 									:
+			// 										objectFactory.getInstance(className, dummyArgument)
+			// 							);
+
+			// 		}
+
+			// 		addAgent.setPlace(evaluationAgent.getPlace());
+
+   			// 	// Agent has been created
+
+   			// 	// register the new Agent with messaging provider
+       		// 	MASS.getMessagingProvider().registerAgent( addAgent );
+
+       		// 	// Call OnCreation event on the new Agent
+   			// 	eventDispatcher.queueAsync( OnCreation.class, addAgent );
+
+			// 		/** Agent population control work begins, execution order is important! **/
+
+			// 		// check if the agent is going to run in the system
+			// 		if (agentSpawnRequestManager.shouldAgentRunInTheSystem(addAgent, this.agents.size()))
+			// 		{
+			// 			// check if there is available agent id
+			// 			Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+			// 			if (availableAgentId != null && availableAgentId > -1)
+			// 			{
+			// 				addAgent.setAgentId(availableAgentId);
+			// 			}
+			// 			// assign a never used id
+			// 			else
+			// 			{
+			// 				addAgent.setAgentId(this.currentAgentId++);
+			// 			}
+
+			// 			// Push the created agent into our bag for returns and
+			// 			// update the counter needed to keep track of our agents.
+			// 			addAgent.getPlace().getAgents().add( addAgent ); // auto sync
+			// 			this.agents.add( addAgent );           // auto syn
+
+			// 			// queue Place OnArrival method
+			// 			eventDispatcher.queueAsync( OnArrival.class, addAgent.getPlace() );
+
+			// 			// queue Agent OnArrival method
+			// 			eventDispatcher.queueAsync( OnArrival.class, addAgent );
+
+			// 		}
+
+			// 	} catch ( Exception e ) {
+			// 		// TODO - now what? What to do when an exception is thrown?
+			// 		MASS.getLogger().error( "Agents_base.manageAll: {} not instantiated", this.className, e );
+			// 	}
+
+			// 	// Decrement the newChildren counter once an Agent has been
+			// 	// spawned
+			// 	evaluationAgent.setNewChildren(evaluationAgent.getNewChildren() - 1);
+			// 	childrenCounter--;
+
+			// 	MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
+			// 			" spawned a child of agent " +
+			// 			evaluationAgent.getAgentId() +
+			// 			" and put the child " + addAgent.getAgentId() +
+			// 			" child into retBag." );
+
+			// 	/**
+			// 	 * every time we spawn a new agent, we should check if there is available index first!!!
+			// 	 * */
+
+			// }
+			// /*****************************/
+
+			// /******* KILL() CHECK *******/
+			// MASS.getLogger().debug( "Agent_base.manageALL: Thread " + tid +
+			// 		" check " + evaluationAgent.getAgentId() +
+			// 		"'s alive = " + evaluationAgent.isAlive() );
+
+			// if ( evaluationAgent.isAlive() == false ) {
+
+			// 	// Get the place in which evaluationAgent is 'stored' in
+			// 	Place evaluationPlace = evaluationAgent.getPlace();
+
+			// 	// remove the agent from this place
+			// 	evaluationPlace.getAgents().remove( evaluationAgent );
+
+			// 	// remove from AgentList, too!
+			// 	agents.remove( myIndex - 1 );
+
+			// 	/** Agent population control work begins, execution order is important! **/
+
+			// 	// every time we kill an agent, we should add its id to the available ids queue
+			// 	agentSpawnRequestManager.addAvailableAgentId(evaluationAgent.getAgentId());
+
+			// 	// then we check if there is any agent spawn request
+			// 	Agent agentSpawnRequest = agentSpawnRequestManager.getNextAgentSpawnRequest();
+			// 	if (agentSpawnRequest != null)
+			// 	{
+			// 		// TODO VERIFY IF INDEX AND PLACE INFORMATION ARE CORRECT!!
+
+			// 		// check if there is available agent id
+			// 		Integer availableAgentId = agentSpawnRequestManager.getNextAvailableAgentId();
+			// 		if (availableAgentId > -1)
+			// 		{
+			// 			agentSpawnRequest.setAgentId(availableAgentId);
+			// 		}
+			// 		// assign a never used id
+			// 		else
+			// 		{
+			// 			agentSpawnRequest.setAgentId(this.currentAgentId++);
+			// 		}
+
+			// 		// retrieve the corresponding places
+			// 		PlacesBase curPlaces = MASSBase.getPlacesMap().get( placesHandle );
+			// 		int globalLinearIndex = MatrixUtilities.getLinearIndex( curPlaces.getSize(), agentSpawnRequest.getIndex() );
+
+			// 		// local destination
+			// 		int destinationLocalLinearIndex = globalLinearIndex - curPlaces.getLowerBoundary();
+			// 		// changes from Jonathan
+			// 		Place curPlace = null;
+			// 		if (curPlaces.getPlaces() == null) // added line jonathan Empty graph does not initialize places[]
+			// 			curPlace = ((GraphPlaces)curPlaces).getVertexPlace(destinationLocalLinearIndex);	// vertexPlace used instead of getPlaces[n]
+			// 		else
+			// 			curPlace = curPlaces.getPlaces()[destinationLocalLinearIndex];
+			// 		// changes done
+
+			// 		// push this agent into the place and the entire agent bag.
+			// 		agentSpawnRequest.setPlace(curPlace);
+
+			// 		// Push the created agent into our bag for returns and
+			// 		// update the counter needed to keep track of our agents.
+			// 		agentSpawnRequest.getPlace().getAgents().add( agentSpawnRequest ); // auto sync
+			// 		this.agents.add( agentSpawnRequest );           // auto syn
+
+	    	// 		// register the new Agent with messaging provider
+	    	// 		MASS.getMessagingProvider().registerAgent( agentSpawnRequest );
+
+			// 		// init the Agent immediately
+			// 		try {
+			// 			eventDispatcher.invokeImmediate(OnCreation.class, agentSpawnRequest );
+			// 		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+
+			// 			e.printStackTrace();
+			// 			MASS.getLogger().error( "Exception caught during initialization of serialized Agent", e );
+
+			// 		}
+
+			// 		// queue remaining events for the newly activated Agent
+			// 		eventDispatcher.queueAsync( OnArrival.class, curPlace );
+			// 		eventDispatcher.queueAsync( OnArrival.class, agentSpawnRequest );
+
+			// 	}
+
+			// 	// don't go down to migrate
+			// 	continue;
+
+			// }
 
 			/******* MIGRATE() CHECK *******/
 
@@ -1226,6 +1579,11 @@ public class AgentsBase {
 			// if not, no point doing anything else
 			if ( !evaluationAgent.isMigrating() ) continue;
 
+			// for each place, clear NextVertex, added by Lilian
+			if(PropertyGraphAgent.class.isAssignableFrom(evaluationAgent.getClass()) && ((PropertyVertexPlace) evaluationAgent.getPlace()).getNextVertexSize() != 0) {
+				((PropertyVertexPlace) evaluationAgent.getPlace()).clearNextVertex();;
+			}
+			
 			//Iterate over all dimensions of the agent to check its location
 			//against that of its place. If they are the same, return back.
 			int agentIndex = evaluationAgent.getIndex().length;
@@ -1242,7 +1600,7 @@ public class AgentsBase {
 					" (destCoord[" + destCoord[0] +
 					"]..)" );
 
-			if( !GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass()) && destCoord[0] != -1 ) { 
+			if( (!GraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass()) && !PropertyGraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass())) && destCoord[0] != -1 ) { 
 
 				// destination valid
 				int globalLinearIndex = MatrixUtilities.getLinearIndex( evaluatedPlaces.getSize(), destCoord );
@@ -1385,6 +1743,47 @@ public class AgentsBase {
 					evaluationAgent.setPlace(null);
 
 					AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, evaluationAgent);
+
+					Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
+
+					synchronized (migrationRequestVector) {
+						migrationRequestVector.add(request);
+					}
+				}
+			} else if (PropertyGraphPlaces.class.isAssignableFrom(evaluatedPlaces.getClass()) ) {
+				PropertyGraphPlaces graphPlaces = (PropertyGraphPlaces) evaluatedPlaces;
+
+				int globalLinearIndex = evaluationAgent.getIndex()[0];
+				int nodeId = graphPlaces.getOwnerID(globalLinearIndex);
+
+				if (nodeId == MASSBase.getMyPid()) {
+					// local migration
+					int localIndex = globalLinearIndex / MASS.getSystemSize();
+					Place oldPlace = evaluationAgent.getPlace();
+
+					if (oldPlace.getAgents().remove(evaluationAgent) == false) {
+						// should not happen
+						String errorMessage = "evaluationAgent {}" +
+								evaluationAgent.getAgentId()
+						+ " couldn't been found in " +
+						"the old place!";
+
+						MASS.getLogger().error(errorMessage);
+
+						// throw it back to our new fatal exception handler
+						throw new RuntimeException(errorMessage);
+					}
+
+					evaluationAgent.setPlace(graphPlaces.places.get(localIndex));
+
+					evaluationAgent.getPlace().getAgents().add(evaluationAgent);
+				} else {
+					// remote migration
+					agents.remove(myIndex - 1);
+
+					evaluationAgent.setPlace(null);
+
+					AgentMigrationRequest request = new AgentMigrationRequest(globalLinearIndex, (PropertyGraphAgent) evaluationAgent);
 
 					Vector<AgentMigrationRequest> migrationRequestVector = MASSBase.getMigrationRequests().get(nodeId);
 
