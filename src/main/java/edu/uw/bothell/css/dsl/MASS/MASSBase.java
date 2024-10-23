@@ -38,6 +38,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import java.util.Iterator;
 
 import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
 import edu.uw.bothell.css.dsl.MASS.clock.SimpleGlobalClock;
@@ -82,7 +83,7 @@ public class MASSBase {
 	// TODO: We should have access checks. This should also not just be a public static member of MASS
 	//       For example: Maybe only places should have access to the map
 	//                           key,    global index
-	public static DistributedMap<Object, Integer> distributed_map;
+	public static MASSSimpleDistributedMap<Object, Integer> distributed_map;
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
@@ -113,6 +114,7 @@ public class MASSBase {
     
     // global logical clock
     private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
+
 
 	/**
      * Add a new node to the cluster
@@ -148,14 +150,33 @@ public class MASSBase {
     }
 
 	protected static void finish() {
+		/*
 		try {
 			distributed_map.close();
 		} catch (IOException e) {
 			logger.error("Error closing dmap instance:");
 
 			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
+		}*/
+		distributed_map.close();
+	}
+
+	// this will be called by MASS on master node, by MProcess on slave nodes
+	// to finish the shared graph places
+	public static void finishSharedGraphPlaces() {
+		logger.debug("finish shared place");
+		Iterator<Integer> iterator = placesMap.keySet().iterator();
+		while (iterator.hasNext()) {
+			Integer key = iterator.next();
+			PlacesBase value = placesMap.get(key);
+			if (value instanceof GraphPlaces) {
+				logger.debug("GraphPlaces found, finish it");
+				GraphPlaces gp = (GraphPlaces)value;
+				gp.finish();
+			}
 		}
 	}
+
 
 	/**
      * Get Agents class for a specific Agents Handle ID
@@ -432,6 +453,14 @@ public class MASSBase {
 		// must be using a legacy method of init, use the old method
 		return systemSize;
 
+	}
+
+	/**
+	 * Get the username of user who runs the current MASS program, used for multi-user feature
+	 * @return The username
+	 */
+	public static String getUserName() {
+		return thisNode.getUserName();
 	}
 
 	/**
@@ -789,6 +818,14 @@ public class MASSBase {
 		
 		thisNode.setMassHome( workingDirectory );
 		
+	}
+
+	/**
+	 * Set the distributed_map for this node, since it's accessing a shared graph that has been stored on cluster
+	 * @param newdisMap The new distributed_map for this node
+	 */
+	public static void setDistributedMap(MASSSimpleDistributedMap<Object, Integer> newdisMap) {
+		distributed_map = newdisMap;
 	}
 
 	/**
