@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 public class PropertyGraphPlaces extends GraphPlaces {
+		// sharedPlaceName is the identifier for a shared place
+		protected String sharedPlaceName = null;
 
     public PropertyGraphPlaces() {
         super();
@@ -59,7 +61,7 @@ public class PropertyGraphPlaces extends GraphPlaces {
 
         Vector<String> hosts = getHosts();
 
-        InitArgs initArgs = new InitArgs(this.getHandle(), this.getClassName(), this.getClass().getName());
+        InitArgs initArgs = new InitArgs(this.getHandle(), this.getClassName(), this.getClass().getName(), this.sharedPlaceName);
 
         Message message = new Message(Message.ACTION_TYPE.PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH, getSize(),
                 getHandle(), getClassName(),
