@@ -76,6 +76,8 @@ public class MProcess {
 	public static final String CMD_ARG_SERVER_PORT = "SERVERPORT";
 	public static final String CMD_ARG_WORKING_DIRECTORY = "WORKDIR";
 	public static final String CMD_ARG_MAX_AGENTS = "MAXAGENTS";
+	// for shared feature
+	public static final String CMD_ARG_USERNAME = "USERNAME";
 
 	/**
 	 * MProcesses are the MASS threads executing on various machines. They are
@@ -106,7 +108,7 @@ public class MProcess {
 		}
 
 		// perform normal init
-		init( hostName, myPid, nProc, nThr, port, curDir, null );
+		init( hostName, myPid, nProc, nThr, port, curDir, null, null );
 		
 	}
 
@@ -123,8 +125,8 @@ public class MProcess {
 	 * @param curDir The working directory this remote node should use
 	 * @param clusterCommunicationsAddress The IP address and port that this cluster uses for communications
 	 */
-	public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
-		init( hostName, myPid, nProc, nThr, port, curDir,  clusterCommunicationsAddress );
+	public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress, String username ) {
+		init( hostName, myPid, nProc, nThr, port, curDir,  clusterCommunicationsAddress, username );
 	}
 
 	/**
@@ -145,6 +147,7 @@ public class MProcess {
 		int serverPort = 0;
 		String curDir = null;
 		int maxNumberOfAgents = 0;
+		String username = null;
 
 		MASSBase.getLogger().debug( "MProcess - main" );
 
@@ -215,6 +218,11 @@ public class MProcess {
 							maxNumberOfAgents = Integer.parseInt( value );
 							MASSBase.getLogger().debug( "Max number of agents set to {}", maxNumberOfAgents );
 							break;
+						
+						case CMD_ARG_USERNAME:
+							username = value;
+							MASSBase.getLogger().debug( "Username set to {}", username);
+							break;
 
 						default:
 							MASSBase.getLogger().debug( "Argument {} not recognized!", splitArg[ 1 ] );
@@ -235,7 +243,7 @@ public class MProcess {
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
 		try {
-			MProcess mprocess = new MProcess( hostName, myPid, nProc, nThreads, serverPort, curDir, clusterCommunicationsAddress );
+			MProcess mprocess = new MProcess( hostName, myPid, nProc, nThreads, serverPort, curDir, clusterCommunicationsAddress, username );
 			mprocess.start();
 		} catch (Exception e) {
 			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
@@ -246,7 +254,7 @@ public class MProcess {
 	}
 
 	// Initialize this MProcess (this used to be handled by a single constructor)
-	private void init( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress ) {
+	private void init( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress, String username ) {
 
 		this.myPid = myPid;
 
@@ -256,6 +264,7 @@ public class MProcess {
 		thisNode.setPid(myPid);
 		thisNode.setPort(port);
 		thisNode.setMassHome(curDir);
+		thisNode.setUserName(username);
 
 		MASS.setNumThreads(nThr);
 		MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
@@ -337,6 +346,12 @@ public class MProcess {
 
 		}
 
+	}
+
+	// this can only be used when places was initialized, because exchange helper is initialized when places are created
+	// use for sending potential large messages
+	private void sendMessageByExchangeHelper(Message msg) {
+		MASSBase.getExchange().sendMessage(0, msg);
 	}
 
 	private void sendReturnValues(Object argument) {
@@ -427,7 +442,8 @@ public class MProcess {
 				break;
 
 			case FINISH:
-
+				// shutdown shared graphPlaces
+				MASSBase.finishSharedGraphPlaces();
 				// shutdown messaging system
 		    	MASS.getMessagingProvider().shutdown();
 
@@ -487,16 +503,17 @@ public class MProcess {
 				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
 				InitArgs initArgs = (InitArgs)argument;
 
-				Object graphPlace = null;
+				/*Object graphPlace = null;
 				try {
 					Class<?> cls = Class.forName(initArgs.className);
-					Constructor<?> contructor = cls.getConstructor(int.class, String.class);
-					graphPlace = contructor.newInstance(initArgs.handle, initArgs.vertexClassName);
+					Constructor<?> contructor = cls.getConstructor(int.class, String.class, String.class);
+					graphPlace = contructor.newInstance(initArgs.handle, initArgs.vertexClassName, initArgs.sharedPlaceName);
 				} catch (Exception e) {
 					MASSBase.getLogger().error("PLACES_INITIALIZE_GRAPH exception thrown: " + e);
 				}
 
-				places = (PlacesBase)graphPlace;
+				places = (PlacesBase)graphPlace;*/
+				places = new GraphPlaces(initArgs.handle, initArgs.vertexClassName, initArgs.sharedPlaceName);
 
 				// establish all inter-node connections within setHosts( )
 				MASSBase.setHosts( m.getHosts() );
@@ -943,7 +960,9 @@ public class MProcess {
 					handle,
 					vertex
 				);
-				sendMessage(msg);
+				// sendMessage(msg);
+				// change to use exchange helper for performance
+				sendMessageByExchangeHelper(msg);
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
 				break;
@@ -1112,7 +1131,10 @@ public class MProcess {
 
 				places = MASS.getPlaces(m.getHandle());
 
-				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
+				
+				// sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
+				// change to use exchange helper for performance
+				sendMessageByExchangeHelper(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;

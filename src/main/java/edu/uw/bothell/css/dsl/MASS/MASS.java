@@ -177,6 +177,7 @@ public class MASS extends MASSBase {
 		MASS.getLogger().debug("MASS Shutting Down...");
 
  		MASSBase.finish();
+		MASSBase.finishSharedGraphPlaces();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
@@ -207,8 +208,13 @@ public class MASS extends MASSBase {
     	MASS.getMessagingProvider().shutdown();
     	
     	MASS.getLogger().debug( "MASS::finish: done" );
-		MASS.getLogger().debug("MASS Shutdown Finished");
-    	
+			MASS.getLogger().debug("MASS Shutdown Finished");
+				
+			System.out.println("MASS Shutdown Finished");
+			
+				// force termination of this node
+			// TODO - this is an ugly hack, but it guarantees termination regardless of the state of things
+			System.exit(0);
     }
     
     /**
@@ -441,6 +447,9 @@ public class MASS extends MASSBase {
 			if ( clusterCommunicationsAddress != null ) {
 				commandBuilder.append( " " + MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
 			}
+
+			// username is necessary for shared graph
+			commandBuilder.append(" " + MProcess.CMD_ARG_USERNAME + "=" + node.getUserName() + " ");
 			
     		// debug
     		MASS.getLogger().debug( "MProcess on " + node.getHostName() +

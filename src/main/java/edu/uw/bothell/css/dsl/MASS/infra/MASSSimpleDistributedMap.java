@@ -45,13 +45,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 import java.util.concurrent.TimeUnit;
+import java.io.Serializable;
 
 import edu.uw.bothell.css.dsl.MASS.MASS;
 import edu.uw.bothell.css.dsl.MASS.annotations.OnMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.NodeToNodeMessenger;
 import edu.uw.bothell.css.dsl.MASS.messaging.NodeToNodeMessage;
 
-public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMessenger<MASSMapMsg> implements DistributedMap<key_type, value_type> {
+public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMessenger<MASSMapMsg> implements Serializable, DistributedMap<key_type, value_type> {
     // map is the hash map used to store key/value pairs on this node.
     protected Map<key_type, value_type> map = new ConcurrentHashMap<key_type, value_type>();
 
@@ -60,7 +61,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
 
     // md is the MessageDigest used to hash keys to determine their location
     // in the hash ring.
-    protected MessageDigest md = null;
+    // protected MessageDigest md = null;
 
     // KEYS_PER_NODE is the number of key entries per node in the consistent
     // hash ring for each node in the cluster.
@@ -83,6 +84,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
         super();
 
         // Initialize message digest instance
+        /*
         try {
             this.md = MessageDigest.getInstance(KEY_HASH_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
@@ -90,9 +92,10 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
 
             return;
         }
+        */
 
         // Initialzie node keys for hash ring
-        this.nodeKeys = initializeNodeKeys(MASS.getSystemSize(), KEYS_PER_NODE, this.md);
+        this.nodeKeys = initializeNodeKeys(MASS.getSystemSize(), KEYS_PER_NODE, getMessageDigest());
     }
 
     /**
@@ -150,7 +153,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
     @Override
     public boolean containsKey(Object key) {
         // get owning node of provided key
-        Long keyDigest = hashObject(key, this.md);
+        Long keyDigest = hashObject(key, getMessageDigest());
         Integer owningNode = getOwner(keyDigest, this.nodeKeys);
 
         // If we own the key, there's no need to send requests to other nodes.
@@ -257,7 +260,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
     @Override
     public value_type get(Object key) {
         // get owning node of provided key
-        Long keyDigest = hashObject(key, this.md);
+        Long keyDigest = hashObject(key, getMessageDigest());
         Integer owningNode = getOwner(keyDigest, this.nodeKeys);
 
         // If we own the key, return the value
@@ -363,7 +366,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
     @Override
     public value_type put(key_type key, value_type value) {
         // get owning node of provided key
-        Long keyDigest = hashObject(key, this.md);
+        Long keyDigest = hashObject(key, getMessageDigest());
         Integer owningNode = getOwner(keyDigest, this.nodeKeys);
 
         // If we own the key, put the k/v pair into our local map.
@@ -406,7 +409,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
         Long keyDigest;
         Integer owningNode;
         for (Map.Entry<? extends key_type, ? extends value_type> entry : map.entrySet()) {
-            keyDigest = hashObject(entry.getKey(), this.md);
+            keyDigest = hashObject(entry.getKey(), getMessageDigest());
             owningNode = getOwner(keyDigest, this.nodeKeys);
 
             mapToNodes.get(owningNode).put(entry.getKey(), entry.getValue());
@@ -460,7 +463,7 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
     @Override
     public value_type remove(Object key) {
         // get owning node of provided key
-        Long keyDigest = hashObject(key, this.md);
+        Long keyDigest = hashObject(key, getMessageDigest());
         Integer owningNode = getOwner(keyDigest, this.nodeKeys);
 
         // If we own the key, remove it from our local map.
@@ -842,5 +845,17 @@ public class MASSSimpleDistributedMap<key_type, value_type> extends NodeToNodeMe
         }
 
         return nodeKeys;
+    }
+
+    protected MessageDigest getMessageDigest() {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance(KEY_HASH_ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            MASS.getLogger().error("invalid hash algorithm provided to node key hasher: " + KEY_HASH_ALGORITHM);
+
+            return md;
+        }
+        return md;
     }
 }

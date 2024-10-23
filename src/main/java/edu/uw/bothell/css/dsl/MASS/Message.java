@@ -33,6 +33,8 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 
 @SuppressWarnings("serial")
 public class Message implements Serializable {
@@ -130,6 +132,20 @@ public class Message implements Serializable {
 		// Re-Initialize
 		MAINTENANCE_REINITIALIZE("Maintenance.reinitialize"),
 
+		// DSG Related Message
+		DSG_SET_VERTEX_LOCAL,
+		DSG_ADD_VERTEX_LOCAL,
+		DSG_REMOVE_VERTEX_LOCAL,
+		DSG_REMOVE_NEIGHBOR_LOCAL,
+		DSG_INIT_REQUEST,
+		DSG_INIT_RESPONSE,
+		DSG_DISTRIBUTED_MAP_PUT,
+		DSG_DISTRIBUTED_MAP_REMOVE,
+		DSG_IDQUEUE_ADD,
+		DSG_IDQUEUE_REMOVE,
+		DSG_NEXT_VERTEXID_UPDATE,
+		DSG_REINITIALIZE,
+
 		// Global Logical Clock commands
 		CLOCK_SET_VALUE,
 
@@ -192,6 +208,19 @@ public class Message implements Serializable {
 	private int boundaryWidth = 0;
 	private Vector<RemoteExchangeRequest> exchangeReqList = null;
 	private Vector<AgentMigrationRequest> migrationReqList = null;
+
+	// DSG Related Attributes
+    private VertexPlace vertex = null;
+	private String username = null;
+	private String receiver = null;
+	private String sharedPlaceName = null;
+	private Vector<VertexPlace> places = null;
+	private MASSSimpleDistributedMap<Object, Integer> distributed_map = null;
+	private ConcurrentLinkedQueue<Integer> idQueue = null;
+	private int nextVertexID = 0;
+	private int intVertexID = 0;
+	private Object objVertexID = null;
+	private int localIndex = 0;
 
 	public Message( ) { }
 
@@ -533,6 +562,132 @@ public class Message implements Serializable {
 	}
 
 	/**
+	 * DSG_SET_VERTEX_LOCAL type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param localIndex The local index of vertex that I want to set its data
+     * @param vertex The vertex object to be setted
+	 * @param username The user who sent this message
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, int localIndex, VertexPlace vertex, String username, String sharedPlaceName) {
+
+		this.action = action;
+		this.localIndex = localIndex;
+        this.vertex = vertex;
+		this.username = username;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_ADD_VERTEX_LOCAL type Message
+	 * @param action The ACTION_TYPE of this Message
+     * @param vertex The vertex object to be added
+	 * @param username The user who sent this message
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, VertexPlace vertex, String username, String sharedPlaceName) {
+
+		this.action = action;
+        this.vertex = vertex;
+		this.username = username;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_REMOVE_VERTEX_LOCAL, DSG_REMOVE_NEIGHBOR_LOCAL type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param localIndex The local index of vertex that I want to remove its data
+	 * @param username The user who sent this message
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, int localIndex, String username, String sharedPlaceName) {
+
+		this.action = action;
+		this.localIndex = localIndex;
+		this.username = username;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_INIT_REQUEST, DSG_IDQUEUE_REMOVE, DSG_REINITIALIZE type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param username The user who sent this message
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, String username, String sharedPlaceName) {
+
+		this.action = action;
+		this.username = username;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_INIT_RESPONSE type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param username The user who sent this message
+	 * @param receiver The user who requested this init
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, String username, String receiver, Vector<VertexPlace> places, MASSSimpleDistributedMap<Object, Integer> distributed_map, ConcurrentLinkedQueue<Integer> idQueue, int nextVertexID, String sharedPlaceName) {
+
+		this.action = action;
+		this.username = username;
+		this.receiver = receiver;
+		this.places = places;
+		this.distributed_map = distributed_map;
+		this.idQueue = idQueue;
+		this.nextVertexID = nextVertexID;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_DISTRIBUTED_MAP_PUT type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param username The user who sent this message
+	 * @param objVertexID The object vertex ID, key
+	 * @param intVertexID The int vertex ID, value
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, String username, Object objVertexID, int intVertexID, String sharedPlaceName) {
+
+		this.action = action;
+		this.username = username;
+		this.objVertexID = objVertexID;
+		this.intVertexID = intVertexID;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_DISTRIBUTED_MAP_REMOVE type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param username The user who sent this message
+	 * @param objVertexID The object vertex ID, key
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, String username, Object objVertexID, String sharedPlaceName) {
+
+		this.action = action;
+		this.username = username;
+		this.objVertexID = objVertexID;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
+	 * DSG_IDQUEUE_ADD, DSG_NEXT_VERTEXID_UPDATE type Message
+	 * @param action The ACTION_TYPE of this Message
+	 * @param username The user who sent this message
+	 * @param intVertexID The integer vertex id to be add into idQueue / to be updated as nextVertexID
+	 * @param sharedPlaceName The related shared place name
+	 */
+	public Message( ACTION_TYPE action, String username, int intVertexID, String sharedPlaceName) {
+
+		this.action = action;
+		this.username = username;
+		this.intVertexID = intVertexID;
+		this.sharedPlaceName = sharedPlaceName;
+	}
+
+	/**
 	 * Get the action represented by this Message
 	 * @return action The ACTION_TYPE of this message
 	 */
@@ -710,6 +865,50 @@ public class Message implements Serializable {
 
 	public String toString() {
 		return "msg Action: " + this.action + ", Arguments: " + this.argument;
+	}
 
+	// DSG Related Getters
+	public VertexPlace getVertex() {
+		return vertex;
+	}
+
+	public String getUserName() {
+		return username;
+	}
+
+	public String getReceiver() {
+		return receiver;
+	}
+
+	public String getSharedPlaceName() {
+		return sharedPlaceName;
+	}
+
+	public Vector<VertexPlace> getPlaces() {
+		return places;
+	}
+
+	public MASSSimpleDistributedMap<Object, Integer> getDistributedMap() {
+		return distributed_map;
+	}
+
+	public ConcurrentLinkedQueue<Integer> getIdQueue() {
+		return idQueue;
+	}
+
+	public int getNextVertexID() {
+		return nextVertexID;
+	}
+
+	public int getIntVertexID() {
+		return intVertexID;
+	}
+
+	public Object getObjVertexID() {
+		return objVertexID;
+	}
+
+	public int getLocalIndex() {
+		return localIndex;
 	}
 }

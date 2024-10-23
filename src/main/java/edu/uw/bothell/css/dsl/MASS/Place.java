@@ -685,5 +685,12 @@ public class Place implements Serializable {
 	public String toString() {
 		return "Place: " + Arrays.toString(this.getIndex());
 	}
-	
+
+	/**
+	 * Important: Synchronized set is NOT serializable! Therefore when agent is de-serialized
+	 * the place field of agent must be re-assigned.
+	 */
+	public void reinitialize() {
+		agents = Collections.synchronizedSet(new HashSet<Agent>());
+	}
 }

@@ -41,7 +41,7 @@ public class MASSSimpleDistributedMapTest extends AbstractTest {
         assertNotNull(tut);
         assertNotNull(tut.map);
         assertNotNull(tut.nodeKeys);
-        assertNotNull(tut.md);
+        //assertNotNull(tut.md);
     }
 
     @Test
