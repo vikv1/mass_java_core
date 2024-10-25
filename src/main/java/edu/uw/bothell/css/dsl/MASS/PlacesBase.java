@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -31,55 +31,34 @@
 package edu.uw.bothell.css.dsl.MASS;
 
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import edu.uw.bothell.css.dsl.MASS.annotations.OnCreation;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
-import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
 
 
 public class PlacesBase {
 
 	// the total number of Places, determined by multiplying the values in the "size" array
-    private int[] nextIndex;
-    private final int handle;
-    private final String className;
-    private int lowerBoundary;
-    private int upperBoundary;
-    private int placesSize;
-    private int[] size;
-    private int shadowSize;
-    private int boundaryWidth;
-    private Place[] places;
-    private Place[] leftShadow;
-    private Place[] rightShadow;
-    private ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
-    private EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
+    protected int[] nextIndex;
+    protected final int handle;
+    protected final String className;
+    protected int lowerBoundary;
+    protected int upperBoundary;
+    protected int placesSize;
+    protected int[] size;
+	protected int shadowSize;
+    protected int boundaryWidth;
+    protected Place[] places;
+    protected Place[] leftShadow;
+    protected Place[] rightShadow;
+    protected ObjectFactory objectFactory = SimpleObjectFactory.getInstance();
+    protected EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
 
 	/**
 	 * Instantiate a PlacesBase for this node
@@ -106,7 +85,7 @@ public class PlacesBase {
 	
 	}
 
-//	private static String getSimplifiedClassname(String className) {
+//	protected static String getSimplifiedClassname(String className) {
 //		// set simple name used for logging and monitoring
 //		String simpleClassName = className.contains(".")
 //				? className.substring(className.lastIndexOf('.') + 1)
@@ -116,6 +95,13 @@ public class PlacesBase {
 //				: simpleClassName;
 //		return simpleClassName;
 //	}
+
+	//constructor for SpacePlacesBase
+	public PlacesBase( int handle, String className, int[] size ) {
+		this.handle = handle;
+		this.className = className;
+		this.size = size;
+	}
 
 	/**
 	 * Instantiate a generic PlacesBase for this node
@@ -136,18 +122,21 @@ public class PlacesBase {
 
 	}
 
-	public PlacesBase(int handle, String classname, String[] graphArgs, Object[] initArgs) {
-		this.handle = handle;
-		this.className = classname;
-
-		init_all_graph(graphArgs, initArgs);
-	}
-
 	protected PlacesBase(int handle, String className) {
 		this.handle = handle;
 		this.className = className;
+		MASS.getLogger().debug("Initializing Places Base");
 	}
-	private class ExchangeBoundary_helper extends Thread {
+
+	// Empty constructor to allow for remote instantiation and serialization.
+	// This should be reserved by the system. Users should not call this 
+	// directly.
+	protected PlacesBase() {
+		this.handle = -1;
+		this.className = "";
+	}
+
+	protected class ExchangeBoundary_helper extends Thread {
 
     	int direction;
     	int places_size;
@@ -246,13 +235,13 @@ public class PlacesBase {
     
     }
 
-    private class ProcessRemoteExchangeRequest extends Thread {
+    protected class ProcessRemoteExchangeRequest extends Thread {
 
-    	private int destRank;
-    	private int srcHandle;
-    	private int destHandle_at_src;
-    	private int functionId;
-    	private int my_lower_boundary;
+    	protected int destRank;
+    	protected int srcHandle;
+    	protected int destHandle_at_src;
+    	protected int functionId;
+    	protected int my_lower_boundary;
 
     	public ProcessRemoteExchangeRequest( int[] param ) {
     		
@@ -425,10 +414,6 @@ public class PlacesBase {
     		}
     	
     	}
-
-    	if (GraphPlaces.class.isAssignableFrom(this.getClass())) {
-			((GraphPlaces)this).reallyCallAll(functionId, argument, tid);
-		}
     }
 
     /**
@@ -468,12 +453,7 @@ public class PlacesBase {
     	
     	}
 
-		if (GraphPlaces.class.isAssignableFrom(this.getClass())) {
-			((GraphPlaces)this).reallyCallAllWithReturns(functionId, MASSBase.getCurrentReturns(), arguments);
-		}
-    	
     	return null;
-    
     }
     
     /**
@@ -915,11 +895,13 @@ public class PlacesBase {
 				Place newPlace = objectFactory.getInstance(className, argument);
 				newPlace.setIndex( nextIndex );		// this is better behavior, not optimal, though
 
+    			// register the new Place with messaging provider
+    			MASS.getMessagingProvider().registerPlace( newPlace );
+
 				// Place has been created
     			eventDispatcher.queueAsync( OnCreation.class, newPlace );
 
 				places[i] = newPlace;
-
     		}
     	} 
     	
@@ -989,518 +971,6 @@ public class PlacesBase {
     	
     }
 
-	protected void init_all_graph(String[] graphArgs, Object[] initArgs) {
-		String networkFilename = graphArgs[0];
-		String extension = networkFilename.substring(networkFilename.lastIndexOf("."));
-
-		// TODO: Implement the type paremeter to avoid dependency on file extension
-		if (extension.equals(".csv")) {
-			init_all_graph_csv(graphArgs, initArgs);
-		} else if (extension.equals(".xml")) {
-			init_all_graph_matsim(graphArgs, initArgs);
-		} else if (extension.equals(".tsv")) {
-			init_all_graph_hippie(graphArgs, initArgs);
-		} else if (extension.equals(".sar")) {
-			init_all_graph_sar(graphArgs, initArgs);
-		} else {
-			init_all_graph_csv(graphArgs, initArgs);
-		}
-	}
-
-	protected void init_all_graph_blank(int size) {
-		// using size 0 may be a quick hack to skip dimensional logic
-		this.size = new int [] { size };
-
-		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
-		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
-	}
-
-	/**
-	 * Add a new place to this node at the end of the array
-	 *
-	 * @return the index of the new node -1 on error
-	 */
-//	protected int addPlace(int vertexId) {
-//		final int currentSize = places.length;
-//
-//		try {
-//			Place newPlace = objectFactory.getInstance(className, null);
-//
-//			newPlace.setIndex(new int[] { currentSize });
-//
-//			newPlaces[currentSize] = newPlace;
-//
-//			places = newPlaces;
-//
-//			int globalLinearIndex = MASSBase.getMyPid() * placesSize + currentSize;
-//
-//			MASSBase.distributed_map.put(vertexId, new VertexMetaValues(vertexId, globalLinearIndex));
-//
-//			// Increase this places size for calculating the linear index
-//			this.size[0]++;
-//
-//			return currentSize;
-//		} catch (Exception e) {
-//			MASSBase.getLogger().error("Error instantiating for new place: " + e.getMessage(), e);
-//		}
-//
-//		return -1;
-//	}
-
-	/**
-	 * Add a new place to the specified host
-	 *
-	 * @param host to add to
-	 */
-//	protected int addPlace(String host, int vertexId) {
-//		Message message = new Message(Message.ACTION_TYPE.MAINTENANCE_ADD_PLACE, vertexId);
-//
-//		Optional<MNode> hostOption = MASS.getAllNodes().stream().filter(node -> node.getHostName().equals(host)).findFirst();
-//
-//		if (hostOption.isPresent()) {
-//			// TODO: Check if this is the host before looking
-//			if (MASSBase.getMyHostname().equals(hostOption.get().getHostName())) {
-//				addPlace(vertexId);
-//			} else {
-//				hostOption.get().sendMessage(message);
-//			}
-//
-//		} else {
-//			MASSBase.getLogger().error("Failed to send addPlace message to " + host + "; host not found");
-//		}
-//
-//		return -1;
-//	}
-
-	private void init_all_graph_hippie(String[] graphArgs, Object[] initArgs) {
-		String graphNeighborsFilename = graphArgs[0];
-
-		MASSBase.getLogger().debug("PlacesBase - init_all_graph::hippie");
-
-		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
-		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
-
-		// For debugging
-		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
-				", class = " + className +
-				", arguments = " + initArgs
-				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
-
-		// load the place constructor
-		try {
-			// calculate vertex distribution
-			int totalSize = populateMap(graphNeighborsFilename);
-
-			this.size = new int[] { totalSize };
-
-			int stripeSize = totalSize / MASSBase.getSystemSize();
-
-			// lower_boundary is the first place managed by this node
-			lowerBoundary = stripeSize * MASSBase.getMyPid();
-
-			// upperBoundary is the last place managed by this node
-			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
-					lowerBoundary + stripeSize - 1 : totalSize - 1;
-
-			// placesSize is the total number of places managed by this node
-			placesSize = upperBoundary - lowerBoundary + 1;
-
-			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
-					totalSize, lowerBoundary, upperBoundary, placesSize));
-
-			//  maintaining an entire set
-			places = new Place[placesSize];
-
-			Object [] finalGraphArgs = new Object[3];
-
-			finalGraphArgs[0] = graphArgs[0];
-			finalGraphArgs[1] = graphArgs[1];
-
-			// initialize all Places objects
-			for ( int i = 0; i < placesSize; i++ ) {
-				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
-
-				finalGraphArgs[2] = myIndex;
-
-				// instantiate and configure new place
-				Object [] ctorArguments;
-
-				if (initArgs != null) {
-					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
-							Arrays.stream(initArgs)).toArray(Object[]::new);
-				} else {
-					ctorArguments = finalGraphArgs;
-				}
-
-				Place newPlace = objectFactory.getInstance(className, ctorArguments);
-
-				newPlace.setIndex( new int[] { myIndex } );
-
-				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				//newPlace.setSize(size);
-				places[i] = newPlace;
-			}
-		}
-
-		// TODO - what to do when this exception is caught?
-		catch ( Exception e ) {
-			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
-		}
-	}
-
-	/**
-	 * Import the vertices from a given file into the dmap
-	 *
-	 * @param graphNeighborsFilename
-	 * @return the number of vertices imported
-	 */
-	private int populateMap(String graphNeighborsFilename) {
-		int vertexCount = 0;
-
-		Path filePath = Paths.get(MASSBase.getWorkingDirectory(), graphNeighborsFilename);
-
-		try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-			String line = "";
-
-			while ((line = br.readLine()) != null) {
-				String [] parts = line.split("\t");
-
-				String key = HIPPIETABFormatLineParts.getPart(parts, HIPPIETABFormatLineParts.PROTEIN_KEY);
-
-				if (!MASSBase.distributed_map.containsKey(key)) {
-					// HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
-
-					MASSBase.distributed_map.put(key, vertexCount);
-
-					vertexCount++;
-				}
-			}
-		} catch (FileNotFoundException e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-
-			MASSBase.getLogger().error(sw.toString());
-		} catch (IOException e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-
-			MASSBase.getLogger().error(sw.toString());
-		}
-
-
- 		return vertexCount;
-	}
-
-	// TODO: Size is input from message
-	protected void init_all_graph_csv(String[] graphArgs, Object[] initArgs) {
-		String graphNeighborsFilename = graphArgs[0];
-
-		MASSBase.getLogger().debug("PlacesBase - init_all_graph");
-
-		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
-		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
-
-		// For debugging
-		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
-				", class = " + className +
-				", arguments = " + initArgs
-				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
-
-		// load the place constructor
-		try {
-			// calculate vertex distribution
-			int totalSize = getVertexCount(graphNeighborsFilename);
-
-			this.size = new int[] { totalSize };
-
-			int stripeSize = totalSize / MASSBase.getSystemSize();
-
-			// lower_boundary is the first place managed by this node
-			lowerBoundary = stripeSize * MASSBase.getMyPid();
-
-			// upperBoundary is the last place managed by this node
-			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
-					lowerBoundary + stripeSize - 1 : totalSize - 1;
-
-			// placesSize is the total number of places managed by this node
-			placesSize = upperBoundary - lowerBoundary + 1;
-
-			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
-					totalSize, lowerBoundary, upperBoundary, placesSize));
-
-			//  maintaining an entire set
-			places = new Place[placesSize];
-
-			Object [] finalGraphArgs = new Object[3];
-
-			finalGraphArgs[0] = graphArgs[0];
-			finalGraphArgs[1] = graphArgs[1];
-
-			// initialize all Places objects
-			for ( int i = 0; i < placesSize; i++ ) {
-				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
-
-				finalGraphArgs[2] = myIndex;
-
-				Object [] ctorArguments;
-
-				if (initArgs != null) {
-					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
-							Arrays.stream(initArgs)).toArray(Object[]::new);
-				} else {
-					ctorArguments = finalGraphArgs;
-				}
-
-				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, ctorArguments);
-
-				newPlace.setIndex( new int[] { myIndex } );
-
-				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				//newPlace.setSize(size);
-				places[i] = newPlace;
-			}
-		}
-
-		// TODO - what to do when this exception is caught?
-		catch ( Exception e ) {
-			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
-		}
-
-	}
-
-	private int getVertexCount(String graphNeighborsFilename) {
-		int vertexCount = 0;
-
-		Path filePath = Paths.get(MASSBase.getWorkingDirectory(), graphNeighborsFilename);
-
-		try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-			while (br.readLine() != null) vertexCount++;
-		} catch (FileNotFoundException e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-
-			MASSBase.getLogger().error(sw.toString());
-		} catch (IOException e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-
-			MASSBase.getLogger().error(sw.toString());
-		}
-
-		return vertexCount;
-	}
-
-	protected void init_all_graph_sar(String[] graphArgs, Object[] initArgs) {
-		String graphNeighborsFilename = graphArgs[0];
-
-		MASSBase.getLogger().debug("PlacesBase - init_all_graph");
-
-		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
-		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
-
-		// For debugging
-		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
-				", class = " + className +
-				", arguments = " + initArgs
-				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
-
-		// load the place constructor
-		try {
-			String sarOnset = "";
-
-			Path filePath = Paths.get(MASSBase.getWorkingDirectory(), graphNeighborsFilename);
-
-			try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-				sarOnset = br.readLine();
-			} catch (FileNotFoundException e) {
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				e.printStackTrace(pw);
-
-				MASSBase.getLogger().error(sw.toString());
-			} catch (IOException e) {
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				e.printStackTrace(pw);
-
-				MASSBase.getLogger().error(sw.toString());
-			}
-
-			// maybe this should be a long
-			int totalSize = Math.toIntExact(Arrays.stream(sarOnset.split(",")).count());
-
-			this.size = new int[] { totalSize };
-
-			int stripeSize = totalSize / MASSBase.getSystemSize();
-
-			// lower_boundary is the first place managed by this node
-			lowerBoundary = stripeSize * MASSBase.getMyPid();
-
-			// upperBoundary is the last place managed by this node
-			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
-					lowerBoundary + stripeSize - 1 : totalSize - 1;
-
-			// placesSize is the total number of places managed by this node
-			placesSize = upperBoundary - lowerBoundary + 1;
-
-			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
-					totalSize, lowerBoundary, upperBoundary, placesSize));
-
-			//  maintaining an entire set
-			places = new Place[placesSize];
-
-			Object [] finalGraphArgs = new Object[3];
-
-			finalGraphArgs[0] = graphArgs[0];
-			finalGraphArgs[1] = graphArgs[1];
-
-			// initialize all Places objects
-			for ( int i = 0; i < placesSize; i++ ) {
-				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
-
-				MASS.distributed_map.put(myIndex, myIndex);
-
-				finalGraphArgs[2] = myIndex;
-
-				if (initArgs == null) {
-					initArgs = new Object[1];
-				}
-
-				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, Stream.concat(Arrays.stream(finalGraphArgs), Arrays.stream(initArgs)).toArray(Object[]::new));
-
-				newPlace.setIndex( new int[] { myIndex } );
-
-				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				//newPlace.setSize(size);
-				places[i] = newPlace;
-			}
-		}
-
-		// TODO - what to do when this exception is caught?
-		catch ( Exception e ) {
-			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
-		}
-
-	}
-
-	// TODO: Size is input from message
-	protected void init_all_graph_matsim(String[] graphArgs, Object[] initArgs) {
-		String networkFilename = graphArgs[0];
-
-		MASSBase.getLogger().debug("PlacesBase - init_all_graph_matsim");
-
-		// TODO - HACK! Agents and Places need to be able to "reach" this PlacesBase during instantiation
-		if ( MASS.getCurrentPlacesBase() == null ) MASS.setCurrentPlacesBase( this );
-
-		// For debugging
-		MASSBase.getLogger().debug( "init_all_graph handle = " + handle +
-				", class = " + className +
-				", arguments = " + initArgs
-				+ ", graphArgs = [" + Arrays.stream(graphArgs).collect(Collectors.joining(",")) + "] ");
-
-		// load the place constructor
-		try {
-			// calculate vertex distribution
-			int totalSize = getMatsimNetworkNodeCount(networkFilename);
-
-			this.size = new int[] { totalSize };
-
-			int stripeSize = totalSize / MASSBase.getSystemSize();
-
-			// lower_boundary is the first place managed by this node
-			lowerBoundary = stripeSize * MASSBase.getMyPid();
-
-			// upperBoundary is the last place managed by this node
-			upperBoundary = (MASSBase.getMyPid() < MASSBase.getSystemSize() - 1) ?
-					lowerBoundary + stripeSize - 1 : totalSize - 1;
-
-			// placesSize is the total number of places managed by this node
-			placesSize = upperBoundary - lowerBoundary + 1;
-
-			MASSBase.getLogger().debug(String.format("init_all_graph: { totalSize: %d, lowerBoundary: %d, upperBoundary: %d, placesSize: %d }",
-					totalSize, lowerBoundary, upperBoundary, placesSize));
-
-			//  maintaining an entire set
-			places = new Place[placesSize];
-
-			Object [] finalGraphArgs = new Object[3];
-
-			finalGraphArgs[0] = graphArgs[0];
-			finalGraphArgs[1] = graphArgs[1];
-
-			// initialize all Places objects
-			for ( int i = 0; i < placesSize; i++ ) {
-				int myIndex = MatrixUtilities.getIndex( size, lowerBoundary + i)[0];
-
-				finalGraphArgs[2] = myIndex;
-
-				// instantiate and configure new place
-				Object [] ctorArguments;
-
-				if (initArgs != null) {
-					ctorArguments = Stream.concat(Arrays.stream(finalGraphArgs),
-							Arrays.stream(initArgs)).toArray(Object[]::new);
-				} else {
-					ctorArguments = finalGraphArgs;
-				}
-
-				// instantiate and configure new place
-				Place newPlace = objectFactory.getInstance(className, ctorArguments);
-
-				newPlace.setIndex( new int[] { myIndex } );
-
-				//newPlace.setIndex(getGlobalArrayIndex(lowerBoundary + i));
-				//newPlace.setSize(size);
-				places[i] = newPlace;
-			}
-		}
-
-		// TODO - what to do when this exception is caught?
-		catch ( Exception e ) {
-			MASSBase.getLogger().error( "Places_base.init_all_graph: {} not loaded and/or instantiated", className, e);
-		}
-
-	}
-
-	public static int getMatsimNetworkNodeCount(String networkFilename) {
-		int result = 0;
-
-		XPathFactory factory = XPathFactory.newInstance();
-
-		XPath path = factory.newXPath();
-
-		XPathExpression expression;
-
-		try {
-			expression = path.compile("//nodes/node/@id");
-
-			NodeList nodeList = (NodeList) expression.evaluate(new InputSource(networkFilename),
-					XPathConstants.NODESET);
-
-			for (int n = 0; n < nodeList.getLength(); n++) {
-				Node idNode = nodeList.item(n);
-				
-				String id = idNode.getNodeValue();
-				
-				if (id != null && !MASSBase.distributed_map.containsKey(id)) {
-					MASSBase.distributed_map.put(id, result++);
-				}
-			}
-			
-			// result = nodeList.getLength();
-		} catch (XPathExpressionException e) {
-			MASSBase.getLogger().error("Exception parsing network xml: " + e.getMessage());
-		}
-
-		return result;
-	}
-
 	/**
      * During instantiation of Places, the "index" must be set. To preserve compatibility with classes derived from Place
      * that require an index value when the constructor is called, this method is provided. This method returns the "index"
@@ -1518,4 +988,13 @@ public class PlacesBase {
     	placesSize = 0;
     	places = null;
 	}
+    
+    /**
+     * Override simulation space size
+     * @param size Matrix dimensions, as an array of integers representing dimension sizes
+     */
+    protected void setSize(int[] size) {
+		this.size = size;
+	}
+
 }

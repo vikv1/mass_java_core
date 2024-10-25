@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,7 @@ import edu.uw.bothell.css.dsl.MASS.MassData.UpdatePackage;
 import edu.uw.bothell.css.dsl.MASS.event.EventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
 
 /**
  *	MASS is responsible for the construction and deconstruction of the cluster. 
@@ -77,7 +78,7 @@ public class MASS extends MASSBase {
 
 	// name of file containing cluster node definitions
     private static String nodeFilePath = "nodes.xml";
-
+    
 	static void barrierAllSlaves( ) { 
     	barrierAllSlaves( null, 0,  null ); 
     }
@@ -105,12 +106,12 @@ public class MASS extends MASSBase {
 
     		MASS.getLogger().debug( "barrier received a message from " +
     					getRemoteNodes().get(i).getHostName( ) +
-    					"...message = " + m );
+    					"...message = " + m.getArgument( ) );
 
     		// check this is an Ack
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
     			
-    			MASS.getLogger().error( "barrier didn't receive ack from rank " +
+    			MASS.getLogger().debug( "barrier didn't receive ack from rank " +
     					( i + 1 ) + " at " +
     					getRemoteNodes().get(i).getHostName( ) +
     					" message action type = " + m.getAction());
@@ -172,19 +173,26 @@ public class MASS extends MASSBase {
  	 *  This method should be called when all computational work has been completed.
  	 */
  	public static void finish( ) {
-		MASSBase.finish();
+
+		MASS.getLogger().debug("MASS Shutting Down...");
+
+ 		MASSBase.finish();
+		MASSBase.finishSharedGraphPlaces();
 
     	MThread.resumeThreads( MThread.STATUS_TYPE.STATUS_TERMINATE );
     	MThread.barrierThreads( 0 );
 
     	MASS.getLogger().debug( "MASS::finish: all MASS threads terminated" );
-		System.out.println("finsh");
-    	// Close connection and finish each mprocess
+    	
+		// Close connection and finish each mprocess
     	for ( MNode node : getRemoteNodes() ) {
-			// Send a finish messages
-			System.out.print(node.getHostName());
+			
+    		// Send finish messages
+			MASS.getLogger().debug( "Sending shutdown request to " + node.getHostName() );
+			MASS.getLogger().debug( "Sending shutdown request to {}", node.getHostName() );
     		Message m = new Message( Message.ACTION_TYPE.FINISH );
     		node.sendMessage( m );
+    		
     	}
 
     	// Synchronize with all slaves
@@ -200,17 +208,14 @@ public class MASS extends MASSBase {
     	MASS.getMessagingProvider().shutdown();
     	
     	MASS.getLogger().debug( "MASS::finish: done" );
-
+			MASS.getLogger().debug("MASS Shutdown Finished");
+				
+			System.out.println("MASS Shutdown Finished");
+			
+				// force termination of this node
+			// TODO - this is an ugly hack, but it guarantees termination regardless of the state of things
+			System.exit(0);
     }
-    
-//    /**
-//	 * Get the default password for connecting to remote nodes
-//	 * @return The default login password
-//	 */
-// 	@Deprecated
-//	protected static String getDefaultPassword() {
-//		return defaultPassword;
-//	}
     
     /**
 	 * Get the default username for connecting to remote nodes
@@ -242,15 +247,54 @@ public class MASS extends MASSBase {
 	 */
 	public static void init() {
 
+		// start MASS, providing filename of configuration
+		init( getNodeFilePath() );
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a Nodelist for configuration
+	 * Calling this method effectively begins computation.
+	 * @param nodes The Nodelist configuration to use
+	 */
+	public static void init( Nodelist nodes ) {
+	
+		// must provide nodes for configuration!
+		if ( nodes == null ) {
+			MASS.getLogger().debug( "No nodes provided for configuration!" );
+    		System.exit( -1 );
+		}
+
+		// iterate through the nodes, adding each
+		for ( MNode node : nodes.getNodes() ) {
+			addNode( node );
+		}
+		
+		// start MASS
+		init();
+		
+	}
+	
+	/**
+	 * Initialize the MASS library providing a specific filename for Nodelist XML or machines.txt format configuration document.
+	 * Calling this method effectively begins computation.
+	 * @param nodeFilename The full path and filename of the Nodelist XML or machines.txt configuration document to use
+	 */
+	public static void init( String nodeFilename ) {
+		
+		// set config file path (in case it wasn't set already, for compatibility)
+		setNodeFilePath( nodeFilename );
+
     	// attempt to load node definitions from specified file
     	if (getNodeFilePath() != null && getNodeFilePath().length() > 0) {
 
     		// attempt to open the specified file
     		File machineFile = new File(getNodeFilePath());
-    		
+    		MASS.getLogger().debug( "MASS: reading machine file: " + getNodeFilePath());
+
     		// does the file actually exist?
     		if (!machineFile.canRead()) {
-    			System.err.println( "machine file: " + getNodeFilePath() +
+    			MASS.getLogger().debug( "machine file: " + getNodeFilePath() +
         				" does not exist or is not readable." );
 
         		System.exit( -1 );
@@ -258,27 +302,31 @@ public class MASS extends MASSBase {
     		
         	// is the machine file an XML document? 
     		if (getNodeFilePath().toLowerCase().contains("xml")) {
-    			
+    			MASS.getLogger().debug( "MASS: file with .xml: ");
+
     			// yes - filename specified is an XML document - get MNodes directly from the doc
     			try {
         			JAXBContext jaxbContext = JAXBContext.newInstance(Nodelist.class);
             		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             		Nodelist nodeList = (Nodelist) jaxbUnmarshaller.unmarshal(machineFile);
-            		
+            		MASS.getLogger().debug( "MASS: NodeList size: " + nodeList.getNodes().size());
+
             		// iterate through the nodes, adding each
             		for (MNode node : nodeList.getNodes()) {
+						MASS.getLogger().debug( "MASS adding nodes: " + node.getHostName());
             			addNode(node);
             		}
     			} catch (JAXBException e) {
 
-        			System.err.println( "Error initializing JAXB parser..." );
+        			MASS.getLogger().debug( "Error initializing JAXB parser..." );
 		    		e.printStackTrace();
 
-		    		MASS.getLogger().error( "Error initializing JAXB parser...", e );
+		    		MASS.getLogger().debug( "Error initializing JAXB parser...", e );
 		    		System.exit( -1 );
 
     			}
-    		} else {   			
+    		} else {   	
+				MASS.getLogger().debug( "MASS: file without .xml: using BufferedReader");		
     			// no - this machine file is the classic one-line-per-node format
             	BufferedReader fileReader = null;
 
@@ -296,24 +344,22 @@ public class MASS extends MASSBase {
             		fileReader.close();
             	} catch( Exception e ) {
 
-            		System.err.println( "machine file: " + getNodeFilePath() +
-            				" could not open." );
+            		// MASS.getLogger().debug( "machine file: " + getNodeFilePath() + " could not open." );
 		    		MASS.getLogger().error( "Machine file: {} could not be opened!", getNodeFilePath(), e );
             		System.exit( -1 );
 
             	}
+    		
     		}  		
+
     	} else {
-			System.err.println(" No Node File Path Given" );
+			MASS.getLogger().debug(" No Node File Path Given" );
 			System.exit( -1 );
 		}
-    	
-    	// For debugging
-    	if ( MASSBase.getLogger().isDebugEnabled() ) {
-    		for ( MNode node : getRemoteNodes() )
+
+    	for ( MNode node : getRemoteNodes() )
     			MASSBase.getLogger().debug( "rank " + node.getPid() + ": " + 
     					node.getHostName() );
-    	}
 
     	// if not already defined, create master node representation
     	if (getMasterNode() == null) {
@@ -321,6 +367,15 @@ public class MASS extends MASSBase {
     		MNode masterNode = new MNode();
     		masterNode.setMaster(true);
     		addNode(masterNode);
+    	
+    	}
+    	
+    	// validate configuration before attempting to start remote nodes
+    	if ( validateNodeConfiguration() == false ) {
+    		MASSBase.getLogger().error( "Node configuration validation problems found, unable to initialize!" );
+    		MASS.getLogger().debug( "Node configuration validation problems found, unable to initialize!" );
+    		MASS.getLogger().debug( "Refer to log files for details of validation exception(s)" );
+			System.exit( -1 );
     	}
     	
     	// Initialize MASS_base.constants and identify the CWD.
@@ -333,14 +388,21 @@ public class MASS extends MASSBase {
         	initMASSBase( "localhost", 0, getAllNodes().size(), getCommunicationPort() );
     	}
 
+    	// select an IP address and port number for cluster communications, if there are remote nodes configured
+    	String clusterCommunicationsAddress = null;
+//    	if ( getRemoteNodes().size() > 0 ) {
+    		clusterCommunicationsAddress = MASSMessaging.getRandomMulticastAddress() + ":" + MASSMessaging.getRandomPort();
+//    	}
+    	
+		MASS.getLogger().debug( "MASS: before launching remote processes: ");
     	// Launch remote processes
     	for (MNode node : getRemoteNodes()) {
-    	
+			
     		// set login credentials if not defined in the node config already
     		if (node.getUserName() == null) node.setUserName(getDefaultUsername());
     		
     		// For debugging
-    		MASSBase.getLogger().debug( "curHostName = " + node.getHostName() );
+    		MASSBase.getLogger().debug( "At Launching remote process: curHostName = " + node.getHostName() );
 
     		// Start a remote process
     		// java attributes and its jar files
@@ -350,16 +412,16 @@ public class MASS extends MASSBase {
     		if (node.getJavaHome() != null) commandBuilder.append(node.getJavaHome() + "/");
     		
     		// gotta specify the JVM
-    		commandBuilder.append( "java " );
+    		commandBuilder.append( "java" );
 
     		// add arguments to prevent module warnings with Hazelcast
-    		commandBuilder.append( "--add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED " );
+    		commandBuilder.append( " --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED" );
 
-    		// TODO - add configurable heap memory sizes per node
-    		commandBuilder.append( "-Xmx2g " );
+    		// configurable heap memory size per node
+    		if ( node.getMaxHeapSize() != null ) commandBuilder.append( " -Xmx" + node.getMaxHeapSize() );
 
     		// add MASS home directory itself as part of the classpath
-    		if ( node.getMassHome() != null ) commandBuilder.append( "-cp " + node.getMassHome() + "/*.jar " );
+    		if ( node.getMassHome() != null ) commandBuilder.append( " -cp " + node.getMassHome() + "/*.jar" );
     		
     		// TODO - this is a nice trick, but doesn't work if running in an IDE during debugging
 //   			if (node.getMassHome() != null) {
@@ -372,28 +434,37 @@ public class MASS extends MASSBase {
 //   			}
 
     		// MProcess and its arguments
-    		commandBuilder.append(MProcess.class.getCanonicalName() + " ");	// the program
-    		commandBuilder.append(node.getHostName() + " ");	// 1st arg: hostName
-    		commandBuilder.append(node.getPid() + " ");			// 2nd arg: pid
-    		commandBuilder.append(getAllNodes().size() + " ");	// 3rd arg: #processes
-    		commandBuilder.append(getNumThreads() + " ");   	// 4th arg: #threads
-    		commandBuilder.append(getCommunicationPort() + " ");// 5th arg: MASS_PORT
-    		commandBuilder.append(node.getMassHome() + " ");			// 6th arg: cur working dir
-			commandBuilder.append(AgentSerializer.getInstance().getMaxNumberOfAgents()); // 7th argument: max number of agents
+    		commandBuilder.append(" " + MProcess.class.getCanonicalName() + " ");	// the program
+    		commandBuilder.append( MProcess.CMD_ARG_HOSTNAME + "=\"" + node.getHostName() + "\" " );
+    		commandBuilder.append( MProcess.CMD_ARG_MYPID + "=" + node.getPid() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NPROC + "=" + getAllNodes().size() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_NTHREADS + "=" + getNumThreads() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_SERVER_PORT + "=" + getCommunicationPort() + " " );
+    		commandBuilder.append( MProcess.CMD_ARG_WORKING_DIRECTORY + "=\"" + node.getMassHome() + "\" " );
+			commandBuilder.append( MProcess.CMD_ARG_MAX_AGENTS + "=" + AgentSerializer.getInstance().getMaxNumberOfAgents() );
 
+			// cluster communications address, if defined
+			if ( clusterCommunicationsAddress != null ) {
+				commandBuilder.append( " " + MProcess.CMD_ARG_CLUSTER_COMMS_ADDRESS + "=\"" + clusterCommunicationsAddress + "\" " );
+			}
+
+			// username is necessary for shared graph
+			commandBuilder.append(" " + MProcess.CMD_ARG_USERNAME + "=" + node.getUserName() + " ");
+			
     		// debug
-    		System.err.println( "MProcess on " + node.getHostName() +
+    		MASS.getLogger().debug( "MProcess on " + node.getHostName() +
     				" run with command: " + commandBuilder );
-
+			
     		try {
-    			
+    			MASS.getLogger().debug( "MASS: try launching remote process" );
+
     			util.LaunchRemoteProcess( commandBuilder.toString(), node );
 
     			node.initialize();
     			
     		} catch ( Exception e ) {
     			// connection failure
-    			System.err.println( "MASS: error in connection to " + 
+    			MASS.getLogger().debug( "MASS: error in connection to " + 
     					node.getHostName() + " " + e );
     			System.exit( -1 );
     		}
@@ -402,8 +473,8 @@ public class MASS extends MASSBase {
     	initializeThreads( getNumThreads() );
     	setInitialized(true);	// this node is now running
 
-    	// initialize the messaging system
-    	MASS.getMessagingProvider().init( getMasterNode(), getRemoteNodes() );
+    	// initialize the messaging system (if no remote nodes, comms address is NULL - which is okay)
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( eventDispatcher );
@@ -417,7 +488,7 @@ public class MASS extends MASSBase {
 
     		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
 
-    			System.err.println( "init didn't receive ack from rank " +
+    			MASS.getLogger().debug( "init didn't receive ack from rank " +
     					( node.getPid() ) + " at " +
     					node.getHostName( ) );
     			MASSBase.getLogger().error( "init didn't receive ack from rank " + ( node.getPid() ) + " at " + node.getHostName( ) );
@@ -425,7 +496,7 @@ public class MASS extends MASSBase {
     		}
     	}
     	
-    	System.err.println( "MASS.init: done" );
+    	MASS.getLogger().debug( "MASS.init: done" );
     }
 
 	/**
@@ -560,7 +631,7 @@ public class MASS extends MASSBase {
 		try {
 			request = ( MASSRequest )inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			MASS.getLogger().error( "Class not found exception caught in debugInit!", e );
+			MASS.getLogger().debug( "Class not found exception caught in debugInit!", e );
 		}
 		
 		//end completely unnecessary stuff
@@ -617,7 +688,7 @@ public class MASS extends MASSBase {
 		try {
 			request = ( MASSRequest ) inputStream.readObject();
 		} catch ( ClassNotFoundException e ) {
-			MASS.getLogger().error( "Class not found exception caught in debugUpdate!", e );
+			MASS.getLogger().debug( "Class not found exception caught in debugUpdate!", e );
 		}
 
 		if ( request != null ) {
@@ -651,7 +722,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject(new UpdatePackage());
 			outputStream.flush();
 		} catch (IOException e) {
-			MASS.getLogger().error( "IO exception caught in injectPlace!", e );
+			MASS.getLogger().debug( "IO exception caught in injectPlace!", e );
 		}
 	}
 
@@ -671,7 +742,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			MASS.getLogger().error( "IO exception caught in injectAgent!", e );
+			MASS.getLogger().debug( "IO exception caught in injectAgent!", e );
 		}
 
 	}
@@ -682,7 +753,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject( new UpdatePackage() );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while sending UpdatePackage!", e );
+			MASS.getLogger().debug( "IO exception caught in closeDebugConnection, while sending UpdatePackage!", e );
 		}
 
 		try {
@@ -692,7 +763,7 @@ public class MASS extends MASSBase {
 			client.close();
 			socket.close();
 		} catch ( IOException e ) {
-			MASS.getLogger().error( "IO exception caught in closeDebugConnection, while closing streams!", e );
+			MASS.getLogger().debug( "IO exception caught in closeDebugConnection, while closing streams!", e );
 		}
 
 	}
@@ -734,7 +805,7 @@ public class MASS extends MASSBase {
 			outputStream.writeObject( newPackage );
 			outputStream.flush();
 		} catch ( IOException e ) {
-			MASS.getLogger().error( "IO exception caught in sendUpdate!", e );
+			MASS.getLogger().debug( "IO exception caught in sendUpdate!", e );
 		}
 		
 	}
@@ -745,6 +816,151 @@ public class MASS extends MASSBase {
 
 	public static long getClockValue() {
 		return getGlobalClock().getValue();
+	}
+	
+	private static boolean validateNodeConfiguration() {
+		
+		// assume that everything is fine at first
+		boolean validationSuccess = true;
+		
+		// validate all node configurations
+		Set<String> nodeValidationExceptions = getMasterNode().validate();
+		for ( MNode node : getRemoteNodes() ) {
+			nodeValidationExceptions.addAll( node.validate() );
+		}
+
+		// any validation failures?
+		if ( nodeValidationExceptions.size() > 0 ) {
+
+			// failure!
+			validationSuccess = false;
+			
+			for ( String validationException : nodeValidationExceptions ) {
+			
+				String message = "Configuration exception: " + validationException;
+				MASS.getLogger().debug( message );
+				MASS.getLogger().debug( message );
+			
+			}
+			
+		}
+		
+		return validationSuccess;
+		
+	}
+
+	/**
+	 * Receive values (num = 2) from remote nodes' MASS
+	 * @param maxLevel
+	 * @param numOfLeaf
+	 */
+	static void barrierAllSlaves(int[] maxLevel, int[] numOfLeaf) { 
+
+		MASS.getLogger().debug( "barrierAllSlaves(int[] maxLevel, int[] numOfLeaf) remote size = " + getRemoteNodes().size());
+		// Synchronize with all slave processes
+		for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
+
+			MASS.getLogger().debug( "barrier waits for ack from " + getRemoteNodes().get(i).getHostName( ) );
+
+			Message m = getRemoteNodes().get(i).receiveMessage( );
+
+			MASS.getLogger().debug( "barrier received a message from " + getRemoteNodes().get(i).getHostName( ) + "...message = " + m );
+
+			// check this is an Ack
+			if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
+
+				MASS.getLogger().debug( "barrier didn't receive ack from rank " +
+						( i + 1 ) + " at " + getRemoteNodes().get(i).getHostName( ) + " message action type = " + m.getAction());
+
+				System.exit( -1 );
+			} 
+
+			if ( maxLevel != null && numOfLeaf != null) {
+				maxLevel[i + 1] = m.getMaxLevel();
+				numOfLeaf[i + 1] = m.getNumOfLeaf();
+			} 
+
+			// retrieve agent population from each Mprocess
+			MASS.getLogger().debug( "maxLevel[" + (i + 1) + "] = m.getMaxLevel: "
+					+ m.getMaxLevel() + ", numOfLeaf[" + (i + 1) + "] = m.getNumOfLeaf: " + m.getNumOfLeaf());
+
+			MASS.getLogger().debug( "message deleted" );
+
+		}
+
+	}
+
+	/**
+	 * barrierAllSlaves for treePlaces
+	 * @param returnValues
+	 * @param numOfLeaf
+	 * @param localAgents
+	 */
+	static void barrierAllSlaves_treePlaces( Object[] returnValues, int[] numOfLeaf, int localAgents[] ) {
+
+    	// counts the agent population from each Mprocess
+    	int nAgentsSoFar = ( localAgents != null ) ? localAgents[0] : 0;
+		int destPos = numOfLeaf[0];
+    	// Synchronize with all slave processes
+    	for ( int i = 0; i < getRemoteNodes().size( ); i++ ) {
+    		
+    		MASS.getLogger().debug( "barrier waits for ack from " + getRemoteNodes().get(i).getHostName( ) );
+
+    		Message m = getRemoteNodes().get(i).receiveMessage( );
+
+    		MASS.getLogger().debug( "barrier received a message from " + getRemoteNodes().get(i).getHostName( ) +
+    			"...message = " + m );
+
+    		// check this is an Ack
+    		if ( m.getAction( ) != Message.ACTION_TYPE.ACK ) {
+    			
+    			MASS.getLogger().debug( "barrier didn't receive ack from rank " + ( i + 1 ) + " at " +
+    				getRemoteNodes().get(i).getHostName( ) + " message action type = " + m.getAction());
+    			System.exit( -1 );
+    		}
+
+    		// retrieve arguments back from each Mprocess
+    		// places.callAll( ) with return values
+    		if ( returnValues != null ) {
+				MASS.getLogger().debug("i = " + i + ", numOfLeaf[" + (i + 1) + "]=" + numOfLeaf[i + 1]);
+    			if ( numOfLeaf[i + 1] > 0 && localAgents == null ) {
+
+    				// check if the message is from the last mNode as
+    				// the last mNode might have a remainder (stripe + rem)
+    				// for simplicity, we just use the length of the returned
+    				// array
+					int copyLength;
+    				copyLength = numOfLeaf[i + 1];
+
+					MASS.getLogger().debug("copylength = " + copyLength + ", destPos = " + destPos + 
+						", m.getArgument().size = " + ((Object[]) m.getArgument()).length + ", returnValue.length = " + returnValues.length);
+    				// copy the partial array into the return_values array
+					System.arraycopy( m.getArgument(), 0, returnValues, destPos, copyLength );
+					destPos += copyLength;
+				}
+				
+    			if ( numOfLeaf[i + 1] == 0 && localAgents != null ) {
+    				// agents.callAll( ) with return values
+    				System.arraycopy( m.getArgument( ), 0, returnValues, nAgentsSoFar, localAgents[i + 1] );
+				}
+				
+    		}
+
+    		// retrieve agent population from each Mprocess
+    		MASS.getLogger().debug( "localAgents[" + (i + 1) + "] = m.getAgentPopulation: " + m.getAgentPopulation( ) );
+
+    		if ( localAgents != null ) {
+    			localAgents[i + 1] = m.getAgentPopulation( );
+    			nAgentsSoFar += localAgents[i + 1];
+    		}
+
+    		MASS.getLogger().debug( "message deleted" ); 
+    	}
+    	
+	}
+
+	static void barrierAllSlaves_treePlaces( Object[] returnValues, int[] numOfLeaf ) {
+    	barrierAllSlaves_treePlaces( returnValues, numOfLeaf, null ); 
 	}
 
 }

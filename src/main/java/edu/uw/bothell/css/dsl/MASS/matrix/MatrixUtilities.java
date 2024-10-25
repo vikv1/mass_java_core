@@ -69,30 +69,34 @@ public class MatrixUtilities {
 	 * minimum integer value if the position could not be calculated (problem in size or index arrays) 
 	 */
 	public static int getLinearIndex( int[] size, int[] index ) {
-	
+
 		// bounds checks
 		if ( size == null || index == null ) return Integer.MIN_VALUE;
 		if ( size.length != index.length ) return Integer.MIN_VALUE;
-		
-    	int linearIndex = 0;
 
-		// determine position by iterating through each dimension and adding each position within the dimension
-    	for ( int i = 0; i < index.length; i++ ) {
-    		
-    		if ( size[i] <= 0 )
-    			continue;
-    		
-    		if ( index[i] >= 0 && index[i] < size[i] ) {
-    			linearIndex = linearIndex * size[i];
-    			linearIndex += index[i];
-    		}
-    		else
-    			return Integer.MIN_VALUE; // out of space
-    	
-    	}
+		// single dimension bounds check
+		if ( size.length == 1 && index[ 0 ] > size[ 0 ] - 1 ) return Integer.MIN_VALUE;
 
-    	return linearIndex;
+		int linearIndex = 0;
+		int columnWeight = 1;
 
+		// determine last "column" (leftmost) weight (all column sizes except for rightmost)
+		for ( int i = index.length - 1; i > 0; i-- ) {
+			columnWeight *= size[ i ];
+		}
+
+		for ( int i = 0; i < index.length; i++ ) {
+
+			// invalid index or size at this position?
+			if ( size[ i ] <= 0 || index[ i ] < 0 || ( index[ i ] > size[ i ] - 1 ) ) return Integer.MIN_VALUE;
+
+			linearIndex += columnWeight * index[i];
+			columnWeight /= ( i < index.length - 1 ) ? size[ i + 1 ] : 1;
+
+		}
+
+		return linearIndex;
+	
 	}
 	
     /** 
@@ -105,11 +109,11 @@ public class MatrixUtilities {
 
     	int[] index = new int[ size.length ];
 
-    	for ( int i = size.length - 1; i >= 0; i-- ) {
+    	// calculate starting with "leftmost" dimension
+    	for ( int i = size.length - 1; i >= 0  ; i-- ) {
     		
-    		// calculate from lower dimensions
-    		index[i] = linearIndex % size[i];
-    		linearIndex /= size[i];
+    		index[ i ] = linearIndex % size[ i ];
+    		linearIndex /= size[ i ];
     	
     	}
 
@@ -140,19 +144,18 @@ public class MatrixUtilities {
 	 */
 	public static int getRankFromGlobalLinearIndex( int globalLinearIndex, int[] size, int systemSize ) {
 
-   		int stripeSize = MatrixUtilities.getMatrixSize( size ) / systemSize;
-    	
-    	int rank, scope;
-    	for ( rank = 0, scope = stripeSize ; rank < systemSize; 
-    			rank++, scope += stripeSize ) {
-    		
-    		if ( globalLinearIndex < scope )
-    			break;
-    	
-    	}
+		// short circuit obvious answers for performance
+		if ( systemSize == 1 ) return 0;			// system size of one means everything on node 0
+		if ( globalLinearIndex == 0 ) return 0;		// first Place always on node 0
 
-    	return ( rank == systemSize ) ? rank - 1 : rank;
-    
+		int matrixSize = MatrixUtilities.getMatrixSize( size );
+
+		// calculate where the index is in relation to the total simulation space
+		double indexPositionRelative = ( double ) globalLinearIndex / ( double ) matrixSize; 
+		
+		// linear relationship between index position and number of nodes in the system
+		return ( int ) ( systemSize * indexPositionRelative );
+   		
     }
 	
 }

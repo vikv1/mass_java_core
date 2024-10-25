@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -30,16 +30,29 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Arrays;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.core.config.Property;
+
+import edu.uw.bothell.css.dsl.MASS.GraphPlaces.InitArgs;
 import edu.uw.bothell.css.dsl.MASS.graph.GraphMaintenance;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.Hippie.HippieOp;
+import edu.uw.bothell.css.dsl.MASS.graph.hippie.HippieVertex.VertexInitData;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.Matsim.MatsimOp;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimEdge;
+import edu.uw.bothell.css.dsl.MASS.graph.matsim.MatsimVertex.MatsimVertexInitData;
 
 /**
  * MProcess exists to facilitate message-passing between remote and master
@@ -53,6 +66,18 @@ public class MProcess {
 	private int myPid; // my pid or rank
 	private ObjectInputStream MAIN_IOS = null; 	// input from the master process
 	private ObjectOutputStream MAIN_OOS = null; // output to the master process
+	
+	// command-line arguments
+	public static final String CMD_ARG_CLUSTER_COMMS_ADDRESS = "CLUSTERCOMMS"; 
+	public static final String CMD_ARG_HOSTNAME = "HOSTNAME"; 
+	public static final String CMD_ARG_MYPID = "MYPID";
+	public static final String CMD_ARG_NPROC = "NPROC";
+	public static final String CMD_ARG_NTHREADS = "NTHREADS";
+	public static final String CMD_ARG_SERVER_PORT = "SERVERPORT";
+	public static final String CMD_ARG_WORKING_DIRECTORY = "WORKDIR";
+	public static final String CMD_ARG_MAX_AGENTS = "MAXAGENTS";
+	// for shared feature
+	public static final String CMD_ARG_USERNAME = "USERNAME";
 
 	/**
 	 * MProcesses are the MASS threads executing on various machines. They are
@@ -78,14 +103,12 @@ public class MProcess {
 			if ( out != null) MAIN_OOS = new ObjectOutputStream( out );
 
 		} catch (Exception e) {
-
 			MASSBase.getLogger().error("MProcess.Mprocess: detected ", e);
 			System.exit(-1);
-
 		}
 
 		// perform normal init
-		init( hostName, myPid, nProc, nThr, port, curDir );
+		init( hostName, myPid, nProc, nThr, port, curDir, null, null );
 		
 	}
 
@@ -98,11 +121,12 @@ public class MProcess {
 	 * @param myPid The PID assigned to this node
 	 * @param nProc The total number of nodes in the cluster
 	 * @param nThr The number of threads to start on this remote node
-	 * @param port The port number to use for communications with this node
+	 * @param port The port number to use for communications with this node (legacy)
 	 * @param curDir The working directory this remote node should use
+	 * @param clusterCommunicationsAddress The IP address and port that this cluster uses for communications
 	 */
-	public MProcess(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
-		init( hostName, myPid, nProc, nThr, port, curDir );
+	public MProcess( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress, String username ) {
+		init( hostName, myPid, nProc, nThr, port, curDir,  clusterCommunicationsAddress, username );
 	}
 
 	/**
@@ -115,24 +139,111 @@ public class MProcess {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		String hostName = args[0];
-		int myPid = Integer.parseInt(args[1]);
-		int nProc = Integer.parseInt(args[2]);
-		int nThreads = Integer.parseInt(args[3]);
-		int serverPort = Integer.parseInt(args[4]);
-		String curDir = args[5];
-		int maxNumberOfAgents = Integer.parseInt(args[6]);
+		String clusterCommunicationsAddress = null;
+		String hostName = null;
+		int myPid = 0;
+		int nProc = 0;
+		int nThreads = 0;
+		int serverPort = 0;
+		String curDir = null;
+		int maxNumberOfAgents = 0;
+		String username = null;
 
-		MASSBase.getLogger().debug("MProcess - main");
+		MASSBase.getLogger().debug( "MProcess - main" );
 
+		MASSBase.getLogger().debug( "Parsing command-line arguments..." );
+		
+		// iterate through all arguments to pick out recognized variables
+		for ( String rawArgPair : args ) {
+			
+			// remove leading and trailing spaces
+			String argPair = StringUtils.stripToNull( rawArgPair ); 
+			
+			// split on equal sign
+			if ( !Objects.isNull( argPair ) ) {
+				
+				String[] splitArg = argPair.split( "=" );
+				
+				// sanity check
+				if ( splitArg.length == 2 ) {
+
+					String variable = StringUtils.stripToNull( splitArg[ 0 ] );
+					
+					// strip and remove quotes from value
+					String value = StringUtils.stripToNull( splitArg[ 1 ] );
+					if ( !Objects.isNull( value ) ) value = value.replaceAll( "\"", "" );
+					
+					// more sanity checking
+					if ( !Objects.isNull( variable ) && !Objects.isNull( value ) ) {
+
+						// based on argument name, populate variable
+						switch( variable ) {
+
+						case CMD_ARG_CLUSTER_COMMS_ADDRESS:
+							clusterCommunicationsAddress = value;
+							MASSBase.getLogger().debug( "Cluster will use {} for communications", clusterCommunicationsAddress );
+							break;
+
+						case CMD_ARG_HOSTNAME:
+							hostName = value;
+							MASSBase.getLogger().debug( "Hostname is set to {}", hostName );
+							break;
+
+						case CMD_ARG_MYPID:
+							myPid = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "My PID is set to {}", myPid );
+							break;
+
+						case CMD_ARG_NPROC:
+							nProc = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NPROC is set to {}", nProc );
+							break;
+
+						case CMD_ARG_NTHREADS:
+							nThreads = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "NTHREADS is set to {}", nThreads );
+							break;
+
+						case CMD_ARG_SERVER_PORT:
+							serverPort = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Server port is set to {}", serverPort );
+							break;
+
+						case CMD_ARG_WORKING_DIRECTORY:
+							curDir = value;
+							MASSBase.getLogger().debug( "Working directory is set to {}", curDir );
+							break;
+
+						case CMD_ARG_MAX_AGENTS:
+							maxNumberOfAgents = Integer.parseInt( value );
+							MASSBase.getLogger().debug( "Max number of agents set to {}", maxNumberOfAgents );
+							break;
+						
+						case CMD_ARG_USERNAME:
+							username = value;
+							MASSBase.getLogger().debug( "Username set to {}", username);
+							break;
+
+						default:
+							MASSBase.getLogger().debug( "Argument {} not recognized!", splitArg[ 1 ] );
+
+						}
+
+					}
+
+				}
+				
+			}
+			
+		}
+		
+		MASSBase.getLogger().debug( "Command-line arguments parsed!" );
+		
 		AgentSerializer agentSerializer = AgentSerializer.getInstance();
-
 		agentSerializer.setMaxNumberOfAgents(maxNumberOfAgents);
 
-		// TODO: It is officially time to design a better way to configure the remote process
-
 		try {
-			MProcess mprocess = new MProcess(hostName, myPid, nProc, nThreads, serverPort, curDir);
+			MProcess mprocess = new MProcess( hostName, myPid, nProc, nThreads, serverPort, curDir, clusterCommunicationsAddress, username );
 			mprocess.start();
 		} catch (Exception e) {
 			try (PrintWriter pw = new PrintWriter("mass_fatal.log")) {
@@ -143,7 +254,7 @@ public class MProcess {
 	}
 
 	// Initialize this MProcess (this used to be handled by a single constructor)
-	private void init(String hostName, int myPid, int nProc, int nThr, int port, String curDir) {
+	private void init( String hostName, int myPid, int nProc, int nThr, int port, String curDir, String clusterCommunicationsAddress, String username ) {
 
 		this.myPid = myPid;
 
@@ -153,6 +264,7 @@ public class MProcess {
 		thisNode.setPid(myPid);
 		thisNode.setPort(port);
 		thisNode.setMassHome(curDir);
+		thisNode.setUserName(username);
 
 		MASS.setNumThreads(nThr);
 		MASSBase.setWorkingDirectory(curDir); // mprocess manually changes it.
@@ -184,7 +296,7 @@ public class MProcess {
 		}
 
     	// initialize the messaging system
-    	MASS.getMessagingProvider().init( null, null );
+    	MASS.getMessagingProvider().init( clusterCommunicationsAddress );
     	
     	// initialize the global clock
     	MASS.getGlobalClock().init( MASS.getEventDispatcher() );
@@ -221,7 +333,7 @@ public class MProcess {
 	}
 
 	private void sendMessage(Message msg) {
-
+		MASSBase.getLogger().debug("Debug sending message" + msg.toString());
 		try {
 
 			MAIN_OOS.writeObject(msg);
@@ -234,6 +346,12 @@ public class MProcess {
 
 		}
 
+	}
+
+	// this can only be used when places was initialized, because exchange helper is initialized when places are created
+	// use for sending potential large messages
+	private void sendMessageByExchangeHelper(Message msg) {
+		MASSBase.getExchange().sendMessage(0, msg);
 	}
 
 	private void sendReturnValues(Object argument) {
@@ -262,13 +380,24 @@ public class MProcess {
 			// receive a new message from the master
 			Message m = receiveMessage();
 
-			MASSBase.getLogger().debug("A new message received: action = {}", m.getAction());
+			MASSBase.getLogger().error("MProcess start: A new message received");
 
 			// get prepared for the following arguments for PLACES_INITIALIZE
 			PlacesBase places = null; // new Places
 			AgentsBase agents = null; // new Agents
 
 			GraphPlaces graphPlaces;
+
+			// Added by Lilian to handle propertyGraphPlaces
+			PropertyGraphPlaces propertyGraphPlaces;
+			Object[] propertyVertexArgs;
+			int propertyVertexID;
+			Object itemID;
+			Object neighborID;
+			List<String> labels;
+			Map<String, String> nodeProperties;
+			List<String> relationTypes;
+			Map<String, String> relationProperties;
 
 			// retrieve an argument
 			Object argument = m.getArgument();
@@ -313,7 +442,8 @@ public class MProcess {
 				break;
 
 			case FINISH:
-
+				// shutdown shared graphPlaces
+				MASSBase.finishSharedGraphPlaces();
 				// shutdown messaging system
 		    	MASS.getMessagingProvider().shutdown();
 
@@ -326,6 +456,30 @@ public class MProcess {
 				alive = false;
 				MASSBase.getLogger().debug("FINISH received and ACK sent");
 
+				// force termination of this node
+				// TODO - this is an ugly hack, but it guarantees termination regardless of the state of things
+				System.exit( 0 );
+				
+				// yes, there is a "break" after system exit. just keeping things tidy.
+				break;
+
+			case SPACE_PLACES_INITIALIZE:
+
+				MASSBase.getLogger().debug("SPACE_PLACES_INITIALIZE received");
+
+				// create a new SpacePlaces
+				places = new SpacePlacesBase(m.getHandle(), m.getClassname(), m.getDimensions(), m.getGranularity(), m.getMin(),
+					m.getMax(), m.getSize(), argument);
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+				MASSBase.getPlacesMap().put( m.getHandle(), places );
+				
+				SpacePlacesBase curPlaces = (SpacePlacesBase) MASSBase.getPlacesMap().get(m.getHandle());
+
+				sendAck();
+				MASSBase.getLogger().debug("SPACE_PLACES_INITIALIZE completed and ACK sent");
+			
 				break;
 
 			case PLACES_INITIALIZE:
@@ -347,23 +501,27 @@ public class MProcess {
 			case PLACES_INITIALIZE_GRAPH:
 
 				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH received");
-				if (argument instanceof Integer) {
-					places = new GraphPlaces(m.getHandle(), m.getClassname(), (Integer)argument, true);
-				}else{
-					// Graph initialization arguments
-					String [] graphArgs = (String [])Arrays.copyOfRange((Object [])argument, 0, 2);
+				InitArgs initArgs = (InitArgs)argument;
 
-					Object [] initArgs = Arrays.copyOfRange((Object [])argument, 2, ((Object[]) argument).length);
-
-					//places = new PlacesBase( m.getHandle(), m.getClassname(), graphArgs, initArgs );
-					places = new GraphPlaces(m.getHandle(), m.getClassname(), graphArgs, initArgs);
+				/*Object graphPlace = null;
+				try {
+					Class<?> cls = Class.forName(initArgs.className);
+					Constructor<?> contructor = cls.getConstructor(int.class, String.class, String.class);
+					graphPlace = contructor.newInstance(initArgs.handle, initArgs.vertexClassName, initArgs.sharedPlaceName);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("PLACES_INITIALIZE_GRAPH exception thrown: " + e);
 				}
+
+				places = (PlacesBase)graphPlace;*/
+				places = new GraphPlaces(initArgs.handle, initArgs.vertexClassName, initArgs.sharedPlaceName);
+
 				// establish all inter-node connections within setHosts( )
 				MASSBase.setHosts( m.getHosts() );
+
 				MASSBase.getPlacesMap().put( m.getHandle(), places );
 
 				sendAck();
-				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed and ACK sent");
+				MASSBase.getLogger().debug("PLACES_INITIALIZE_GRAPH completed");
 
 				break;
 
@@ -452,15 +610,16 @@ public class MProcess {
 				// resume threads to work on call all.
 				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_EXCHANGEALL);
 
-				// exchangeall implementation
-				MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
-						MASSBase.getCurrentFunctionId(), 0);
-
 				// Perform graph exchangeAll separately for now
 				if (GraphPlaces.class.isAssignableFrom(MASSBase.getCurrentPlacesBase().getClass())) {
+					MASS.getLogger().debug("executing exchangeAll on GraphPlaces");
 					graphPlaces = (GraphPlaces) MASSBase.getCurrentPlacesBase();
 
 					graphPlaces.exchangeAll(MASSBase.getCurrentFunctionId());
+				} else {
+					// exchangeall implementation
+					MASSBase.getCurrentPlacesBase().exchangeAll(MASSBase.getDestinationPlaces(),
+					MASSBase.getCurrentFunctionId(), 0);
 				}
 
 				// confirm all threads are done with places.exchangeall.
@@ -506,14 +665,28 @@ public class MProcess {
 
 				break;
 
+			case AGENTS_INITIALIZE_SPACE:
+
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE_SPACE received");
+
+				agents = new AgentsBase(m.getHandle(), m.getClassname(), m.getInputArgument(), argument, m.getDestHandle());
+
+				MASSBase.getAgentsMap().put(m.getHandle(), agents);
+
+				sendAck(agents.getLocalPopulation());
+
+				MASSBase.getLogger().debug("AGENTS_INITIALIZE_SPACE completed and ACK sent");
+
+				break;
+
 			case AGENTS_CALL_ALL_VOID_OBJECT:
 
 				MASSBase.getLogger().debug("AGENTS_CALL_ALL_VOID_OBJECT received");
 
-				MASSBase.setCurrentAgentsBase( MASSBase.getAgentsMap().get( m.getHandle() ) );
-				MASSBase.setCurrentFunctionId( m.getFunctionId() );
-				MASSBase.setCurrentArgument( argument );
-				MASSBase.setCurrentMsgType( m.getAction() );
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(new Integer(m.getHandle())));
+				MASSBase.setCurrentFunctionId(m.getFunctionId());
+				MASSBase.setCurrentArgument(argument);
+				MASSBase.setCurrentMsgType(m.getAction());
 
 				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
 
@@ -584,17 +757,20 @@ public class MProcess {
 
 				break;
 				
+			// This case statement is executed by only the main thread. No MThread.barrierThreads(0) is necessary.
 			case AGENTS_EXCHANGE_ALL:
 				
 				MASSBase.getLogger().debug("AGENTS_EXCHANGE_ALL received");
 				
 				MASSBase.getCurrentAgentsBase().exchangeAll();
-				MThread.barrierThreads(0);
+
 				sendAck();
 				
 				break;
 
 			case MAINTENANCE_ADD_PLACE:
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_ADD_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -606,12 +782,31 @@ public class MProcess {
 				int result = ((GraphPlaces)places).addPlaceLocally(((Object[])argument)[0], ((Object[])argument)[1]);
 				MASSBase.getLogger().debug("MAINNTENANCE_ADD_PLACE completed result: " + result);
 				sendAck(result);
+				
+				break;
 
+			case MAINTENANCE_ADD_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX [handle=" + m.getHandle() + "; places=" + places + "; argument=" + m.getArgument() + "]");
+
+				Object[] args = (Object[])argument;
+				int vertexID = (Integer)args[0];
+				Object vertexParams = args[1];
+				
+				boolean success = ((GraphPlaces)places).addVertexOnNode(MASS.getMyPid(), vertexID, vertexParams);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_VERTEX completed result: " + success);
+				sendAck(success ? 1 : 0);
 			
 				break;
 
 			case MAINTENANCE_ADD_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_ADD_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_ADD_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
@@ -623,8 +818,50 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE completed");
 				break;
+			
+			case MAINTENANCE_ADD_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] addEdgeArgs = (Object[])argument;
+
+				graphPlaces.addEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)addEdgeArgs[0], 
+					(Integer)addEdgeArgs[1], 
+					(Double)addEdgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_EDGE_V2 completed");
+				break;
+
+			case MAINTENANCE_ADD_TREE_NODE:
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE received");
+
+					places = MASS.getPlaces(m.getHandle());
+
+					graphPlaces = ((GraphPlaces) places);
+					Object[] addTreeNodeArgs = (Object[])argument;
+
+					graphPlaces.addTreeBranchOnNode(
+							MASS.getMyPid(),
+							(Integer)addTreeNodeArgs[0],
+							(Integer)addTreeNodeArgs[1],
+							(Integer)addTreeNodeArgs[2]
+					);
+
+					sendAck();
+
+					MASSBase.getLogger().debug("MAINTENANCE_ADD_TREE_NODE completed");
+					break;
 
 			case MAINTENANCE_REMOVE_PLACE:
+				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_PLACE has been deprecated. " +
+					"Please migrate to using MAINTENANCE_REMOVE_VERTEX.");
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_PLACE received");
 
 				places = MASS.getPlaces(m.getHandle());
@@ -635,9 +872,34 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_PLACE completed");
 				break;
+			
+			case MAINTENANCE_REMOVE_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX received");
+
+				places = MASS.getPlaces(m.getHandle());
+				
+				((GraphPlaces) places).removeVertexOnNode(MASS.getMyPid(), (Integer) m.getArgument());
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_VERTEX completed");
+				break;
+
+			case MAINTENANCE_REMOVE_NEIGHBOR:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR received");
+
+				places = MASS.getPlaces(m.getHandle());
+				((GraphPlaces) places).removeNeighborFromLocalVertices((Integer) m.getArgument());
+				sendAck();
+				
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_NEIGHBOR completed");
+				break;
 
 			case MAINTENANCE_REMOVE_EDGE:
 				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE received");
+				MASSBase.getLogger().warning("MAINTENANCE_REMOVE_EDGE is deprecated " +
+					"and will be removed in a future release. Please migrate to using " +
+					"MAINTENANCE_REMOVE_EDGE_V2.");
 
 				places = MASS.getPlaces(m.getHandle());
 
@@ -649,29 +911,239 @@ public class MProcess {
 
 				MASSBase.getLogger().debug("MAINNTENANCE_REMOVE_EDGE completed");
 				break;
+			
+			case MAINTENANCE_REMOVE_EDGE_V2:
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 received");
+
+				places = MASS.getPlaces(m.getHandle());
+
+				graphPlaces = ((GraphPlaces) places);
+				Object[] removeEdgeArgs = (Object[])argument;
+
+				graphPlaces.removeEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)removeEdgeArgs[0], 
+					(Integer)removeEdgeArgs[1]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_REMOVE_EDGE_V2 completed");
+				break;
+
+			case MAINTENANCE_GET_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX received");
+				int handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				// Retrieve and clone the vertex place. Cloning is necessary
+				// to prevent the object stream from sending a reference from
+				// an old object. The alternative is to reset the stream which 
+				// may have other unknown performance implications. Depending
+				// how how the message stream is utilized elsewhere in MASS.
+				Object vertex = null;
+				try {
+					vertex = graphPlaces.getVertexFromNode(
+						MASS.getMyPid(),
+						((Integer) m.getArgument()).intValue()
+					).clone();
+				} catch (CloneNotSupportedException cnse) {
+					MASSBase.getLogger().error("VertexPlace not cloneable: " + cnse);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("An unexpected error occurred: " + e);
+				}
+
+				// Send vertex to requester.
+				Message msg = new Message(
+					Message.ACTION_TYPE.MAINTENANCE_GET_VERTEX_RESPONSE,
+					handle,
+					vertex
+				);
+				// sendMessage(msg);
+				// change to use exchange helper for performance
+				sendMessageByExchangeHelper(msg);
+
+				MASSBase.getLogger().debug("MAINTENANCE_GET_VERTEX_RESPONSE sent");
+				break;
+			
+			case GRAPH_PLACES_CALL_ALL_VOID_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				
+				graphPlaces.callVertexPlaceMethod(m.getFunctionId(), argument);
+
+				sendAck();
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT complete");
+				break;
+
+			case GRAPH_PLACES_CALL_ALL_RETURN_OBJECT:
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT received");
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_VOID_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = (GraphPlaces)places;
+				ArrayList<Object> callArgs = (ArrayList<Object>) argument;
+
+				Object[] retVals = graphPlaces.callVertexPlaceMethod(m.getFunctionId(), callArgs);
+
+				sendMessage( new Message( Message.ACTION_TYPE.ACK, retVals ) );
+				MASSBase.getLogger().debug("GRAPH_PLACES_CALL_ALL_RETURN_OBJECT complete");
+				break;
+
+			case MAINTENANCE_LOAD_DSL_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				Object[] opArgs = (Object[])argument;
+				int offset = (Integer)opArgs[0];
+				String filePath = (String)opArgs[1];
+				int vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadDSLGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading DSL file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_DSL_FILE completed");
+				break;
+			
+			case MAINTENANCE_LOAD_SAR_FILE:
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				graphPlaces = ((GraphPlaces) places);
+
+				opArgs = (Object[])argument;
+				offset = (Integer)opArgs[0];
+				filePath = (String)opArgs[1];
+				vertexCount = 0;
+				try {
+					vertexCount = graphPlaces.loadSARGraphData(offset, filePath);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("exception occurred reading SAR file: " + e);
+					break;
+				}
+
+				sendAck(vertexCount);
+				MASSBase.getLogger().debug("MAINTENANCE_LOAD_SAR_FILE completed");
+				
+				break;
+			
+			case MAINTENANCE_BULK_GRAPH_HIPPIE_OPS:
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS received");
+
+				places = MASS.getPlaces(m.getHandle());
+				Hippie hippiePlaces = (Hippie)places;
+
+				ArrayList<HippieOp> ops = (ArrayList<HippieOp>)argument;
+
+				int myPid = MASS.getMyPid();
+
+				for (HippieOp op : ops) {
+					if (op.funcID == HippieOp.FUNC_ADD_VERTEX) {
+						VertexInitData vid = new VertexInitData(op.sourceKeys[0], op.sourceKeys[1]);
+						hippiePlaces.addVertexOnNode(myPid, op.sourceID, vid);
+					} else if (op.funcID == HippieOp.FUNC_ADD_EDGE) {
+						hippiePlaces.addEdgeOnNode(myPid, op.sourceID, op.destID, op.edgeWeight, op.extendedAttribs);
+					}
+				}
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_HIPPIE_OPS completed");
+				break;
+			
+			case MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB:
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB received");
+
+				places = MASS.getPlaces(m.getHandle());
+				hippiePlaces = (Hippie)places;
+
+				Object[] edgeArgs = (Object[])argument;
+
+				hippiePlaces.addEdgeAttributesOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0], 
+					(Integer)edgeArgs[1], 
+					(String)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_HIPPIE_ADD_EDGE_ATTRIB completed");
+				break;
+			
+			case MAINTENANCE_BULK_GRAPH_MATSIM_OPS:
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS received");
+
+				places = MASS.getPlaces(m.getHandle());
+				Matsim matsimPlaces = (Matsim)places;
+
+				ArrayList<MatsimOp> matsimOps = (ArrayList<MatsimOp>)argument;
+
+				myPid = MASS.getMyPid();
+
+				for (MatsimOp op : matsimOps) {
+					if (op.funcID == MatsimOp.FUNC_ADD_VERTEX) {
+						MatsimVertexInitData vid = new MatsimVertexInitData(op.vertID, op.vertX, op.vertY, op.vertType);
+						matsimPlaces.addVertexOnNode(myPid, op.sourceID, vid);
+					} else if (op.funcID == MatsimOp.FUNC_ADD_EDGE) {
+						matsimPlaces.addEdgeOnNode(myPid, op.sourceID, op.destID, op.edge);
+					}
+				}
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_BULK_GRAPH_MATSIM_OPS completed");
+				break;
+			
+			case MAINTENANCE_MATSIM_ADD_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE received");
+
+				places = MASS.getPlaces(m.getHandle());
+				matsimPlaces = (Matsim)places;
+
+				edgeArgs = (Object[])argument;
+
+				matsimPlaces.addEdgeOnNode(
+					MASS.getMyPid(),
+					(Integer)edgeArgs[0],
+					(Integer)edgeArgs[1],
+					(MatsimEdge)edgeArgs[2]
+				);
+
+				sendAck();
+
+				MASSBase.getLogger().debug("MAINTENANCE_MATSIM_ADD_EDGE completed");
+
+				break;
 
 			case MAINTENANCE_GET_PLACES:
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 
 				places = MASS.getPlaces(m.getHandle());
 
-				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
+				
+				// sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
+				// change to use exchange helper for performance
+				sendMessageByExchangeHelper(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PLACES_RESPONSE, GraphMaintenance.getPlaces((GraphPlaces)places)));
 
 				MASSBase.getLogger().debug("MAINTENANCE_GET_PLACES received");
 				break;
-			
 
-			case GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT:
-				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
-
-				graphPlaces = (GraphPlaces) MASS.getPlaces(m.getHandle());
-
-				Object o = graphPlaces.exchangeNeighbor(m.getFunctionId(), (Integer) m.getArgument());
-
-				sendMessage(new Message(Message.ACTION_TYPE.GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT, o));
-
+			// These are NOOPs in MProcess. They are used with the ExchangeHelper.
+			case GRAPH_PLACES_REQUEST_DATA:
+			case GRAPH_PLACES_SEND_DATA:
 				break;
-
+			
 			case MAINTENANCE_REINITIALIZE:
 				MASSBase.getLogger().debug("GRAPH_PLACES_EXCHANGE_ALL_REMOTE_RETURN_OBJECT");
 
@@ -682,7 +1154,143 @@ public class MProcess {
 				sendAck();
 
 				break;
+
+			case AGENTS_MANAGE_ALL_SPACE:
+
+				MASSBase.getLogger().debug("AGENTS_MANAGE_ALL_SPACE received");
+
+				MASSBase.setCurrentAgentsBase(MASSBase.getAgentsMap().get(m.getHandle()));
+				MThread.setAgentBagSize(MASSBase.getCurrentAgentsBase().getAgents().size_unreduced());
+
+				//MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+				MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL_SPACE);
+
+				MASSBase.getCurrentAgentsBase().manageAll_space(0); // 0 = the main
+																// tid
+
+				// confirm all threads are done with agents.manageAll_space.
+				MThread.barrierThreads(0);
+
+				MASSBase.getLogger().debug("sendAck will send localPopulation = {}",
+						MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				sendAck(MASSBase.getCurrentAgentsBase().getLocalPopulation());
+
+				break;
 			
+			// Added by Lilian===================================================================================================== 
+			// For Property Graph Places:
+			case MAINTENANCE_ADD_PROPERTY_VERTEX:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX [handle=" + m.getHandle() + "; propertyGraphPlaces=" + propertyGraphPlaces + "; argument=" + m.getArgument() + "]");
+
+				propertyVertexArgs = (Object[])argument;
+				propertyVertexID = (Integer)propertyVertexArgs[0];
+				itemID = (Object)propertyVertexArgs[1];
+				labels = (List<String>)propertyVertexArgs[2];
+				nodeProperties = (Map<String, String>)propertyVertexArgs[3];
+
+				success = propertyGraphPlaces.addVertexOnNode(MASS.getMyPid(), propertyVertexID, itemID, labels, nodeProperties);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_VERTEX completed result: " + success);
+				sendAck(success ? 1 : 0);
+				break;
+
+			case MAINTENANCE_ADD_PROPERTY_TO_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_TO_EDGE received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				propertyVertexArgs = (Object[])argument;
+
+				success = propertyGraphPlaces.addTOEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)propertyVertexArgs[0], 
+					(Integer)propertyVertexArgs[1], 
+					(Object)propertyVertexArgs[2],
+					(Object)propertyVertexArgs[3],
+					(List<String>)propertyVertexArgs[4],
+					(Map<String, String>)propertyVertexArgs[5]
+				);
+
+				sendAck(success ? 1 : 0);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_TO_EDGE completed");
+				break;
+			
+			case MAINTENANCE_ADD_PROPERTY_FROM_EDGE:
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_FROM_EDGE received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				propertyVertexArgs = (Object[])argument;
+
+				success = propertyGraphPlaces.addFROMEdgeOnNode(
+					MASS.getMyPid(), 
+					(Integer)propertyVertexArgs[0], 
+					(Integer)propertyVertexArgs[1], 
+					(Object)propertyVertexArgs[2],
+					(Object)propertyVertexArgs[3],
+					(List<String>)propertyVertexArgs[4],
+					(Map<String, String>)propertyVertexArgs[5]
+				);
+
+				sendAck(success ? 1 : 0);
+				MASSBase.getLogger().debug("MAINTENANCE_ADD_PROPERTY_FROM_EDGE completed");
+				break;
+
+			case PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH:
+
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH received");
+				InitArgs initArguments = (InitArgs)argument;
+
+				Object newPropertyGraphPlaces = null;
+				try {
+					Class<?> cls = Class.forName(initArguments.className);
+					Constructor<?> contructor = cls.getConstructor(int.class, String.class);
+					newPropertyGraphPlaces = contructor.newInstance(initArguments.handle, initArguments.vertexClassName);
+				} catch (Exception e) {
+					MASSBase.getLogger().error("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH exception thrown: " + e);
+				}
+
+				propertyGraphPlaces = (PropertyGraphPlaces) newPropertyGraphPlaces;
+
+				// establish all inter-node connections within setHosts( )
+				MASSBase.setHosts( m.getHosts() );
+
+				MASSBase.getPlacesMap().put( m.getHandle(), (PlacesBase) propertyGraphPlaces );
+
+				sendAck();
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_INITIALIZE_GRAPH completed");
+
+				break;
+			
+			case MAINTENANCE_GET_PROPERTY_PLACES:
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PROPERTY_PLACES received");
+
+				propertyGraphPlaces = (PropertyGraphPlaces) MASS.getPlaces(m.getHandle());
+
+				sendMessage(new Message(Message.ACTION_TYPE.MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE, GraphMaintenance.getPropertyGraphPlaces(propertyGraphPlaces)));
+
+				MASSBase.getLogger().debug("MAINTENANCE_GET_PROPERTY_PLACES_RESPONSE sent");
+				break;
+
+			case PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT:
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT received");
+				handle = m.getHandle();
+				places = MASS.getPlaces(handle);
+				propertyGraphPlaces = (PropertyGraphPlaces)places;
+				ArrayList<Object> callArguments = (ArrayList<Object>) argument;
+
+				Object[] returnVals = propertyGraphPlaces.callVertexPlaceMethod(m.getFunctionId(), callArguments);
+
+				sendMessage( new Message( Message.ACTION_TYPE.ACK, returnVals ) );
+				MASSBase.getLogger().debug("PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT complete");
+				break;
+
+			// End part added by Lilian for Property Graph Places =================================================================
+
 			default:
 				MASSBase.getLogger().debug( "Unrecognized Message Type!" );
 				break;
@@ -691,14 +1299,5 @@ public class MProcess {
 
 		}
 	}
-
-//	private void sendMessage(Serializable object) {
-//		try {
-//			MAIN_OOS.writeObject(object);
-//			MAIN_OOS.flush();
-//		} catch (IOException e) {
-//			MASSBase.getLogger().error("Exception sending object to remote host", e);
-//		}
-//	}
 
 }

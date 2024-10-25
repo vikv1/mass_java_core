@@ -33,7 +33,7 @@ package edu.uw.bothell.css.dsl.MASS;
 import java.util.function.BooleanSupplier;
 
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
-
+import java.util.*;
 /**
  * An Agent is an execution instance that resides in a Place, perform
  * operations on objects contained by the Place, and possibly migrate
@@ -59,29 +59,41 @@ public class Agents extends AgentsBase {
    * @param places The Places instance that will contain the Agents
    * @param initPopulation The number of Agents to create
    */
-  public Agents(int handle, String className, Object argument, Places places,
-      int initPopulation) {
+  public Agents(int handle, String className, Object argument, Places places, int initPopulation) {
 
     super(handle, className, argument, places.getHandle(), initPopulation);
     localAgents = new int[MASSBase.getSystemSize()];
-    System.out.println("localAgents:" + localAgents.length);
     initMaster(argument);
+  }
+  
+  //constructor for Space
+  public Agents(int handle, String className, Object input_argument, Object init_argument, SpacePlaces places) {
 
+    super(handle, className, input_argument, init_argument, places.getHandle());
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster_space(input_argument, init_argument);
   }
 
-  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {
+  //the default BinaryAgents constructor initialize one agent in the root
+  public Agents(int handle, String className, Object argument, BinaryTreePlaces places) {
 
+    super(handle, className, argument, places.getHandle(), "binary", "tree");
+    localAgents = new int[MASSBase.getSystemSize()];
+    initMaster_binaryAgents(argument);
+  }
+
+  private Object callAllSetup(int functionId, Object argument, Message.ACTION_TYPE type) {   
     // send a AGENTS_CALL_ALL message to each slave
     // i is the indicator of MNode at ith position of the MNode vector
+    MASS.getLogger().debug("*************** callAllSetup ***************");
+    MASS.getLogger().debug("functionId = " + functionId);
     Message m = null;
     for (int i = 0; i < MASS.getRemoteNodes().size(); i++) {
 
       // create a message
-      if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT)
-
+      if (type == Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT) {
         m = new Message(type, this.getHandle(), functionId, argument);
-
-      else {
+      } else {
 
         // calculate argument position
         int argumentPosition = 0;
@@ -92,19 +104,20 @@ public class Agents extends AgentsBase {
                     + " localAgents[" + (dest + 1) + "] = "
                     + localAgents[dest + 1]);
 
-        }
+        } 
 
         Object[] partitionedArgument = new Object[localAgents[i + 1]];
 
-        MASS.getLogger().debug("argument " + ((Object[]) argument).length + "partitionedArgument "+ partitionedArgument.length); 
-        System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0,
-            localAgents[i + 1]);
+        // modified by Yuna - to deal with the case that argument = null
+        if (argument != null) {
+          System.arraycopy((Object[]) argument, argumentPosition, partitionedArgument, 0, localAgents[i + 1]);
+        } else {
+          partitionedArgument = null;
+        }
 
-        m = new Message(type, this.getHandle(), functionId,
-            partitionedArgument);
+        m = new Message(type, this.getHandle(), functionId, partitionedArgument);
 
-        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)
-              + "] arg_pos = " + argumentPosition);
+        MASS.getLogger().debug("Agents.callAll: to rank[" + (i + 1)+ "] arg_pos = " + argumentPosition);
 
       }
 
@@ -113,8 +126,7 @@ public class Agents extends AgentsBase {
 
       MASS.getLogger().debug("AGENTS_CALL_ALL " + m.getAction() + " sent to " + i);
 
-      MASS.getLogger().debug("Bag Size is: "
-            + MASSBase.getAgentsMap().get( getHandle() )
+      MASS.getLogger().debug("Bag Size is: " + MASSBase.getAgentsMap().get( getHandle() )
                 .getAgents().size_unreduced());
 
     }
@@ -201,9 +213,8 @@ public class Agents extends AgentsBase {
 
     // check if MASS_base.hosts is empty (i.e., Places not yet created)
     if (MASSBase.getHosts().isEmpty()) {
-      System.err.println("Agents(" + getClassName()
-          + ") can't be created without Places!!");
-      System.exit(-1);
+    	MASS.getLogger().error("Agents(" + getClassName()+ ") can't be created without Places!! ");
+    	System.exit(-1);
     }
 
     // create a new list for message
@@ -228,6 +239,92 @@ public class Agents extends AgentsBase {
 
   }
 
+  private void initMaster_binaryAgents(Object argument) {
+
+	    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+	    if (MASSBase.getHosts().isEmpty()) {
+	        System.err.println("Agents(" + getClassName() + ") can't be created without Places!!");
+	        System.exit(-1);
+	    }
+
+	    // create a new list for message
+	    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_BINARY,
+	        getHandle(), getPlacesHandle(), getClassName(), argument);
+
+	    // send a AGENT_INITIALIZE message to each slave
+	    for (MNode node : MASS.getRemoteNodes()) {
+
+	        node.sendMessage(m);
+	        MASS.getLogger().debug("AGENT_INITIALIZE_BINARY sent to {}", node.getPid());
+	    
+	    }
+
+	    // Synchronized with all slave processes
+	    MASS.barrierAllSlaves(localAgents);
+	    localAgents[0] = getLocalPopulation();
+
+	    // register this agents in the places hash map
+	    MASSBase.getAgentsMap().put( getHandle(), this);
+
+	  }
+
+  /**
+   * InitMaster() method for Quad Tree Agents. -- modified by Yuna
+   */
+  private void initMaster_quadTreeAgents(Object argument) {
+
+    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+    if (MASSBase.getHosts().isEmpty()) {
+    System.err.println("QuadTreeAgents(" + getClassName() + ") can't be created without Places!!");
+    System.exit(-1);
+    }
+
+    // create a new list for message
+    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_QUADTREE, getHandle(), getPlacesHandle(), getClassName(), argument);
+
+    // send a AGENT_INITIALIZE_QUADTREE message to each slave
+    for (MNode node : MASS.getRemoteNodes()) {
+      node.sendMessage(m);
+      MASS.getLogger().debug("TREE_AGENT_INITIALIZE_QUADTREE sent to {}", node.getPid());
+    }
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    // register this agents in the places hash map
+    MASSBase.getAgentsMap().put( getHandle(), this);
+  }
+  
+  //---------------------------Yuna modified------------------------------
+  private void initMaster_space(Object input_argument, Object init_argument) {
+
+    // check if MASS_base.hosts is empty (i.e., Places not yet created)
+    if (MASSBase.getHosts().isEmpty()) {
+      System.err.println("Agents(" + getClassName() + ") can't be created without Places!!");
+      System.exit(-1);
+    }
+
+    // create a new list for message
+    Message m = new Message(Message.ACTION_TYPE.AGENTS_INITIALIZE_SPACE, getHandle(), getPlacesHandle(), getClassName(), input_argument, init_argument);
+
+    // send a AGENT_INITIALIZE message to each slave
+    for (MNode node : MASS.getRemoteNodes()) {
+
+      node.sendMessage(m);
+      MASS.getLogger().debug("AGENT_INITIALIZE_SPACE sent to {}", node.getPid());
+    
+    }
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+    // register this agents in the places hash map
+    MASSBase.getAgentsMap().put( getHandle(), this);
+
+  }
+  
   /**
    * Updates each agent’s status, based on each of its latest migrate( ),
    * spawn( ), and kill( ) calls. These methods are defined in the Agent base
@@ -280,6 +377,129 @@ public class Agents extends AgentsBase {
     // make sure all remotes have performed AgentsBase exchange all
     MASS.barrierAllSlaves( null, 0, null );
     
+  }
+
+  /**
+   * ---- added by Yuna
+   * Updates each agent’s status, based on each of its latest migrate( ),
+   * spawn( ), and kill( ) calls. These methods are defined in the Agent base
+   * class and may be invoked from other functions through callAll and
+   * exchangeAll.  
+   */
+  public void manageAll_binary() {
+
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_BINARY, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_binary(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+ 
+  /**
+   * manageAll() for Quad Tree ------------- added by Yuna
+   */
+  public void manageAllQuadTree() {
+    
+    // send an AGENTS_MANAGE_ALL_QUADTREE message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_QUADTREE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL_QUADTREE);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL);
+
+    // callall implementatioin
+    super.manageAll_quadTree(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
+  }
+
+  /**
+   * manageAll() for Space class  ------------- modified by Yuna
+   */
+  public void manageAllSpace() {
+    
+    // send an AGENTS_MANAGE_ALL message to each slave
+    Message m = null;
+    for ( MNode node : MASS.getRemoteNodes() ) {
+
+      // create a message
+      m = new Message( Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE, this.getHandle(), 0 );
+
+      // send it
+      node.sendMessage( m );
+      MASS.getLogger().debug(m.getAction() + " sent to {}", node.getPid());
+    }
+
+    // MThread Update
+    MThread.setAgentBagSize( MASSBase.getAgentsMap().get( getHandle() ).getAgents().size_unreduced() );
+
+    // retrieve the corresponding agents
+    MASSBase.setCurrentAgentsBase(this);
+    MASSBase.setCurrentMsgType(Message.ACTION_TYPE.AGENTS_MANAGE_ALL_SPACE);
+
+    // resume threads
+    MThread.resumeThreads(MThread.STATUS_TYPE.STATUS_MANAGEALL_SPACE);
+
+
+
+    // callall implementatioin
+    super.manageAll_space(0); // 0 = the main thread id
+
+    // confirm all threads are done with agents.callAll
+    MThread.barrierThreads(0);
+
+    // Synchronized with all slave processes
+    MASS.barrierAllSlaves(localAgents);
+    localAgents[0] = getLocalPopulation();
+
   }
 
   /**
@@ -355,6 +575,41 @@ public class Agents extends AgentsBase {
       {
           returnObject = callAllSetup(functionId, argument, Message.ACTION_TYPE.AGENTS_CALL_ALL_VOID_OBJECT);
           manageAll();
+      }
+      return returnObject;
+  }
+
+  // added by Lilian
+  /**
+   * Calls callAll and manageAll functions consecutively without responding
+   *  back to user application in each iteration.
+   *
+   * @param functionId the function id that is executed.
+   * @param arguments contains the list of arguments for each iteration.
+   *        The argument for each iteration stores in thisArgs, 
+   *        it contains the node-relationship pattern information, 
+   *        each argument (thisArgs) is an Object[] that containes 5 items:
+   *        Obj[0] = nodeStep.labelNames;
+            Obj[1] = nodeStep.nodeProperties;
+            Obj[2] = relStep == null? (Object) "NULL" : (Object) relStep.direction;
+            Obj[3] = relStep == null? (Object) "NULL" : (Object) relStep.relTypes;
+            Obj[4] = relStep == null? (Object) "NULL" : (Object) relStep.relProperties.
+   * @param numberOfIterations number of consecutive calls of callAll() and manageAll() functions
+   *        each node will need one iteration of callAll() and manageAll().
+   */
+  public Object PropertyGraphDoAll(int functionId, List<Object[]> arguments, int numberOfIterations)
+  {
+      Object returnObject = null; // store return results from Agents callAll()
+
+      Object[] thisArgs; // store the arguments for different Agents
+      
+      for (int i=0; i<numberOfIterations; i++)
+      {
+        thisArgs = new Object[this.nAgents()];  // thisArgs initiated with one for each Agents
+        Arrays.fill(thisArgs, (Object) arguments.get(i)); // each Agents will have the same Object[] argument for each Agent locally
+        
+        returnObject = callAllSetup(functionId, thisArgs, Message.ACTION_TYPE.AGENTS_CALL_ALL_RETURN_OBJECT);
+        manageAll();
       }
       return returnObject;
   }

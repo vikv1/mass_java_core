@@ -32,6 +32,7 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -41,41 +42,44 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-//@Category(IntegrationTest.class)
-@Disabled
-public class GraphPlacesTest {
+public class GraphPlacesTest extends AbstractTest {
     @BeforeAll
-    public static void setupMASS() {
-        MASS.init();
+    public static void beforeAll() {
+        resetMASSBase();
+        MNode masterNode = new MNode();
+        masterNode.setHostName( randomString() );
+        masterNode.setMaster( true );
+        MASSBase.addNode( masterNode );
+        MASSBase.initMASSBase( masterNode );
     }
 
     @AfterAll
-    public static void shutdownMASS() {
-        MASS.finish();
+    public static void afterAll() {
+        resetMASSBase();
     }
 
     @Test
-    public void networkIsCreated() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
-
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+    public void dslNetworkIsCreated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadDSLFile("src/resources/test-files/test-graph.dsl");
 
         assertNotNull(graph);
+        assertEquals(10, graph.size());
     }
 
     @Test
-    public void neighborsArePopulated() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
+    public void sarNetworkIsCreated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadSARFile("src/resources/test-files/test-graph.sar");
 
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        assertNotNull(graph);
+        assertEquals(10, graph.size());
+    }
+
+    @Test
+    public void neighborsArePopulated() throws Exception {
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        graph.loadDSLFile("src/resources/test-files/test-graph.dsl");
 
         Place place = graph.getPlaces()[0];
 
@@ -83,85 +87,128 @@ public class GraphPlacesTest {
 
         VertexPlace vertexPlace = (VertexPlace) place;
 
-        assertTrue(vertexPlace.neighbors.size() == 1);
-        assertTrue(vertexPlace.neighbors.get(0).equals(1));
+        assertTrue(vertexPlace.neighbors.size() == 3);
+        assertTrue(vertexPlace.neighbors.get(0).equals(8));
+        assertTrue(vertexPlace.weights.get(0).equals(9));
     }
 
     @Test
-    public void networkContainsATriangle() {
-        String [] graphArguments = new String[] {
-                "test-files/network-triangles.xml",
-                "something-else.txt"
-        };
+    public void testAddVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        
+        // Add a few vertices
+        graph.addVertex();
+        graph.addVertex();
+        graph.addVertex();
+        assertEquals(3, graph.size());
 
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.CSV, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        graph.removeVertex(1);
+        assertEquals(2, graph.size());
 
-        VertexPlace vertexPlace1 = (VertexPlace) graph.getPlaces()[0];
-        VertexPlace vertexPlace2 = (VertexPlace) graph.getPlaces()[1];
-        VertexPlace vertexPlace3 = (VertexPlace) graph.getPlaces()[2];
+        graph.addVertex();
+        assertEquals(3, graph.size());
 
-        assertTrue( vertexPlace1.neighbors.contains(1) );
-        assertTrue( vertexPlace2.neighbors.contains(2) );
-        assertTrue( vertexPlace3.neighbors.contains(0) );
+        graph.addVertex();
+        assertEquals(4, graph.size());
     }
 
     @Test
-    public void hippieNetworkIsCreated() {
-        String [] graphArguments = new String[] {
-                "test-files/complete-small.tsv",
-                "/dev/null"
-        };
+    public void testGetVertexSingleNode() {
+        // Setup graph and vertices.
+        int sourceID = 0;
+        int destinationID = 1;
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        
+        // Add a few vertices
+        int vertexID = graph.addVertexWithParams("D3AD10CC");
+        assertEquals(1, graph.size());
 
-        // TODO: Cleanup the constructor for graphplaces to something more like this
-//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
-//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
+        VertexPlace tut = graph.getVertex(vertexID);
+        assertNotNull(tut);
 
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        graph.removeVertex(vertexID);
+        assertEquals(0, graph.size());
 
-        assertNotNull(graph);
+        tut = graph.getVertex(vertexID);
+        assertNull(tut);
     }
 
     @Test
-    @Disabled // Maybe the listeners are not closing correctly?
-    public void hippieNetworkIsComplete() {
-        String [] graphArguments = new String[] {
-                "test-files/complete-small.tsv",
-                "/dev/null"
-        };
+    public void testRemoveVertexSingleNode() {
+        // Setup graph and vertices.
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
 
-        // TODO: Cleanup the constructor for graphplaces to something more like this
-//        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), graphArguments[0],
-//                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST);
+        // Add a few vertices
+        int vertID1 = graph.addVertex();
+        int vertID2 = graph.addVertex();
+        int vertID3 = graph.addVertex();
+        assertEquals(3, graph.size());
 
-        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName(), "dummy-name.txt",
-                GraphInputFormat.HIPPIE, GraphInitAlgorithm.FULL_LIST, 6, graphArguments);
+        // remove a valid vertex
+        assertTrue(graph.removeVertex(vertID1));
+        assertEquals(2, graph.size());
 
-        Place [] places = graph.getPlaces();
+        // remove a invalid vertex
+        assertTrue(!graph.removeVertex(3));
+        assertEquals(2, graph.size());
 
-        assertEquals(7, places.length);
-
-        assertEquals(VertexPlace.class.getName(), places[0].getClass().getName());
-
-        int [] vertices = {
-                0, 1, 2, 3, 4, 5, 6
-        };
-
-        for (Place place : places) {
-            VertexPlace vPlace = (VertexPlace) place;
-            int id = place.getIndex()[0];
-
-            int [] expectedNeighbors = Arrays.stream(vertices).filter(pid -> pid != id).toArray();
-
-            Object [] neighbors = vPlace.getNeighbors();
-
-            for (int i = 0; i < expectedNeighbors.length; i++) {
-                assertEquals(expectedNeighbors[i], neighbors[i]);
-            }
-        }
+        // remove the remaining vertices
+        graph.removeVertex(vertID2);
+        graph.removeVertex(vertID3);
+        assertEquals(0, graph.size());
     }
 
-//    @Test
-//    public void hippieNetworkIs
+    @Test
+    public void addEdgeWithoutWeight() {
+        // Setup graph and vertices.
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        int sourceID = graph.addVertex();
+        int destinationID = graph.addVertex();
+
+        // Add an edge without specifying weight.
+        assertTrue(graph.addEdge(sourceID, destinationID));
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        VertexPlace vert = graph.getVertex(sourceID);
+
+        // validate weights and neighbors list
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
+
+        int neighbor = (int) vert.neighbors.get(0);
+        // GraphPlaces signature requires a double for weight but VertexPlace
+        // casts it to an int.
+        int neighborWeight = (int) vert.weights.get(0);
+        
+        assertEquals(destinationID, neighbor);
+        assertEquals(1, neighborWeight);
+    }
+
+    @Test
+    public void testRemoveEdge() {
+        // Setup graph and vertices
+        GraphPlaces graph = new GraphPlaces(0, VertexPlace.class.getName());
+        int sourceID = graph.addVertex();
+        int destinationID = graph.addVertex();
+
+        // Add an edge without specifying weight.
+        assertTrue(graph.addEdge(sourceID, destinationID));
+
+        // Check that the edge was added successfully and that its weight is 1.0.
+        VertexPlace vert = graph.getVertex(sourceID);
+
+        // validate weights and neighbors list
+        assertEquals(1, vert.neighbors.size());
+        assertEquals(1, vert.weights.size());
+
+        assertTrue(graph.removeEdge(sourceID, destinationID));
+        vert = graph.getVertex(sourceID);
+
+        // validate that the edge is removed
+        assertEquals(0, vert.neighbors.size());
+        assertEquals(0, vert.weights.size());
+    }
 }

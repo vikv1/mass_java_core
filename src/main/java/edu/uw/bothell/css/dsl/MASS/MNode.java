@@ -37,6 +37,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -44,6 +46,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.uw.bothell.css.dsl.MASS.logging.LogLevel;
 
@@ -65,6 +69,7 @@ public class MNode {
 	private String logFileName;			// TODO - custom logging filename for this node
 	
 	private String hostName;			// the host name of this node
+	private String maxHeapSize;			// the amount of heap memory to allocate for this node
 	private String userName;			// for SSH login, the username - optional
 	private String javaHome;			// where the JVM is installed on this node - optional
 	private String massHome;			// where MASS library is located - optional
@@ -113,7 +118,7 @@ public class MNode {
     public String getJavaHome() {
 		return javaHome;
 	}
-	
+
 	/**
 	 * Get the location where MASS (MASS.jar) resides on this node
 	 * @return The location of MASS.jar
@@ -121,6 +126,15 @@ public class MNode {
 	@XmlElement(name = "masshome")
 	public String getMassHome() {
 		return massHome;
+	}
+
+	/**
+	 * Get the maximum amount of heap memory that will be allocated for this node
+	 * @return The max amount of heap memory
+	 */
+	@XmlElement(name = "maxheap")
+	public String getMaxHeapSize() {
+		return maxHeapSize;
 	}
 	
 	/**
@@ -134,8 +148,8 @@ public class MNode {
     public int getPid( ) {
     	return pid;
     }
-
-    /**
+	
+	/**
 	 * Set the port number used to communicate with this node, for inter-node socket communications
 	 * @return The port number
 	 */
@@ -144,7 +158,7 @@ public class MNode {
 		return port;
 	}
 
-	/**
+    /**
 	 * Get the path/filename of the private key used for SSH connections to this node
 	 * @return The private key path/filename
 	 */
@@ -152,7 +166,7 @@ public class MNode {
 	public String getPrivateKey() {
 		return privateKey;
 	}
-	
+
 	/**
 	 * Get the SSH login username for this node
 	 * @return The login username
@@ -185,7 +199,7 @@ public class MNode {
 		}
 		
 	}
-
+	
 	/**
 	 * Get the master status for this node - if true, then the node represented by this instance
 	 * is the master node 
@@ -260,7 +274,7 @@ public class MNode {
 	 * @param hostName The Hostname/IP address
 	 */
 	public void setHostName(String hostName) {
-		this.hostName = hostName;
+		this.hostName = StringUtils.stripToNull( hostName );
 	}
 
 	/**
@@ -278,7 +292,7 @@ public class MNode {
 	 * @param javaHome The JVM location
 	 */
 	public void setJavaHome(String javaHome) {
-		this.javaHome = javaHome;
+		this.javaHome = StringUtils.stripToNull( javaHome );
 	}
 
 	/**
@@ -286,7 +300,7 @@ public class MNode {
 	 * @param massHome The location of MASS.jar
 	 */
 	public void setMassHome(String massHome) {
-		this.massHome = massHome;
+		this.massHome = StringUtils.stripToNull( massHome );
 	}
 
 	/**
@@ -295,6 +309,14 @@ public class MNode {
 	 */
 	public void setMaster(boolean isMaster) {
 		this.isMaster = isMaster;
+	}
+
+	/**
+	 * Set the maximum amount of heap memory that may be allocated on this node
+	 * @param heapSize The maximum heap memory allocation
+	 */
+	public void setMaxHeapSize(String heapSize) {
+		this.maxHeapSize = StringUtils.stripToNull( heapSize );
 	}
 
 	/**
@@ -331,7 +353,7 @@ public class MNode {
 	 * @param privateKey The path/filename of the private key to use when connecting to this node
 	 */
 	public void setPrivateKey(String privateKey) {
-		this.privateKey = privateKey;
+		this.privateKey = StringUtils.stripToNull( privateKey );
 	}
 
 	/**
@@ -339,7 +361,30 @@ public class MNode {
 	 * @param userName The SSH login username
 	 */
 	public void setUserName(String userName) {
-		this.userName = userName;
+		this.userName = StringUtils.stripToNull( userName );
+	}
+	
+	/**
+	 * Check the configuration validity of a node definition
+	 * @return A collection of error messages representing validation failures
+	 */
+	public Set<String> validate() {
+		
+		Set<String> validationExceptions = new HashSet<>(); 
+		
+		// verify common properties for all nodes
+		if ( port > 65535 || port < 1024 ) validationExceptions.add( "Port number for node " + getHostName() + " is outside of the allowable range 1024 to 65535" );
+		
+		// check correctness of remote node configurations
+		if ( !isMaster() ) {
+			
+			if ( getPrivateKey() == null ) validationExceptions.add( "Must provide private key filename in configuration of " + getHostName() );
+			if ( getUserName() == null ) validationExceptions.add( "Must provide username in configuration of " + getHostName() );
+			
+		}
+		
+		return validationExceptions;
+		
 	}
 
 }

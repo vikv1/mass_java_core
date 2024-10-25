@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
 
 	The following acknowledgment shall be used where appropriate in publications, presentations, etc.:      
 
-	© 2012-2020 University of Washington. MASS was developed by Computing and Software Systems at University of 
+	© 2012-2021 University of Washington. MASS was developed by Computing and Software Systems at University of 
 	Washington Bothell.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -63,13 +63,18 @@ public class Agent implements Serializable {
 	 * Set to TRUE when this Agent has requested to migrate to a new Place (index)
 	 */
 	private transient boolean isMigrating = false;
+
+	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	private int nextIndex = -1;
 	
 	/**
 	 * Is the number of new children created by this agent upon a next call to
 	 * Agents.manageAll( ).
 	 */
 	private transient int newChildren = 0;
-	
+
 	/** 
 	 * Is an array of arguments, each passed to a different new child.
 	 */
@@ -81,7 +86,27 @@ public class Agent implements Serializable {
 	 */
 	private long inhibitUntil;
 
+  	private double[] currentCoordinates;
+
+
 	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	public void setNextIndex(int nextIndex)
+	{
+		this.nextIndex = nextIndex;
+	}
+
+	/**
+	 * This will hold the next Place Index to which the Agent should Migrate to
+	 */
+	public int getNextIndex( )
+	{
+		return this.nextIndex;
+	}
+
+
+  	/**
 	 * Is called from Agents.callAll. It invokes the function specified with
 	 * functionId as passing arguments to this function. A user-derived Agent
 	 * class must implement this method.
@@ -112,14 +137,15 @@ public class Agent implements Serializable {
 		return arguments;
 	}
 
-	/**
+	
+ 	/**
 	 * Get debug data from the agent 
 	 * @return This Agent's debug data
 	 */
 	public Number getDebugData(){
 		return null;
 	}
-	
+
 	/**
 	 * Get the current location of this Agent, or prior to migration, the new location
 	 * where this Agent is to migrate to
@@ -132,7 +158,7 @@ public class Agent implements Serializable {
 	public long getInhibitUntil() {
 		return inhibitUntil;
 	}
-
+	
 	/**
 	 * Get the number of new child Agents spawned by this Agent
 	 * @return The number of new children
@@ -157,6 +183,11 @@ public class Agent implements Serializable {
 		return alive;
 	}
 
+	public String isMigrate_toString() {
+     	if (isMigrating) return "true";
+     	else return "false";
+ 	}
+
 	/**
 	 * Get the migration status of this Agent. If TRUE, this Agent has requested to migrate to a new
 	 * Place, if FALSE it is remaining in it's current Place
@@ -165,7 +196,7 @@ public class Agent implements Serializable {
 	public boolean isMigrating() {
 		return isMigrating;
 	}
-	
+
 	/**
 	 * Terminates the calling agent upon a next call to Agents.manageAll( ).
 	 * More specifically, kill( ) sets the "alive" variable false.
@@ -173,8 +204,8 @@ public class Agent implements Serializable {
 	public void kill( ) {
 		alive = false;
 	}
-
-	 /**
+	
+	/**
 	  * Returns the number of agents to initially instantiate on a place indexed
 	  * with coordinates[]. The maxAgents parameter indicates the number of
 	  * agents to create over the entire application. The argument size[] defines
@@ -210,7 +241,7 @@ public class Agent implements Serializable {
 		return colonists;
 	}
 
-	/**
+	 /**
 	 * Initiates an agent migration upon a next call to Agents.manageAll( ). More
 	 * specifically, migrate( ) updates the calling agent’s index[].
 	 */
@@ -266,22 +297,28 @@ public class Agent implements Serializable {
 		this.agentId = agentId;
 	}
 
-//	/**
-//	 * Set the current location or intended destination after migration
-//	 * for this Agent
-//	 * @param index The current location or destination after migration
-//	 */
-//	protected void setIndex(int[] index) {
-//
-//		
-//		this.index = index;
-//	}
-
 	/**
 	 * Intended for subclasses of Agent to override - set debug data for this Agent
 	 * @param data Debug data
 	 */
 	public void setDebugData(Number data) {}
+
+	/**
+	 * Set the current location or intended destination after migration
+	 * for this Agent
+	 * @param index The current location or destination after migration
+	 */
+	protected void setIndex(int[] index) {
+		this.index = index;
+	}
+
+	/**
+	 * Override migration flag for this Agent. Typically this is used with SpacePlaces since an Agent can "move" around a single SpacePlace.
+	 * @param isMigrating Override value for the migrating flag
+	 */
+	public void setMigrating(boolean isMigrating) {
+		this.isMigrating = isMigrating;
+	}
 
 	/**
 	 * Set the number of new child Agents created
@@ -343,4 +380,13 @@ public class Agent implements Serializable {
 		}
 
 	}
+	
+	public double[] getCurrentCoordinates() {
+		return currentCoordinates;
+	}
+
+	public void setCurrentCoordinates(double[] coordinates) {
+		this.currentCoordinates = coordinates.clone();
+	}
+
 }

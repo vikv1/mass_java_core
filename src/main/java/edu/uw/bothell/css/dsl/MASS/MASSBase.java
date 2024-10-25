@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,13 @@ package edu.uw.bothell.css.dsl.MASS;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import java.util.Iterator;
 
 import edu.uw.bothell.css.dsl.MASS.clock.GlobalLogicalClock;
 import edu.uw.bothell.css.dsl.MASS.clock.SimpleGlobalClock;
@@ -44,10 +47,9 @@ import edu.uw.bothell.css.dsl.MASS.event.SimpleEventDispatcher;
 import edu.uw.bothell.css.dsl.MASS.factory.ObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.factory.SimpleObjectFactory;
 import edu.uw.bothell.css.dsl.MASS.infra.DistributedMap;
-import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.infra.MASSSimpleDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
-import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessenging;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessaging;
 
 /**
  * MASS_base maintains references to all Places, Agents, and mNode instances within the cluster.
@@ -72,10 +74,16 @@ public class MASSBase {
 	private static Message.ACTION_TYPE currentMsgType;
 	private static MNode thisNode;			// this node configuration
 
+	private static List< Double[] > recordPoints = new ArrayList<>();  // aid for displaying
+	private static List< Double[] > recordLines = new ArrayList<>();
+
+	// Object[] won't work as return values for treePlaces (recursion), use List<> as a temp returns and convert to array
+	private static List<Object> currentReturnsTemp = new ArrayList<>(); 
+
 	// TODO: We should have access checks. This should also not just be a public static member of MASS
 	//       For example: Maybe only places should have access to the map
 	//                           key,    global index
-	public static DistributedMap<Object, Integer> distributed_map;
+	public static MASSSimpleDistributedMap<Object, Integer> distributed_map;
 
 	// TODO - this is dumb. Calculate from number of hosts identified.
 	private static int systemSize = 1;          // # of processes (nodes) in the cluster (temporary!)
@@ -102,10 +110,11 @@ public class MASSBase {
     private static EventDispatcher eventDispatcher = SimpleEventDispatcher.getInstance();
     
     // messaging
-    private static MASSMessenging messenger = MASSMessenging.getInstance();
+    private static MASSMessaging messenger = MASSMessaging.getInstance();
     
     // global logical clock
     private static GlobalLogicalClock clock = SimpleGlobalClock.getInstance();
+
 
 	/**
      * Add a new node to the cluster
@@ -140,7 +149,36 @@ public class MASSBase {
     	
     }
 
-    /**
+	protected static void finish() {
+		/*
+		try {
+			distributed_map.close();
+		} catch (IOException e) {
+			logger.error("Error closing dmap instance:");
+
+			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
+		}*/
+		distributed_map.close();
+	}
+
+	// this will be called by MASS on master node, by MProcess on slave nodes
+	// to finish the shared graph places
+	public static void finishSharedGraphPlaces() {
+		logger.debug("finish shared place");
+		Iterator<Integer> iterator = placesMap.keySet().iterator();
+		while (iterator.hasNext()) {
+			Integer key = iterator.next();
+			PlacesBase value = placesMap.get(key);
+			if (value instanceof GraphPlaces) {
+				logger.debug("GraphPlaces found, finish it");
+				GraphPlaces gp = (GraphPlaces)value;
+				gp.finish();
+			}
+		}
+	}
+
+
+	/**
      * Get Agents class for a specific Agents Handle ID
      * @param handle The Agents Handle ID to retrieve
      * @return The Agents class having the specified Handle ID
@@ -148,7 +186,7 @@ public class MASSBase {
 	public static Agents getAgents( int handle ) {
     	return ( Agents )agentsMap.get( handle );
     }
-	
+
 	/**
 	 * Get the collection of Agents currently residing on this node (as AgentsBase)
 	 * @return The Agents (as AgentsBase) located on this node
@@ -156,13 +194,21 @@ public class MASSBase {
 	public static Hashtable<Integer, AgentsBase> getAgentsMap() {
 		return agentsMap;
 	}
-
+	
 	/**
      * Get all MNode objects, master and remotes
      * @return MNodes representing all nodes
 	 */
 	public static Vector<MNode> getAllNodes() {
 		return allNodes;
+	}
+	
+	/**
+	 * Get the port number used for inter-node communications
+	 * @return The port number
+	 */
+	public static int getCommunicationPort() {
+		return thisNode.getPort();
 	}
 	
 	/**
@@ -197,15 +243,15 @@ public class MASSBase {
     	return currentFunctionId; 
     }
 	
-	/**
+    /**
 	 * Get the current Message type enumeration, used by MThread
 	 * @return The current Message type enumeration
 	 */
 	public static Message.ACTION_TYPE getCurrentMsgType( ) { 
     	return currentMsgType;
     }
-	
-	/**
+
+    /**
      * Get the current Places object being worked on
      * @return The current Places object
      */
@@ -213,7 +259,7 @@ public class MASSBase {
     	return currentPlacesBase;
     }
 	
-    /**
+	/**
      * Get the current returns from Places or Agents resulting from the last callAll
      * @return Current returns array
      */
@@ -221,13 +267,29 @@ public class MASSBase {
 		return currentReturns;
 	}
 
-    /**
+	/**
+     * Get the current temperate returns from TreePlaces the last callAll
+     * @return Current returns List
+     */
+    public static List< Object > getCurrentReturnsTemp() {
+		return currentReturnsTemp;
+	}
+
+	/**
      * Get the PlacesBase representing the destination for an Agent
      * @return Destination PlacesBase
      */
 	public static PlacesBase getDestinationPlaces( ) { 
     	return destinationPlaces; 
     }
+	
+	/**
+	 * Get the event dispatcher currently in use
+	 * @return The event dispatcher currently being used
+	 */
+	public static EventDispatcher getEventDispatcher() {
+		return eventDispatcher;
+	}
 	
 	/**
 	 * Get the ExchangeHelper used by this instance of MASS_base
@@ -239,23 +301,56 @@ public class MASSBase {
 		return exchange;
 	
 	}
-
-	/**
-	 * Set the ExchangeHelper used by this instance of MASS_base
-	 * @param exchangeHelper The ExchangeHelper used by this instance
-	 */
-	protected static void setExchange( ExchangeHelper exchangeHelper ) {
-		
-		exchange = exchangeHelper;
 	
+	/**
+	 * Get the instance of the Global Logical Clock
+	 * @return The Global Logical Clock currently in use
+	 */
+	protected static GlobalLogicalClock getGlobalClock() {
+		return clock;
 	}
 
+	public static Integer getGlobalIndexForKey(Object key) {
+		return distributed_map.getOrDefault(key, -1);
+	}
+	
 	/**
 	 * Get all hosts, as a collection of host names
 	 * @return All host names used as MASS nodes
 	 */
 	public static Vector<String> getHosts() {
 		return new Vector<>( allNodes.stream().map( MNode::getHostName ).collect( Collectors.toList() ) );
+	}
+	
+	/**
+	 * Get the filename of the log file, based in part on the node number and hostname
+	 * @return The name of the file that should be used for logging
+	 */
+	public static String getLogFileName() {
+		
+		if ( thisNode == null ) return null;	// not initialized yet!
+		
+		// make sure hostname is cleansed to provide a safe filename fragment
+		String safeHostname = thisNode.getHostName();
+		if (safeHostname != null) {
+			
+			// dots mess up paths
+			safeHostname = safeHostname.replace(".", "_");
+			
+		}
+		
+		String logFilename = getWorkingDirectory() + "/logs/" + "PID" + getMyPid() + "_" + safeHostname + "_result.txt";
+		return logFilename;
+		
+	}
+
+	/**
+	 * Get the Logger instance, primarily for MASS applications to record messages to the same
+	 * logger the library is using
+	 * @return The logger
+	 */
+	public static Log4J2Logger getLogger() {
+		return logger;
 	}
 	
 	/**
@@ -266,6 +361,14 @@ public class MASSBase {
 		return allNodes.stream().filter( node -> node.isMaster() ).findFirst().orElse( null );
 	}
 	
+    /**
+	 * Get the messaging provider currently in use
+	 * @return The messaging provider currently being used
+	 */
+	public static MASSMessaging getMessagingProvider() {
+		return messenger;
+	}
+	
 	/**
 	 * Get any outstanding Agent migration requests
 	 * @return Current Agent migration requests
@@ -273,7 +376,15 @@ public class MASSBase {
 	public static Vector<Vector<AgentMigrationRequest>> getMigrationRequests() {
 		return migrationRequests;
 	}
-	
+
+	/**
+	 * Get hostname for this node
+	 * @return hostname of thisNode
+	 */
+	public static String getMyHostname() {
+		return thisNode.getHostName();
+	}
+
 	/**
 	 * Get the PID (or node number) of this node
 	 * @return The PID of this node
@@ -285,15 +396,7 @@ public class MASSBase {
 		
 	}
 
-	/**
-	 * Get hostname for this node
-	 * @return hostname of thisNode
-	 */
-	public static String getMyHostname() {
-		return thisNode.getHostName();
-	}
-	
-	/**
+    /**
 	 * Get Places object for a specific handle ID
 	 * @param handle The ID of the Places object to retrieve
 	 * @return The Places object with the matching handle ID
@@ -301,13 +404,21 @@ public class MASSBase {
 	public static Places getPlaces( int handle ) {
     	return ( Places )placesMap.get( handle );
     }
-	
-	/**
+    
+    /**
 	 * Get the collection of Places located on this node
 	 * @return Places located on this node
 	 */
 	public static Hashtable<Integer, PlacesBase> getPlacesMap() {
 		return placesMap;
+	}
+    
+    protected static List<Double[]> getRecordLines() {
+		return recordLines;
+	}
+
+    protected static List<Double[]> getRecordPoints() {
+		return recordPoints;
 	}
 	
 	/**
@@ -325,8 +436,8 @@ public class MASSBase {
     public static Vector<Vector<RemoteExchangeRequest>> getRemoteRequests() {
 		return remoteRequests;
 	}
-	
-    /**
+
+	/**
 	 * Get the total number of nodes in the cluster
 	 * @return The number of nodes
 	 */
@@ -343,7 +454,15 @@ public class MASSBase {
 		return systemSize;
 
 	}
-	
+
+	/**
+	 * Get the username of user who runs the current MASS program, used for multi-user feature
+	 * @return The username
+	 */
+	public static String getUserName() {
+		return thisNode.getUserName();
+	}
+
 	/**
 	 * Get the collection of threads managed by MThread
 	 * @return The threads currently being managed by MThread
@@ -352,15 +471,19 @@ public class MASSBase {
 		return threads;
 	}
 
-	/**
+    /**
 	 * Get the directory ("MASS Home") that this node is working from
 	 * @return The working directory
 	 */
 	public static String getWorkingDirectory() {
 		return thisNode.getMassHome();
+	};
+
+	protected static void initDistributedData() {
+		MASSBase.distributed_map = new MASSSimpleDistributedMap<Object, Integer>();
 	}
 
-	/**
+    /**
 	 * Initialize MThread and start child execution threads
 	 * @param nThr The number of threads to start (will default to the number of CPU cores at a minimum)
 	 * @return The number of threads to start
@@ -411,7 +534,7 @@ public class MASSBase {
 		return true;
 	
 	}
-
+    
     /**
      * Initialize MASS_base, using an MNode object representing this node as the source for configuration
      * @param nodeConfig The MNode object representing this node
@@ -478,30 +601,52 @@ public class MASSBase {
 
     }
     
-    /**
+	/**
      * Get the initialized status of this node
      * @return True, if this node has been initialized successfully
      */
 	public static boolean isInitialized() {
 		return initialized;
 	}
-
+    
+	public static void reinitializeMap() {
+		initDistributedData();
+	}
+    
     /**
 	 * Reset the request counter
 	 */
 	public static void resetRequestCounter() {
 		//requestCounter = 0;
 	}
-	
+
 	/**
+	 * Set the port number used for inter-node communications
+	 * @param communicationPort The port number
+	 */
+	public static void setCommunicationPort(int communicationPort) {
+		
+		// can't set port to zero
+		// TODO - should throw IllegalArgumentException
+		if (communicationPort == 0) return;
+		
+		// not init'd yet?
+		// TODO - should throw some form of Exception
+		if (thisNode == null) return;
+		
+		thisNode.setPort( communicationPort );
+	
+	}
+
+    /**
 	 * Set the current AgentsBase this node is working with
 	 * @param currentAgents The current AgentsBase object
 	 */
 	public static void setCurrentAgentsBase(AgentsBase currentAgents) {
 		MASSBase.currentAgentsBase = currentAgents;
 	}
-	
-	/**
+
+    /**
 	 * Set the current argument (supplied to MProcess)
 	 * @param currentArgument The current argument to be used by MProcess
 	 */
@@ -516,7 +661,7 @@ public class MASSBase {
 	public static void setCurrentFunctionId(int currentFunctionId) {
 		MASSBase.currentFunctionId = currentFunctionId;
 	}
-
+	
 	/**
 	 * Set the current Message type enumeration, used by MThread
 	 * @param currentMsgType The Message type enumeration to be used by MThread
@@ -525,31 +670,74 @@ public class MASSBase {
 		MASSBase.currentMsgType = currentMsgType;
 	}
 
-    /**
+	/**
 	 * Set the current Places object to be worked on
 	 * @param currentPlaces The current Places object
 	 */
 	public static void setCurrentPlacesBase(PlacesBase currentPlaces) {
 		MASSBase.currentPlacesBase = currentPlaces;
-	};
+	}
 
-    /**
+	/**
      * set the current returns from Places or Agents resulting from the last callAll
      * @param currentReturns Returns array result from callAll
      */
     public static void setCurrentReturns(Object[] currentReturns) {
 		MASSBase.currentReturns = currentReturns;
 	}
+
+	/**
+     * When current returns were already initialized, set partial current returns from 
+     * Places or Agents resulting from the last callAll from a certain position
+     * @param returnValues Returns array result from callAll
+     * @param pos
+     */
+    public static void setCurrentReturns(Object[] returnValues, int pos) {
+
+    	// if currentReturns has not been initialized, initialize it as currentReturns
+    	if (MASSBase.currentReturns == null) {
+    		MASSBase.currentReturns = returnValues;
+    		return;
+    	}
+    	
+    	// if currentReturns already initialized, copy returnValues to currentReturns from a certain starting position
+    	if (returnValues.length > MASSBase.currentReturns.length) { //if currentReturns' size < return values
+    		logger.error("ArrayOutOfIndex: size of initialized currentReturns < return values ");
+    		return;
+    	}
+    
+    	System.arraycopy(returnValues, 0, currentReturns, pos, returnValues.length);
+    
+    }
     
     /**
+     * Set the current returns from Places or Agents resulting from the last callAll
+     * @param currentReturns Returns array result from callAll
+     */
+    public static void setCurrentReturnsTemp( List< Object > currentReturnsTemp ) {
+		MASSBase.currentReturnsTemp = currentReturnsTemp;
+	}
+
+
+	/**
      * Set the PlacesBase representing the destination for an Agent
      * @param destinationPlaces The destination PlacesBase
      */
     public static void setDestinationPlaces(PlacesBase destinationPlaces) {
 		MASSBase.destinationPlaces = destinationPlaces;
 	}
-    
-    /**
+
+	/**
+	 * Set the ExchangeHelper used by this instance of MASS_base
+	 * @param exchangeHelper The ExchangeHelper used by this instance
+	 */
+	protected static void setExchange( ExchangeHelper exchangeHelper ) {
+		
+		exchange = exchangeHelper;
+	
+	}
+
+	/**
      * Sets the hosts that MASS is using.
      * @param host_args
      */
@@ -584,15 +772,15 @@ public class MASSBase {
     	exchange.establishConnection( getSystemSize(), thisNode.getPid(), hosts, thisNode.getPort() );
 
     }
-    
-    /**
+	
+	/**
 	 * Set the initialized status of this node
 	 * @param initialized The initialization complete status for this node
 	 */
 	public static void setInitialized(boolean initialized) {
 		MASSBase.initialized = initialized;
 	}
-    
+	
 	/**
 	 * Set outstanding Agent migration requests
 	 * @param migrationRequests Current Agent migration requests
@@ -601,7 +789,7 @@ public class MASSBase {
 			Vector<Vector<AgentMigrationRequest>> migrationRequests) {
 		MASSBase.migrationRequests = migrationRequests;
 	}
-    
+
 	/**
 	 * Set outstanding Remote Agent migration requests
 	 * @param remoteRequests Current Remote Agent migration requests
@@ -610,8 +798,16 @@ public class MASSBase {
 			Vector<Vector<RemoteExchangeRequest>> remoteRequests) {
 		MASSBase.remoteRequests = remoteRequests;
 	}
-    
-    /**
+
+	/**
+	 * For remote hosts, force the system size since it is not aware of all the nodes in the cluster
+	 * @param numNodes The total number of nodes in the cluster
+	 */
+	protected static void setSystemSize( int numNodes ) {
+		systemSize = numNodes;
+	}
+
+	/**
 	 * Set (override) the working directory ("MASS Home") for this node
 	 * @param workingDirectory The new working directory for this node
 	 */
@@ -622,6 +818,14 @@ public class MASSBase {
 		
 		thisNode.setMassHome( workingDirectory );
 		
+	}
+
+	/**
+	 * Set the distributed_map for this node, since it's accessing a shared graph that has been stored on cluster
+	 * @param newdisMap The new distributed_map for this node
+	 */
+	public static void setDistributedMap(MASSSimpleDistributedMap<Object, Integer> newdisMap) {
+		distributed_map = newdisMap;
 	}
 
 	/**
@@ -642,120 +846,5 @@ public class MASSBase {
     	}
     
     }
-
-    /**
-	 * Get the port number used for inter-node communications
-	 * @return The port number
-	 */
-	public static int getCommunicationPort() {
-		return thisNode.getPort();
-	}
-
-    /**
-	 * Set the port number used for inter-node communications
-	 * @param communicationPort The port number
-	 */
-	public static void setCommunicationPort(int communicationPort) {
-		
-		// can't set port to zero
-		// TODO - should throw IllegalArgumentException
-		if (communicationPort == 0) return;
-		
-		// not init'd yet?
-		// TODO - should throw some form of Exception
-		if (thisNode == null) return;
-		
-		thisNode.setPort( communicationPort );
-	
-	}
-	
-	/**
-	 * Get the filename of the log file, based in part on the node number and hostname
-	 * @return The name of the file that should be used for logging
-	 */
-	public static String getLogFileName() {
-		
-		if ( thisNode == null ) return null;	// not initialized yet!
-		
-		// make sure hostname is cleansed to provide a safe filename fragment
-		String safeHostname = thisNode.getHostName();
-		if (safeHostname != null) {
-			
-			// dots mess up paths
-			safeHostname = safeHostname.replace(".", "_");
-			
-		}
-		
-		String logFilename = getWorkingDirectory() + "/logs/" + "PID" + getMyPid() + "_" + safeHostname + "_result.txt";
-		return logFilename;
-		
-	}
-	
-	/**
-	 * Get the Logger instance, primarily for MASS applications to record messages to the same
-	 * logger the library is using
-	 * @return The logger
-	 */
-	public static Log4J2Logger getLogger() {
-		return logger;
-	}
-
-	/**
-	 * For remote hosts, force the system size since it is not aware of all the nodes in the cluster
-	 * @param numNodes The total number of nodes in the cluster
-	 */
-	protected static void setSystemSize( int numNodes ) {
-		systemSize = numNodes;
-	}
-
-	protected static void initDistributedData() {
-		if (systemSize == 1) {
-			MASSBase.distributed_map = new MASSSimpleDistributedMap<>();
-		} else {
-			MASSBase.distributed_map = HazelcastDistributedMap.getInstance();
-		}
-	}
-
-	protected static void finish() {
-		try {
-			distributed_map.close();
-		} catch (IOException e) {
-			logger.error("Error closing dmap instance:");
-
-			Arrays.stream(e.getStackTrace()).forEach(element -> logger.error(element.toString()));
-		}
-	}
-
-	public static Integer getGlobalIndexForKey(Object key) {
-		return distributed_map.getOrDefault(key, -1);
-	}
-
-	public static void reinitializeMap() {
-		initDistributedData();
-	}
-
-	/**
-	 * Get the event dispatcher currently in use
-	 * @return The event dispatcher currently being used
-	 */
-	public static EventDispatcher getEventDispatcher() {
-		return eventDispatcher;
-	}
-	
-	/**
-	 * Get the messaging provider currently in use
-	 * @return The messaging provider currently being used
-	 */
-	public static MASSMessenging getMessagingProvider() {
-		return messenger;
-	}
-	
-	/**
-	 * Get the instance of the Global Logical Clock
-	 * @return The Global Logical Clock currently in use
-	 */
-	protected static GlobalLogicalClock getGlobalClock() {
-		return clock;
-	}
 
 }

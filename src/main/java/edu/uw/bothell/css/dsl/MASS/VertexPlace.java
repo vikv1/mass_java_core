@@ -30,49 +30,58 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+public class VertexPlace extends SmartPlace implements Serializable, Cloneable {
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfNodesException;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.InvalidNumberOfPlacesException;
-import edu.uw.bothell.css.dsl.MASS.Parallel_IO.UnsupportedFileTypeException;
-import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABEdge;
-import edu.uw.bothell.css.dsl.MASS.graph.HIPPIETABFormatLineParts;
-import ucar.ma2.InvalidRangeException;
-
-@SuppressWarnings("serial")
-public class VertexPlace extends Place implements Serializable {
+    // serialVersionUID set to resemble semantic versioning for
+    // VertexPlace (v1.0.0 == 01 00 00)
+    static final long serialVersionUID = 010000L;
     
-	private Map<Object, Object> neighborResults;
+	protected Map<Object, Object> neighborResults;
     private Object [] graphArguments;
     public Vector<Object> neighbors = new Vector<>();
     public Vector<Object> weights = new Vector<>();
+
+    /**
+     * Left and right are the node ids for this place's children when used as tree.
+     */
+    public int left = -1;
+    public int right = -1;
+
+    // clone returns a deep copy of the VertexPlace with the exception that it's
+    // possible for the objects within the neighbors, weights, graphArguments, 
+    // and neighborResults containers to contain objects that themselves have
+    // shared references.
+    public Object clone() throws CloneNotSupportedException {
+        VertexPlace vertexClone = (VertexPlace)super.clone();
+        
+        // Clone neighbors container...
+        vertexClone.neighbors = new Vector<Object>(this.neighbors.size());
+        vertexClone.neighbors.addAll(this.neighbors);
+        
+        // Clone weights container...
+        vertexClone.weights = new Vector<Object>(this.weights.size());
+        vertexClone.weights.addAll(this.weights);
+
+        // Clone graphArguments container...
+        if (this.graphArguments != null) {
+            vertexClone.graphArguments = this.graphArguments.clone();    
+        }
+
+        // Clone neighborResults container...
+        if (this.neighborResults != null) {
+            vertexClone.neighborResults = new HashMap<>(this.neighborResults.size());
+            vertexClone.neighborResults.putAll(this.neighborResults);
+        }
+
+        return vertexClone;
+    }
 
     public void prepareForExchangeAll() {
         neighborResults = new HashMap<>(neighbors.size());
@@ -143,8 +152,6 @@ public class VertexPlace extends Place implements Serializable {
     public VertexPlace() {
         super();
 
-        System.err.println("VertexPlace constructed");
-
         MASSBase.getLogger().debug("VertexPlace constructed.");
     }
 
@@ -181,286 +188,6 @@ public class VertexPlace extends Place implements Serializable {
         Object [] arguments = (Object[])args;
 
         graphArguments = Arrays.copyOfRange(arguments, 0, 3);
-
-        init_neighbors((String)graphArguments[0], (int)graphArguments[2]);
-    }
-
-    private void init_neighbors(String networkFilename, int index) {
-        if (networkFilename == null) return;
-
-        if (networkFilename.contains(".xml")) {
-            init_neighbors_matsim(networkFilename, index);
-        } else if (networkFilename.contains(".tsv")) {
-            init_neighbors_hippie(networkFilename, index);
-        } else if (networkFilename.endsWith(".sar")) {
-            init_neighbors_sar(networkFilename, index);
-        } else {
-            init_neighbors_parallel(networkFilename, index);
-        }
-    }
-
-    private void init_neighbors_sar(String networkFilename, int index) {
-        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()))) {
-            String onSet = br.readLine();
-
-            List<Integer> counts = Arrays.stream(onSet.split(","))
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toList());
-
-            int predecessors = counts.stream().limit(index).reduce(0, Integer::sum);
-
-            int offset = predecessors * 10 + index + predecessors;
-
-            br.skip(offset);
-
-            String neighborLine = br.readLine();
-
-            List<Integer> neighbors = Arrays.stream(neighborLine.split("\t"))
-                    .map(s -> s.trim())
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toList());
-
-            this.neighbors.addAll(neighbors);
-        } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-
-            MASSBase.getLogger().error(sw.toString());
-        }
-    }
-
-    private void init_neighbors_hippie(String networkFilename, int index) {
-        Set<Map.Entry<Object, Integer>> entries = MASSBase.distributed_map.entrySet();
-
-        String key = "";
-
-        try {
-            for (Map.Entry<Object, Integer> entry : entries) {
-                String entryKey = (String) entry.getKey();
-                Integer globalIndex = entry.getValue();
-
-                if (globalIndex == index) {
-                    key = entryKey;
-
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            MASSBase.getLogger().error("Exception in reverse map lookup " + index, e);
-        }
-
-
-        if (key.equals("")) {
-            MASSBase.getLogger().error("Requested index not in map: " + index);
-        }
-
-        List<Tuple> neighbors = getHippieNeighbors(networkFilename, key);
-
-        for (Tuple neighbor : neighbors) {
-            this.neighbors.add(neighbor.index);
-
-            // TODO: Refactor weights to double
-            // this.weights.add(neighbor.weight);
-
-            int weight = 1;
-
-            try {
-                weight = (int)Math.round(neighbor.weight);
-            } catch (Exception e) {
-                MASSBase.getLogger().warning("Exception parsing double to integer: " + e.getMessage());
-            }
-
-            this.weights.add(weight);
-        }
-    }
-
-    public static List<Tuple> getHippieNeighbors(String networkFilename, String key) {
-        List<Tuple> neighbors = new ArrayList<>();
-
-        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                String [] parts = line.split("\t");
-
-                String lineKey = HIPPIETABFormatLineParts.getPart(parts, HIPPIETABFormatLineParts.PROTEIN_KEY);
-
-                if (lineKey.equals(key)) {
-                    HIPPIETABEdge edge = HIPPIETABEdge.fromParts(parts);
-
-//                    int globalIndexForKey = MASSBase.getGlobalIndexForKey(edge.getInteractionKey());
-//
-//                    int neighborId = globalIndexForKey;
-
-                    //Tuple neighbor = new Tuple(neighborId, edge.getInteractionAttribute());
-                    Tuple neighbor = new Tuple(edge.getInteractionKey(), edge.getInteractionAttribute());
-
-                    neighbors.add(neighbor);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-
-            MASSBase.getLogger().error(sw.toString());
-        } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-
-            MASSBase.getLogger().error(sw.toString());
-        }
-
-        return neighbors;
-    }
-
-        public static List<Tuple> getNeighbors(String xmlFilename, int index) {
-        List<Tuple> neighbors = new ArrayList<>();
-
-        XPathFactory factory = XPathFactory.newInstance();
-
-        XPath path = factory.newXPath();
-
-        XPathExpression expression = null;
-
-        try {
-            expression = path.compile("/network/links/link[@from='" + (index + 1) + "']");
-
-            NodeList nodeList = (NodeList) expression.evaluate(new InputSource(xmlFilename),
-                    XPathConstants.NODESET);
-
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-
-                NamedNodeMap attributes = node.getAttributes();
-
-                String toString = attributes.getNamedItem("to").getNodeValue();
-                String weightString = attributes.getNamedItem("length").getNodeValue();
-
-//                Tuple neighbor = new Tuple(Integer.parseInt(toString),
-//                        Double.parseDouble(weightString));
-                
-                Tuple neighbor = new Tuple(toString,
-                        Double.parseDouble(weightString));
-
-                neighbors.add(neighbor);
-            }
-        } catch (XPathExpressionException e) {
-            MASSBase.getLogger().error("Exception parsing network xml: " + e.getMessage());
-        }
-
-        return neighbors;
-    }
-
-    private void init_neighbors_matsim(String networkFilename, int index) {
-        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), networkFilename);
-
-        MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors_matsim - filePath: %s", filePath));
-
-        List<Tuple> neighbors = getNeighbors(networkFilename, index);
-
-        for (Tuple neighbor : neighbors) {
-            // Network file is 1 based. Shift to 0 based.
-            //this.neighbors.add((Integer) neighbor.index - 1);
-            this.neighbors.add(neighbor.index);
-
-            // TODO: Refactor weights to double
-            // this.weights.add(neighbor.weight);
-
-            int weight = 1;
-
-            try {
-                weight = (int)Math.round(neighbor.weight);
-            } catch (Exception e) {
-                MASSBase.getLogger().warning("Exception parsing double to integer: " + e.getMessage());
-            }
-
-            this.weights.add(weight);
-        }
-    }
-
-    private void init_neighbors_parallel(String neighborFilePath, int index) {
-        Path filePath = Paths.get(MASSBase.getWorkingDirectory(), neighborFilePath);
-
-        MASSBase.getLogger().debug(String.format("VertexPlace::init_neighbors - filePath: %s", filePath));
-
-        // try (BufferedReader br = new BufferedReader(new FileReader(filePath.toString()))) {
-        try {
-            int fd = open(filePath.toString(), 0);
-
-            // Trim the input to avoid number format exception on last element
-            String line = new String(read(fd)).trim();
-
-            String[] parts = line.split(",\\s*"); // remove comma and trailing whitespace
-
-            if (parts[0].trim().equals(Integer.toString(index))) {
-                for (int i = 1; i < parts.length; i += 2) {
-                    neighbors.add(Integer.parseInt(parts[i]));
-                    weights.add(Integer.parseInt(parts[i + 1]));
-                }
-            } else {
-                String message = String.format("Place received incorrect input: { place: %d, line: %s }", getIndex()[0], line);
-
-                MASSBase.getLogger().error(message);
-
-                throw new IOException(message);
-            }
-        } catch (NumberFormatException nfe) {
-            StringWriter sw = new StringWriter();
-            nfe.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (FileNotFoundException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-            MASSBase.getLogger().error(" -- IOException: " + e.getMessage());
-        } catch (UnsupportedFileTypeException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (InterruptedException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (InvalidRangeException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (InvalidNumberOfNodesException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        } catch (InvalidNumberOfPlacesException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-
-            MASSBase.getLogger().error("Init_neighbors error: " + exceptionAsString);
-        }
     }
 
     public Object getAttribute() {

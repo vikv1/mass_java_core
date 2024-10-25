@@ -1,7 +1,7 @@
 /*
 
  	MASS Java Software License
-	© 2012-2020 University of Washington
+	© 2012-2021 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -33,27 +33,36 @@ package edu.uw.bothell.css.dsl.MASS.messaging.hazelcast;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.ReliableTopicConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Member;
 import com.hazelcast.topic.TopicOverloadPolicy;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
 import edu.uw.bothell.css.dsl.MASS.MASSBase;
 import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
+import edu.uw.bothell.css.dsl.MASS.infra.HazelcastDistributedMap;
 import edu.uw.bothell.css.dsl.MASS.matrix.MatrixUtilities;
+import edu.uw.bothell.css.dsl.MASS.messaging.AbstractMessagingProviderImpl;
+import edu.uw.bothell.css.dsl.MASS.messaging.MASSAckMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MASSMessage;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessageDestination;
 import edu.uw.bothell.css.dsl.MASS.messaging.MessagingProvider;
 
 
 @SuppressWarnings("unused")    // TODO - remove once all methods implemented
-public class HazelcastMessagingProvider implements MessagingProvider {
+public class HazelcastMessagingProvider extends AbstractMessagingProviderImpl {
 
+	// Hazelcast constants
+	public static final boolean HAZELCAST_USE_MULTICAST_DISCOVERY = false;
+	public static final String HAZELCAST_INSTANCE_NAME = "mass_hazelcast_provider";
+	
 	// topic prefixes
 	private static final String AGENT_ADDRESS_PREFIX = "A";
 	private static final String PLACE_ADDRESS_PREFIX = "P";
@@ -70,51 +79,65 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 	private static final String HAZELCAST_LOGGING_LEVEL = "ERROR";
 	
 	private HazelcastInstance instance;
-	private static final boolean useMulticast = true;		// experiment with this, might be good to have a setter
 	
 	@Override
+	public void init( String clusterCommunicationsAddress ) {
+		init( null, null);
+	}
+	
 	public void init( MNode masterNode, Collection< MNode > remoteNodes ) {
 		
 		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initializing..." );
 		
 		Config config = new Config();
+		config.setInstanceName( HAZELCAST_INSTANCE_NAME ); 
         config.setProperty( "hazelcast.logging.type", HAZELCAST_LOGGING_TYPE );
         config.setProperty( "hazelcast.logging.level", HAZELCAST_LOGGING_LEVEL );
 
         // common network config options
         config.getNetworkConfig().setPortAutoIncrement( true );		// automatically find an open port to use
         config.getNetworkConfig().setReuseAddress( true );			// attempt to reuse port within two minutes of last shutdown
-
-        if ( useMulticast ) {
-		
-        	// using multicast for node discovery and binding
-        	MASSBase.getLogger().debug( "Using multicast for cluster discovery and binding..." );
-        	config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
-        	
-        }
         
-        else {
-        
-			// explicitly add remote nodes rather than using multicast
-        	MASSBase.getLogger().debug( "Adding individual cluster members via TCP..." );
+        if ((System.getenv("HAZELCAST_USE_MULTICAST_DISCOVERY") != null
+             && System.getenv("HAZELCAST_USE_MULTICAST_DISCOVERY").equals("true"))
+            || HAZELCAST_USE_MULTICAST_DISCOVERY) {
+            // using Multicast for node discovery
+            MASSBase.getLogger().debug( "Hazelcast using Multicast for node discovery" );
+            config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( true );
+            config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( false );		// probably redundant
+        } else {
+	        // explicitly add remote nodes rather than using multicast
+            MASSBase.getLogger().debug( "Hazelcast using TCP/IP for node discovery" );
+	        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled( false );	// probably redundant
+	        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled( true );
+	        MASSBase.getLogger().debug( "Adding individual Hazelcast cluster members via TCP..." );
 	        if ( remoteNodes != null) {
-		        for ( MNode node : remoteNodes ) {
-		        	MASSBase.getLogger().debug( "Adding {} as a cluster member", node.getHostName() );
-					config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
-				}
+	        	for ( MNode node : remoteNodes ) {
+	        		MASSBase.getLogger().debug( "Adding {} as a Hazelcast cluster member", node.getHostName() );
+	        		config.getNetworkConfig().getJoin().getTcpIpConfig().addMember( node.getHostName() ).setEnabled( true );
+	        	}
 	        }
-		
         }
-        
+
     	MASSBase.getLogger().debug( "Instantiating Hazelcast instance..." );
 		instance = Hazelcast.newHazelcastInstance( config );
 		
-		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initialized!" );
+		Set<Member> members = instance.getCluster().getMembers();
+		for ( Member m : members ) {
+			MASSBase.getLogger().debug( "Host " + m.getAddress().getHost() + ":" + m.getAddress().getPort() + " is a member of the Hazelcast cluster" );
+		}
 		
+		MASSBase.getLogger().debug( "Hazelcast Messaging Provider initialized!" );
+
+		HazelcastDistributedMap testInstance = HazelcastDistributedMap.getInstance();
+
 	}
 
 	@Override
 	public void registerAgent( Agent agent ) {
+		
+		// safety valve, mainly for unit testing
+		if ( instance == null ) return;
 		
 		// create/obtain a topic and listener for this particular agent
 		String agentSpecificTopicName = AGENT_ADDRESS_PREFIX + agent.getAgentId();  
@@ -236,6 +259,8 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 		
 			MASSBase.getLogger().debug("Hazelcast Messaging Provider shutdown requested");
 			instance.shutdown();
+			instance.getLifecycleService().terminate();
+			MASSBase.getLogger().debug("Hazelcast terminated");
 		
 		}
 		
@@ -244,6 +269,24 @@ public class HazelcastMessagingProvider implements MessagingProvider {
 			MASSBase.getLogger().debug("Hazelcast was not initialized, ignoring shutdown command");
 			
 		}
+		
+	}
+
+	@Override
+	public void unregisterAgent(Agent agent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void unregisterPlace(Place place) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void sendAck(MASSAckMessage ackMessage) {
+		// TODO Auto-generated method stub
 		
 	}
 

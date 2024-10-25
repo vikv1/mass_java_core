@@ -31,10 +31,8 @@
 package edu.uw.bothell.css.dsl.MASS.messaging;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
-import edu.uw.bothell.css.dsl.MASS.MNode;
 import edu.uw.bothell.css.dsl.MASS.Place;
 
 /**
@@ -44,10 +42,9 @@ public interface MessagingProvider {
 
 	/**
 	 * Initialize this messaging provider
-	 * @param masterNode The main cluster node
-	 * @param remoteNodes The remote cluster members
+	 * @param clusterCommunicationsAddress The address all cluster members use for communications
 	 */
-	public void init( MNode masterNode, Collection<MNode> remoteNodes );
+	public void init( String clusterCommunicationsAddress );
 	
 	/**
 	 * Register an Agent with the messaging provider
@@ -62,26 +59,69 @@ public interface MessagingProvider {
 	public void registerPlace( Place place );
 	
 	/**
-	 * Send a message to one or mode Places
+	 * Register an object as one that can receive messages destined for a Node
+	 * @param object The listener that may receive Node messages
+	 */
+	public void registerNodeListener( Object object );
+	
+	/**
+	 * Send a message to one or mode Places ASYNCHRONOUSLY. This is a NON-BLOCKING method.
 	 * @param message The message to send to the Place(s)
 	 */
 	public <T> void sendPlaceMessage( MASSMessage< Serializable > message );
 
 	/**
-	 * Send a message to one or mode Nodes
+	 * Send a message to one or mode Nodes SYNCHRONOUSLY. This is a BLOCKING method that will return once the remote
+	 * node has acknowledged receipt of the message or upon reaching timeout period.
 	 * @param message The message to send to the Node(s)
 	 */
 	public <T> void sendNodeMessage( MASSMessage< Serializable > message );
 
 	/**
-	 * Send a message to one or mode Agents
+	 * Send a message to one or mode Agents ASYNCHRONOUSLY. This is a NON-BLOCKING method.
 	 * @param message The message to send to the Agent(s)
 	 */
 	public <T> void sendAgentMessage( MASSMessage< Serializable > message );
+	
+	/**
+	 * Return a message delivery acknowledgement
+	 * @param ackMessage The ACK message to send
+	 */
+	public void sendAck( MASSAckMessage ackMessage );
 
 	/**
 	 * Signal the messaging provider to complete any outstanding tasks and perform an orderly shutdown
 	 */
 	public void shutdown();
+
+	/**
+	 * Unregister an Agent from the messaging provider
+	 * @param agent The Agent to unregister
+	 */
+	public void unregisterAgent( Agent agent);
+
+	/**
+	 * Unregister a Place from the messaging provider
+	 * @param place The Place to unregister
+	 */
+	public void unregisterPlace( Place place);
+
+	/**
+	 * Unregister a listener from Node messaging
+	 * @param object The listener to unregister
+	 */
+	public void unregisterNodeListener( Object object );
+
+	/**
+	 * Get the timeout period, in milliseconds, for initiating messaging connections to remote nodes
+	 * @return The connection timeout period
+	 */
+	public int getConnectionTimeout();
+
+	/**
+	 * Set the connection timeout period
+	 * @param timeout The number of milliseconds to wait before aborting a connection to a remote node
+	 */
+	public void setConnectionTimeout( int timeout );
 
 }

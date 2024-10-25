@@ -1,6 +1,6 @@
 /*
 
- 	MASS Java Software License
+    MASS Java Software License
 	© 2012-2020 University of Washington
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,42 +30,42 @@
 
 package edu.uw.bothell.css.dsl.MASS;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+@SuppressWarnings("serial")
+public class PropertyGraphModel implements Serializable {
+	private List<PropertyVertexModel> propertyVertices = new ArrayList<PropertyVertexModel>();
+	private String name;
 
-@Disabled // TODO: Fix this test
-public class VertexPlaceTest {
-    private final String graph_filename = "../matsim/network-pt-simple.xml";
+	public PropertyGraphModel() {}
 
-    @Test
-    public void getNeighborsReturnsAList() {
-        List<VertexPlace.Tuple> neighbors = VertexPlace.getNeighbors(graph_filename, 1);
-
-        assertTrue(neighbors != null);
+	public String getName() {
+        return name;
     }
 
-    @Test
-    public void getNeighborsReturnsTheCorrectNumberOfNeighbors() {
-        List<VertexPlace.Tuple> neighbors = VertexPlace.getNeighbors(graph_filename, 1);
-
-        assertEquals(1, neighbors.size());
+    public void setName(String name) {
+        this.name = name;
     }
 
-    @Test
-    public void getNeighborsReturnsTheCorrectNeighbors() {
-        List<VertexPlace.Tuple> neighbors = VertexPlace.getNeighbors(graph_filename, 1);
+    public void addPropertyModel(String nodeName, Set<String> labels, Map<String,String> nodeProperties, Map<Object, Object[]> toRelationship, Map<Object, Object[]> fromRelationship) {
+		MASS.getLogger().debug("At PropertyGraphModel, addPropertyModel, ID: " + nodeName + ", toRelationship: " + toRelationship.size() + ", fromRelationship: " + fromRelationship.size() );
+		PropertyVertexModel vertex = new PropertyVertexModel(nodeName,labels, nodeProperties,toRelationship, fromRelationship);
 
-//        List<VertexPlace.Tuple> realNeighbors = new ArrayList<>(Arrays.asList(
-//                new VertexPlace.Tuple(2, 10)
-//        ));
+		propertyVertices.add(vertex);
+	}
 
-        assertEquals( 1, neighbors.size() );
-        assertEquals( 2, neighbors.get(0).index );
-        assertEquals( 10.0, neighbors.get(0).weight, 0.05 );
+	public List<PropertyVertexModel> getPropertyVertices() {
+        return propertyVertices;
     }
+
+	public void print() {
+		System.out.println("Total number of vertexes in current graph: " + propertyVertices.size());
+		for(PropertyVertexModel vertex: propertyVertices){
+			vertex.print();
+		}
+	}
 }

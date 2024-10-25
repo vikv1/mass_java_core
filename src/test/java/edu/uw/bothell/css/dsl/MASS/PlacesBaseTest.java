@@ -61,11 +61,15 @@ public class PlacesBaseTest extends AbstractTest {
 	public static void beforeAll() {
 		
 		// MASSBase should be made ready for use before tests are run
-		MNode masterNode = new MNode();
-		masterNode.setHostName( randomString() );
-		masterNode.setMaster( true );
-		MASSBase.addNode( masterNode );
-		MASSBase.initMASSBase( masterNode );
+		if ( MASSBase.getHosts().size() == 0 ) {
+			
+			MNode masterNode = new MNode();
+			masterNode.setHostName( randomString() );
+			masterNode.setMaster( true );
+			MASSBase.addNode( masterNode );
+			MASSBase.initMASSBase( masterNode );
+
+		}
 
 		// init MASSBase with three threads for these tests
 		if ( !MASSBase.isInitialized() ) {
@@ -271,23 +275,5 @@ public class PlacesBaseTest extends AbstractTest {
 		// TODO - should inject a mock object as a Place and make sure it's really being called
 		placesBase.callAll( 0, arguments, arguments.length, 0 );
 		
-	}
-
-	@Test
-	@Disabled  // no MATSIM test document included in test files
-	public void getXmlNodeCountCorrect() {
-		final String graphFilename = "../matsim/network-pt-simple.xml";
-
-		long start = System.currentTimeMillis();
-
-		int nodeCount = PlacesBase.getMatsimNetworkNodeCount(graphFilename);
-
-		long end = System.currentTimeMillis();
-
-		long runtime = end - start;
-
-		System.out.println("Runtime: " + runtime);
-
-		assertEquals(6, nodeCount);
 	}
 }

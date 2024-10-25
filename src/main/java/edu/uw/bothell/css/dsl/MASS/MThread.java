@@ -43,6 +43,7 @@ public class MThread extends Thread {
 		STATUS_EXCHANGEALL,        // 3
 		STATUS_AGENTSCALLALL,      // 4
 		STATUS_MANAGEALL,          // 5
+		STATUS_MANAGEALL_SPACE,    // 6  ------------ by Yuna
 	}
 
     private static Object lock;
@@ -172,6 +173,9 @@ public class MThread extends Thread {
 
     			if ( msgType == Message.ACTION_TYPE.PLACES_CALL_ALL_VOID_OBJECT ) {
     				places.callAll( functionId, argument, tid );
+    			} else if ( msgType == Message.ACTION_TYPE.PROPERTY_GRAPH_PLACES_CALL_ALL_RETURN_OBJECT ) {
+					PropertyGraphPlaces propertyGraphPlaces = (PropertyGraphPlaces) places;
+    				propertyGraphPlaces.propertyGraphCallAll( functionId, (Object[]) argument);
     			}
     			else {
     				places.callAll( functionId, (Object[])argument, 
@@ -225,6 +229,19 @@ public class MThread extends Thread {
 
     			//Sent message for manageall
     			agents.manageAll( tid );
+
+				break;
+				
+			case STATUS_MANAGEALL_SPACE:
+    			
+    			//Get agents to be called with Manageall
+    			agents = MASSBase.getCurrentAgentsBase( );
+
+    			//Send logging message
+    			MASSBase.getLogger().debug( "Mthread[" + tid + "] works on MANAGEALL_SPACE: agents = " + agents );
+
+    			//Sent message for manageall
+    			agents.manageAll_space( tid );
 
     			break;
     		}
