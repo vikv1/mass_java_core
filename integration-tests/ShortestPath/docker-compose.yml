@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  agent:
+    image: dslabcss/shortestpath
+    build:
+      context: ./
+    deploy:
+      replicas: 4
+    volumes:
+      - ./resources:/resources
+      - ./logs:/app/build/libs/logs
+      - ./output:/app/output
