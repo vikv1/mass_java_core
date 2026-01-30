@@ -94,6 +94,9 @@ public class GraphPlaces extends Places implements Graph {
     // localMessaging is the Aeron messaging provider for sharing messages to all other users working on this same sharedPlace
     protected LocalMessagingProvider localMessaging = null;
 
+    // graphosaurusListener for real-time agent visualization
+    protected edu.uw.bothell.css.dsl.MASS.graph.GraphosaurusListener graphosaurusListener = null;
+
     //Attributes for adding Left and Right node when used as a tree
     protected static int LEFTNODE_ = 1;
     protected static int RIGHTNODE_ = 2;
@@ -138,6 +141,7 @@ public class GraphPlaces extends Places implements Graph {
 
         if (myPid == 0) {
             init_graph_master();
+            initializeGraphosaurusFromConfig();
         }
     }
 
@@ -1741,6 +1745,148 @@ public class GraphPlaces extends Places implements Graph {
         return vertexCount;
     }
 
+    /**
+     * Load graph from pipe-delimited CSV files (Neo4j-style format).
+     * 
+     * @param nodesFilePath Path to nodes CSV file (format: itemUniqueName|Labels|Properties)
+     * @param edgesFilePath Path to edges CSV file (format: From|To|RelationType|RelationProperties)
+     */
+    public void loadCSVFiles(String nodesFilePath, String edgesFilePath) throws IOException {
+        MASS.getLogger().debug("Loading CSV files - nodes: " + nodesFilePath + ", edges: " + edgesFilePath);
+        
+        // First, load all nodes
+        int nodeCount = loadNodesFromCSV(nodesFilePath);
+        MASS.getLogger().debug("Loaded " + nodeCount + " nodes from CSV");
+        
+        // Then, load all edges
+        int edgeCount = loadEdgesFromCSV(edgesFilePath);
+        MASS.getLogger().debug("Loaded " + edgeCount + " edges from CSV");
+    }
+
+    /**
+     * Load nodes from pipe-delimited CSV file.
+     * Format: itemUniqueName|Labels|Properties
+     * 
+     * @param filePath Path to nodes CSV file
+     * @return Number of nodes loaded
+     */
+    protected int loadNodesFromCSV(String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line;
+        int nodeCount = 0;
+        
+        // Skip header row
+        br.readLine();
+        
+        while ((line = br.readLine()) != null) {
+            if (line.trim().isEmpty()) continue;
+            
+            String[] parts = line.split("\\|");
+            String nodeId = parts[0].trim();  // e.g., "node_0"
+            
+            // Strip "node_" prefix if present to get just the numeric ID
+            String strippedId = stripNodePrefix(nodeId);
+            
+            // Add the vertex
+            int result = addVertex(strippedId);
+            if (result >= 0) {
+                nodeCount++;
+            }
+        }
+        br.close();
+        
+        return nodeCount;
+    }
+    
+    /**
+     * Strip "node_" prefix from node IDs (e.g., "node_123" -> "123")
+     */
+    private String stripNodePrefix(String nodeId) {
+        if (nodeId != null && nodeId.startsWith("node_")) {
+            return nodeId.substring(5);  // Remove "node_" prefix
+        }
+        return nodeId;
+    }
+
+    /**
+     * Load edges from pipe-delimited CSV file.
+     * Format: From|To|RelationType|RelationProperties
+     * 
+     * @param filePath Path to edges CSV file
+     * @return Number of edges loaded
+     */
+    protected int loadEdgesFromCSV(String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
+        String line;
+        int edgeCount = 0;
+        int failedCount = 0;
+        
+        // Skip header row
+        br.readLine();
+        
+        while ((line = br.readLine()) != null) {
+            if (line.trim().isEmpty()) continue;
+            
+            String[] parts = line.split("\\|");
+            String fromNode = stripNodePrefix(parts[0].trim());  // e.g., "node_18239" -> "18239"
+            String toNode = stripNodePrefix(parts[1].trim());    // e.g., "node_29457" -> "29457"
+            
+            // Check if nodes exist in the distributed map
+            int sourceId = MASSBase.distributed_map.getOrDefault(fromNode, -1);
+            int destinationId = MASSBase.distributed_map.getOrDefault(toNode, -1);
+            
+            if (sourceId == -1 || destinationId == -1) {
+                failedCount++;
+                if (failedCount <= 5) {
+                    MASS.getLogger().warning("Edge skipped - node not found: from='" + fromNode + 
+                        "' (exists=" + (sourceId != -1) + "), to='" + toNode + 
+                        "' (exists=" + (destinationId != -1) + ")");
+                }
+                continue;
+            }
+            
+            // Extract weight from properties if available
+            double weight = DEFAULT_EDGE_WEIGHT;
+            if (parts.length > 3 && !parts[3].trim().isEmpty()) {
+                weight = extractWeightFromProperties(parts[3].trim());
+            }
+            
+            // Add edge between nodes using internal IDs
+            if (addEdge(sourceId, destinationId, weight)) {
+                edgeCount++;
+            }
+        }
+        br.close();
+        
+        if (failedCount > 0) {
+            MASS.getLogger().warning("Total edges skipped due to missing nodes: " + failedCount);
+        }
+        
+        return edgeCount;
+    }
+
+    /**
+     * Extract a numeric weight from properties string (e.g., "effectiveMinutes=84")
+     */
+    private double extractWeightFromProperties(String properties) {
+        if (properties == null || properties.isEmpty()) return DEFAULT_EDGE_WEIGHT;
+        
+        String[] pairs = properties.split(",");
+        for (String pair : pairs) {
+            String[] kv = pair.split("=", 2);
+            if (kv.length == 2) {
+                try {
+                    return Double.parseDouble(kv[1].trim());
+                } catch (NumberFormatException e) {
+                    // Not a number, continue
+                }
+            }
+        }
+        return DEFAULT_EDGE_WEIGHT;
+    }
+
     @Override
     public void callAll( int functionId ) {
         this.callAll(functionId, (Object)null);
@@ -2271,6 +2417,80 @@ public class GraphPlaces extends Places implements Graph {
             
             return msg;
         }
+    }
+
+    /**
+     * Initialize Graphosaurus visualization from system properties if configured.
+     * Configuration properties:
+     * - graphosaurus.enabled: "true" to enable (default: false)
+     * - graphosaurus.websocket.url: WebSocket server URL (default: ws://localhost:8080)
+     * - graphosaurus.poll.interval: Polling interval in ms (default: 500)
+     */
+    private void initializeGraphosaurusFromConfig() {
+        String enabled = System.getProperty("graphosaurus.enabled", "false");
+        
+        if ("true".equalsIgnoreCase(enabled)) {
+            String url = System.getProperty("graphosaurus.websocket.url", "ws://localhost:8080");
+            String intervalStr = System.getProperty("graphosaurus.poll.interval", "500");
+            
+            try {
+                long interval = Long.parseLong(intervalStr);
+                enableGraphosaurusVisualization(url, interval);
+            } catch (NumberFormatException e) {
+                MASSBase.getLogger().error("Invalid graphosaurus.poll.interval value: " + intervalStr, e);
+            }
+        }
+    }
+
+    /**
+     * Enable Graphosaurus visualization with default settings.
+     * This will connect to ws://localhost:8080 and poll agent locations every 500ms.
+     * Make sure the Graphosaurus WebSocket server is running before calling this.
+     */
+    public void enableGraphosaurusVisualization() {
+        enableGraphosaurusVisualization("ws://localhost:8080", 500);
+    }
+
+    /**
+     * Enable Graphosaurus visualization with custom settings.
+     * 
+     * @param websocketUrl WebSocket server URL (e.g., "ws://localhost:8080")
+     * @param pollIntervalMs Polling interval in milliseconds
+     */
+    public void enableGraphosaurusVisualization(String websocketUrl, long pollIntervalMs) {
+        if (graphosaurusListener != null) {
+            MASSBase.getLogger().warning("Graphosaurus visualization already enabled");
+            return;
+        }
+
+        try {
+            graphosaurusListener = new edu.uw.bothell.css.dsl.MASS.graph.GraphosaurusListener(
+                this, websocketUrl, pollIntervalMs
+            );
+            MASSBase.getLogger().debug("Graphosaurus visualization enabled: " + websocketUrl);
+        } catch (Exception e) {
+            MASSBase.getLogger().error("Failed to enable Graphosaurus visualization", e);
+        }
+    }
+
+    /**
+     * Disable Graphosaurus visualization and close the connection.
+     */
+    public void disableGraphosaurusVisualization() {
+        if (graphosaurusListener != null) {
+            graphosaurusListener.finish();
+            graphosaurusListener = null;
+            MASSBase.getLogger().debug("Graphosaurus visualization disabled");
+        }
+    }
+
+    /**
+     * Check if Graphosaurus visualization is currently enabled.
+     * 
+     * @return true if visualization is enabled
+     */
+    public boolean isGraphosaurusEnabled() {
+        return graphosaurusListener != null;
     }
 
 }
