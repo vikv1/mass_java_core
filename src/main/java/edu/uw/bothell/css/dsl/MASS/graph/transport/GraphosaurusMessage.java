@@ -188,12 +188,14 @@ public abstract class GraphosaurusMessage {
         private String fromNodeId;
         private String toNodeId;
         private int color;
+        private Map<String, Object> data;
 
         public AddEdgeMessage(String fromNodeId, String toNodeId, int color) {
             super("add_edge");
             this.fromNodeId = fromNodeId;
             this.toNodeId = toNodeId;
             this.color = color;
+            this.data = new HashMap<>();
         }
 
         public String getFromNodeId() {
@@ -206,6 +208,18 @@ public abstract class GraphosaurusMessage {
 
         public int getColor() {
             return color;
+        }
+
+        public Map<String, Object> getData() {
+            return data;
+        }
+
+        public void setData(Map<String, Object> data) {
+            this.data = data;
+        }
+
+        public void addData(String key, Object value) {
+            this.data.put(key, value);
         }
     }
 }

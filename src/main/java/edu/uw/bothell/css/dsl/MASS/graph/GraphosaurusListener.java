@@ -53,22 +53,22 @@ import edu.uw.bothell.css.dsl.MASS.logging.Log4J2Logger;
  */
 public class GraphosaurusListener implements MASSListener {
 
-    private static final String DEFAULT_WEBSOCKET_URL = "ws://localhost:8080";
-    private static final long DEFAULT_POLL_INTERVAL_MS = 500;
-    private static final String DEFAULT_AGENT_SHAPE = "sphere";
-    private static final double DEFAULT_MOVE_SPEED = 1.0;
+    protected static final String DEFAULT_WEBSOCKET_URL = "ws://localhost:8080";
+    protected static final long DEFAULT_POLL_INTERVAL_MS = 500;
+    protected static final String DEFAULT_AGENT_SHAPE = "sphere";
+    protected static final double DEFAULT_MOVE_SPEED = 1.0;
 
-    private final Log4J2Logger massLogger;
-    private final Graph graph;
-    private final GraphPlaces graphPlaces;
-    private final AgentLocationTracker tracker;
-    private final Gson gson;
-    private final String websocketUrl;
-    private final long pollIntervalMs;
+    protected final Log4J2Logger massLogger;
+    protected final Graph graph;
+    protected final GraphPlaces graphPlaces;
+    protected final AgentLocationTracker tracker;
+    protected final Gson gson;
+    protected final String websocketUrl;
+    protected final long pollIntervalMs;
 
-    private GraphosaurusWebSocketClient wsClient;
-    private Thread pollingThread;
-    private volatile boolean running = false;
+    protected GraphosaurusWebSocketClient wsClient;
+    protected Thread pollingThread;
+    protected volatile boolean running = false;
 
     /**
      * Constructor with default settings
@@ -101,7 +101,7 @@ public class GraphosaurusListener implements MASSListener {
     /**
      * Initialize WebSocket connection and start polling
      */
-    private void initializeConnection() {
+    protected void initializeConnection() {
         try {
             URI serverUri = new URI(websocketUrl);
             wsClient = new GraphosaurusWebSocketClient(serverUri);
@@ -133,7 +133,7 @@ public class GraphosaurusListener implements MASSListener {
     /**
      * Send the entire graph structure to Graphosaurus
      */
-    private void sendFullGraph() {
+    protected void sendFullGraph() {
         try {
             GraphModel graphModel = graph.getGraph();
             if (graphModel == null || graphModel.getVertices() == null) {
@@ -203,7 +203,7 @@ public class GraphosaurusListener implements MASSListener {
      * 
      * @param message The message object to send
      */
-    private void sendMessage(GraphosaurusMessage message) {
+    protected void sendMessage(GraphosaurusMessage message) {
         if (wsClient != null && wsClient.isOpen()) {
             try {
                 String json = gson.toJson(message);
@@ -277,7 +277,7 @@ public class GraphosaurusListener implements MASSListener {
      * 
      * @param vertex The vertex to send
      */
-    private void sendVertex(VertexModel vertex) {
+    protected void sendVertex(VertexModel vertex) {
         // Generate random position for the vertex (Graphosaurus will layout in 3D)
         double[] position = new double[3];
         position[0] = Math.random() * 4 - 2;  // Random x between -2 and 2
@@ -303,7 +303,7 @@ public class GraphosaurusListener implements MASSListener {
      * @param fromVertex Source vertex ID
      * @param toVertex Target vertex ID
      */
-    private void sendEdge(Object fromVertex, Object toVertex) {
+    protected void sendEdge(Object fromVertex, Object toVertex) {
         int edgeColor = 0xCCCCCC;  // Light gray for edges
 
         String fromId = String.valueOf(fromVertex);
@@ -477,7 +477,7 @@ public class GraphosaurusListener implements MASSListener {
     /**
      * WebSocket client implementation
      */
-    private class GraphosaurusWebSocketClient extends WebSocketClient {
+    protected class GraphosaurusWebSocketClient extends WebSocketClient {
 
         public GraphosaurusWebSocketClient(URI serverUri) {
             super(serverUri);

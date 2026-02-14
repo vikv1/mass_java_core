@@ -530,4 +530,37 @@ public class PropertyGraphPlaces extends GraphPlaces {
         PropertyVertexModel model = new PropertyVertexModel(place.getItemID(), place.getLabels(),place.getNodeProperties(),place.getTONeighbors(), place.getFROMNeighbors());
         model.print();
     }
+
+    /**
+     * Enable property graph visualization using default WebSocket URL.
+     * This creates a PropertyGraphosaurusListener that sends node labels,
+     * properties, and relationship types to the Graphosaurus frontend.
+     */
+    public void enablePropertyGraphosaurusVisualization() {
+        enablePropertyGraphosaurusVisualization("ws://localhost:8080", 500);
+    }
+
+    /**
+     * Enable property graph visualization with custom WebSocket URL and polling interval.
+     * This creates a PropertyGraphosaurusListener that sends node labels,
+     * properties, and relationship types to the Graphosaurus frontend.
+     * 
+     * @param websocketUrl WebSocket server URL
+     * @param pollIntervalMs Polling interval in milliseconds
+     */
+    public void enablePropertyGraphosaurusVisualization(String websocketUrl, long pollIntervalMs) {
+        if (graphosaurusListener != null) {
+            MASSBase.getLogger().warning("Graphosaurus visualization already enabled");
+            return;
+        }
+
+        try {
+            graphosaurusListener = new edu.uw.bothell.css.dsl.MASS.graph.PropertyGraphosaurusListener(
+                this, websocketUrl, pollIntervalMs
+            );
+            MASSBase.getLogger().debug("Property Graphosaurus visualization enabled: " + websocketUrl);
+        } catch (Exception e) {
+            MASSBase.getLogger().error("Failed to enable Property Graphosaurus visualization", e);
+        }
+    }
 }
