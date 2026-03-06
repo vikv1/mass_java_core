@@ -296,7 +296,7 @@ public class PropertyGraphPlacesGraphosaurusTest extends AbstractTest {
         
         // --- Spawn 3 agents and walk them along random grid paths -------------
         Random rng = new Random(42);
-        int agentCount = 10;
+        int agentCount = 3;
         int stepsPerAgent = 100;
         TestAgent[] agents = new TestAgent[agentCount];
         int[] agentRow = new int[agentCount];
