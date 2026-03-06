@@ -31,6 +31,7 @@
 package edu.uw.bothell.css.dsl.MASS.graph.transport;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -220,6 +221,62 @@ public abstract class GraphosaurusMessage {
 
         public void addData(String key, Object value) {
             this.data.put(key, value);
+        }
+    }
+
+    /**
+     * Agent list message containing all agents (active and removed) with their visit histories.
+     * Sent periodically so the frontend can display the agent list panel.
+     */
+    public static class AgentListMessage extends GraphosaurusMessage {
+        private List<AgentSummary> agents;
+
+        public AgentListMessage(List<AgentSummary> agents) {
+            super("agent_list");
+            this.agents = agents;
+        }
+
+        public List<AgentSummary> getAgents() {
+            return agents;
+        }
+    }
+
+    /**
+     * Summary of a single agent for the agent list message.
+     */
+    public static class AgentSummary {
+        private String id;
+        private String currentNode;
+        private int color;
+        private List<String> visitHistory;
+        private boolean removed;
+
+        public AgentSummary(String id, String currentNode, int color, List<String> visitHistory, boolean removed) {
+            this.id = id;
+            this.currentNode = currentNode;
+            this.color = color;
+            this.visitHistory = visitHistory;
+            this.removed = removed;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getCurrentNode() {
+            return currentNode;
+        }
+
+        public int getColor() {
+            return color;
+        }
+
+        public List<String> getVisitHistory() {
+            return visitHistory;
+        }
+
+        public boolean isRemoved() {
+            return removed;
         }
     }
 }

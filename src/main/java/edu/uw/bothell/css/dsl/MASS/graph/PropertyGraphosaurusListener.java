@@ -98,6 +98,19 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
     }
 
     /**
+     * Constructor with custom settings and partial loading option
+     * 
+     * @param propertyGraphPlaces The PropertyGraphPlaces instance to monitor
+     * @param websocketUrl WebSocket server URL
+     * @param pollIntervalMs Polling interval in milliseconds
+     * @param partialLoading If true, skip sending the full graph on connect
+     */
+    public PropertyGraphosaurusListener(PropertyGraphPlaces propertyGraphPlaces, String websocketUrl, long pollIntervalMs, boolean partialLoading) {
+        super(propertyGraphPlaces, websocketUrl, pollIntervalMs, partialLoading);
+        this.propertyGraphPlaces = propertyGraphPlaces;
+    }
+
+    /**
      * Send the entire property graph structure to Graphosaurus
      */
     @Override
@@ -280,6 +293,78 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
         }
         
         return labelColorMap.get("rel_" + primaryType);
+    }
+
+    /**
+     * Send graph structure for a single vertex using the PropertyGraphModel,
+     * which contains the actual edge/relationship data that setRelationEdge stores.
+     * The base class version uses GraphModel.neighbors which is empty for property graphs.
+     */
+    @Override
+    protected void sendGraphStructureForVertex(Object vertexId) {
+        try {
+            PropertyGraphModel graphModel = propertyGraphPlaces.getPropertyGraph();
+            if (graphModel == null || graphModel.getPropertyVertices() == null) {
+                return;
+            }
+
+            List<PropertyVertexModel> allVertices = graphModel.getPropertyVertices();
+            String vertexIdStr = String.valueOf(vertexId);
+
+            for (PropertyVertexModel vertex : allVertices) {
+                if (vertex.nodeName == null || !vertex.nodeName.equals(vertexIdStr)) {
+                    continue;
+                }
+
+                // 1) Send this vertex
+                if (!tracker.hasVertexBeenSent(vertexIdStr)) {
+                    sendPropertyVertex(vertex);
+                    tracker.markVertexAsSent(vertexIdStr);
+                }
+
+                // Collect neighbor IDs from both TO and FROM relationships
+                Map<String, Object[]> neighborsToSendEdges = new java.util.LinkedHashMap<>();
+
+                if (vertex.toRelation != null) {
+                    for (Map.Entry<Object, Object[]> entry : vertex.toRelation.entrySet()) {
+                        String neighborId = String.valueOf(entry.getKey());
+                        neighborsToSendEdges.put(neighborId, entry.getValue());
+                    }
+                }
+
+                // 2) Send all neighbor vertices first
+                for (String neighborId : neighborsToSendEdges.keySet()) {
+                    if (!tracker.hasVertexBeenSent(neighborId)) {
+                        for (PropertyVertexModel neighbor : allVertices) {
+                            if (neighbor.nodeName != null && neighbor.nodeName.equals(neighborId)) {
+                                sendPropertyVertex(neighbor);
+                                tracker.markVertexAsSent(neighborId);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 3) Send all edges (both endpoints now exist on the frontend)
+                for (Map.Entry<String, Object[]> entry : neighborsToSendEdges.entrySet()) {
+                    String neighborId = entry.getKey();
+                    if (!tracker.hasEdgeBeenSent(vertexIdStr, neighborId)) {
+                        Object[] relationData = entry.getValue();
+                        @SuppressWarnings("unchecked")
+                        Set<String> relationTypes = relationData[0] != null ? (Set<String>) relationData[0] : null;
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> relationProperties = relationData[1] != null ? (Map<String, String>) relationData[1] : null;
+
+                        sendPropertyEdge(vertexIdStr, neighborId, relationTypes, relationProperties);
+                        tracker.markEdgeAsSent(vertexIdStr, neighborId);
+                    }
+                }
+
+                break;
+            }
+        } catch (Exception e) {
+            massLogger.error("Error sending property graph structure for vertex: " + vertexId, e);
+        }
     }
 
     /**

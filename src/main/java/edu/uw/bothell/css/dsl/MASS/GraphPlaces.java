@@ -2425,6 +2425,7 @@ public class GraphPlaces extends Places implements Graph {
      * - graphosaurus.enabled: "true" to enable (default: false)
      * - graphosaurus.websocket.url: WebSocket server URL (default: ws://localhost:8080)
      * - graphosaurus.poll.interval: Polling interval in ms (default: 500)
+     * - graphosaurus.partial.loading: "true" to only send visited nodes/edges (default: false)
      */
     private void initializeGraphosaurusFromConfig() {
         String enabled = System.getProperty("graphosaurus.enabled", "false");
@@ -2432,10 +2433,11 @@ public class GraphPlaces extends Places implements Graph {
         if ("true".equalsIgnoreCase(enabled)) {
             String url = System.getProperty("graphosaurus.websocket.url", "ws://localhost:8080");
             String intervalStr = System.getProperty("graphosaurus.poll.interval", "500");
+            boolean partial = "true".equalsIgnoreCase(System.getProperty("graphosaurus.partial.loading", "false"));
             
             try {
                 long interval = Long.parseLong(intervalStr);
-                enableGraphosaurusVisualization(url, interval);
+                enableGraphosaurusVisualization(url, interval, partial);
             } catch (NumberFormatException e) {
                 MASSBase.getLogger().error("Invalid graphosaurus.poll.interval value: " + intervalStr, e);
             }
@@ -2458,6 +2460,17 @@ public class GraphPlaces extends Places implements Graph {
      * @param pollIntervalMs Polling interval in milliseconds
      */
     public void enableGraphosaurusVisualization(String websocketUrl, long pollIntervalMs) {
+        enableGraphosaurusVisualization(websocketUrl, pollIntervalMs, false);
+    }
+
+    /**
+     * Enable Graphosaurus visualization with custom settings and partial loading option.
+     * 
+     * @param websocketUrl WebSocket server URL (e.g., "ws://localhost:8080")
+     * @param pollIntervalMs Polling interval in milliseconds
+     * @param partialLoading If true, only nodes/edges visited by agents are sent to the visualizer
+     */
+    public void enableGraphosaurusVisualization(String websocketUrl, long pollIntervalMs, boolean partialLoading) {
         if (graphosaurusListener != null) {
             MASSBase.getLogger().warning("Graphosaurus visualization already enabled");
             return;
@@ -2465,9 +2478,10 @@ public class GraphPlaces extends Places implements Graph {
 
         try {
             graphosaurusListener = new edu.uw.bothell.css.dsl.MASS.graph.GraphosaurusListener(
-                this, websocketUrl, pollIntervalMs
+                this, websocketUrl, pollIntervalMs, partialLoading
             );
-            MASSBase.getLogger().debug("Graphosaurus visualization enabled: " + websocketUrl);
+            MASSBase.getLogger().debug("Graphosaurus visualization enabled: " + websocketUrl +
+                (partialLoading ? " (partial loading)" : " (full graph)"));
         } catch (Exception e) {
             MASSBase.getLogger().error("Failed to enable Graphosaurus visualization", e);
         }

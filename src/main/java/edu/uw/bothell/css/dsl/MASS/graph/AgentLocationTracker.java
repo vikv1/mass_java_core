@@ -30,8 +30,10 @@
 
 package edu.uw.bothell.css.dsl.MASS.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -60,6 +62,21 @@ public class AgentLocationTracker {
     private final Set<String> sentEdges;
 
     /**
+     * Ordered visit history for each agent: agentId -> list of visited vertex IDs
+     */
+    private final Map<Integer, List<Object>> agentVisitHistory;
+
+    /**
+     * Assigned color for each agent: agentId -> color
+     */
+    private final Map<Integer, Integer> agentColors;
+
+    /**
+     * IDs of agents that were removed (but whose history we still keep)
+     */
+    private final Set<Integer> removedAgents;
+
+    /**
      * Random color generator for agents
      */
     private final Random random;
@@ -71,6 +88,9 @@ public class AgentLocationTracker {
         this.agentLocations = new HashMap<>();
         this.sentVertices = new HashSet<>();
         this.sentEdges = new HashSet<>();
+        this.agentVisitHistory = new HashMap<>();
+        this.agentColors = new HashMap<>();
+        this.removedAgents = new HashSet<>();
         this.random = new Random();
     }
 
@@ -86,27 +106,45 @@ public class AgentLocationTracker {
         Object previousLocation = agentLocations.get(agentId);
 
         if (previousLocation == null) {
-            // New agent spawned
             agentLocations.put(agentId, vertexId);
+            agentVisitHistory.computeIfAbsent(agentId, k -> new ArrayList<>()).add(vertexId);
             return new AgentChange(AgentChangeType.SPAWNED, agentId, vertexId, null);
         } else if (!previousLocation.equals(vertexId)) {
-            // Agent moved to different vertex
             agentLocations.put(agentId, vertexId);
+            agentVisitHistory.computeIfAbsent(agentId, k -> new ArrayList<>()).add(vertexId);
             return new AgentChange(AgentChangeType.MOVED, agentId, vertexId, previousLocation);
         } else {
-            // Agent still at same location
             return new AgentChange(AgentChangeType.UNCHANGED, agentId, vertexId, previousLocation);
         }
     }
 
     /**
-     * Mark agent as removed from the system
+     * Mark agent as removed from the system.
+     * Visit history and color are preserved so the agent list can show
+     * every agent that has ever existed in the graph.
      * 
      * @param agentId The ID of the removed agent
      * @return The vertex where the agent was last located, or null if not tracked
      */
     public Object removeAgent(int agentId) {
+        removedAgents.add(agentId);
         return agentLocations.remove(agentId);
+    }
+
+    /**
+     * @return true if the agent was tracked at some point but has since been removed
+     */
+    public boolean isRemoved(int agentId) {
+        return removedAgents.contains(agentId);
+    }
+
+    /**
+     * Get IDs of all agents that have ever been tracked (active + removed).
+     */
+    public Set<Integer> getAllEverTrackedAgentIds() {
+        Set<Integer> all = new HashSet<>(agentLocations.keySet());
+        all.addAll(removedAgents);
+        return all;
     }
 
     /**
@@ -152,12 +190,34 @@ public class AgentLocationTracker {
     }
 
     /**
-     * Generate a random color for an agent (in RGB hex format)
+     * Generate a random color for an agent and store it.
      * 
+     * @param agentId The agent to assign a color to
      * @return Color as integer (e.g., 0xFF0000 for red)
+     */
+    public int generateAndStoreColor(int agentId) {
+        int color = random.nextInt(0xFFFFFF);
+        agentColors.put(agentId, color);
+        return color;
+    }
+
+    /**
+     * Generate a random color (without storing).
+     * 
+     * @return Color as integer
      */
     public int generateRandomColor() {
         return random.nextInt(0xFFFFFF);
+    }
+
+    /**
+     * Get the stored color for an agent.
+     * 
+     * @param agentId The agent ID
+     * @return Color as integer, or -1 if not assigned
+     */
+    public int getAgentColor(int agentId) {
+        return agentColors.getOrDefault(agentId, -1);
     }
 
     /**
@@ -180,12 +240,56 @@ public class AgentLocationTracker {
     }
 
     /**
+     * Get the visit history for a specific agent.
+     * 
+     * @param agentId The agent ID
+     * @return Ordered list of visited vertex IDs, or empty list if none
+     */
+    public List<Object> getAgentVisitHistory(int agentId) {
+        return agentVisitHistory.getOrDefault(agentId, new ArrayList<>());
+    }
+
+    /**
+     * Get all agent locations (snapshot).
+     * 
+     * @return Map of agentId to current vertexId
+     */
+    public Map<Integer, Object> getAllAgentLocations() {
+        return new HashMap<>(agentLocations);
+    }
+
+    /**
+     * Get all agent visit histories (snapshot).
+     * 
+     * @return Map of agentId to ordered list of visited vertex IDs
+     */
+    public Map<Integer, List<Object>> getAllAgentHistories() {
+        Map<Integer, List<Object>> snapshot = new HashMap<>();
+        for (Map.Entry<Integer, List<Object>> entry : agentVisitHistory.entrySet()) {
+            snapshot.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return snapshot;
+    }
+
+    /**
+     * Get all agent colors (snapshot).
+     * 
+     * @return Map of agentId to color
+     */
+    public Map<Integer, Integer> getAllAgentColors() {
+        return new HashMap<>(agentColors);
+    }
+
+    /**
      * Clear all tracking data
      */
     public void clear() {
         agentLocations.clear();
         sentVertices.clear();
         sentEdges.clear();
+        agentVisitHistory.clear();
+        agentColors.clear();
+        removedAgents.clear();
     }
 
     /**

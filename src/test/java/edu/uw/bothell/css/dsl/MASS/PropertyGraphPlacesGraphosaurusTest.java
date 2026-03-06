@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -236,6 +237,160 @@ public class PropertyGraphPlacesGraphosaurusTest extends AbstractTest {
         // Cleanup
         graph.disableGraphosaurusVisualization();
         System.out.println("\nTest completed.");
+    }
+
+    /**
+     * Test partial loading mode where only agent-visited nodes/edges are sent.
+     * Builds a 200-node grid graph, then spawns several agents that walk
+     * random paths, revealing nodes and edges incrementally.
+     */
+    @Test
+    public void propertyGraphWithPartialLoading() throws Exception {
+        System.out.println("=== Partial Loading Graphosaurus Test (200 nodes) ===\n");
+        
+        PropertyGraphPlaces graph = new PropertyGraphPlaces(0, PropertyVertexPlace.class.getName());
+        
+        System.out.println("Enabling Property Graphosaurus visualization with partial loading...");
+        graph.enablePropertyGraphosaurusVisualization("ws://localhost:8080", 500, true);
+        assertTrue(graph.isGraphosaurusEnabled(), "Graphosaurus should be enabled");
+        
+        // --- Build a 200-node graph in a 20x10 grid ---------------------------
+        int cols = 10, rows = 10;
+        int totalNodes = cols * rows;
+        String[] nodeIds = new String[totalNodes];
+        
+        System.out.println("Creating " + totalNodes + " nodes...");
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int idx = r * cols + c;
+                String id = "n" + idx;
+                nodeIds[idx] = id.toLowerCase();
+                Map<String, String> props = new HashMap<>();
+                props.put("name", "Node " + idx);
+                props.put("row", String.valueOf(r));
+                props.put("col", String.valueOf(c));
+                graph.addPropertyVertex(id, Arrays.asList("Grid"), props);
+            }
+        }
+        
+        System.out.println("Creating grid edges...");
+        int edgeCount = 0;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int idx = r * cols + c;
+                // right neighbor
+                if (c + 1 < cols) {
+                    graph.setRelationEdge(nodeIds[idx], nodeIds[idx + 1],
+                            Arrays.asList("GRID"), new HashMap<>());
+                    edgeCount++;
+                }
+                // bottom neighbor
+                if (r + 1 < rows) {
+                    graph.setRelationEdge(nodeIds[idx], nodeIds[(r + 1) * cols + c],
+                            Arrays.asList("GRID"), new HashMap<>());
+                    edgeCount++;
+                }
+            }
+        }
+        System.out.println("Graph ready: " + totalNodes + " nodes, " + edgeCount + " edges (not yet sent to visualizer).\n");
+        
+        // --- Spawn 3 agents and walk them along random grid paths -------------
+        Random rng = new Random(42);
+        int agentCount = 10;
+        int stepsPerAgent = 100;
+        TestAgent[] agents = new TestAgent[agentCount];
+        int[] agentRow = new int[agentCount];
+        int[] agentCol = new int[agentCount];
+        
+        for (int a = 0; a < agentCount; a++) {
+            int startR = rng.nextInt(rows);
+            int startC = rng.nextInt(cols);
+            agentRow[a] = startR;
+            agentCol[a] = startC;
+            
+            String startId = nodeIds[startR * cols + startC];
+            VertexPlace startVertex = graph.getVertex(startId);
+            assertNotNull(startVertex, "Start vertex " + startId + " should exist");
+            
+            agents[a] = new TestAgent(a + 1);
+            agents[a].setPlacePublic(startVertex);
+            startVertex.getAgents().add(agents[a]);
+            System.out.println("Spawned agent-" + (a + 1) + " at " + startId);
+        }
+        
+        Thread.sleep(2000);
+        
+        for (int step = 0; step < stepsPerAgent; step++) {
+            for (int a = 0; a < agentCount; a++) {
+                // Pick a random adjacent cell (up/down/left/right)
+                int nr = agentRow[a], nc = agentCol[a];
+                switch (rng.nextInt(4)) {
+                    case 0: nr = Math.max(0, nr - 1); break;
+                    case 1: nr = Math.min(rows - 1, nr + 1); break;
+                    case 2: nc = Math.max(0, nc - 1); break;
+                    case 3: nc = Math.min(cols - 1, nc + 1); break;
+                }
+                if (nr == agentRow[a] && nc == agentCol[a]) continue;
+                
+                String fromId = nodeIds[agentRow[a] * cols + agentCol[a]];
+                String toId = nodeIds[nr * cols + nc];
+                
+                VertexPlace from = graph.getVertex(fromId);
+                VertexPlace to = graph.getVertex(toId);
+                
+                from.getAgents().remove(agents[a]);
+                agents[a].setPlacePublic(to);
+                to.getAgents().add(agents[a]);
+                
+                agentRow[a] = nr;
+                agentCol[a] = nc;
+                
+                if (step % 5 == 0) {
+                    System.out.println("  step " + step + ": agent-" + (a + 1) + " " + fromId + " -> " + toId);
+                }
+            }
+            Thread.sleep(1000);
+        }
+        
+        // Remove two agents and keep one alive to test agent-history persistence
+        for (int a = 0; a < agentCount - 1; a++) {
+            String locId = nodeIds[agentRow[a] * cols + agentCol[a]];
+            VertexPlace loc = graph.getVertex(locId);
+            loc.getAgents().remove(agents[a]);
+            System.out.println("Removed agent-" + (a + 1) + " from " + locId);
+        }
+        
+        System.out.println("\nWaiting 20 seconds for frontend inspection...");
+        Thread.sleep(20000);
+        
+        // Remove last agent
+        String lastLocId = nodeIds[agentRow[agentCount - 1] * cols + agentCol[agentCount - 1]];
+        VertexPlace lastLoc = graph.getVertex(lastLocId);
+        lastLoc.getAgents().remove(agents[agentCount - 1]);
+        System.out.println("Removed last agent");
+        
+        Thread.sleep(5000);
+        
+        graph.disableGraphosaurusVisualization();
+        System.out.println("\nPartial loading test completed.");
+    }
+
+    /**
+     * Simple agent subclass for test-driven visualization.
+     */
+    static class TestAgent extends Agent {
+        public TestAgent(int id) {
+            setAgentId(id);
+        }
+
+        @Override
+        public Object callMethod(int functionId, Object argument) {
+            return null;
+        }
+
+        public void setPlacePublic(Place place) {
+            super.setPlace(place);
+        }
     }
 
     /**

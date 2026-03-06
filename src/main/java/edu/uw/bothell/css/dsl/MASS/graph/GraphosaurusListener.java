@@ -31,8 +31,12 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -66,8 +70,13 @@ public class GraphosaurusListener implements MASSListener {
     protected final String websocketUrl;
     protected final long pollIntervalMs;
 
+    protected final boolean partialLoading;
+
+    protected final ConcurrentLinkedQueue<String> messageQueue;
+
     protected GraphosaurusWebSocketClient wsClient;
     protected Thread pollingThread;
+    protected Thread senderThread;
     protected volatile boolean running = false;
 
     /**
@@ -76,7 +85,7 @@ public class GraphosaurusListener implements MASSListener {
      * @param graphPlaces The GraphPlaces instance to monitor
      */
     public GraphosaurusListener(GraphPlaces graphPlaces) {
-        this(graphPlaces, DEFAULT_WEBSOCKET_URL, DEFAULT_POLL_INTERVAL_MS);
+        this(graphPlaces, DEFAULT_WEBSOCKET_URL, DEFAULT_POLL_INTERVAL_MS, false);
     }
 
     /**
@@ -87,6 +96,19 @@ public class GraphosaurusListener implements MASSListener {
      * @param pollIntervalMs Polling interval in milliseconds
      */
     public GraphosaurusListener(GraphPlaces graphPlaces, String websocketUrl, long pollIntervalMs) {
+        this(graphPlaces, websocketUrl, pollIntervalMs, false);
+    }
+
+    /**
+     * Constructor with custom settings and partial loading option
+     * 
+     * @param graphPlaces The GraphPlaces instance to monitor
+     * @param websocketUrl WebSocket server URL
+     * @param pollIntervalMs Polling interval in milliseconds
+     * @param partialLoading If true, skip sending the full graph on connect;
+     *                       nodes and edges are only sent as agents visit them
+     */
+    public GraphosaurusListener(GraphPlaces graphPlaces, String websocketUrl, long pollIntervalMs, boolean partialLoading) {
         this.massLogger = MASSBase.getLogger();
         this.graph = graphPlaces;
         this.graphPlaces = graphPlaces;
@@ -94,6 +116,8 @@ public class GraphosaurusListener implements MASSListener {
         this.gson = new Gson();
         this.websocketUrl = websocketUrl;
         this.pollIntervalMs = pollIntervalMs;
+        this.partialLoading = partialLoading;
+        this.messageQueue = new ConcurrentLinkedQueue<>();
 
         initializeConnection();
     }
@@ -109,18 +133,28 @@ public class GraphosaurusListener implements MASSListener {
 
             massLogger.debug("Graphosaurus listener connecting to: " + websocketUrl);
 
-            // Wait briefly for connection to establish, then send full graph
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1000); // Wait for WebSocket to connect
-                    sendFullGraph();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
+            // Wait briefly for connection to establish, then send full graph (unless partial loading)
+            if (!partialLoading) {
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                        sendFullGraph();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }).start();
+            } else {
+                massLogger.debug("Partial loading enabled - skipping initial full graph send");
+            }
+
+            running = true;
+
+            // Start async message sender thread
+            senderThread = new Thread(new MessageSenderRunnable(), "GraphosaurusSenderThread");
+            senderThread.setDaemon(true);
+            senderThread.start();
 
             // Start polling thread
-            running = true;
             pollingThread = new Thread(new PollingRunnable(), "GraphosaurusPollingThread");
             pollingThread.setDaemon(true);
             pollingThread.start();
@@ -151,13 +185,14 @@ public class GraphosaurusListener implements MASSListener {
                 }
             }
 
-            // Second pass: send all edges
+            // Second pass: send all edges (resolve neighbor IDs to model-level IDs)
+            List<VertexModel> allVertices = graphModel.getVertices();
             int edgeCount = 0;
-            for (VertexModel vertex : graphModel.getVertices()) {
+            for (VertexModel vertex : allVertices) {
                 if (vertex.id != null && vertex.neighbors != null) {
                     String fromId = String.valueOf(vertex.id);
                     for (Object neighborId : vertex.neighbors) {
-                        String toId = String.valueOf(neighborId);
+                        String toId = resolveNeighborId(neighborId, allVertices);
                         if (!tracker.hasEdgeBeenSent(fromId, toId)) {
                             sendEdge(fromId, toId);
                             tracker.markEdgeAsSent(fromId, toId);
@@ -186,11 +221,35 @@ public class GraphosaurusListener implements MASSListener {
             }
         }
 
+        if (senderThread != null) {
+            try {
+                senderThread.join(5000);
+            } catch (InterruptedException e) {
+                massLogger.error("Error stopping sender thread", e);
+            }
+        }
+
+        // Drain any remaining messages before closing
+        drainQueue();
+
         if (wsClient != null) {
             wsClient.close();
         }
 
         massLogger.debug("Graphosaurus listener stopped");
+    }
+
+    private void drainQueue() {
+        if (wsClient == null || !wsClient.isOpen()) return;
+        String json;
+        while ((json = messageQueue.poll()) != null) {
+            try {
+                wsClient.send(json);
+            } catch (Exception e) {
+                massLogger.error("Error draining message queue", e);
+                break;
+            }
+        }
     }
 
     @Override
@@ -199,21 +258,17 @@ public class GraphosaurusListener implements MASSListener {
     }
 
     /**
-     * Send a message to Graphosaurus server
+     * Enqueue a message for async delivery to the Graphosaurus server.
+     * The dedicated sender thread drains the queue and sends over WebSocket.
      * 
      * @param message The message object to send
      */
     protected void sendMessage(GraphosaurusMessage message) {
-        if (wsClient != null && wsClient.isOpen()) {
-            try {
-                String json = gson.toJson(message);
-                wsClient.send(json);
-                System.out.println("[Graphosaurus] Sent: " + message.getType());
-            } catch (Exception e) {
-                massLogger.error("Error sending message to Graphosaurus", e);
-            }
-        } else {
-            System.out.println("[Graphosaurus] WebSocket not connected, can't send: " + message.getType());
+        try {
+            String json = gson.toJson(message);
+            messageQueue.offer(json);
+        } catch (Exception e) {
+            massLogger.error("Error serializing message for Graphosaurus", e);
         }
     }
 
@@ -223,53 +278,95 @@ public class GraphosaurusListener implements MASSListener {
      * 
      * @param vertexId The vertex ID to send
      */
-    private void sendGraphStructureForVertex(Object vertexId) {
+    protected void sendGraphStructureForVertex(Object vertexId) {
         try {
-            // Get the full graph model
             GraphModel graphModel = graph.getGraph();
             
             if (graphModel == null || graphModel.getVertices() == null) {
                 return;
             }
 
-            // Find the vertex in the model (use string comparison for reliable ID matching)
+            List<VertexModel> allVertices = graphModel.getVertices();
             String vertexIdStr = String.valueOf(vertexId);
-            for (VertexModel vertex : graphModel.getVertices()) {
-                if (vertex.id != null && String.valueOf(vertex.id).equals(vertexIdStr)) {
-                    // Send vertex if not already sent
-                    if (!tracker.hasVertexBeenSent(vertexIdStr)) {
-                        sendVertex(vertex);
-                        tracker.markVertexAsSent(vertexIdStr);
-                    }
 
-                    // Send edges to neighbors if not already sent
-                    if (vertex.neighbors != null) {
-                        for (Object neighborId : vertex.neighbors) {
-                            String neighborIdStr = String.valueOf(neighborId);
-                            if (!tracker.hasEdgeBeenSent(vertexIdStr, neighborIdStr)) {
-                                sendEdge(vertexIdStr, neighborIdStr);
-                                tracker.markEdgeAsSent(vertexIdStr, neighborIdStr);
-                            }
+            for (VertexModel vertex : allVertices) {
+                if (vertex.id == null || !String.valueOf(vertex.id).equals(vertexIdStr)) {
+                    continue;
+                }
 
-                            // Also send neighbor vertex if not already sent
-                            if (!tracker.hasVertexBeenSent(neighborIdStr)) {
-                                // Find and send the neighbor vertex
-                                for (VertexModel neighbor : graphModel.getVertices()) {
-                                    if (neighbor.id != null && String.valueOf(neighbor.id).equals(neighborIdStr)) {
-                                        sendVertex(neighbor);
-                                        tracker.markVertexAsSent(neighborIdStr);
-                                        break;
-                                    }
-                                }
+                // 1) Send the vertex itself
+                if (!tracker.hasVertexBeenSent(vertexIdStr)) {
+                    sendVertex(vertex);
+                    tracker.markVertexAsSent(vertexIdStr);
+                }
+
+                if (vertex.neighbors == null) break;
+
+                // 2) Send all neighbor vertices first (so the frontend knows
+                //    both endpoints before it receives the edge)
+                List<String> resolvedNeighborIds = new ArrayList<>();
+                for (Object rawNeighborId : vertex.neighbors) {
+                    String neighborIdStr = resolveNeighborId(rawNeighborId, allVertices);
+                    resolvedNeighborIds.add(neighborIdStr);
+
+                    if (!tracker.hasVertexBeenSent(neighborIdStr)) {
+                        for (VertexModel neighbor : allVertices) {
+                            if (neighbor.id != null && String.valueOf(neighbor.id).equals(neighborIdStr)) {
+                                sendVertex(neighbor);
+                                tracker.markVertexAsSent(neighborIdStr);
+                                break;
                             }
                         }
                     }
-                    break;
                 }
+
+                // 3) Now send all edges
+                for (String neighborIdStr : resolvedNeighborIds) {
+                    if (!tracker.hasEdgeBeenSent(vertexIdStr, neighborIdStr)) {
+                        sendEdge(vertexIdStr, neighborIdStr);
+                        tracker.markEdgeAsSent(vertexIdStr, neighborIdStr);
+                    }
+                }
+
+                break;
             }
         } catch (Exception e) {
             massLogger.error("Error sending graph structure for vertex: " + vertexId, e);
         }
+    }
+
+    /**
+     * Resolve a raw neighbor ID (often a MASS-internal integer) to the same
+     * format used as vertex.id in the GraphModel.  For PropertyGraphPlaces the
+     * model uses the reverse-looked-up attribute string (e.g. "nodea") while
+     * neighbors still store the raw integer index; this helper bridges the gap.
+     */
+    protected String resolveNeighborId(Object rawNeighborId, List<VertexModel> vertices) {
+        // The distributed_map is keyed Object -> Integer, where the value is
+        // the MASS-internal vertex index.  reverseLookup takes an Integer value
+        // and returns the original Object key (e.g. "nodea").
+        Integer intKey = null;
+        if (rawNeighborId instanceof Integer) {
+            intKey = (Integer) rawNeighborId;
+        } else if (rawNeighborId instanceof Number) {
+            intKey = ((Number) rawNeighborId).intValue();
+        }
+
+        if (intKey != null) {
+            Object resolved = MASSBase.distributed_map.reverseLookup(intKey);
+            if (resolved != null) {
+                return String.valueOf(resolved);
+            }
+        }
+
+        // Fallback: if the rawId already matches a vertex id in the model, use it as-is
+        String rawStr = String.valueOf(rawNeighborId);
+        for (VertexModel v : vertices) {
+            if (v.id != null && String.valueOf(v.id).equals(rawStr)) {
+                return rawStr;
+            }
+        }
+        return rawStr;
     }
 
     /**
@@ -318,9 +415,55 @@ public class GraphosaurusListener implements MASSListener {
     }
 
     /**
+     * Runnable that drains the message queue and sends over WebSocket.
+     * Batches up to MAX_DRAIN messages per cycle, then sleeps briefly
+     * to allow natural batching when many messages are produced at once.
+     */
+    private class MessageSenderRunnable implements Runnable {
+        private static final int MAX_DRAIN_PER_CYCLE = 50;
+        private static final long SEND_INTERVAL_MS = 20;
+
+        @Override
+        public void run() {
+            massLogger.debug("Graphosaurus sender thread started");
+
+            while (running) {
+                try {
+                    int sent = 0;
+                    String json;
+                    while (sent < MAX_DRAIN_PER_CYCLE && (json = messageQueue.poll()) != null) {
+                        if (wsClient != null && wsClient.isOpen()) {
+                            wsClient.send(json);
+                            sent++;
+                        } else {
+                            // Re-enqueue if not connected
+                            messageQueue.offer(json);
+                            break;
+                        }
+                    }
+                    if (sent > 0) {
+                        System.out.println("[Graphosaurus] Sender dispatched " + sent + " messages");
+                    }
+                    Thread.sleep(SEND_INTERVAL_MS);
+                } catch (InterruptedException e) {
+                    massLogger.debug("Sender thread interrupted");
+                    break;
+                } catch (Exception e) {
+                    massLogger.error("Error in sender loop", e);
+                }
+            }
+
+            massLogger.debug("Graphosaurus sender thread stopped");
+        }
+    }
+
+    /**
      * Runnable for polling agent locations
      */
     private class PollingRunnable implements Runnable {
+        private int pollCycleCount = 0;
+        private static final int AGENT_LIST_SEND_INTERVAL = 5;
+
         @Override
         public void run() {
             massLogger.debug("Graphosaurus polling thread started");
@@ -354,14 +497,11 @@ public class GraphosaurusListener implements MASSListener {
                 Set<Integer> currentAgents = new HashSet<>();
                 int vertexCount = graphModel.getVertices().size();
                 int totalAgentsFound = 0;
+                boolean hadChanges = false;
 
-                // Iterate through all vertices in the graph
                 for (VertexModel vertex : graphModel.getVertices()) {
                     Object vertexId = vertex.id;
                     
-                    // Get the actual VertexPlace to access agents
-                    // Note: This requires access to the underlying PlacesBase
-                    // We'll need to get agents through the graph interface
                     Set<Agent> agentsAtVertex = getAgentsAtVertex(vertexId);
                     
                     if (agentsAtVertex != null && !agentsAtVertex.isEmpty()) {
@@ -375,11 +515,10 @@ public class GraphosaurusListener implements MASSListener {
 
                             switch (change.getType()) {
                                 case SPAWNED:
-                                    // Send graph structure for this vertex
+                                    hadChanges = true;
                                     sendGraphStructureForVertex(vertexId);
                                     
-                                    // Send spawn agent message
-                                    int color = tracker.generateRandomColor();
+                                    int color = tracker.generateAndStoreColor(agentId);
                                     GraphosaurusMessage.SpawnAgentMessage spawnMsg = 
                                         new GraphosaurusMessage.SpawnAgentMessage(
                                             String.valueOf(vertexId),
@@ -392,10 +531,9 @@ public class GraphosaurusListener implements MASSListener {
                                     break;
 
                                 case MOVED:
-                                    // Send graph structure for destination vertex
+                                    hadChanges = true;
                                     sendGraphStructureForVertex(vertexId);
                                     
-                                    // Send move agent message
                                     GraphosaurusMessage.MoveAgentMessage moveMsg = 
                                         new GraphosaurusMessage.MoveAgentMessage(
                                             "agent-" + agentId,
@@ -406,7 +544,6 @@ public class GraphosaurusListener implements MASSListener {
                                     break;
 
                                 case UNCHANGED:
-                                    // No action needed
                                     break;
                             }
                         }
@@ -417,7 +554,7 @@ public class GraphosaurusListener implements MASSListener {
                 Set<Integer> trackedAgents = tracker.getTrackedAgents();
                 for (Integer agentId : trackedAgents) {
                     if (!currentAgents.contains(agentId)) {
-                        // Agent was removed
+                        hadChanges = true;
                         tracker.removeAgent(agentId);
                         GraphosaurusMessage.RemoveAgentMessage removeMsg = 
                             new GraphosaurusMessage.RemoveAgentMessage("agent-" + agentId);
@@ -425,13 +562,47 @@ public class GraphosaurusListener implements MASSListener {
                     }
                 }
 
-                // Log polling summary (use System.out for visibility during testing)
+                // Send agent list periodically or when changes occurred
+                pollCycleCount++;
+                if (hadChanges || (pollCycleCount % AGENT_LIST_SEND_INTERVAL == 0 && !tracker.getAllEverTrackedAgentIds().isEmpty())) {
+                    sendAgentList();
+                }
+
                 if (totalAgentsFound > 0) {
                     System.out.println("[Graphosaurus] Found " + totalAgentsFound + " agents across " + vertexCount + " vertices");
                 }
 
             } catch (Exception e) {
                 massLogger.error("Error polling agent locations", e);
+            }
+        }
+
+        private void sendAgentList() {
+            Map<Integer, Object> locations = tracker.getAllAgentLocations();
+            Map<Integer, List<Object>> histories = tracker.getAllAgentHistories();
+            Map<Integer, Integer> colors = tracker.getAllAgentColors();
+            Set<Integer> allIds = tracker.getAllEverTrackedAgentIds();
+
+            List<GraphosaurusMessage.AgentSummary> summaries = new ArrayList<>();
+            for (Integer agentId : allIds) {
+                List<String> historyStrs = new ArrayList<>();
+                List<Object> history = histories.getOrDefault(agentId, new ArrayList<>());
+                for (Object v : history) {
+                    historyStrs.add(String.valueOf(v));
+                }
+                Object currentLoc = locations.get(agentId);
+                boolean removed = tracker.isRemoved(agentId);
+                summaries.add(new GraphosaurusMessage.AgentSummary(
+                    "agent-" + agentId,
+                    currentLoc != null ? String.valueOf(currentLoc) : null,
+                    colors.getOrDefault(agentId, 0xFFFF00),
+                    historyStrs,
+                    removed
+                ));
+            }
+
+            if (!summaries.isEmpty()) {
+                sendMessage(new GraphosaurusMessage.AgentListMessage(summaries));
             }
         }
 

@@ -549,6 +549,17 @@ public class PropertyGraphPlaces extends GraphPlaces {
      * @param pollIntervalMs Polling interval in milliseconds
      */
     public void enablePropertyGraphosaurusVisualization(String websocketUrl, long pollIntervalMs) {
+        enablePropertyGraphosaurusVisualization(websocketUrl, pollIntervalMs, false);
+    }
+
+    /**
+     * Enable property graph visualization with custom settings and partial loading option.
+     * 
+     * @param websocketUrl WebSocket server URL
+     * @param pollIntervalMs Polling interval in milliseconds
+     * @param partialLoading If true, only nodes/edges visited by agents are sent to the visualizer
+     */
+    public void enablePropertyGraphosaurusVisualization(String websocketUrl, long pollIntervalMs, boolean partialLoading) {
         if (graphosaurusListener != null) {
             MASSBase.getLogger().warning("Graphosaurus visualization already enabled");
             return;
@@ -556,9 +567,10 @@ public class PropertyGraphPlaces extends GraphPlaces {
 
         try {
             graphosaurusListener = new edu.uw.bothell.css.dsl.MASS.graph.PropertyGraphosaurusListener(
-                this, websocketUrl, pollIntervalMs
+                this, websocketUrl, pollIntervalMs, partialLoading
             );
-            MASSBase.getLogger().debug("Property Graphosaurus visualization enabled: " + websocketUrl);
+            MASSBase.getLogger().debug("Property Graphosaurus visualization enabled: " + websocketUrl +
+                (partialLoading ? " (partial loading)" : " (full graph)"));
         } catch (Exception e) {
             MASSBase.getLogger().error("Failed to enable Property Graphosaurus visualization", e);
         }
