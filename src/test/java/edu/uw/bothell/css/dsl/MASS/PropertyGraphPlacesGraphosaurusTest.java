@@ -40,6 +40,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -55,8 +56,9 @@ import org.junit.jupiter.api.Test;
  * 3. Run this test
  * 4. Click on nodes and edges in the visualization to see their properties
  */
+@Disabled("Manual integration test suite: requires local Graphosaurus server/frontend.")
 public class PropertyGraphPlacesGraphosaurusTest extends AbstractTest {
-    
+
     @BeforeAll
     public static void beforeAll() {
         resetMASSBase();

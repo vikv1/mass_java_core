@@ -31,10 +31,11 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.uw.bothell.css.dsl.MASS.PropertyGraphModel;
 import edu.uw.bothell.css.dsl.MASS.PropertyGraphPlaces;
@@ -69,8 +70,8 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
     };
 
     // Map to track label -> color assignments
-    private final Map<String, Integer> labelColorMap = new HashMap<>();
-    private int nextColorIndex = 0;
+    private final Map<String, Integer> labelColorMap = new ConcurrentHashMap<>();
+    private final AtomicInteger nextColorIndex = new AtomicInteger(0);
 
     // Reference to the PropertyGraphPlaces
     private final PropertyGraphPlaces propertyGraphPlaces;
@@ -118,14 +119,14 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
         try {
             PropertyGraphModel graphModel = propertyGraphPlaces.getPropertyGraph();
             if (graphModel == null || graphModel.getPropertyVertices() == null) {
-                System.out.println("[PropertyGraphosaurus] No property graph data to send");
+                massLogger.debug("PropertyGraphosaurus full graph send skipped: no property graph data");
                 // Fall back to parent implementation for non-property graphs
                 super.sendFullGraph();
                 return;
             }
 
             List<PropertyVertexModel> vertices = graphModel.getPropertyVertices();
-            System.out.println("[PropertyGraphosaurus] Sending property graph: " + vertices.size() + " vertices");
+            massLogger.debug("PropertyGraphosaurus sending property graph with " + vertices.size() + " vertices");
 
             // First pass: send all vertices with their properties
             for (PropertyVertexModel vertex : vertices) {
@@ -157,7 +158,7 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
                 }
             }
 
-            System.out.println("[PropertyGraphosaurus] Sent " + edgeCount + " edges with relationship data");
+            massLogger.debug("PropertyGraphosaurus sent " + edgeCount + " edges with relationship data");
 
         } catch (Exception e) {
             massLogger.error("Error sending property graph", e);
@@ -220,9 +221,6 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
         // Determine edge color based on relationship type
         int edgeColor = getColorForRelationType(relationTypes);
         
-        System.out.println("[PropertyGraphosaurus] Sending edge: " + fromId + " -> " + toId + 
-            " [types: " + relationTypes + ", props: " + relationProperties + "]");
-
         GraphosaurusMessage.AddEdgeMessage message = 
             new GraphosaurusMessage.AddEdgeMessage(fromId, toId, edgeColor);
         
@@ -259,8 +257,8 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
         String primaryLabel = labels.iterator().next().toLowerCase();
         
         if (!labelColorMap.containsKey(primaryLabel)) {
-            labelColorMap.put(primaryLabel, LABEL_COLORS[nextColorIndex % LABEL_COLORS.length]);
-            nextColorIndex++;
+            int index = nextColorIndex.getAndIncrement();
+            labelColorMap.put(primaryLabel, LABEL_COLORS[index % LABEL_COLORS.length]);
         }
         
         return labelColorMap.get(primaryLabel);
@@ -282,14 +280,14 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
         
         if (!labelColorMap.containsKey("rel_" + primaryType)) {
             // Use darker colors for edges
-            int baseColor = LABEL_COLORS[nextColorIndex % LABEL_COLORS.length];
+            int index = nextColorIndex.getAndIncrement();
+            int baseColor = LABEL_COLORS[index % LABEL_COLORS.length];
             // Darken the color by reducing RGB values
             int r = ((baseColor >> 16) & 0xFF) * 3 / 4;
             int g = ((baseColor >> 8) & 0xFF) * 3 / 4;
             int b = (baseColor & 0xFF) * 3 / 4;
             int darkColor = (r << 16) | (g << 8) | b;
             labelColorMap.put("rel_" + primaryType, darkColor);
-            nextColorIndex++;
         }
         
         return labelColorMap.get("rel_" + primaryType);

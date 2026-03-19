@@ -36,7 +36,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -61,6 +64,10 @@ public class GraphosaurusListener implements MASSListener {
     protected static final long DEFAULT_POLL_INTERVAL_MS = 500;
     protected static final String DEFAULT_AGENT_SHAPE = "sphere";
     protected static final double DEFAULT_MOVE_SPEED = 1.0;
+    protected static final int DEFAULT_MAX_QUEUE_SIZE = 20000;
+    protected static final long DEFAULT_INITIAL_SYNC_DELAY_MS = 1000;
+    protected static final boolean DEFAULT_GLOBAL_POLLING = false;
+    protected static final boolean DEFAULT_RESYNC_ON_RECONNECT = true;
 
     protected final Log4J2Logger massLogger;
     protected final Graph graph;
@@ -71,13 +78,20 @@ public class GraphosaurusListener implements MASSListener {
     protected final long pollIntervalMs;
 
     protected final boolean partialLoading;
+    protected final int maxQueueSize;
+    protected final long initialSyncDelayMs;
+    protected final boolean pollGlobalGraph;
+    protected final boolean resyncOnReconnect;
 
     protected final ConcurrentLinkedQueue<String> messageQueue;
+    protected final AtomicInteger queuedMessages;
+    protected final AtomicLong droppedMessages;
 
     protected GraphosaurusWebSocketClient wsClient;
     protected Thread pollingThread;
     protected Thread senderThread;
     protected volatile boolean running = false;
+    protected volatile boolean fullGraphSyncCompleted = false;
 
     /**
      * Constructor with default settings
@@ -117,7 +131,13 @@ public class GraphosaurusListener implements MASSListener {
         this.websocketUrl = websocketUrl;
         this.pollIntervalMs = pollIntervalMs;
         this.partialLoading = partialLoading;
+        this.maxQueueSize = getIntProperty("graphosaurus.queue.max", DEFAULT_MAX_QUEUE_SIZE);
+        this.initialSyncDelayMs = getLongProperty("graphosaurus.sync.delay.ms", DEFAULT_INITIAL_SYNC_DELAY_MS);
+        this.pollGlobalGraph = getBooleanProperty("graphosaurus.poll.global", DEFAULT_GLOBAL_POLLING);
+        this.resyncOnReconnect = getBooleanProperty("graphosaurus.resync.on.reconnect", DEFAULT_RESYNC_ON_RECONNECT);
         this.messageQueue = new ConcurrentLinkedQueue<>();
+        this.queuedMessages = new AtomicInteger(0);
+        this.droppedMessages = new AtomicLong(0);
 
         initializeConnection();
     }
@@ -127,27 +147,12 @@ public class GraphosaurusListener implements MASSListener {
      */
     protected void initializeConnection() {
         try {
+            running = true;
             URI serverUri = new URI(websocketUrl);
             wsClient = new GraphosaurusWebSocketClient(serverUri);
             wsClient.connect();
 
             massLogger.debug("Graphosaurus listener connecting to: " + websocketUrl);
-
-            // Wait briefly for connection to establish, then send full graph (unless partial loading)
-            if (!partialLoading) {
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1000);
-                        sendFullGraph();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }).start();
-            } else {
-                massLogger.debug("Partial loading enabled - skipping initial full graph send");
-            }
-
-            running = true;
 
             // Start async message sender thread
             senderThread = new Thread(new MessageSenderRunnable(), "GraphosaurusSenderThread");
@@ -171,11 +176,11 @@ public class GraphosaurusListener implements MASSListener {
         try {
             GraphModel graphModel = graph.getGraph();
             if (graphModel == null || graphModel.getVertices() == null) {
-                System.out.println("[Graphosaurus] No graph data to send");
+                massLogger.debug("Graphosaurus full graph send skipped: no graph data");
                 return;
             }
 
-            System.out.println("[Graphosaurus] Sending full graph: " + graphModel.getVertices().size() + " vertices");
+            massLogger.debug("Graphosaurus sending full graph with " + graphModel.getVertices().size() + " vertices");
 
             // First pass: send all vertices
             for (VertexModel vertex : graphModel.getVertices()) {
@@ -202,7 +207,10 @@ public class GraphosaurusListener implements MASSListener {
                 }
             }
 
-            System.out.println("[Graphosaurus] Sent " + edgeCount + " edges");
+            massLogger.debug("Graphosaurus sent " + edgeCount + " edges");
+            if (!allVertices.isEmpty()) {
+                fullGraphSyncCompleted = true;
+            }
 
         } catch (Exception e) {
             massLogger.error("Error sending full graph", e);
@@ -212,6 +220,12 @@ public class GraphosaurusListener implements MASSListener {
     @Override
     public void finish() {
         running = false;
+        if (pollingThread != null) {
+            pollingThread.interrupt();
+        }
+        if (senderThread != null) {
+            senderThread.interrupt();
+        }
         
         if (pollingThread != null) {
             try {
@@ -243,6 +257,7 @@ public class GraphosaurusListener implements MASSListener {
         if (wsClient == null || !wsClient.isOpen()) return;
         String json;
         while ((json = messageQueue.poll()) != null) {
+            queuedMessages.decrementAndGet();
             try {
                 wsClient.send(json);
             } catch (Exception e) {
@@ -266,9 +281,54 @@ public class GraphosaurusListener implements MASSListener {
     protected void sendMessage(GraphosaurusMessage message) {
         try {
             String json = gson.toJson(message);
-            messageQueue.offer(json);
+            enqueueMessage(json);
         } catch (Exception e) {
             massLogger.error("Error serializing message for Graphosaurus", e);
+        }
+    }
+
+    private void enqueueMessage(String json) {
+        if (json == null) {
+            return;
+        }
+
+        while (queuedMessages.get() >= maxQueueSize) {
+            String dropped = messageQueue.poll();
+            if (dropped == null) {
+                break;
+            }
+            queuedMessages.decrementAndGet();
+            long droppedCount = droppedMessages.incrementAndGet();
+            if (droppedCount == 1 || droppedCount % 1000 == 0) {
+                massLogger.warning("Graphosaurus queue overflow; dropped messages=" + droppedCount);
+            }
+        }
+
+        messageQueue.offer(json);
+        queuedMessages.incrementAndGet();
+    }
+
+    protected boolean getBooleanProperty(String key, boolean defaultValue) {
+        return Boolean.parseBoolean(System.getProperty(key, Boolean.toString(defaultValue)));
+    }
+
+    protected int getIntProperty(String key, int defaultValue) {
+        String value = System.getProperty(key, Integer.toString(defaultValue));
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            massLogger.warning("Invalid integer value for " + key + ": " + value + ". Using default " + defaultValue);
+            return defaultValue;
+        }
+    }
+
+    protected long getLongProperty(String key, long defaultValue) {
+        String value = System.getProperty(key, Long.toString(defaultValue));
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            massLogger.warning("Invalid long value for " + key + ": " + value + ". Using default " + defaultValue);
+            return defaultValue;
         }
     }
 
@@ -280,7 +340,7 @@ public class GraphosaurusListener implements MASSListener {
      */
     protected void sendGraphStructureForVertex(Object vertexId) {
         try {
-            GraphModel graphModel = graph.getGraph();
+            GraphModel graphModel = getStructureGraphModel();
             
             if (graphModel == null || graphModel.getVertices() == null) {
                 return;
@@ -333,6 +393,14 @@ public class GraphosaurusListener implements MASSListener {
         } catch (Exception e) {
             massLogger.error("Error sending graph structure for vertex: " + vertexId, e);
         }
+    }
+
+    /**
+     * Returns the graph model used when sending structure updates.
+     * For scalability, local polling mode avoids rebuilding a full distributed graph.
+     */
+    protected GraphModel getStructureGraphModel() {
+        return pollGlobalGraph ? graph.getGraph() : graphPlaces.getGraph(false);
     }
 
     /**
@@ -405,13 +473,243 @@ public class GraphosaurusListener implements MASSListener {
 
         String fromId = String.valueOf(fromVertex);
         String toId = String.valueOf(toVertex);
-        
-        System.out.println("[Graphosaurus] Sending edge: " + fromId + " -> " + toId);
 
         GraphosaurusMessage.AddEdgeMessage message = 
             new GraphosaurusMessage.AddEdgeMessage(fromId, toId, edgeColor);
         
         sendMessage(message);
+    }
+
+    /**
+     * Build and send a complete agent list snapshot.
+     */
+    protected void sendAgentList() {
+        Map<Integer, Object> locations = tracker.getAllAgentLocations();
+        Map<Integer, List<Object>> histories = tracker.getAllAgentHistories();
+        Map<Integer, Integer> colors = tracker.getAllAgentColors();
+        Set<Integer> allIds = tracker.getAllEverTrackedAgentIds();
+
+        List<GraphosaurusMessage.AgentSummary> summaries = new ArrayList<>();
+        for (Integer agentId : allIds) {
+            List<String> historyStrs = new ArrayList<>();
+            List<Object> history = histories.getOrDefault(agentId, new ArrayList<>());
+            for (Object v : history) {
+                historyStrs.add(String.valueOf(v));
+            }
+            Object currentLoc = locations.get(agentId);
+            boolean removed = tracker.isRemoved(agentId);
+            summaries.add(new GraphosaurusMessage.AgentSummary(
+                "agent-" + agentId,
+                currentLoc != null ? String.valueOf(currentLoc) : null,
+                colors.getOrDefault(agentId, 0xFFFF00),
+                historyStrs,
+                removed
+            ));
+        }
+
+        if (!summaries.isEmpty()) {
+            sendMessage(new GraphosaurusMessage.AgentListMessage(summaries));
+        }
+    }
+
+    /**
+     * On reconnect, resend enough state so the frontend can recover.
+     */
+    protected void resyncFrontendStateAsync() {
+        Thread resyncThread = new Thread(() -> {
+            try {
+                Thread.sleep(initialSyncDelayMs);
+                if (!running) {
+                    return;
+                }
+
+                tracker.clearSentGraphState();
+                fullGraphSyncCompleted = false;
+                if (!partialLoading) {
+                    sendFullGraph();
+                }
+                sendCurrentAgentsAsSpawns();
+                sendAgentList();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                massLogger.error("Error resyncing Graphosaurus frontend state", e);
+            }
+        }, "GraphosaurusResyncThread");
+        resyncThread.setDaemon(true);
+        resyncThread.start();
+    }
+
+    protected void sendCurrentAgentsAsSpawns() {
+        Map<Integer, Object> activeLocations = tracker.getAllAgentLocations();
+        for (Map.Entry<Integer, Object> entry : activeLocations.entrySet()) {
+            int agentId = entry.getKey();
+            Object vertexId = entry.getValue();
+            if (vertexId == null) {
+                continue;
+            }
+
+            sendGraphStructureForVertex(vertexId);
+
+            int color = tracker.getAgentColor(agentId);
+            if (color < 0) {
+                color = tracker.generateAndStoreColor(agentId);
+            }
+            GraphosaurusMessage.SpawnAgentMessage spawnMsg =
+                new GraphosaurusMessage.SpawnAgentMessage(
+                    String.valueOf(vertexId),
+                    "agent-" + agentId,
+                    color,
+                    DEFAULT_AGENT_SHAPE
+                );
+            spawnMsg.addData("agentId", agentId);
+            sendMessage(spawnMsg);
+        }
+    }
+
+    protected PollResult pollAgentsFromGlobalGraphModel() {
+        PollResult result = new PollResult();
+        GraphModel graphModel = graph.getGraph();
+        if (graphModel == null || graphModel.getVertices() == null) {
+            return result;
+        }
+
+        result.vertexCount = graphModel.getVertices().size();
+        for (VertexModel vertex : graphModel.getVertices()) {
+            Object vertexId = vertex.id;
+            Set<Agent> agentsAtVertex = getAgentsAtVertex(vertexId);
+            processAgentsAtVertex(vertexId, agentsAtVertex, result);
+        }
+        return result;
+    }
+
+    protected PollResult pollAgentsFromLocalPlaces() {
+        PollResult result = new PollResult();
+        Vector<VertexPlace> localPlaces = graphPlaces.getGraphPlaces();
+        if (localPlaces == null) {
+            return result;
+        }
+
+        result.vertexCount = localPlaces.size();
+        for (VertexPlace vertex : localPlaces) {
+            if (vertex == null) {
+                continue;
+            }
+            Object vertexId = resolveVertexModelId(vertex);
+            if (vertexId == null) {
+                continue;
+            }
+            processAgentsAtVertex(vertexId, vertex.getAgents(), result);
+        }
+        return result;
+    }
+
+    private void processAgentsAtVertex(Object vertexId, Set<Agent> agentsAtVertex, PollResult result) {
+        if (agentsAtVertex == null || agentsAtVertex.isEmpty()) {
+            return;
+        }
+
+        result.totalAgentsFound += agentsAtVertex.size();
+        for (Agent agent : agentsAtVertex) {
+            int agentId = agent.getAgentId();
+            result.currentAgents.add(agentId);
+
+            AgentLocationTracker.AgentChange change = tracker.updateAgentLocation(agent, vertexId);
+            switch (change.getType()) {
+                case SPAWNED:
+                    result.hadChanges = true;
+                    sendGraphStructureForVertex(vertexId);
+
+                    int color = tracker.generateAndStoreColor(agentId);
+                    GraphosaurusMessage.SpawnAgentMessage spawnMsg =
+                        new GraphosaurusMessage.SpawnAgentMessage(
+                            String.valueOf(vertexId),
+                            "agent-" + agentId,
+                            color,
+                            DEFAULT_AGENT_SHAPE
+                        );
+                    spawnMsg.addData("agentId", agentId);
+                    sendMessage(spawnMsg);
+                    break;
+
+                case MOVED:
+                    result.hadChanges = true;
+                    sendGraphStructureForVertex(vertexId);
+
+                    GraphosaurusMessage.MoveAgentMessage moveMsg =
+                        new GraphosaurusMessage.MoveAgentMessage(
+                            "agent-" + agentId,
+                            String.valueOf(vertexId),
+                            DEFAULT_MOVE_SPEED
+                        );
+                    sendMessage(moveMsg);
+                    break;
+
+                case UNCHANGED:
+                    break;
+            }
+        }
+    }
+
+    protected void processRemovedAgents(Set<Integer> currentAgents, PollResult result) {
+        Set<Integer> trackedAgents = tracker.getTrackedAgents();
+        for (Integer agentId : trackedAgents) {
+            if (!currentAgents.contains(agentId)) {
+                result.hadChanges = true;
+                tracker.removeAgent(agentId);
+                GraphosaurusMessage.RemoveAgentMessage removeMsg =
+                    new GraphosaurusMessage.RemoveAgentMessage("agent-" + agentId);
+                sendMessage(removeMsg);
+            }
+        }
+    }
+
+    protected Set<Agent> getAgentsAtVertex(Object vertexId) {
+        try {
+            VertexPlace vertex = null;
+
+            int intId = -1;
+            if (vertexId instanceof Number) {
+                intId = ((Number) vertexId).intValue();
+            } else if (vertexId instanceof String) {
+                try {
+                    intId = Integer.parseInt((String) vertexId);
+                } catch (NumberFormatException e) {
+                    vertex = graphPlaces.getVertex(vertexId);
+                }
+            }
+
+            if (intId >= 0 && vertex == null) {
+                vertex = graphPlaces.getVertex(intId);
+            }
+
+            if (vertex != null) {
+                return vertex.getAgents();
+            }
+        } catch (Exception e) {
+            massLogger.debug("Error getting agents at vertex " + vertexId + ": " + e.getMessage());
+        }
+        return null;
+    }
+
+    protected Object resolveVertexModelId(VertexPlace vertex) {
+        try {
+            if (vertex.getIndex() == null || vertex.getIndex().length == 0) {
+                return null;
+            }
+            int internalId = vertex.getIndex()[0];
+            Object modelId = MASSBase.distributed_map.reverseLookup(internalId);
+            return modelId != null ? modelId : internalId;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    protected static class PollResult {
+        protected final Set<Integer> currentAgents = new HashSet<>();
+        protected int vertexCount = 0;
+        protected int totalAgentsFound = 0;
+        protected boolean hadChanges = false;
     }
 
     /**
@@ -429,20 +727,23 @@ public class GraphosaurusListener implements MASSListener {
 
             while (running) {
                 try {
+                    if (wsClient == null || !wsClient.isOpen()) {
+                        Thread.sleep(SEND_INTERVAL_MS);
+                        continue;
+                    }
+
                     int sent = 0;
                     String json;
                     while (sent < MAX_DRAIN_PER_CYCLE && (json = messageQueue.poll()) != null) {
-                        if (wsClient != null && wsClient.isOpen()) {
+                        queuedMessages.decrementAndGet();
+                        try {
                             wsClient.send(json);
                             sent++;
-                        } else {
-                            // Re-enqueue if not connected
-                            messageQueue.offer(json);
+                        } catch (Exception sendError) {
+                            enqueueMessage(json);
+                            massLogger.debug("WebSocket send failed; message re-queued");
                             break;
                         }
-                    }
-                    if (sent > 0) {
-                        System.out.println("[Graphosaurus] Sender dispatched " + sent + " messages");
                     }
                     Thread.sleep(SEND_INTERVAL_MS);
                 } catch (InterruptedException e) {
@@ -470,6 +771,9 @@ public class GraphosaurusListener implements MASSListener {
 
             while (running) {
                 try {
+                    if (!partialLoading && !fullGraphSyncCompleted && wsClient != null && wsClient.isOpen()) {
+                        sendFullGraph();
+                    }
                     pollAgentLocations();
                     Thread.sleep(pollIntervalMs);
                 } catch (InterruptedException e) {
@@ -483,165 +787,22 @@ public class GraphosaurusListener implements MASSListener {
             massLogger.debug("Graphosaurus polling thread stopped");
         }
 
-        /**
-         * Poll all agents on VertexPlaces and send updates
-         */
         private void pollAgentLocations() {
             try {
-                GraphModel graphModel = graph.getGraph();
-                if (graphModel == null || graphModel.getVertices() == null) {
-                    massLogger.debug("GraphModel is null or has no vertices");
-                    return;
-                }
-
-                Set<Integer> currentAgents = new HashSet<>();
-                int vertexCount = graphModel.getVertices().size();
-                int totalAgentsFound = 0;
-                boolean hadChanges = false;
-
-                for (VertexModel vertex : graphModel.getVertices()) {
-                    Object vertexId = vertex.id;
-                    
-                    Set<Agent> agentsAtVertex = getAgentsAtVertex(vertexId);
-                    
-                    if (agentsAtVertex != null && !agentsAtVertex.isEmpty()) {
-                        totalAgentsFound += agentsAtVertex.size();
-                        for (Agent agent : agentsAtVertex) {
-                            int agentId = agent.getAgentId();
-                            currentAgents.add(agentId);
-
-                            AgentLocationTracker.AgentChange change = 
-                                tracker.updateAgentLocation(agent, vertexId);
-
-                            switch (change.getType()) {
-                                case SPAWNED:
-                                    hadChanges = true;
-                                    sendGraphStructureForVertex(vertexId);
-                                    
-                                    int color = tracker.generateAndStoreColor(agentId);
-                                    GraphosaurusMessage.SpawnAgentMessage spawnMsg = 
-                                        new GraphosaurusMessage.SpawnAgentMessage(
-                                            String.valueOf(vertexId),
-                                            "agent-" + agentId,
-                                            color,
-                                            DEFAULT_AGENT_SHAPE
-                                        );
-                                    spawnMsg.addData("agentId", agentId);
-                                    sendMessage(spawnMsg);
-                                    break;
-
-                                case MOVED:
-                                    hadChanges = true;
-                                    sendGraphStructureForVertex(vertexId);
-                                    
-                                    GraphosaurusMessage.MoveAgentMessage moveMsg = 
-                                        new GraphosaurusMessage.MoveAgentMessage(
-                                            "agent-" + agentId,
-                                            String.valueOf(vertexId),
-                                            DEFAULT_MOVE_SPEED
-                                        );
-                                    sendMessage(moveMsg);
-                                    break;
-
-                                case UNCHANGED:
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-                // Check for removed agents
-                Set<Integer> trackedAgents = tracker.getTrackedAgents();
-                for (Integer agentId : trackedAgents) {
-                    if (!currentAgents.contains(agentId)) {
-                        hadChanges = true;
-                        tracker.removeAgent(agentId);
-                        GraphosaurusMessage.RemoveAgentMessage removeMsg = 
-                            new GraphosaurusMessage.RemoveAgentMessage("agent-" + agentId);
-                        sendMessage(removeMsg);
-                    }
-                }
+                PollResult result = pollGlobalGraph
+                    ? pollAgentsFromGlobalGraphModel()
+                    : pollAgentsFromLocalPlaces();
+                processRemovedAgents(result.currentAgents, result);
 
                 // Send agent list periodically or when changes occurred
                 pollCycleCount++;
-                if (hadChanges || (pollCycleCount % AGENT_LIST_SEND_INTERVAL == 0 && !tracker.getAllEverTrackedAgentIds().isEmpty())) {
+                if (result.hadChanges || (pollCycleCount % AGENT_LIST_SEND_INTERVAL == 0 && !tracker.getAllEverTrackedAgentIds().isEmpty())) {
                     sendAgentList();
-                }
-
-                if (totalAgentsFound > 0) {
-                    System.out.println("[Graphosaurus] Found " + totalAgentsFound + " agents across " + vertexCount + " vertices");
                 }
 
             } catch (Exception e) {
                 massLogger.error("Error polling agent locations", e);
             }
-        }
-
-        private void sendAgentList() {
-            Map<Integer, Object> locations = tracker.getAllAgentLocations();
-            Map<Integer, List<Object>> histories = tracker.getAllAgentHistories();
-            Map<Integer, Integer> colors = tracker.getAllAgentColors();
-            Set<Integer> allIds = tracker.getAllEverTrackedAgentIds();
-
-            List<GraphosaurusMessage.AgentSummary> summaries = new ArrayList<>();
-            for (Integer agentId : allIds) {
-                List<String> historyStrs = new ArrayList<>();
-                List<Object> history = histories.getOrDefault(agentId, new ArrayList<>());
-                for (Object v : history) {
-                    historyStrs.add(String.valueOf(v));
-                }
-                Object currentLoc = locations.get(agentId);
-                boolean removed = tracker.isRemoved(agentId);
-                summaries.add(new GraphosaurusMessage.AgentSummary(
-                    "agent-" + agentId,
-                    currentLoc != null ? String.valueOf(currentLoc) : null,
-                    colors.getOrDefault(agentId, 0xFFFF00),
-                    historyStrs,
-                    removed
-                ));
-            }
-
-            if (!summaries.isEmpty()) {
-                sendMessage(new GraphosaurusMessage.AgentListMessage(summaries));
-            }
-        }
-
-        /**
-         * Get agents at a specific vertex
-         * This is a helper method to access agents from the graph
-         * 
-         * @param vertexId The vertex ID
-         * @return Set of agents at the vertex, or null if not accessible
-         */
-        private Set<Agent> getAgentsAtVertex(Object vertexId) {
-            try {
-                VertexPlace vertex = null;
-                
-                // Convert to int for direct lookup (bypasses distributed_map)
-                int intId = -1;
-                if (vertexId instanceof Number) {
-                    intId = ((Number) vertexId).intValue();
-                } else if (vertexId instanceof String) {
-                    try {
-                        intId = Integer.parseInt((String) vertexId);
-                    } catch (NumberFormatException e) {
-                        // Not a numeric string, try object lookup
-                        vertex = graphPlaces.getVertex(vertexId);
-                    }
-                }
-                
-                // Use int version if we have a valid int ID
-                if (intId >= 0 && vertex == null) {
-                    vertex = graphPlaces.getVertex(intId);
-                }
-                
-                if (vertex != null) {
-                    return vertex.getAgents();
-                }
-            } catch (Exception e) {
-                massLogger.debug("Error getting agents at vertex " + vertexId + ": " + e.getMessage());
-            }
-            return null;
         }
     }
 
@@ -657,6 +818,9 @@ public class GraphosaurusListener implements MASSListener {
         @Override
         public void onOpen(ServerHandshake handshake) {
             massLogger.debug("Connected to Graphosaurus server");
+            if (resyncOnReconnect) {
+                resyncFrontendStateAsync();
+            }
         }
 
         @Override
@@ -674,6 +838,8 @@ public class GraphosaurusListener implements MASSListener {
                 try {
                     Thread.sleep(5000);
                     reconnect();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     massLogger.error("Failed to reconnect to Graphosaurus", e);
                 }

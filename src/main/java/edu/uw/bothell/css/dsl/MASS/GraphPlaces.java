@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -201,6 +200,7 @@ public class GraphPlaces extends Places implements Graph {
 
         if (myPid == 0) {
             init_graph_master();
+            initializeGraphosaurusFromConfig();
         }
     }
 
@@ -1772,30 +1772,37 @@ public class GraphPlaces extends Places implements Graph {
      */
     protected int loadNodesFromCSV(String filePath) throws IOException {
         Path path = Paths.get(filePath);
-        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
-        String line;
         int nodeCount = 0;
-        
-        // Skip header row
-        br.readLine();
-        
-        while ((line = br.readLine()) != null) {
-            if (line.trim().isEmpty()) continue;
-            
-            String[] parts = line.split("\\|");
-            String nodeId = parts[0].trim();  // e.g., "node_0"
-            
-            // Strip "node_" prefix if present to get just the numeric ID
-            String strippedId = stripNodePrefix(nodeId);
-            
-            // Add the vertex
-            int result = addVertex(strippedId);
-            if (result >= 0) {
-                nodeCount++;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
+            String line;
+
+            // Skip header row
+            br.readLine();
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split("\\|", -1);
+                if (parts.length == 0 || parts[0].trim().isEmpty()) {
+                    continue;
+                }
+
+                String nodeId = parts[0].trim();  // e.g., "node_0"
+
+                // Strip "node_" prefix if present to get just the numeric ID
+                String strippedId = stripNodePrefix(nodeId);
+
+                // Add the vertex
+                int result = addVertex(strippedId);
+                if (result >= 0) {
+                    nodeCount++;
+                }
             }
         }
-        br.close();
-        
+
         return nodeCount;
     }
     
@@ -1818,48 +1825,55 @@ public class GraphPlaces extends Places implements Graph {
      */
     protected int loadEdgesFromCSV(String filePath) throws IOException {
         Path path = Paths.get(filePath);
-        BufferedReader br = new BufferedReader(new FileReader(path.toString()));
-        String line;
         int edgeCount = 0;
         int failedCount = 0;
-        
-        // Skip header row
-        br.readLine();
-        
-        while ((line = br.readLine()) != null) {
-            if (line.trim().isEmpty()) continue;
-            
-            String[] parts = line.split("\\|");
-            String fromNode = stripNodePrefix(parts[0].trim());  // e.g., "node_18239" -> "18239"
-            String toNode = stripNodePrefix(parts[1].trim());    // e.g., "node_29457" -> "29457"
-            
-            // Check if nodes exist in the distributed map
-            int sourceId = MASSBase.distributed_map.getOrDefault(fromNode, -1);
-            int destinationId = MASSBase.distributed_map.getOrDefault(toNode, -1);
-            
-            if (sourceId == -1 || destinationId == -1) {
-                failedCount++;
-                if (failedCount <= 5) {
-                    MASS.getLogger().warning("Edge skipped - node not found: from='" + fromNode + 
-                        "' (exists=" + (sourceId != -1) + "), to='" + toNode + 
-                        "' (exists=" + (destinationId != -1) + ")");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
+            String line;
+
+            // Skip header row
+            br.readLine();
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
                 }
-                continue;
-            }
-            
-            // Extract weight from properties if available
-            double weight = DEFAULT_EDGE_WEIGHT;
-            if (parts.length > 3 && !parts[3].trim().isEmpty()) {
-                weight = extractWeightFromProperties(parts[3].trim());
-            }
-            
-            // Add edge between nodes using internal IDs
-            if (addEdge(sourceId, destinationId, weight)) {
-                edgeCount++;
+
+                String[] parts = line.split("\\|", -1);
+                if (parts.length < 2) {
+                    continue;
+                }
+
+                String fromNode = stripNodePrefix(parts[0].trim());  // e.g., "node_18239" -> "18239"
+                String toNode = stripNodePrefix(parts[1].trim());    // e.g., "node_29457" -> "29457"
+
+                // Check if nodes exist in the distributed map
+                int sourceId = MASSBase.distributed_map.getOrDefault(fromNode, -1);
+                int destinationId = MASSBase.distributed_map.getOrDefault(toNode, -1);
+
+                if (sourceId == -1 || destinationId == -1) {
+                    failedCount++;
+                    if (failedCount <= 5) {
+                        MASS.getLogger().warning("Edge skipped - node not found: from='" + fromNode
+                            + "' (exists=" + (sourceId != -1) + "), to='" + toNode
+                            + "' (exists=" + (destinationId != -1) + ")");
+                    }
+                    continue;
+                }
+
+                // Extract weight from properties if available
+                double weight = DEFAULT_EDGE_WEIGHT;
+                if (parts.length > 3 && !parts[3].trim().isEmpty()) {
+                    weight = extractWeightFromProperties(parts[3].trim());
+                }
+
+                // Add edge between nodes using internal IDs
+                if (addEdge(sourceId, destinationId, weight)) {
+                    edgeCount++;
+                }
             }
         }
-        br.close();
-        
+
         if (failedCount > 0) {
             MASS.getLogger().warning("Total edges skipped due to missing nodes: " + failedCount);
         }
@@ -2426,6 +2440,9 @@ public class GraphPlaces extends Places implements Graph {
      * - graphosaurus.websocket.url: WebSocket server URL (default: ws://localhost:8080)
      * - graphosaurus.poll.interval: Polling interval in ms (default: 500)
      * - graphosaurus.partial.loading: "true" to only send visited nodes/edges (default: false)
+     * - graphosaurus.poll.global: "true" to poll full distributed graph each cycle (default: false)
+     * - graphosaurus.queue.max: max buffered websocket messages before dropping oldest (default: 20000)
+     * - graphosaurus.resync.on.reconnect: "true" to resend graph/agents after reconnect (default: true)
      */
     private void initializeGraphosaurusFromConfig() {
         String enabled = System.getProperty("graphosaurus.enabled", "false");

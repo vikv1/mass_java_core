@@ -31,12 +31,14 @@
 package edu.uw.bothell.css.dsl.MASS.graph;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.uw.bothell.css.dsl.MASS.Agent;
 
@@ -85,12 +87,12 @@ public class AgentLocationTracker {
      * Constructor initializes tracking data structures
      */
     public AgentLocationTracker() {
-        this.agentLocations = new HashMap<>();
-        this.sentVertices = new HashSet<>();
-        this.sentEdges = new HashSet<>();
-        this.agentVisitHistory = new HashMap<>();
-        this.agentColors = new HashMap<>();
-        this.removedAgents = new HashSet<>();
+        this.agentLocations = new ConcurrentHashMap<>();
+        this.sentVertices = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.sentEdges = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.agentVisitHistory = new ConcurrentHashMap<>();
+        this.agentColors = new ConcurrentHashMap<>();
+        this.removedAgents = Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.random = new Random();
     }
 
@@ -290,6 +292,16 @@ public class AgentLocationTracker {
         agentVisitHistory.clear();
         agentColors.clear();
         removedAgents.clear();
+    }
+
+    /**
+     * Clear only graph structure transmission state.
+     * Useful after websocket reconnect so nodes/edges can be resent without
+     * losing tracked agents or visit history.
+     */
+    public void clearSentGraphState() {
+        sentVertices.clear();
+        sentEdges.clear();
     }
 
     /**
