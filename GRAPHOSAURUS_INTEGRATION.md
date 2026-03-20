@@ -39,12 +39,7 @@ The server will start on `ws://localhost:8080` by default.
 
 ### 2. Open Visualization Frontend
 
-Open `message-demo.html` or `agent-demo.html` in a web browser:
-
-```bash
-# Using a browser, open:
-file:///C:/Users/lakes/graphosaurus/message-demo.html
-```
+Open `viewer.html` in a web browser
 
 The frontend will automatically connect to the WebSocket server.
 
