@@ -2,7 +2,7 @@
 
 ## Overview
 
-MASS Java now supports real-time visualization of agent movements through graph structures using Graphosaurus. This integration uses WebSocket communication to stream agent location updates to a browser-based 3D visualization.
+MASS Java now supports 3D visualization of graph structures using Graphosaurus. This integration uses WebSocket communication to stream updates to a browser-based 3D visualization.
 
 ## Architecture
 
@@ -74,10 +74,10 @@ ssh -R 8080:localhost:8080 user@master-node
 
 The `-R 8080:localhost:8080` flag binds port 8080 on the remote master node and forwards any connections to it back through the SSH tunnel to port 8080 on your local machine.
 
-**3. Run your MASS application on the master node:**
+**3. Run MASS application on the master node with the following flag:**
 
 ```bash
-java -Dgraphosaurus.enabled=true -jar your-mass-application.jar
+-Dgraphosaurus.enabled=true
 ```
 
 The `GraphosaurusListener` on the master node connects to `ws://localhost:8080`, which the SSH tunnel routes to the Graphosaurus server on your local machine.
@@ -377,8 +377,6 @@ public class GraphVisualizationExample {
 ## Future Enhancements
 
 Potential improvements for future versions:
-- Support for dynamic graph structure updates
-- Multi-server broadcasting for large-scale deployments
 - Configurable agent colors and shapes based on agent properties
 - Performance metrics overlay (agents/sec, message rate, etc.)
 - Recording and playback of simulations
