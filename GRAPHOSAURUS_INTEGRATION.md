@@ -29,6 +29,7 @@ MASS Java now supports 3D visualization of graph structures using Graphosaurus. 
 ### 1. Start Graphosaurus Server
 
 [MASS Graphosaurus](https://github.com/vikv1/mass-graphosaurus)
+
 Navigate to the Graphosaurus directory and start the WebSocket server:
 
 ```bash
