@@ -58,9 +58,8 @@ The simplest fix is **SSH reverse port forwarding**. This tunnels port 8080 on t
 ### Step-by-Step Remote Workflow
 
 **1. Start the Graphosaurus server on your local machine:**
-
+Link to the frontend repo can be found [here].(https://github.com/vikv1/mass-graphosaurus)
 ```bash
-cd C:\Users\lakes\graphosaurus
 npm install  # (if not already done)
 npm run server
 ```
@@ -86,7 +85,7 @@ The `GraphosaurusListener` on the master node connects to `ws://localhost:8080`,
 **4. Open the visualization in your local browser:**
 
 ```
-file:///C:/Users/lakes/graphosaurus/message-demo.html
+viewer.html
 ```
 
 The browser connects directly to `ws://localhost:8080` on your local machine -- no tunnel needed on this side.
