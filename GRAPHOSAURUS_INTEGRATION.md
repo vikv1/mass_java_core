@@ -28,6 +28,7 @@ MASS Java now supports 3D visualization of graph structures using Graphosaurus. 
 
 ### 1. Start Graphosaurus Server
 
+[MASS Graphosaurus](https://github.com/vikv1/mass-graphosaurus)
 Navigate to the Graphosaurus directory and start the WebSocket server:
 
 ```bash
@@ -52,7 +53,7 @@ The simplest fix is **SSH reverse port forwarding**. This tunnels port 8080 on t
 ### Step-by-Step Remote Workflow
 
 **1. Start the Graphosaurus server on your local machine:**
-Link to the frontend repo can be found [here].(https://github.com/vikv1/mass-graphosaurus)
+Link to the frontend repo can be found [here](https://github.com/vikv1/mass-graphosaurus).
 ```bash
 npm install  # (if not already done)
 npm run server
