@@ -380,7 +380,7 @@ For issues or questions:
 
 ## References
 
-- Graphosaurus GitHub: https://github.com/frewsxcv/graphosaurus
+- Graphosaurus GitHub: https://github.com/vikv1/mass-graphosaurus
 - Graphosaurus Message API: See `MESSAGE_API.md` in the Graphosaurus repository
 - MASS Java Documentation: http://depts.washington.edu/dslab/MASS/
 
