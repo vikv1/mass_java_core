@@ -384,7 +384,7 @@ Potential improvements for future versions:
 ## Support
 
 For issues or questions:
-1. Check Graphosaurus documentation: `C:\Users\lakes\graphosaurus\MESSAGE_API.md`
+1. Check Graphosaurus documentation
 2. Enable debug logging: Set MASS log level to DEBUG
 3. Check WebSocket server logs: Look at console output where `npm run server` is running
 4. Verify network connectivity: Ensure no firewall blocking port 8080
