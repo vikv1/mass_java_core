@@ -31,7 +31,6 @@ MASS Java now supports 3D visualization of graph structures using Graphosaurus. 
 Navigate to the Graphosaurus directory and start the WebSocket server:
 
 ```bash
-cd C:\Users\lakes\graphosaurus
 npm install  # (if not already done)
 npm run server
 ```
