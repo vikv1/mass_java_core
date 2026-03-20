@@ -68,11 +68,14 @@ ssh -R 8080:localhost:8080 user@master-node
 
 The `-R 8080:localhost:8080` flag binds port 8080 on the remote master node and forwards any connections to it back through the SSH tunnel to port 8080 on your local machine.
 
-**3. Run MASS application on the master node with the following flag:**
+**3. Run MASS application on the master node with the following flags:**
 
 ```bash
--Dgraphosaurus.enabled=true
+-Dgraphosaurus.enabled=true \
+-Dgraphosaurus.partial.loading=true
 ```
+
+Partial loading streams vertices and edges only as agents visit them, which is recommended to reduce bandwidth over the tunnel.
 
 The `GraphosaurusListener` on the master node connects to `ws://localhost:8080`, which the SSH tunnel routes to the Graphosaurus server on your local machine.
 
@@ -102,22 +105,6 @@ Your Local Machine                 SSH Tunnel              Master Node (PID 0)
                                                        +-------------------------+
 ```
 
-### Alternative: Custom WebSocket URL
-
-If you prefer to run the Graphosaurus server on a host that is directly reachable from the master node (without tunneling), you can override the URL via system property:
-
-```bash
-java -Dgraphosaurus.enabled=true \
-     -Dgraphosaurus.websocket.url=ws://your-server-host:8080 \
-     -jar your-mass-application.jar
-```
-
-Or programmatically:
-
-```java
-graph.enableGraphosaurusVisualization("ws://your-server-host:8080", 500);
-```
-
 ## Usage
 
 ### Option 1: Programmatic API
@@ -128,11 +115,14 @@ Enable Graphosaurus visualization in your MASS application:
 // Create a GraphPlaces instance
 GraphPlaces graph = new GraphPlaces(handle, className);
 
-// Enable visualization with default settings (ws://localhost:8080, 500ms polling)
+// Enable visualization with default settings (ws://localhost:8080, 500ms polling, full graph)
 graph.enableGraphosaurusVisualization();
 
 // Or use custom settings
 graph.enableGraphosaurusVisualization("ws://localhost:8080", 1000);
+
+// Or enable partial loading (only sends vertices/edges as agents visit them)
+graph.enableGraphosaurusVisualization("ws://localhost:8080", 500, true);
 
 // Your simulation code here...
 // Add vertices, spawn agents, etc.
@@ -146,16 +136,20 @@ graph.disableGraphosaurusVisualization();
 Enable Graphosaurus automatically using system properties when running your MASS application:
 
 ```bash
-java -Dgraphosaurus.enabled=true \
-     -Dgraphosaurus.websocket.url=ws://localhost:8080 \
-     -Dgraphosaurus.poll.interval=500 \
-     -jar your-mass-application.jar
+-Dgraphosaurus.enabled=true \
+-Dgraphosaurus.websocket.url=ws://localhost:8080 \
+-Dgraphosaurus.poll.interval=500 \
+-Dgraphosaurus.partial.loading=true
 ```
 
 **Configuration Properties:**
 - `graphosaurus.enabled`: Set to `true` to enable (default: `false`)
 - `graphosaurus.websocket.url`: WebSocket server URL (default: `ws://localhost:8080`)
 - `graphosaurus.poll.interval`: Polling interval in milliseconds (default: `500`)
+- `graphosaurus.partial.loading`: Set to `true` to only send vertices/edges as agents visit them (default: `false`)
+- `graphosaurus.poll.global`: Set to `true` to poll the full distributed graph each cycle instead of local places only (default: `false`)
+- `graphosaurus.queue.max`: Maximum buffered WebSocket messages before dropping oldest (default: `20000`)
+- `graphosaurus.resync.on.reconnect`: Set to `true` to resend the full graph and agent state after a reconnect (default: `true`)
 
 ### Option 3: Maven Configuration
 
@@ -262,7 +256,6 @@ To optimize bandwidth and improve performance:
 
 **Solution**: Ensure Graphosaurus server is running:
 ```bash
-cd C:\Users\lakes\graphosaurus
 npm run server
 ```
 
@@ -386,6 +379,6 @@ For issues or questions:
 ## References
 
 - Graphosaurus GitHub: https://github.com/frewsxcv/graphosaurus
-- Graphosaurus Message API: `C:\Users\lakes\graphosaurus\MESSAGE_API.md`
+- Graphosaurus Message API: See `MESSAGE_API.md` in the Graphosaurus repository
 - MASS Java Documentation: http://depts.washington.edu/dslab/MASS/
 
