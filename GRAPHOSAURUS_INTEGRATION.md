@@ -49,6 +49,82 @@ file:///C:/Users/lakes/graphosaurus/message-demo.html
 
 The frontend will automatically connect to the WebSocket server.
 
+## Remote Cluster Deployment
+
+MASS runs across multiple computing nodes, but the Graphosaurus visualization listener only runs on the **master node** (PID 0). The default WebSocket URL `ws://localhost:8080` assumes the Graphosaurus server is reachable at `localhost` from the master node. When the master node is a remote machine (e.g., a cluster head node), `localhost` on that machine will not reach the Graphosaurus server running on your local workstation.
+
+The simplest fix is **SSH reverse port forwarding**. This tunnels port 8080 on the remote master node back to port 8080 on your local machine, so the default `ws://localhost:8080` URL works without any code or configuration changes.
+
+### Step-by-Step Remote Workflow
+
+**1. Start the Graphosaurus server on your local machine:**
+
+```bash
+cd C:\Users\lakes\graphosaurus
+npm install  # (if not already done)
+npm run server
+```
+
+The server listens on `ws://localhost:8080`.
+
+**2. SSH into the master node with reverse port forwarding:**
+
+```bash
+ssh -R 8080:localhost:8080 user@master-node
+```
+
+The `-R 8080:localhost:8080` flag binds port 8080 on the remote master node and forwards any connections to it back through the SSH tunnel to port 8080 on your local machine.
+
+**3. Run your MASS application on the master node:**
+
+```bash
+java -Dgraphosaurus.enabled=true -jar your-mass-application.jar
+```
+
+The `GraphosaurusListener` on the master node connects to `ws://localhost:8080`, which the SSH tunnel routes to the Graphosaurus server on your local machine.
+
+**4. Open the visualization in your local browser:**
+
+```
+file:///C:/Users/lakes/graphosaurus/message-demo.html
+```
+
+The browser connects directly to `ws://localhost:8080` on your local machine -- no tunnel needed on this side.
+
+### How It Works
+
+```
+Your Local Machine                 SSH Tunnel              Master Node (PID 0)
++--------------------------+                           +-------------------------+
+| Graphosaurus server.js   |<---- ssh -R 8080 --------| GraphosaurusListener    |
+|   listening on :8080     |      (reverse tunnel)     |   connects to           |
+|                          |                           |   ws://localhost:8080   |
+| Browser                  |                           +-------------------------+
+|   connects to            |                                     |
+|   ws://localhost:8080    |                                     | SSH (JSch)
++--------------------------+                                     v
+                                                       Worker Nodes (PID 1, 2, ...)
+                                                       +-------------------------+
+                                                       | MProcess instances      |
+                                                       +-------------------------+
+```
+
+### Alternative: Custom WebSocket URL
+
+If you prefer to run the Graphosaurus server on a host that is directly reachable from the master node (without tunneling), you can override the URL via system property:
+
+```bash
+java -Dgraphosaurus.enabled=true \
+     -Dgraphosaurus.websocket.url=ws://your-server-host:8080 \
+     -jar your-mass-application.jar
+```
+
+Or programmatically:
+
+```java
+graph.enableGraphosaurusVisualization("ws://your-server-host:8080", 500);
+```
+
 ## Usage
 
 ### Option 1: Programmatic API
