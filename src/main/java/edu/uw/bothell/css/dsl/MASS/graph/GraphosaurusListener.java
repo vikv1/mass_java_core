@@ -65,7 +65,7 @@ public class GraphosaurusListener implements MASSListener {
     protected static final String DEFAULT_AGENT_SHAPE = "sphere";
     protected static final double DEFAULT_MOVE_SPEED = 1.0;
     protected static final int DEFAULT_MAX_QUEUE_SIZE = 20000;
-    protected static final long DEFAULT_INITIAL_SYNC_DELAY_MS = 3000;
+    protected static final long DEFAULT_INITIAL_SYNC_DELAY_MS = 5000;
     protected static final boolean DEFAULT_GLOBAL_POLLING = false;
     protected static final boolean DEFAULT_RESYNC_ON_RECONNECT = true;
 
