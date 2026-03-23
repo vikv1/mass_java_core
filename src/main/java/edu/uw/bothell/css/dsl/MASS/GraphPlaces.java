@@ -2511,7 +2511,7 @@ public class GraphPlaces extends Places implements Graph {
      * - graphosaurus.queue.max: max buffered websocket messages before dropping oldest (default: 20000)
      * - graphosaurus.resync.on.reconnect: "true" to resend graph/agents after reconnect (default: true)
      */
-    private void initializeGraphosaurusFromConfig() {
+    protected void initializeGraphosaurusFromConfig() {
         String enabled = System.getProperty("graphosaurus.enabled", "false");
         
         if ("true".equalsIgnoreCase(enabled)) {

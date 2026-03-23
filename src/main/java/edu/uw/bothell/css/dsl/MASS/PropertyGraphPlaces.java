@@ -531,6 +531,24 @@ public class PropertyGraphPlaces extends GraphPlaces {
         model.print();
     }
 
+    @Override
+    protected void initializeGraphosaurusFromConfig() {
+        String enabled = System.getProperty("graphosaurus.enabled", "false");
+
+        if ("true".equalsIgnoreCase(enabled)) {
+            String url = System.getProperty("graphosaurus.websocket.url", "ws://localhost:8080");
+            String intervalStr = System.getProperty("graphosaurus.poll.interval", "500");
+            boolean partial = "true".equalsIgnoreCase(System.getProperty("graphosaurus.partial.loading", "false"));
+
+            try {
+                long interval = Long.parseLong(intervalStr);
+                enablePropertyGraphosaurusVisualization(url, interval, partial);
+            } catch (NumberFormatException e) {
+                MASSBase.getLogger().error("Invalid graphosaurus.poll.interval value: " + intervalStr, e);
+            }
+        }
+    }
+
     /**
      * Enable property graph visualization using default WebSocket URL.
      * This creates a PropertyGraphosaurusListener that sends node labels,
