@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Vector;
@@ -95,6 +97,11 @@ public class GraphPlaces extends Places implements Graph {
 
     // graphosaurusListener for real-time agent visualization
     protected edu.uw.bothell.css.dsl.MASS.graph.GraphosaurusListener graphosaurusListener = null;
+
+    // Metadata loaded from CSV files, keyed by the node ID string used in addVertex()
+    protected final Map<String, Map<String, String>> csvNodeProperties = new java.util.concurrent.ConcurrentHashMap<>();
+    protected final Map<String, String> csvNodeLabels = new java.util.concurrent.ConcurrentHashMap<>();
+
 
     //Attributes for adding Left and Right node when used as a tree
     protected static int LEFTNODE_ = 1;
@@ -1790,10 +1797,27 @@ public class GraphPlaces extends Places implements Graph {
                     continue;
                 }
 
-                String nodeId = parts[0].trim();  // e.g., "node_0"
+                String nodeId = stripQuotes(parts[0].trim());
 
                 // Strip "node_" prefix if present to get just the numeric ID
                 String strippedId = stripNodePrefix(nodeId);
+
+                // Parse labels (column 2) and properties (column 3) if present
+                if (parts.length > 1) {
+                    String label = stripQuotes(parts[1].trim());
+                    if (!label.isEmpty()) {
+                        csvNodeLabels.put(strippedId, label);
+                    }
+                }
+                if (parts.length > 2) {
+                    String propsStr = stripQuotes(parts[2].trim());
+                    if (!propsStr.isEmpty()) {
+                        Map<String, String> props = parseProperties(propsStr);
+                        if (!props.isEmpty()) {
+                            csvNodeProperties.put(strippedId, props);
+                        }
+                    }
+                }
 
                 // Add the vertex
                 int result = addVertex(strippedId);
@@ -1811,9 +1835,52 @@ public class GraphPlaces extends Places implements Graph {
      */
     private String stripNodePrefix(String nodeId) {
         if (nodeId != null && nodeId.startsWith("node_")) {
-            return nodeId.substring(5);  // Remove "node_" prefix
+            return nodeId.substring(5);
         }
         return nodeId;
+    }
+
+    /**
+     * Remove surrounding double-quote characters from a field value
+     * and trim any interior whitespace that was inside the quotes.
+     */
+    private String stripQuotes(String value) {
+        if (value == null) return null;
+        if (value.startsWith("\"")) value = value.substring(1);
+        if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
+        return value.trim();
+    }
+
+    /**
+     * Parse a comma-separated "key=value, key=value" string into a map.
+     */
+    private Map<String, String> parseProperties(String propsStr) {
+        Map<String, String> props = new LinkedHashMap<>();
+        if (propsStr == null || propsStr.isEmpty()) return props;
+        String[] pairs = propsStr.split(",");
+        for (String pair : pairs) {
+            String[] kv = pair.split("=", 2);
+            if (kv.length == 2) {
+                props.put(kv[0].trim(), kv[1].trim());
+            }
+        }
+        return props;
+    }
+
+    /**
+     * Get CSV-loaded properties for a node by its ID.
+     * Returns null if no properties were loaded for this node.
+     */
+    public Map<String, String> getCsvNodeProperties(String nodeId) {
+        return csvNodeProperties.get(nodeId);
+    }
+
+    /**
+     * Get CSV-loaded label for a node by its ID.
+     * Returns null if no label was loaded for this node.
+     */
+    public String getCsvNodeLabel(String nodeId) {
+        return csvNodeLabels.get(nodeId);
     }
 
     /**
@@ -1844,8 +1911,8 @@ public class GraphPlaces extends Places implements Graph {
                     continue;
                 }
 
-                String fromNode = stripNodePrefix(parts[0].trim());  // e.g., "node_18239" -> "18239"
-                String toNode = stripNodePrefix(parts[1].trim());    // e.g., "node_29457" -> "29457"
+                String fromNode = stripNodePrefix(stripQuotes(parts[0].trim()));
+                String toNode = stripNodePrefix(stripQuotes(parts[1].trim()));
 
                 // Check if nodes exist in the distributed map
                 int sourceId = MASSBase.distributed_map.getOrDefault(fromNode, -1);

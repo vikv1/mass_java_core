@@ -443,23 +443,53 @@ public class GraphosaurusListener implements MASSListener {
      * @param vertex The vertex to send
      */
     protected void sendVertex(VertexModel vertex) {
-        // Generate random position for the vertex (Graphosaurus will layout in 3D)
         double[] position = new double[3];
-        position[0] = Math.random() * 4 - 2;  // Random x between -2 and 2
-        position[1] = Math.random() * 4 - 2;  // Random y between -2 and 2
-        position[2] = Math.random() * 4 - 2;  // Random z between -2 and 2
+        position[0] = Math.random() * 4 - 2;
+        position[1] = Math.random() * 4 - 2;
+        position[2] = Math.random() * 4 - 2;
 
-        int color = 0x888888;  // Gray color for vertices
+        int color = 0x888888;
+        String vertexIdStr = String.valueOf(vertex.id);
+
+        // Check for a CSV label to assign color by type
+        String label = graphPlaces.getCsvNodeLabel(vertexIdStr);
+        if (label != null) {
+            color = labelToColor(label);
+        }
 
         GraphosaurusMessage.AddNodeMessage message = 
-            new GraphosaurusMessage.AddNodeMessage(
-                String.valueOf(vertex.id), 
-                color, 
-                position
-            );
+            new GraphosaurusMessage.AddNodeMessage(vertexIdStr, color, position);
         
         message.addData("vertexId", vertex.id);
+
+        if (label != null) {
+            message.addData("label", label);
+        }
+
+        java.util.Map<String, String> props = graphPlaces.getCsvNodeProperties(vertexIdStr);
+        if (props != null) {
+            for (java.util.Map.Entry<String, String> entry : props.entrySet()) {
+                message.addData(entry.getKey(), entry.getValue());
+            }
+        }
+
         sendMessage(message);
+    }
+
+    /**
+     * Deterministic color from a label string so all nodes with the
+     * same label get the same color.
+     */
+    private int labelToColor(String label) {
+        int hash = label.hashCode();
+        int r = (hash & 0xFF0000) >> 16;
+        int g = (hash & 0x00FF00) >> 8;
+        int b = hash & 0x0000FF;
+        // Ensure the color isn't too dark by boosting low channels
+        r = Math.max(r, 80);
+        g = Math.max(g, 80);
+        b = Math.max(b, 80);
+        return (r << 16) | (g << 8) | b;
     }
 
     /**
