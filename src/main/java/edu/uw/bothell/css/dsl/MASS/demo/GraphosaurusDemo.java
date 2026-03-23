@@ -31,15 +31,10 @@ import edu.uw.bothell.css.dsl.MASS.*;
  * Demo application to test Graphosaurus integration.
  * 
  * BEFORE RUNNING THIS DEMO:
- * 1. Start Graphosaurus server:
- *    cd C:\Users\lakes\graphosaurus
- *    npm run build   (if you haven't rebuilt after adding add_node/add_edge handlers)
- *    npm run server
- * 
- * 2. Open in browser:
- *    file:///C:/Users/lakes/graphosaurus/message-demo.html
- * 
- * 3. Run this demo application
+ * 1. Start Graphosaurus server locally: npm run server
+ * 2. If running on a remote node, SSH in with: ssh -R 8080:localhost:8080 user@remote-node
+ * 3. Open viewer.html in your local browser
+ * 4. Run this demo application
  */
 public class GraphosaurusDemo {
 
@@ -49,8 +44,8 @@ public class GraphosaurusDemo {
         System.out.println("===========================================");
         System.out.println();
         System.out.println("BEFORE RUNNING:");
-        System.out.println("1. Start Graphosaurus server: cd C:\\Users\\lakes\\graphosaurus && npm run server");
-        System.out.println("2. Open browser: file:///C:/Users/lakes/graphosaurus/message-demo.html");
+        System.out.println("1. Start Graphosaurus server locally: npm run server");
+        System.out.println("2. Open viewer.html in your local browser");
         System.out.println();
         System.out.println("Starting in 3 seconds...");
         
