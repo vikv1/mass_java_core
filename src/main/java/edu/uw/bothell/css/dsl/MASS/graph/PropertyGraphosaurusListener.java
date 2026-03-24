@@ -160,6 +160,10 @@ public class PropertyGraphosaurusListener extends GraphosaurusListener {
 
             massLogger.debug("PropertyGraphosaurus sent " + edgeCount + " edges with relationship data");
 
+            if (!vertices.isEmpty()) {
+                fullGraphSyncCompleted = true;
+            }
+
         } catch (Exception e) {
             massLogger.error("Error sending property graph", e);
             // Fall back to parent implementation
