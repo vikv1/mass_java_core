@@ -217,6 +217,15 @@ public class GraphosaurusListener implements MASSListener {
         }
     }
 
+    /**
+     * Signal that the graph structure has changed (new vertices or edges added).
+     * The next poll cycle will re-run sendFullGraph, which only sends items
+     * not already marked as sent by the tracker.
+     */
+    public void notifyGraphChanged() {
+        fullGraphSyncCompleted = false;
+    }
+
     @Override
     public void finish() {
         running = false;

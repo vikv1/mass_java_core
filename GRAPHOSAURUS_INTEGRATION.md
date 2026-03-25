@@ -244,6 +244,17 @@ To optimize bandwidth and improve performance:
 - **Higher values (1000-2000ms)**: Less responsive, lower resource usage
 - **Recommended**: 500ms for most applications
 
+### Multi-Node Setups
+
+By default the poller only scans vertices on the master node (`graphosaurus.poll.global=false`).
+For multi-node MASS runs where agents migrate to remote partitions, enable global polling so the visualizer sees all agents:
+
+```bash
+-Dgraphosaurus.poll.global=true
+```
+
+This calls `graph.getGraph()` each cycle, which merges remote graph data. It is more expensive but necessary for correct agent tracking across nodes.
+
 ### Network Considerations
 
 - Each agent spawn/move sends 1-3 messages (agent + optional graph structure)
@@ -360,7 +371,7 @@ public class GraphVisualizationExample {
 
 - **Master Node Only**: Visualization is enabled only on the master node (PID 0)
 - **Graph Agents Only**: Only agents on `VertexPlace` objects are visualized
-- **Static Graph Structure**: Graph changes (add/remove vertices/edges) after initialization are not sent
+- **Polling-Based**: Agent state is sampled at the poll interval (default 500ms). Agent events that complete faster than one poll cycle will not be observed. Lower the interval with `-Dgraphosaurus.poll.interval=100` for fast simulations.
 - **Single Server**: Currently supports one Graphosaurus server connection per GraphPlaces instance
 
 ## Future Enhancements

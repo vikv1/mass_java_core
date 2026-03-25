@@ -406,9 +406,11 @@ public class GraphPlaces extends Places implements Graph {
         int vertId = this.addVertex();
         MASS.distributed_map.put(vertexId, vertId);
         if (sharedPlaceName != null) {
-            // broadcast to local users
             Message m = new Message(Message.ACTION_TYPE.DSG_DISTRIBUTED_MAP_PUT, MASSBase.getUserName(), vertexId, vertId, sharedPlaceName);
             localMessaging.sendMessage(m);
+        }
+        if (graphosaurusListener != null) {
+            graphosaurusListener.notifyGraphChanged();
         }
         return vertId;
     }
@@ -1029,7 +1031,11 @@ public class GraphPlaces extends Places implements Graph {
             return false;
         }
 
-        return this.addEdge(sourceId, destinationId, weight);
+        boolean result = this.addEdge(sourceId, destinationId, weight);
+        if (result && graphosaurusListener != null) {
+            graphosaurusListener.notifyGraphChanged();
+        }
+        return result;
     }
 
     /**
