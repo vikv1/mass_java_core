@@ -86,6 +86,9 @@ public class PropertyGraphPlaces extends GraphPlaces {
 		}
 
 		MASS.distributed_map.put(itemID, vertexId);
+		if (graphosaurusListener != null) {
+			graphosaurusListener.notifyGraphChanged();
+		}
 		MASS.getLogger().debug("At PropertyGraphPlaces's addPropertyVertex: Added ItemID: " + itemID + ", MASS library vertex ID " + Integer.toString((int) vertexId) + ", labels: " + labels + ": properties: " + properties);
 		return vertexId;
 	}
@@ -233,7 +236,7 @@ public class PropertyGraphPlaces extends GraphPlaces {
             return false; 
         }
 
-        return addTOEdgeOnNode(
+        boolean result = addTOEdgeOnNode(
             getOwnerID(sourceId),
             sourceId,
             destinationId,
@@ -251,6 +254,10 @@ public class PropertyGraphPlaces extends GraphPlaces {
             relationProperties
         );
 
+        if (result && graphosaurusListener != null) {
+            graphosaurusListener.notifyGraphChanged();
+        }
+        return result;
     }
 
     protected boolean addTOEdgeOnNode(int nodeID, int sourceId, int destinationId, Object fromItemID, Object toItemID, List<String> relationTypes, Map<String, String> relationProperties) {
